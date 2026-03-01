@@ -1,0 +1,559 @@
+/**
+ * EFF Theme CSS — Font Loading, Design Tokens, Light/Dark Mode, Base Styles
+ *
+ * All color, typography, and spacing values are expressed as CSS custom
+ * properties so the entire theme responds to a single data-eff-theme
+ * attribute change on .eff-app.
+ *
+ * Scoping: All font overrides and base styles are scoped within .eff-app
+ * to avoid bleeding into WordPress admin chrome outside the EFF panel.
+ *
+ * @package ElementorFrameworkForge
+ * @version 1.0.0
+ */
+
+/* ==========================================================================
+   1. FONT LOADING (Inter — served locally, no external CDN)
+   ========================================================================== */
+
+@font-face {
+	font-family: 'Inter';
+	font-weight: 400;
+	font-style:  normal;
+	font-display: swap;
+	src: url('../../../assets/fonts/Inter-Regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Inter';
+	font-weight: 500;
+	font-style:  normal;
+	font-display: swap;
+	src: url('../../../assets/fonts/Inter-Medium.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Inter';
+	font-weight: 600;
+	font-style:  normal;
+	font-display: swap;
+	src: url('../../../assets/fonts/Inter-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Inter';
+	font-weight: 700;
+	font-style:  normal;
+	font-display: swap;
+	src: url('../../../assets/fonts/Inter-Bold.woff2') format('woff2');
+}
+
+/* ==========================================================================
+   2. GLOBAL DESIGN TOKENS (theme-independent — type scale, spacing, etc.)
+   ========================================================================== */
+
+:root {
+
+	/* Type scale — JimRForge 1.125 Major Second at 1620px viewport */
+	--fs-xxs:   11px;   /* Footnotes */
+	--fs-xs:    13px;   /* Fine print, captions */
+	--fs-sm:    14px;   /* Labels, button text */
+	--fs-md:    16px;   /* Body text — BASE */
+	--fs-lg:    18px;   /* Emphasized text */
+	--fs-xl:    20px;   /* H3 headings */
+	--fs-xxl:   24px;   /* H2 headings */
+	--fs-xxxl:  32px;   /* H1 headings, page titles */
+
+	/* Font weights */
+	--fw-normal:   400;
+	--fw-medium:   500;
+	--fw-semibold: 600;
+	--fw-bold:     700;
+
+	/* Line heights */
+	--fl-md: 1.4;   /* H1, H2 */
+	--fl-lg: 1.2;   /* H3–H6, p, a */
+
+	/* Spacing scale */
+	--sp-1:   4px;
+	--sp-2:   8px;
+	--sp-3:  12px;
+	--sp-4:  16px;
+	--sp-5:  20px;
+	--sp-6:  24px;
+	--sp-8:  32px;
+	--sp-9:  36px;   /* Standard panel padding */
+	--sp-18: 72px;   /* Double padding for inset notices */
+
+	/* Layout */
+	--eff-panel-left-width:      220px;
+	--eff-panel-left-collapsed:   48px;
+	--eff-panel-right-width:     220px;
+	--eff-top-bar-height:         48px;
+	--eff-border-radius:           8px;
+	--eff-border-radius-sm:        4px;
+	--eff-border-radius-md:        6px;
+
+	/* Transitions */
+	--eff-transition:     0.15s ease;
+	--eff-transition-md:  0.25s ease;
+}
+
+/* ==========================================================================
+   3. LIGHT MODE THEME TOKENS
+   ========================================================================== */
+
+[data-eff-theme="light"],
+.eff-app[data-eff-theme="light"] {
+
+	/* Backgrounds — 4-level hierarchy */
+	--eff-bg-page:    #faf6f0;   /* Level 1: Page/panel background */
+	--eff-bg-card:    #ffffff;   /* Level 2: Card/container background */
+	--eff-bg-panel:   #faf9f6;   /* Level 3: Sub-panel background */
+	--eff-bg-field:   #ffffff;   /* Level 4: Input field background */
+
+	/* Primary text colors — deep/medium brown */
+	--eff-clr-primary:    #3d2f1f;   /* Deep brown — headings, button text */
+	--eff-clr-secondary:  #6d4c2f;   /* Medium brown — body text */
+	--eff-clr-tertiary:   #86400e;   /* Accent brown */
+	--eff-clr-muted:      #64748b;   /* Muted/disabled text */
+
+	/* Gold accent */
+	--eff-clr-accent:     #f4c542;   /* Primary accent — buttons, highlights */
+	--eff-clr-accent-hov: #dda824;   /* Accent hover (15% darker) */
+
+	/* Links */
+	--eff-clr-link:       #ce6565;   /* Coral red */
+	--eff-clr-link-hov:   #b54545;   /* Darker coral */
+
+	/* Borders */
+	--eff-clr-border:     #c9b89a;
+
+	/* Shadows */
+	--eff-shadow-sm: 0 1px 2px rgba(61, 47, 31, 0.08);
+	--eff-shadow-md: 0 4px 6px rgba(61, 47, 31, 0.12);
+	--eff-shadow-lg: 0 10px 20px rgba(61, 47, 31, 0.15);
+	--eff-shadow-xl: 0 20px 30px rgba(61, 47, 31, 0.18);
+
+	/* Semantic / status */
+	--eff-clr-success:    #059669;
+	--eff-clr-success-bg: #ecfdf5;
+	--eff-clr-error:      #dc2626;
+	--eff-clr-error-bg:   #fee2e2;
+	--eff-clr-warning:    #f59e0b;
+	--eff-clr-warning-bg: #fef3c7;
+	--eff-clr-info:       #3b82f6;
+	--eff-clr-info-bg:    #dbeafe;
+
+	/* Nav active state */
+	--eff-nav-active-bg:    rgba(244, 197, 66, 0.15);
+	--eff-nav-active-color: #3d2f1f;
+	--eff-nav-hover-bg:     rgba(61, 47, 31, 0.05);
+
+	/* Icon button hover */
+	--eff-icon-btn-hover-bg: rgba(61, 47, 31, 0.08);
+
+	/* Top bar */
+	--eff-top-bar-bg:     #ffffff;
+	--eff-top-bar-border: #e8ddd0;
+
+	/* Modal overlay */
+	--eff-overlay-bg: rgba(61, 47, 31, 0.45);
+}
+
+/* ==========================================================================
+   4. DARK MODE THEME TOKENS
+   ========================================================================== */
+
+[data-eff-theme="dark"],
+.eff-app[data-eff-theme="dark"] {
+
+	/* Backgrounds */
+	--eff-bg-page:    #1a1510;   /* Very dark warm brown */
+	--eff-bg-card:    #231c16;   /* Dark brown card */
+	--eff-bg-panel:   #2a211a;   /* Slightly lighter panel */
+	--eff-bg-field:   #1a1510;   /* Input field */
+
+	/* Text */
+	--eff-clr-primary:    #f0e6d8;   /* Light cream — headings */
+	--eff-clr-secondary:  #c8a98a;   /* Medium tan — body text */
+	--eff-clr-tertiary:   #e07a40;   /* Warm orange accent */
+	--eff-clr-muted:      #6b7280;   /* Muted/disabled */
+
+	/* Gold accent — same in dark mode */
+	--eff-clr-accent:     #f4c542;
+	--eff-clr-accent-hov: #dda824;
+
+	/* Links */
+	--eff-clr-link:       #e08080;   /* Lighter coral for dark bg */
+	--eff-clr-link-hov:   #f09090;
+
+	/* Borders */
+	--eff-clr-border:     #3d2f1f;
+
+	/* Shadows */
+	--eff-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+	--eff-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.40);
+	--eff-shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.50);
+	--eff-shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.60);
+
+	/* Semantic / status — same hues, slightly brighter for dark bg */
+	--eff-clr-success:    #10b981;
+	--eff-clr-success-bg: #064e3b;
+	--eff-clr-error:      #ef4444;
+	--eff-clr-error-bg:   #7f1d1d;
+	--eff-clr-warning:    #f59e0b;
+	--eff-clr-warning-bg: #78350f;
+	--eff-clr-info:       #60a5fa;
+	--eff-clr-info-bg:    #1e3a5f;
+
+	/* Nav */
+	--eff-nav-active-bg:    rgba(244, 197, 66, 0.18);
+	--eff-nav-active-color: #f0e6d8;
+	--eff-nav-hover-bg:     rgba(240, 230, 216, 0.06);
+
+	/* Icon button hover */
+	--eff-icon-btn-hover-bg: rgba(240, 230, 216, 0.08);
+
+	/* Top bar */
+	--eff-top-bar-bg:     #231c16;
+	--eff-top-bar-border: #3d2f1f;
+
+	/* Modal overlay */
+	--eff-overlay-bg: rgba(0, 0, 0, 0.65);
+}
+
+/* ==========================================================================
+   5. BASE ELEMENT STYLES (scoped to .eff-app)
+   ========================================================================== */
+
+/**
+ * Font override — scoped to .eff-app only to avoid bleeding into WP admin.
+ * !important is intentional to override any WP admin font declarations.
+ */
+.eff-app,
+.eff-app * {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+	box-sizing: border-box;
+}
+
+.eff-app {
+	background-color: var(--eff-bg-page);
+	color:            var(--eff-clr-secondary);
+	font-size:        var(--fs-md);
+	font-weight:      var(--fw-normal);
+	line-height:      var(--fl-lg);
+}
+
+/* Headings */
+.eff-app h1 {
+	color:       var(--eff-clr-primary);
+	font-size:   var(--fs-xxxl);
+	font-weight: var(--fw-bold);
+	line-height: var(--fl-md);
+	text-transform: capitalize;
+}
+
+.eff-app h2 {
+	color:       var(--eff-clr-primary);
+	font-size:   var(--fs-xxl);
+	font-weight: var(--fw-bold);
+	line-height: var(--fl-md);
+	text-transform: capitalize;
+}
+
+.eff-app h3,
+.eff-app h4,
+.eff-app h5,
+.eff-app h6 {
+	color:       var(--eff-clr-secondary);
+	font-size:   var(--fs-xl);
+	font-weight: var(--fw-bold);
+	line-height: var(--fl-lg);
+	text-transform: capitalize;
+}
+
+.eff-app p {
+	color:       var(--eff-clr-secondary);
+	font-size:   var(--fs-md);
+	font-weight: var(--fw-normal);
+	line-height: var(--fl-lg);
+}
+
+.eff-app a {
+	color:           var(--eff-clr-link);
+	font-size:       var(--fs-sm);
+	font-weight:     var(--fw-normal);
+	line-height:     var(--fl-lg);
+	font-style:      italic;
+	text-transform:  lowercase;
+	text-decoration: underline;
+	transition:      color var(--eff-transition);
+}
+
+.eff-app a:hover {
+	color: var(--eff-clr-link-hov);
+}
+
+/* ==========================================================================
+   6. FOCUS STATES (WCAG 2.1 AA/AAA — gold outline)
+   ========================================================================== */
+
+.eff-app :focus,
+.eff-app :focus-visible {
+	outline:        2px solid var(--eff-clr-accent) !important;
+	outline-offset: 2px !important;
+	border-radius:  2px;
+}
+
+.eff-app :focus:not(:focus-visible) {
+	outline: none !important;
+}
+
+/* ==========================================================================
+   7. PRIMARY BUTTON (.eff-btn — gold, brown text)
+   ========================================================================== */
+
+.eff-app .eff-btn {
+	display:       inline-flex;
+	align-items:   center;
+	gap:           var(--sp-2);
+	background:    var(--eff-clr-accent);
+	color:         var(--eff-clr-primary);
+	border:        none;
+	border-radius: var(--eff-border-radius);
+	font-size:     var(--fs-sm);
+	font-weight:   var(--fw-semibold);
+	padding:       var(--sp-2) var(--sp-4);
+	cursor:        pointer;
+	transition:    transform var(--eff-transition), background var(--eff-transition);
+	box-shadow:    var(--eff-shadow-sm);
+	white-space:   nowrap;
+}
+
+.eff-app .eff-btn:hover {
+	background:  var(--eff-clr-accent-hov);
+	transform:   translate(-2px, -2px);
+	box-shadow:  var(--eff-shadow-md);
+}
+
+.eff-app .eff-btn:active {
+	transform: translate(0, 0);
+}
+
+.eff-app .eff-btn svg {
+	margin-top: 2px;
+	flex-shrink: 0;
+}
+
+/* ==========================================================================
+   8. ICON-ONLY BUTTON (.eff-icon-btn)
+   ========================================================================== */
+
+.eff-app .eff-icon-btn {
+	display:         inline-flex;
+	align-items:     center;
+	justify-content: center;
+	background:      transparent;
+	border:          none;
+	color:           var(--eff-clr-secondary);
+	padding:         var(--sp-2);
+	border-radius:   var(--eff-border-radius-md);
+	cursor:          pointer;
+	transition:      background var(--eff-transition), color var(--eff-transition);
+	width:           36px;
+	height:          36px;
+	flex-shrink:     0;
+}
+
+.eff-app .eff-icon-btn svg {
+	width:  20px;
+	height: 20px;
+	display: block;
+}
+
+.eff-app .eff-icon-btn:hover {
+	background: var(--eff-icon-btn-hover-bg);
+	color:      var(--eff-clr-primary);
+}
+
+.eff-app .eff-icon-btn:disabled,
+.eff-app .eff-icon-btn[aria-disabled="true"] {
+	color:   var(--eff-clr-muted);
+	cursor:  not-allowed;
+	opacity: 0.5;
+}
+
+.eff-app .eff-icon-btn:disabled:hover,
+.eff-app .eff-icon-btn[aria-disabled="true"]:hover {
+	background: transparent;
+	color:      var(--eff-clr-muted);
+}
+
+/* Save Changes button — active state with gold accent */
+.eff-app .eff-save-changes-btn:not(:disabled):not([aria-disabled="true"]) {
+	color:      var(--eff-clr-accent);
+	transition: color var(--eff-transition), background var(--eff-transition);
+}
+
+/* ==========================================================================
+   9. FORM FIELDS
+   ========================================================================== */
+
+.eff-app .eff-field-label {
+	display:     block;
+	font-size:   var(--fs-xs);
+	font-weight: var(--fw-semibold);
+	color:       var(--eff-clr-muted);
+	margin-bottom: var(--sp-1);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.eff-app .eff-field-input {
+	display:          block;
+	width:            100%;
+	background:       var(--eff-bg-field);
+	border:           1px solid var(--eff-clr-border);
+	border-radius:    var(--eff-border-radius-sm);
+	color:            var(--eff-clr-primary);
+	font-size:        var(--fs-sm);
+	padding:          var(--sp-2) var(--sp-3);
+	transition:       border-color var(--eff-transition), box-shadow var(--eff-transition);
+}
+
+.eff-app .eff-field-input:focus {
+	border-color: var(--eff-clr-accent);
+	box-shadow:   0 0 0 3px rgba(244, 197, 66, 0.2);
+	outline:      none !important;
+}
+
+.eff-app .eff-field-input::placeholder {
+	color:   var(--eff-clr-muted);
+	opacity: 0.7;
+}
+
+/* ==========================================================================
+   10. TOOLTIP
+   ========================================================================== */
+
+.eff-app .eff-tooltip {
+	position:         fixed;
+	z-index:          99999;
+	background:       var(--eff-clr-primary);
+	color:            #faf6f0;
+	font-size:        var(--fs-xs);
+	font-weight:      var(--fw-medium);
+	padding:          var(--sp-1) var(--sp-2);
+	border-radius:    var(--eff-border-radius-sm);
+	pointer-events:   none;
+	white-space:      nowrap;
+	opacity:          0;
+	transform:        translateY(4px);
+	transition:       opacity 0.12s ease, transform 0.12s ease;
+	box-shadow:       var(--eff-shadow-sm);
+}
+
+.eff-app .eff-tooltip.is-visible {
+	opacity:   1;
+	transform: translateY(0);
+}
+
+/* ==========================================================================
+   11. MODAL
+   ========================================================================== */
+
+.eff-app .eff-modal-overlay {
+	position:        fixed;
+	inset:           0;
+	z-index:         9000;
+	background:      var(--eff-overlay-bg);
+	display:         flex;
+	align-items:     center;
+	justify-content: center;
+	opacity:         0;
+	pointer-events:  none;
+	transition:      opacity var(--eff-transition-md);
+}
+
+.eff-app .eff-modal-overlay.is-open {
+	opacity:        1;
+	pointer-events: auto;
+}
+
+.eff-app .eff-modal {
+	background:    var(--eff-bg-card);
+	border-radius: var(--eff-border-radius);
+	box-shadow:    var(--eff-shadow-lg);
+	width:         min(560px, 90vw);
+	max-height:    80vh;
+	display:       flex;
+	flex-direction: column;
+	transform:     scale(0.96) translateY(-8px);
+	transition:    transform var(--eff-transition-md);
+}
+
+.eff-app .eff-modal-overlay.is-open .eff-modal {
+	transform: scale(1) translateY(0);
+}
+
+.eff-app .eff-modal__header {
+	display:         flex;
+	align-items:     center;
+	justify-content: space-between;
+	padding:         var(--sp-4) var(--sp-5);
+	border-bottom:   1px solid var(--eff-clr-border);
+}
+
+.eff-app .eff-modal__title {
+	font-size:   var(--fs-lg);
+	font-weight: var(--fw-semibold);
+	color:       var(--eff-clr-primary);
+	margin:      0;
+}
+
+.eff-app .eff-modal__body {
+	padding:    var(--sp-5);
+	overflow-y: auto;
+	flex:       1;
+}
+
+.eff-app .eff-modal__footer {
+	padding:      var(--sp-4) var(--sp-5);
+	border-top:   1px solid var(--eff-clr-border);
+	display:      flex;
+	justify-content: flex-end;
+	gap:          var(--sp-2);
+}
+
+.eff-app .eff-modal__footer:empty {
+	display: none;
+}
+
+/* ==========================================================================
+   12. UTILITY CLASSES
+   ========================================================================== */
+
+.eff-app .eff-sr-only {
+	position:   absolute;
+	width:      1px;
+	height:     1px;
+	padding:    0;
+	margin:     -1px;
+	overflow:   hidden;
+	clip:       rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border:     0;
+}
+
+.eff-app .eff-text-muted {
+	color: var(--eff-clr-muted);
+}
+
+.eff-app .eff-nav-coming-soon {
+	font-size:   var(--fs-xs);
+	color:       var(--eff-clr-muted);
+	font-style:  italic;
+	padding:     var(--sp-2) var(--sp-4);
+	margin:      0;
+}

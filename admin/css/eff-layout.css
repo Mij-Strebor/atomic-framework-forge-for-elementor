@@ -1,0 +1,454 @@
+/**
+ * EFF Layout CSS — Four-Panel Structure, Panel Sizing, Collapse States
+ *
+ * Implements the four-panel layout:
+ *   Top Bar (fixed height) | Left Panel + Center + Right Panel (full height)
+ *
+ * Uses CSS Grid for the workspace and Flexbox for panel internals.
+ * The left panel collapse is driven by [data-collapsed] on .eff-panel-left.
+ *
+ * @package ElementorFrameworkForge
+ * @version 1.0.0
+ */
+
+/* ==========================================================================
+   1. ROOT CONTAINER — Fills the WordPress admin content area
+   ========================================================================== */
+
+/**
+ * .eff-app fills the WP admin content area (#wpbody-content).
+ * We use min-height instead of height so tall content still scrolls.
+ */
+.eff-app {
+	display:        flex;
+	flex-direction: column;
+	min-height:     calc(100vh - 32px); /* 32px = WP admin bar height */
+	position:       relative;
+	overflow:       hidden;
+}
+
+/* ==========================================================================
+   2. TOP MENU BAR
+   ========================================================================== */
+
+.eff-top-bar {
+	display:         flex;
+	align-items:     center;
+	justify-content: space-between;
+	height:          var(--eff-top-bar-height);
+	padding:         0 var(--sp-3);
+	background:      var(--eff-top-bar-bg);
+	border-bottom:   1px solid var(--eff-top-bar-border);
+	flex-shrink:     0;
+	gap:             var(--sp-2);
+	z-index:         100;
+}
+
+.eff-top-bar__left,
+.eff-top-bar__right {
+	display:    flex;
+	align-items: center;
+	gap:         var(--sp-1);
+	flex-shrink: 0;
+}
+
+.eff-top-bar__brand {
+	flex:            1;
+	text-align:      center;
+	overflow:        hidden;
+}
+
+.eff-brand-name {
+	font-size:   var(--fs-sm);
+	font-weight: var(--fw-semibold);
+	color:       var(--eff-clr-muted);
+	white-space: nowrap;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+/* ==========================================================================
+   3. WORKSPACE — Three-column layout (Left | Center | Right)
+   ========================================================================== */
+
+.eff-workspace {
+	display:  flex;
+	flex:     1;
+	overflow: hidden; /* Each panel scrolls internally */
+	min-height: 0;    /* Required for flex children to scroll */
+}
+
+/* ==========================================================================
+   4. LEFT NAVIGATION PANEL
+   ========================================================================== */
+
+.eff-panel-left {
+	width:            var(--eff-panel-left-width);
+	min-width:        var(--eff-panel-left-width);
+	background:       var(--eff-bg-panel);
+	border-right:     1px solid var(--eff-clr-border);
+	display:          flex;
+	flex-direction:   column;
+	overflow-y:       auto;
+	overflow-x:       hidden;
+	transition:       width var(--eff-transition-md), min-width var(--eff-transition-md);
+	flex-shrink:      0;
+	position:         relative;
+}
+
+/* Collapse trigger button */
+.eff-collapse-btn {
+	align-self:    flex-end;
+	margin:        var(--sp-2) var(--sp-2) 0;
+	flex-shrink:   0;
+}
+
+.eff-collapse-btn svg {
+	transition: transform var(--eff-transition-md);
+}
+
+/* Collapsed state */
+.eff-panel-left[data-collapsed="true"] {
+	width:     var(--eff-panel-left-collapsed);
+	min-width: var(--eff-panel-left-collapsed);
+}
+
+.eff-panel-left[data-collapsed="true"] .eff-collapse-btn svg {
+	transform: rotate(180deg);
+}
+
+/* Hide labels and children when collapsed */
+.eff-panel-left[data-collapsed="true"] .eff-nav-group__label,
+.eff-panel-left[data-collapsed="true"] .eff-nav-group__chevron,
+.eff-panel-left[data-collapsed="true"] .eff-nav-group__children,
+.eff-panel-left[data-collapsed="true"] .eff-brand-name {
+	display: none;
+}
+
+/* ==========================================================================
+   5. NAV TREE
+   ========================================================================== */
+
+.eff-nav-tree {
+	flex:    1;
+	padding: var(--sp-2) 0;
+}
+
+/* Top-level group header */
+.eff-nav-group__header {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-2);
+	width:       100%;
+	padding:     var(--sp-2) var(--sp-3);
+	background:  transparent;
+	border:      none;
+	cursor:      pointer;
+	color:       var(--eff-clr-primary);
+	font-size:   var(--fs-sm);
+	font-weight: var(--fw-semibold);
+	text-align:  left;
+	transition:  background var(--eff-transition);
+}
+
+.eff-nav-group__header:hover {
+	background: var(--eff-nav-hover-bg);
+}
+
+.eff-nav-group__icon {
+	flex-shrink: 0;
+	width:       20px;
+	height:      20px;
+	display:     flex;
+	align-items: center;
+}
+
+.eff-nav-group__icon svg {
+	width:  18px;
+	height: 18px;
+}
+
+.eff-nav-group__label {
+	flex: 1;
+}
+
+.eff-nav-group__chevron {
+	flex-shrink: 0;
+	width:  16px;
+	height: 16px;
+	display: flex;
+	align-items: center;
+	transition: transform var(--eff-transition);
+}
+
+.eff-nav-group__chevron svg {
+	width:  14px;
+	height: 14px;
+	transform: rotate(-90deg); /* Points down when expanded */
+}
+
+.eff-nav-group__header[aria-expanded="false"] .eff-nav-group__chevron svg {
+	transform: rotate(0deg); /* Points right when collapsed */
+}
+
+/* Group children container */
+.eff-nav-group__children {
+	padding-left: var(--sp-4);
+}
+
+.eff-nav-group__children[hidden] {
+	display: none;
+}
+
+/* Subgroup header */
+.eff-nav-subgroup__header {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-2);
+	width:       100%;
+	padding:     var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-2);
+	background:  transparent;
+	border:      none;
+	cursor:      pointer;
+	color:       var(--eff-clr-secondary);
+	font-size:   var(--fs-xs);
+	font-weight: var(--fw-semibold);
+	text-align:  left;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	transition:  background var(--eff-transition);
+	border-radius: var(--eff-border-radius-sm);
+}
+
+.eff-nav-subgroup__header:hover {
+	background: var(--eff-nav-hover-bg);
+}
+
+.eff-nav-subgroup__icon {
+	flex-shrink: 0;
+	width:  16px;
+	height: 16px;
+	display: flex;
+	align-items: center;
+}
+
+.eff-nav-subgroup__icon svg {
+	width:  14px;
+	height: 14px;
+}
+
+/* Nav leaf items */
+.eff-nav-items {
+	list-style: none;
+	margin:     0;
+	padding:    0;
+}
+
+.eff-nav-items li {
+	margin: 0;
+}
+
+.eff-nav-item {
+	display:      flex;
+	align-items:  center;
+	gap:          var(--sp-2);
+	padding:      var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
+	color:        var(--eff-clr-secondary);
+	font-size:    var(--fs-sm);
+	font-weight:  var(--fw-normal);
+	cursor:       pointer;
+	border-radius: var(--eff-border-radius-sm);
+	transition:   background var(--eff-transition), color var(--eff-transition);
+	width:        100%;
+	background:   none;
+	border:       none;
+	text-align:   left;
+}
+
+.eff-nav-item:hover {
+	background: var(--eff-nav-hover-bg);
+	color:      var(--eff-clr-primary);
+}
+
+.eff-nav-item.is-active {
+	background: var(--eff-nav-active-bg);
+	color:      var(--eff-nav-active-color);
+	font-weight: var(--fw-semibold);
+}
+
+/* Accent bar on active item */
+.eff-nav-item.is-active::before {
+	content:       '';
+	display:       block;
+	width:         3px;
+	height:        1em;
+	background:    var(--eff-clr-accent);
+	border-radius: 2px;
+	flex-shrink:   0;
+	margin-left:   calc(-1 * var(--sp-2));
+}
+
+/* ==========================================================================
+   6. CENTER EDIT SPACE
+   ========================================================================== */
+
+.eff-edit-space {
+	flex:       1;
+	display:    flex;
+	flex-direction: column;
+	overflow-y: auto;
+	background: var(--eff-bg-page);
+	min-width:  0; /* Prevent flex blowout */
+	padding:    var(--sp-9);
+}
+
+/* Placeholder */
+.eff-placeholder {
+	flex:            1;
+	display:         flex;
+	flex-direction:  column;
+	align-items:     center;
+	justify-content: center;
+	gap:             var(--sp-4);
+	opacity:         0.4;
+	pointer-events:  none;
+	min-height:      300px;
+}
+
+.eff-placeholder__icon svg {
+	width:  48px;
+	height: 48px;
+	color:  var(--eff-clr-muted);
+}
+
+.eff-placeholder__text {
+	font-size:  var(--fs-md);
+	color:      var(--eff-clr-secondary);
+	margin:     0;
+}
+
+/* Edit content area */
+.eff-edit-content {
+	flex:  1;
+	width: 100%;
+}
+
+.eff-edit-content[hidden] {
+	display: none;
+}
+
+/* ==========================================================================
+   7. RIGHT STATUS PANEL
+   ========================================================================== */
+
+.eff-panel-right {
+	width:          var(--eff-panel-right-width);
+	min-width:      var(--eff-panel-right-width);
+	background:     var(--eff-bg-panel);
+	border-left:    1px solid var(--eff-clr-border);
+	display:        flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex-shrink:    0;
+	overflow-y:     auto;
+	padding:        var(--sp-4);
+	gap:            var(--sp-4);
+}
+
+/* File management section */
+.eff-panel-right__files {
+	display:        flex;
+	flex-direction: column;
+	gap:            var(--sp-2);
+}
+
+.eff-file-actions {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-1);
+	margin-top:  var(--sp-1);
+}
+
+/* Counts section — anchored to bottom */
+.eff-panel-right__counts {
+	display:        flex;
+	flex-direction: column;
+	gap:            var(--sp-2);
+	margin-top:     auto;
+	padding-top:    var(--sp-4);
+	border-top:     1px solid var(--eff-clr-border);
+}
+
+.eff-count-item {
+	display:         flex;
+	align-items:     center;
+	gap:             var(--sp-2);
+	justify-content: flex-end;
+}
+
+.eff-count-item__icon {
+	display: flex;
+	align-items: center;
+	color: var(--eff-clr-muted);
+}
+
+.eff-count-item__icon svg {
+	width:  16px;
+	height: 16px;
+}
+
+.eff-count-item__label {
+	font-size:  var(--fs-xs);
+	color:      var(--eff-clr-muted);
+	flex:       1;
+	text-align: right;
+}
+
+.eff-count-item__value {
+	font-size:   var(--fs-sm);
+	font-weight: var(--fw-semibold);
+	color:       var(--eff-clr-primary);
+	min-width:   24px;
+	text-align:  right;
+}
+
+/* ==========================================================================
+   8. COLLAPSED LEFT PANEL — flyout stub (future phase: flyout sub-menus)
+   ========================================================================== */
+
+.eff-panel-left[data-collapsed="true"] .eff-nav-tree {
+	padding: var(--sp-2) var(--sp-1);
+}
+
+.eff-panel-left[data-collapsed="true"] .eff-nav-group__header {
+	padding:         var(--sp-2);
+	justify-content: center;
+}
+
+.eff-panel-left[data-collapsed="true"] .eff-nav-subgroup,
+.eff-panel-left[data-collapsed="true"] .eff-nav-items {
+	display: none;
+}
+
+/* ==========================================================================
+   9. SCROLL STYLING
+   ========================================================================== */
+
+.eff-panel-left::-webkit-scrollbar,
+.eff-panel-right::-webkit-scrollbar,
+.eff-edit-space::-webkit-scrollbar {
+	width: 4px;
+}
+
+.eff-panel-left::-webkit-scrollbar-track,
+.eff-panel-right::-webkit-scrollbar-track,
+.eff-edit-space::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.eff-panel-left::-webkit-scrollbar-thumb,
+.eff-panel-right::-webkit-scrollbar-thumb,
+.eff-edit-space::-webkit-scrollbar-thumb {
+	background:    var(--eff-clr-border);
+	border-radius: 4px;
+}

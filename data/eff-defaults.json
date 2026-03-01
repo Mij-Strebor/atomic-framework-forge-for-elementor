@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "groups": {
+    "Variables": {
+      "Colors": [
+        "Branding",
+        "Backgrounds",
+        "Neutral",
+        "Status"
+      ],
+      "Fonts": [],
+      "Numbers": [
+        "Spacing",
+        "Gaps",
+        "Grids",
+        "Radius"
+      ]
+    }
+  }
+}
