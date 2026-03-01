@@ -105,6 +105,9 @@
 
 						EFF.App.setDirty(false);
 						EFF.Modal.close();
+
+						// Scan widget usage for loaded variables (async, non-blocking)
+						EFF.App.fetchUsageCounts();
 					} else {
 						alert('Load error: ' + (res.data.message || 'Unknown error.'));
 					}

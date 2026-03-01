@@ -29,6 +29,7 @@ class EFF_Ajax_Handler {
 			'eff_save_config',
 			'eff_save_settings',
 			'eff_get_settings',
+			'eff_get_usage_counts',
 		);
 
 		foreach ( $actions as $action ) {
@@ -219,6 +220,36 @@ class EFF_Ajax_Handler {
 		EFF_Settings::set( $settings );
 
 		wp_send_json_success( array( 'message' => __( 'Settings saved.', 'elementor-framework-forge' ) ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Get variable usage counts
+	// -----------------------------------------------------------------------
+
+	public function ajax_eff_get_usage_counts(): void {
+		$this->verify_request();
+
+		$names_raw = isset( $_POST['variable_names'] ) ? wp_unslash( $_POST['variable_names'] ) : '[]';
+		$names     = json_decode( $names_raw, true );
+
+		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $names ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid variable names format.', 'elementor-framework-forge' ) ) );
+		}
+
+		// Sanitize: allow only valid CSS custom property names (--identifier)
+		$names = array_values( array_filter(
+			array_map( 'sanitize_text_field', $names ),
+			static function ( string $n ): bool {
+				return preg_match( '/^--[\w-]+$/', $n ) === 1;
+			}
+		) );
+
+		$counts = EFF_Usage_Scanner::scan( $names );
+
+		wp_send_json_success( array(
+			'counts'     => $counts,
+			'scanned'    => count( $names ),
+		) );
 	}
 
 	// -----------------------------------------------------------------------

@@ -22,6 +22,7 @@ class EFF_Loader {
 		require_once EFF_PLUGIN_DIR . 'includes/class-eff-settings.php';
 		require_once EFF_PLUGIN_DIR . 'includes/class-eff-data-store.php';
 		require_once EFF_PLUGIN_DIR . 'includes/class-eff-css-parser.php';
+		require_once EFF_PLUGIN_DIR . 'includes/class-eff-usage-scanner.php';
 		require_once EFF_PLUGIN_DIR . 'includes/class-eff-ajax-handler.php';
 		require_once EFF_PLUGIN_DIR . 'includes/class-eff-admin.php';
 

@@ -397,6 +397,9 @@
 							EFF.App.setDirty(true);
 						}
 
+						// Scan widget usage for the synced variables (async, non-blocking)
+						EFF.App.fetchUsageCounts();
+
 						EFF.Modal.open({
 							title: 'Sync complete',
 							body:  '<p>' + message + '</p>'

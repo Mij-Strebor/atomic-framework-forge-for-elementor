@@ -37,6 +37,7 @@
 		classes:           [],
 		components:        [],
 		config:            {},
+		usageCounts:       {}, // { '--varname': count } — populated by fetchUsageCounts()
 	};
 
 	// -----------------------------------------------------------------------
@@ -95,6 +96,34 @@
 					throw new Error('HTTP ' + response.status);
 				}
 				return response.json();
+			});
+		},
+
+		/**
+		 * Scan all Elementor widget data for references to the current variables.
+		 * Results are stored in EFF.state.usageCounts and the current edit view
+		 * is refreshed if a category is already loaded.
+		 *
+		 * @returns {Promise}
+		 */
+		fetchUsageCounts: function () {
+			var names = EFF.state.variables.map(function (v) { return v.name; });
+			if (names.length === 0) {
+				return Promise.resolve();
+			}
+
+			return EFF.App.ajax('eff_get_usage_counts', {
+				variable_names: JSON.stringify(names),
+			}).then(function (res) {
+				if (res.success) {
+					EFF.state.usageCounts = res.data.counts || {};
+					// Re-render the current category view to show updated badges
+					if (EFF.state.currentSelection && EFF.EditSpace) {
+						EFF.EditSpace.loadCategory(EFF.state.currentSelection);
+					}
+				}
+			}).catch(function () {
+				// Non-critical — usage counts are best-effort
 			});
 		},
 

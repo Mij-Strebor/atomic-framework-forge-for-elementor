@@ -1,12 +1,11 @@
 /**
  * EFF Edit Space — Center Panel Content Area
  *
- * Manages the center edit space content. In v1, this shows a placeholder
- * when no category is selected, and a category header + variable list
- * scaffolding when a category is selected.
- *
- * The full variable edit UI (inline editing, drag-to-reorder, detail panels)
- * is the scope of EFF v2.
+ * Manages the center edit space content. Renders the category view with a
+ * variable list when a category is selected from the left panel. Each
+ * variable row includes a usage count badge showing how many times the
+ * variable is referenced in Elementor widget data (populated by
+ * EFF.App.fetchUsageCounts after file load or sync).
  *
  * @package ElementorFrameworkForge
  */
@@ -71,6 +70,7 @@
 		 */
 		_buildCategoryView: function (sel) {
 			var vars = this._getVarsForCategory(sel);
+			var hasCounts = Object.keys(EFF.state.usageCounts).length > 0;
 
 			var html = '<div class="eff-category-view">'
 
@@ -82,10 +82,19 @@
 				+ '<strong>' + this._escapeHtml(sel.category) + '</strong>'
 				+ '</p>'
 				+ '<h2 class="eff-category-title">' + this._escapeHtml(sel.category) + '</h2>'
-				+ '</div>'
+				+ '</div>';
 
-				// Variable list scaffold
-				+ '<div class="eff-variable-list">';
+			// Column headings (only when variables exist and counts are loaded)
+			if (vars.length > 0) {
+				html += '<div class="eff-variable-list-header">'
+					+ '<span class="eff-list-col eff-list-col--name">Variable</span>'
+					+ '<span class="eff-list-col eff-list-col--value">Value</span>'
+					+ '<span class="eff-list-col eff-list-col--source">Source</span>'
+					+ (hasCounts ? '<span class="eff-list-col eff-list-col--usage">Usage</span>' : '')
+					+ '</div>';
+			}
+
+			html += '<div class="eff-variable-list">';
 
 			if (vars.length === 0) {
 				html += '<p class="eff-empty-state">No variables in this category yet. '
@@ -93,10 +102,27 @@
 					+ 'or add variables manually in EFF v2.</p>';
 			} else {
 				vars.forEach(function (v) {
+					var usageCount = EFF.state.usageCounts[v.name];
+					var usageBadge = '';
+
+					if (hasCounts) {
+						if (typeof usageCount === 'number') {
+							var badgeClass = 'eff-usage-badge'
+								+ (usageCount === 0 ? ' eff-usage-badge--unused' : ' eff-usage-badge--active');
+							var label = usageCount === 1
+								? 'Used 1 time'
+								: (usageCount === 0 ? 'Unused' : 'Used ' + usageCount + ' times');
+							usageBadge = '<span class="' + badgeClass + '" title="' + label + '" aria-label="' + label + '">'
+								+ usageCount
+								+ '</span>';
+						}
+					}
+
 					html += '<div class="eff-variable-row">'
 						+ '<code class="eff-var-name">' + this._escapeHtml(v.name) + '</code>'
 						+ '<span class="eff-var-value">' + this._escapeHtml(v.value) + '</span>'
 						+ '<span class="eff-var-source">' + this._escapeHtml(v.source || '') + '</span>'
+						+ (hasCounts ? '<span class="eff-var-usage">' + usageBadge + '</span>' : '')
 						+ '</div>';
 				}.bind(this));
 			}
