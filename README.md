@@ -1,4 +1,4 @@
-<img src="assets/images/eff-git-banner.png" alt="Elementor Framework Forge" width="100%" />
+<img src="https://raw.githubusercontent.com/Mij-Strebor/elementor-framework-forge/master/assets/images/eff-git-banner.png" alt="Elementor Framework Forge" width="100%" />
 
 # Elementor Framework Forge
 
