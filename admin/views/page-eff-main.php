@@ -220,6 +220,11 @@ function eff_icon( string $name ): string {
 
 			</nav><!-- .eff-nav-tree -->
 
+			<!-- Version number — pinned to bottom of left panel -->
+			<div class="eff-panel-version" aria-label="<?php esc_attr_e( 'Plugin version', 'elementor-framework-forge' ); ?>">
+				v<?php echo esc_html( EFF_VERSION ); ?>
+			</div>
+
 		</aside><!-- .eff-panel-left -->
 
 		<!-- ============================================================
@@ -229,12 +234,6 @@ function eff_icon( string $name ): string {
 
 			<!-- Placeholder — shown when no category is selected -->
 			<div class="eff-placeholder" id="eff-placeholder">
-				<img
-					class="eff-placeholder__banner"
-					src="<?php echo esc_url( EFF_PLUGIN_URL . 'assets/images/banner-jimr-forge.webp' ); ?>"
-					alt="Elementor Framework Forge"
-					aria-hidden="true"
-				/>
 				<p class="eff-placeholder__text">
 					<?php esc_html_e( 'Select a category from the left panel', 'elementor-framework-forge' ); ?>
 				</p>

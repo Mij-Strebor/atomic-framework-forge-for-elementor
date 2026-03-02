@@ -7,6 +7,10 @@
  * variable is referenced in Elementor widget data (populated by
  * EFF.App.fetchUsageCounts after file load or sync).
  *
+ * The edit space element carries a [data-active] attribute when a category
+ * is loaded. CSS uses this to transition the background banner image from
+ * visible (initial load) to a faint watermark (during editing).
+ *
  * @package ElementorFrameworkForge
  */
 
@@ -21,6 +25,8 @@
 		_placeholder: null,
 		/** @type {HTMLElement|null} */
 		_content: null,
+		/** @type {HTMLElement|null} */
+		_editSpace: null,
 
 		/**
 		 * Initialize the edit space.
@@ -28,6 +34,7 @@
 		init: function () {
 			this._placeholder = document.getElementById('eff-placeholder');
 			this._content     = document.getElementById('eff-edit-content');
+			this._editSpace   = document.getElementById('eff-edit-space');
 		},
 
 		/**
@@ -40,6 +47,11 @@
 				return;
 			}
 
+			// Fade background image to watermark opacity
+			if (this._editSpace) {
+				this._editSpace.setAttribute('data-active', 'true');
+			}
+
 			// Hide placeholder, show content
 			this._placeholder.setAttribute('hidden', '');
 			this._content.removeAttribute('hidden');
@@ -49,9 +61,13 @@
 		},
 
 		/**
-		 * Reset to placeholder state.
+		 * Reset to placeholder state (restores background image to full opacity).
 		 */
 		reset: function () {
+			if (this._editSpace) {
+				this._editSpace.removeAttribute('data-active');
+			}
+
 			if (this._content) {
 				this._content.setAttribute('hidden', '');
 				this._content.innerHTML = '';

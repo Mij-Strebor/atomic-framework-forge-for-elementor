@@ -121,8 +121,22 @@
 .eff-panel-left[data-collapsed="true"] .eff-nav-group__label,
 .eff-panel-left[data-collapsed="true"] .eff-nav-group__chevron,
 .eff-panel-left[data-collapsed="true"] .eff-nav-group__children,
-.eff-panel-left[data-collapsed="true"] .eff-brand-name {
+.eff-panel-left[data-collapsed="true"] .eff-brand-name,
+.eff-panel-left[data-collapsed="true"] .eff-panel-version {
 	display: none;
+}
+
+/* Version number — pinned to bottom of left panel */
+.eff-panel-version {
+	flex-shrink:    0;
+	padding:        var(--sp-3) var(--sp-4);
+	font-size:      var(--fs-xxs);
+	font-weight:    var(--fw-medium);
+	color:          var(--eff-clr-muted);
+	text-align:     center;
+	letter-spacing: 0.05em;
+	border-top:     1px solid var(--eff-clr-border);
+	margin-top:     auto;
 }
 
 /* ==========================================================================
@@ -300,6 +314,31 @@
 	background: var(--eff-bg-page);
 	min-width:  0; /* Prevent flex blowout */
 	padding:    var(--sp-9);
+	position:   relative; /* Required for ::before background layer */
+}
+
+/* Background image — full-area branding, opacity transitions on activation */
+.eff-edit-space::before {
+	content:    '';
+	position:   absolute;
+	inset:      0;
+	background: url('../../assets/images/banner-jimr-forge.png') center / contain no-repeat;
+	opacity:    0.13;
+	transition: opacity 0.5s ease;
+	pointer-events: none;
+	z-index:    0;
+}
+
+/* Fade to faint watermark when a category is active */
+.eff-edit-space[data-active="true"]::before {
+	opacity: 0.04;
+}
+
+/* Ensure content layers sit above the background */
+.eff-placeholder,
+.eff-edit-content {
+	position: relative;
+	z-index:  1;
 }
 
 /* Placeholder */
@@ -310,23 +349,16 @@
 	align-items:     center;
 	justify-content: center;
 	gap:             var(--sp-4);
-	opacity:         0.4;
 	pointer-events:  none;
 	min-height:      300px;
 }
 
-.eff-placeholder__banner {
-	max-width:  420px;
-	width:      100%;
-	height:     auto;
-	opacity:    1; /* override parent opacity via isolation */
-	border-radius: var(--sp-2);
-}
-
 .eff-placeholder__text {
-	font-size:  var(--fs-md);
-	color:      var(--eff-clr-secondary);
-	margin:     0;
+	font-size:   var(--fs-md);
+	color:       var(--eff-clr-muted);
+	margin:      0;
+	font-weight: var(--fw-medium);
+	letter-spacing: 0.01em;
 }
 
 /* Edit content area */
