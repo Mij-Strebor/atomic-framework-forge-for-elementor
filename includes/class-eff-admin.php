@@ -56,7 +56,7 @@ class EFF_Admin {
 			'eff-theme',
 			EFF_PLUGIN_URL . 'admin/css/eff-theme.css',
 			array(),
-			EFF_VERSION
+			$this->asset_version( 'admin/css/eff-theme.css' )
 		);
 
 		// Layout CSS: four-panel structure, panel sizing, collapse states.
@@ -64,7 +64,7 @@ class EFF_Admin {
 			'eff-layout',
 			EFF_PLUGIN_URL . 'admin/css/eff-layout.css',
 			array( 'eff-theme' ),
-			EFF_VERSION
+			$this->asset_version( 'admin/css/eff-layout.css' )
 		);
 
 		// JavaScript modules — loaded in dependency order, all in footer.
@@ -84,7 +84,7 @@ class EFF_Admin {
 				$handle,
 				EFF_PLUGIN_URL . $file,
 				$deps,
-				EFF_VERSION,
+				$this->asset_version( $file ),
 				true // Load in footer.
 			);
 			$deps[] = $handle;
@@ -136,6 +136,24 @@ class EFF_Admin {
 	private function get_eff_upload_dir_url(): string {
 		$upload_dir = wp_upload_dir();
 		return $upload_dir['baseurl'] . '/eff/';
+	}
+
+	/**
+	 * Return the version string for a plugin asset.
+	 *
+	 * Uses filemtime() when WP_DEBUG is enabled so any file change busts the
+	 * browser cache automatically during development. Falls back to EFF_VERSION
+	 * in production for stable, long-lived cache headers.
+	 *
+	 * @param string $relative_path Path relative to EFF_PLUGIN_DIR (e.g. 'admin/css/eff-layout.css').
+	 * @return string Version string.
+	 */
+	private function asset_version( string $relative_path ): string {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$abs = EFF_PLUGIN_DIR . $relative_path;
+			return file_exists( $abs ) ? (string) filemtime( $abs ) : EFF_VERSION;
+		}
+		return EFF_VERSION;
 	}
 
 	/**
