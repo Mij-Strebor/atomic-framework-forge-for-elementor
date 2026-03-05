@@ -72,16 +72,17 @@
    ========================================================================== */
 
 .eff-workspace {
-	display:   flex;
-	flex:      1;
-	overflow:  hidden; /* Each panel scrolls internally */
-	min-height: 0;     /* Required for flex children to scroll */
-	position:  relative; /* Stacking context for ::before background image */
+	display:    flex;
+	flex:       1;
+	overflow:   hidden; /* Each panel scrolls internally */
+	min-height: 0;      /* Required for flex children to scroll */
+	position:   relative;
+	isolation:  isolate; /* Own stacking context — keeps ::before behind panel children */
 }
 
 /* Background image — on workspace so panel collapse slides without resizing it.
-   Left/right panels have solid backgrounds that cover their areas; only the
-   transparent edit space reveals this image. */
+   z-index: -1 keeps it behind the solid-background left/right panels while
+   remaining visible through the transparent edit space. */
 .eff-workspace::before {
 	content:    '';
 	position:   absolute;
@@ -90,7 +91,7 @@
 	opacity:    1;
 	transition: opacity 0.6s ease;
 	pointer-events: none;
-	z-index:    0;
+	z-index:    -1;
 }
 
 /* Fade to faint watermark once user activates the edit space */
