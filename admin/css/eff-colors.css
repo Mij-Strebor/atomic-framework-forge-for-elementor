@@ -6,10 +6,18 @@
  * inline expand panel (color picker, tint/shade generator, preview bars),
  * and category action buttons.
  *
+ * Filter bar layout (two rows):
+ *   Top:    COLORS label | search input | close btn | collapse-toggle btn
+ *   Bottom: + Category button (left-aligned)
+ *
+ * Category header layout (two rows):
+ *   Top:    [Name (bold) + count] ... [duplicate | ↑ | ↓ | delete | chevron]
+ *   Bottom: ⊕ add-variable button (left-aligned)
+ *
  * Depends on: eff-theme.css (design tokens), eff-layout.css (base layout)
  *
  * @package ElementorFrameworkForge
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 /* ==========================================================================
@@ -24,56 +32,88 @@
 }
 
 /* ==========================================================================
-   2. FILTER BAR
+   2. FILTER BAR (two-row layout)
    ========================================================================== */
 
 .eff-colors-filter-bar {
-	display:         flex;
-	align-items:     center;
-	gap:             var(--sp-2);
-	padding:         var(--sp-3) var(--sp-4);
-	border-bottom:   1px solid var(--eff-clr-border);
-	background:      var(--eff-bg-card);
-	position:        sticky;
-	top:             0;
-	z-index:         10;
-	flex-shrink:     0;
+	display:       flex;
+	flex-direction: column;
+	border-bottom: 1px solid var(--eff-clr-border);
+	background:    var(--eff-bg-card);
+	position:      sticky;
+	top:           0;
+	z-index:       10;
+	flex-shrink:   0;
 }
 
+/* Top row: COLORS title + search + close btn + collapse toggle */
+.eff-filter-bar-top {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-2);
+	padding:     var(--sp-2) var(--sp-4);
+}
+
+/* Bottom row: + Category button, left-aligned */
+.eff-filter-bar-bottom {
+	display:     flex;
+	align-items: center;
+	padding:     0 var(--sp-4) var(--sp-2);
+}
+
+/* COLORS section title */
+.eff-colors-view-title {
+	font-size:      var(--fs-xs);
+	font-weight:    var(--fw-semibold);
+	color:          var(--eff-clr-muted);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	flex-shrink:    0;
+	user-select:    none;
+}
+
+/* Search input */
 .eff-colors-search {
-	flex:            1;
-	padding:         var(--sp-1) var(--sp-3);
-	background:      var(--eff-bg-field);
-	border:          1px solid var(--eff-clr-border);
-	border-radius:   var(--eff-border-radius-sm);
-	font-size:       var(--fs-sm);
-	color:           var(--eff-clr-secondary);
-	box-shadow:      var(--eff-field-shadow);
-	min-width:       0;
+	flex:          1;
+	padding:       var(--sp-1) var(--sp-3);
+	background:    var(--eff-bg-field);
+	border:        1px solid var(--eff-clr-border);
+	border-radius: var(--eff-border-radius-sm);
+	font-size:     var(--fs-sm);
+	color:         var(--eff-clr-secondary);
+	box-shadow:    var(--eff-field-shadow);
+	min-width:     0;
 }
 
 .eff-colors-search::placeholder {
 	color: var(--eff-clr-muted);
 }
 
-.eff-colors-filter-btn {
-	display:         inline-flex;
-	align-items:     center;
-	justify-content: center;
-	padding:         var(--sp-1) var(--sp-2);
-	background:      transparent;
-	border:          1px solid var(--eff-clr-border);
-	border-radius:   var(--eff-border-radius-sm);
-	font-size:       var(--fs-xs);
-	color:           var(--eff-clr-muted);
-	cursor:          pointer;
-	transition:      background-color var(--eff-transition), color var(--eff-transition);
-	white-space:     nowrap;
+/* Back / close button */
+.eff-colors-back-btn {
+	flex-shrink: 0;
 }
 
-.eff-colors-filter-btn:hover {
-	background:  var(--eff-icon-btn-hover-bg);
-	color:       var(--eff-clr-secondary);
+/* + Category button (bottom-left of filter bar) */
+.eff-colors-add-cat-btn {
+	display:     inline-flex;
+	align-items: center;
+	gap:         var(--sp-1);
+	font-size:   var(--fs-xs);
+	color:       var(--eff-clr-muted);
+	width:       auto;
+	height:      auto;
+	padding:     2px var(--sp-2);
+	border:      none;
+	background:  transparent;
+	cursor:      pointer;
+	border-radius: var(--eff-border-radius-sm);
+	transition:  background-color var(--eff-transition), color var(--eff-transition);
+}
+
+.eff-colors-add-cat-btn:hover {
+	background: var(--eff-icon-btn-hover-bg);
+	color:      var(--eff-clr-secondary);
 }
 
 /* ==========================================================================
@@ -90,57 +130,106 @@
 }
 
 /* ==========================================================================
-   4. CATEGORY HEADER
+   4. CATEGORY HEADER (two-row layout)
    ========================================================================== */
 
 .eff-category-header {
-	display:         flex;
-	align-items:     center;
-	gap:             var(--sp-2);
-	padding:         var(--sp-2) var(--sp-4);
-	border-bottom:   1px solid var(--eff-clr-border);
-	background:      var(--eff-bg-panel);
-	min-height:      40px;
+	display:        flex;
+	flex-direction: column;
+	border-bottom:  1px solid var(--eff-clr-border);
+	background:     var(--eff-bg-panel);
 }
 
+/* Top row: name + count left / action buttons right */
+.eff-cat-header-top {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-2);
+	padding:     var(--sp-2) var(--sp-3) var(--sp-1) var(--sp-4);
+	min-height:  40px;
+}
+
+/* Left group: name + count (takes all available width) */
+.eff-cat-header-left {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-2);
+	flex:        1;
+	min-width:   0;
+}
+
+/* Bottom row: ⊕ add-variable button, left-aligned */
+.eff-cat-header-bottom {
+	display:     flex;
+	align-items: center;
+	padding:     0 var(--sp-4) var(--sp-1);
+}
+
+/* Category name — Inter 700, clickable for rename */
 .eff-category-name {
-	flex:            1;
-	font-size:       var(--fs-sm);
-	font-weight:     var(--fw-semibold);
-	color:           var(--eff-clr-primary);
+	font-size:   15px;
+	font-weight: 700;
+	color:       var(--eff-clr-primary);
+	cursor:      pointer;
+	white-space: nowrap;
+	overflow:    hidden;
+	text-overflow: ellipsis;
 }
 
-/* Inline rename input — shown only when renaming */
+.eff-category-name:hover {
+	color: var(--eff-clr-accent);
+}
+
+/* Inline rename input */
 .eff-category-name-input {
-	flex:            1;
-	padding:         2px var(--sp-2);
-	background:      var(--eff-bg-field);
-	border:          1px solid var(--eff-clr-accent);
-	border-radius:   var(--eff-border-radius-sm);
-	font-size:       var(--fs-sm);
-	font-weight:     var(--fw-semibold);
-	color:           var(--eff-clr-primary);
-	box-shadow:      var(--eff-field-shadow);
+	padding:       2px var(--sp-2);
+	background:    var(--eff-bg-field);
+	border:        1px solid var(--eff-clr-accent);
+	border-radius: var(--eff-border-radius-sm);
+	font-size:     15px;
+	font-weight:   700;
+	color:         var(--eff-clr-primary);
+	box-shadow:    var(--eff-field-shadow);
+	min-width:     0;
+	flex:          1;
 }
 
+/* Variable count badge (next to name) */
 .eff-category-count {
-	font-size:       var(--fs-xs);
-	color:           var(--eff-clr-muted);
-	padding:         2px var(--sp-2);
-	background:      var(--eff-clr-bg-hover);
-	border-radius:   100px;
-	white-space:     nowrap;
+	font-size:  var(--fs-xs);
+	color:      var(--eff-clr-muted);
+	padding:    2px var(--sp-2);
+	background: var(--eff-clr-bg-hover);
+	border-radius: 100px;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
-/* 8-button action group */
+/* 5-button action group (right side of top row) */
 .eff-category-actions {
-	display:         flex;
-	align-items:     center;
-	gap:             2px;
-	flex-shrink:     0;
+	display:     flex;
+	align-items: center;
+	gap:         2px;
+	flex-shrink: 0;
 }
 
-/* Shared icon button style (used in category header and throughout) */
+/* Add variable button (⊕, bottom-left of category header) */
+.eff-add-var-btn {
+	width:       auto;
+	height:      auto;
+	padding:     2px var(--sp-1);
+	font-size:   var(--fs-xs);
+	color:       var(--eff-clr-muted);
+}
+
+.eff-add-var-btn:hover {
+	color: var(--eff-clr-accent);
+}
+
+/* ==========================================================================
+   5. ICON BUTTONS (shared)
+   ========================================================================== */
+
 .eff-icon-btn {
 	display:         inline-flex;
 	align-items:     center;
@@ -168,7 +257,7 @@
 	cursor:  not-allowed;
 }
 
-/* Collapse/expand chevron — rotated when collapsed */
+/* Collapse chevron — rotated when category is collapsed */
 .eff-category-collapse-btn svg {
 	transition: transform var(--eff-transition-md);
 }
@@ -177,18 +266,28 @@
 	transform: rotate(-90deg);
 }
 
-/* Danger variant — shown for delete button on hover */
+/* Danger variant (delete button on hover) */
 .eff-icon-btn--danger:hover {
 	background: var(--eff-clr-error-bg);
 	color:      var(--eff-clr-error);
 }
 
 /* ==========================================================================
-   5. COLOR VARIABLE LIST (column headings + rows)
+   6. COLLAPSE STATE — hide list and add-var button when collapsed
+   ========================================================================== */
+
+.eff-category-block[data-collapsed="true"] .eff-color-list,
+.eff-category-block[data-collapsed="true"] .eff-color-list-header,
+.eff-category-block[data-collapsed="true"] .eff-cat-header-bottom {
+	display: none;
+}
+
+/* ==========================================================================
+   7. COLOR VARIABLE LIST (column headings + rows)
    ========================================================================== */
 
 .eff-color-list-header {
-	display:       grid;
+	display:               grid;
 	grid-template-columns: 8px 24px 1fr 180px 90px 32px;
 	gap:           var(--sp-2);
 	align-items:   center;
@@ -205,15 +304,9 @@
 	flex-direction: column;
 }
 
-.eff-category-block[data-collapsed="true"] .eff-color-list,
-.eff-category-block[data-collapsed="true"] .eff-color-list-header,
-.eff-category-block[data-collapsed="true"] .eff-color-add-row {
-	display: none;
-}
-
 /* Single color variable row */
 .eff-color-row {
-	display:       grid;
+	display:               grid;
 	grid-template-columns: 8px 24px 1fr 180px 90px 32px;
 	gap:           var(--sp-2);
 	align-items:   center;
@@ -256,23 +349,13 @@
 	transform: scale(1.1);
 }
 
-/* Name field (third column — flex-fill) */
+/* Name field (third column) */
 .eff-color-name-field {
 	min-width: 0;
 	overflow:  hidden;
 }
 
-.eff-color-name-code {
-	font-family:   monospace, monospace;
-	font-size:     var(--fs-xs);
-	color:         var(--eff-clr-secondary);
-	overflow:      hidden;
-	text-overflow: ellipsis;
-	white-space:   nowrap;
-	display:       block;
-}
-
-/* Editable name input (Phase 2c) */
+/* Editable name input */
 .eff-color-name-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
@@ -290,7 +373,7 @@
 	border-color: var(--eff-clr-accent);
 }
 
-/* Value field (fourth column — ~180px) */
+/* Value field (fourth column ~180px) */
 .eff-color-value-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
@@ -308,7 +391,7 @@
 	border-color: var(--eff-clr-accent);
 }
 
-/* Format selector (fifth column — ~90px) */
+/* Format selector (fifth column ~90px) */
 .eff-color-format-sel {
 	width:         100%;
 	padding:       2px var(--sp-1);
@@ -320,7 +403,7 @@
 	cursor:        pointer;
 }
 
-/* Expand chevron (sixth column — 32px icon button) */
+/* Expand chevron (sixth column — 32px) */
 .eff-color-expand-btn {
 	width:   32px;
 	height:  32px;
@@ -336,43 +419,17 @@
 }
 
 /* ==========================================================================
-   6. ADD VARIABLE ROW (footer button per category)
-   ========================================================================== */
-
-.eff-color-add-row {
-	display:         flex;
-	align-items:     center;
-	justify-content: center;
-	gap:             var(--sp-2);
-	padding:         var(--sp-2) var(--sp-4);
-	background:      transparent;
-	border:          none;
-	border-top:      1px dashed var(--eff-clr-border);
-	width:           100%;
-	cursor:          pointer;
-	font-size:       var(--fs-xs);
-	color:           var(--eff-clr-muted);
-	transition:      background-color var(--eff-transition), color var(--eff-transition);
-	text-align:      center;
-}
-
-.eff-color-add-row:hover {
-	background: var(--eff-clr-bg-hover);
-	color:      var(--eff-clr-secondary);
-}
-
-/* ==========================================================================
-   7. EXPAND PANEL (inline color editor below a row)
+   8. EXPAND PANEL (inline color editor below a row)
    ========================================================================== */
 
 .eff-expand-panel {
-	display:       flex;
+	display:        flex;
 	flex-direction: row;
-	gap:           0;
-	background:    var(--eff-bg-panel);
-	border-top:    1px solid var(--eff-clr-border);
-	border-bottom: 1px solid var(--eff-clr-border);
-	overflow:      hidden;
+	gap:            0;
+	background:     var(--eff-bg-panel);
+	border-top:     1px solid var(--eff-clr-border);
+	border-bottom:  1px solid var(--eff-clr-border);
+	overflow:       hidden;
 }
 
 /* Each zone is a flex column */
@@ -389,12 +446,12 @@
 }
 
 .eff-expand-zone-label {
-	font-size:   var(--fs-xs);
-	font-weight: var(--fw-semibold);
-	color:       var(--eff-clr-muted);
+	font-size:      var(--fs-xs);
+	font-weight:    var(--fw-semibold);
+	color:          var(--eff-clr-muted);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	margin-bottom: var(--sp-1);
+	margin-bottom:  var(--sp-1);
 }
 
 /* Zone 1 — Generator controls */
@@ -432,7 +489,7 @@
 
 /* Zone 2 — Preview bars */
 .eff-expand-zone--preview {
-	flex:     1;
+	flex:      1;
 	min-width: 0;
 }
 
@@ -459,13 +516,13 @@
 }
 
 .eff-preview-swatch-label {
-	font-size:  10px;
-	color:      var(--eff-clr-muted);
-	text-align: center;
-	max-width:  36px;
-	overflow:   hidden;
+	font-size:     10px;
+	color:         var(--eff-clr-muted);
+	text-align:    center;
+	max-width:     36px;
+	overflow:      hidden;
 	text-overflow: ellipsis;
-	white-space: nowrap;
+	white-space:   nowrap;
 }
 
 /* Zone 3 — Color picker */
@@ -480,7 +537,7 @@
 	gap:         var(--sp-2);
 }
 
-/* Native <input type="color"> — shown as a large colored square */
+/* Native <input type="color"> */
 .eff-native-picker {
 	width:         48px;
 	height:        48px;
@@ -492,10 +549,10 @@
 	flex-shrink:   0;
 }
 
-/* Webkit: remove default color picker padding */
 .eff-native-picker::-webkit-color-swatch-wrapper {
 	padding: 0;
 }
+
 .eff-native-picker::-webkit-color-swatch {
 	border:        none;
 	border-radius: 3px;
@@ -521,15 +578,15 @@
 }
 
 .eff-alpha-row label {
-	font-size: var(--fs-xs);
-	color:     var(--eff-clr-muted);
+	font-size:   var(--fs-xs);
+	color:       var(--eff-clr-muted);
 	flex-shrink: 0;
 }
 
 .eff-alpha-slider {
-	flex:           1;
-	accent-color:   var(--eff-clr-accent);
-	cursor:         pointer;
+	flex:         1;
+	accent-color: var(--eff-clr-accent);
+	cursor:       pointer;
 }
 
 .eff-alpha-value {
@@ -540,25 +597,24 @@
 }
 
 /* ==========================================================================
-   8. EMPTY STATE
+   9. EMPTY STATE
    ========================================================================== */
 
 .eff-colors-empty {
-	padding:    var(--sp-6) var(--sp-4);
-	text-align: center;
+	padding:    var(--sp-4) var(--sp-4);
 	color:      var(--eff-clr-muted);
 	font-size:  var(--fs-sm);
 }
 
 /* ==========================================================================
-   9. SECONDARY BUTTON VARIANT (.eff-btn--secondary)
+   10. SECONDARY / DANGER BUTTON VARIANTS
    ========================================================================== */
 
 .eff-app .eff-btn--secondary {
-	background:   transparent;
-	color:        var(--eff-clr-secondary);
-	border:       1px solid var(--eff-clr-border);
-	box-shadow:   var(--eff-shadow-sm);
+	background: transparent;
+	color:      var(--eff-clr-secondary);
+	border:     1px solid var(--eff-clr-border);
+	box-shadow: var(--eff-shadow-sm);
 }
 
 .eff-app .eff-btn--secondary:hover:not(:disabled) {
@@ -570,4 +626,15 @@
 .eff-app .eff-btn--secondary:disabled {
 	opacity: 0.5;
 	cursor:  not-allowed;
+}
+
+.eff-app .eff-btn--danger {
+	background: var(--eff-clr-error-bg, #fee2e2);
+	color:      var(--eff-clr-error, #dc2626);
+	border:     1px solid var(--eff-clr-error, #dc2626);
+}
+
+.eff-app .eff-btn--danger:hover:not(:disabled) {
+	background: var(--eff-clr-error, #dc2626);
+	color:      #fff;
 }

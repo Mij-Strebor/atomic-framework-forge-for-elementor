@@ -8,6 +8,9 @@
  *  - Dynamic population of nav leaf items from project config
  *  - Active selection state and edit space loading trigger
  *
+ * Phase 2: Colors nav reads from config.categories (Phase 2 structure) when
+ * available, falling back to config.groups.Variables.Colors (v1 structure).
+ *
  * Keyboard navigation (WCAG 2.1 AA):
  *  - Arrow Up/Down: move between nav items
  *  - Enter / Space: select item or toggle group
@@ -167,19 +170,33 @@
 
 		/**
 		 * Load nav leaf items from the project config stored in EFF.state.
+		 *
+		 * Phase 2: For Colors, uses config.categories (Phase 2) if present,
+		 * otherwise falls back to config.groups.Variables.Colors (v1).
+		 *
 		 * Called on init and whenever the project config changes.
 		 */
 		_loadNavItems: function () {
 			var config = EFF.state.config;
 
-			if (!config || !config.groups || !config.groups.Variables) {
+			if (!config) {
 				this._loadDefaultItems();
 				return;
 			}
 
-			var vars = config.groups.Variables;
+			// Phase 2: Colors use config.categories when available.
+			if (config.categories && config.categories.length > 0) {
+				var sortedCats = config.categories.slice().sort(function (a, b) {
+					return (a.order || 0) - (b.order || 0);
+				});
+				this._populateList('eff-nav-colors', sortedCats);
+			} else if (config.groups && config.groups.Variables) {
+				this._populateList('eff-nav-colors', config.groups.Variables.Colors || []);
+			} else {
+				this._populateList('eff-nav-colors', ['Branding', 'Backgrounds', 'Neutral', 'Status', 'Uncategorized']);
+			}
 
-			this._populateList('eff-nav-colors',  vars.Colors  || []);
+			var vars = (config.groups && config.groups.Variables) ? config.groups.Variables : {};
 			this._populateList('eff-nav-fonts',   vars.Fonts   || []);
 			this._populateList('eff-nav-numbers', vars.Numbers || []);
 		},
@@ -188,7 +205,7 @@
 		 * Load the hard-coded default subgroup items (used before config loads).
 		 */
 		_loadDefaultItems: function () {
-			this._populateList('eff-nav-colors',  ['Branding', 'Backgrounds', 'Neutral', 'Status']);
+			this._populateList('eff-nav-colors',  ['Branding', 'Backgrounds', 'Neutral', 'Status', 'Uncategorized']);
 			this._populateList('eff-nav-fonts',   []);
 			this._populateList('eff-nav-numbers', ['Spacing', 'Gaps', 'Grids', 'Radius']);
 		},
@@ -196,8 +213,12 @@
 		/**
 		 * Populate a <ul> with clickable nav item buttons.
 		 *
-		 * @param {string}   listId   ID of the <ul> element.
-		 * @param {string[]} items    Array of category names.
+		 * Items can be plain strings or Phase 2 category objects {id, name, order, locked}.
+		 * When objects are supplied, the category ID is passed to selectItem() so
+		 * the Colors view can jump to the correct category block.
+		 *
+		 * @param {string}          listId  ID of the <ul> element.
+		 * @param {string[]|Array}  items   Array of names or category objects.
 		 */
 		_populateList: function (listId, items) {
 			var list = document.getElementById(listId);
@@ -207,7 +228,10 @@
 
 			list.innerHTML = '';
 
-			items.forEach(function (name) {
+			items.forEach(function (item) {
+				var name  = (typeof item === 'string') ? item : (item.name || '');
+				var catId = (typeof item === 'string') ? null  : (item.id  || null);
+
 				var li  = document.createElement('li');
 				var btn = document.createElement('button');
 
@@ -215,9 +239,12 @@
 				btn.textContent = name;
 				btn.setAttribute('type', 'button');
 				btn.setAttribute('data-category', name);
+				if (catId) {
+					btn.setAttribute('data-category-id', catId);
+				}
 
 				btn.addEventListener('click', function () {
-					this.selectItem(btn, listId, name);
+					this.selectItem(btn, listId, name, catId);
 				}.bind(this));
 
 				li.appendChild(btn);
@@ -228,17 +255,18 @@
 		/**
 		 * Mark an item as active and trigger the edit space to load its content.
 		 *
-		 * @param {HTMLElement} btn      The clicked nav item button.
-		 * @param {string}      listId   The parent list ID (determines subgroup context).
-		 * @param {string}      category The category name.
+		 * @param {HTMLElement}  btn         The clicked nav item button.
+		 * @param {string}       listId      The parent list ID (determines subgroup context).
+		 * @param {string}       category    The category name.
+		 * @param {string|null}  categoryId  Phase 2 category UUID (null for v1 string items).
 		 */
-		selectItem: function (btn, listId, category) {
+		selectItem: function (btn, listId, category, categoryId) {
 			// Remove active class from all items
 			var allItems = this._panel.querySelectorAll('.eff-nav-item');
-			allItems.forEach(function (item) {
-				item.classList.remove('is-active');
-				item.removeAttribute('aria-current');
-			});
+			for (var i = 0; i < allItems.length; i++) {
+				allItems[i].classList.remove('is-active');
+				allItems[i].removeAttribute('aria-current');
+			}
 
 			// Mark this item active
 			btn.classList.add('is-active');
@@ -254,9 +282,10 @@
 
 			// Update global selection state
 			EFF.state.currentSelection = {
-				group:    'Variables',
-				subgroup: subgroup,
-				category: category,
+				group:      'Variables',
+				subgroup:   subgroup,
+				category:   category,
+				categoryId: categoryId || null,
 			};
 
 			// Notify edit space
@@ -266,7 +295,22 @@
 		},
 
 		/**
-		 * Refresh nav items from updated config (called after Manage Project save).
+		 * Clear the active nav selection and trigger the back-to-placeholder flow.
+		 *
+		 * Called when the user closes the Colors view via the back/close button.
+		 */
+		clearSelection: function () {
+			var allItems = this._panel.querySelectorAll('.eff-nav-item');
+			for (var i = 0; i < allItems.length; i++) {
+				allItems[i].classList.remove('is-active');
+				allItems[i].removeAttribute('aria-current');
+			}
+			EFF.state.currentSelection = null;
+		},
+
+		/**
+		 * Refresh nav items from updated config (called after Manage Project save
+		 * or after category CRUD operations update config.categories).
 		 */
 		refresh: function () {
 			this._loadNavItems();

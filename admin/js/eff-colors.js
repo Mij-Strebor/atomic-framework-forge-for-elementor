@@ -44,6 +44,22 @@
 	}
 
 	// -----------------------------------------------------------------------
+	// COLLAPSE STATE — persists across re-renders
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Tracks user-toggled collapse state per category ID.
+	 * { catId: boolean }  true = collapsed
+	 */
+	var _collapsedCategoryIds = {};
+
+	/**
+	 * The category ID to scroll to and expand after rendering, or null.
+	 * Set by loadColors() from selection.categoryId (nav item click).
+	 */
+	var _focusedCategoryId = null;
+
+	// -----------------------------------------------------------------------
 	// MODULE
 	// -----------------------------------------------------------------------
 
@@ -85,7 +101,7 @@
 		/**
 		 * Entry point called by the overridden EFF.EditSpace.loadCategory.
 		 *
-		 * @param {{ group: string, subgroup: string, category: string }} selection
+		 * @param {{ group: string, subgroup: string, category: string, categoryId: string|null }} selection
 		 */
 		loadColors: function (selection) {
 			var placeholder = document.getElementById('eff-placeholder');
@@ -94,13 +110,21 @@
 
 			if (!content) { return; }
 
+			// Store the focused category from the nav click.
+			_focusedCategoryId = (selection && selection.categoryId) ? selection.categoryId : null;
+
 			if (workspace) {
 				workspace.setAttribute('data-active', 'true');
 			}
+
+			// Use inline style (highest specificity) to ensure placeholder is hidden
+			// regardless of any CSS display rules on .eff-placeholder.
 			if (placeholder) {
-				placeholder.setAttribute('hidden', '');
+				placeholder.style.display = 'none';
 			}
+
 			content.removeAttribute('hidden');
+			content.style.display = '';
 
 			this._renderAll(selection, content);
 		},
@@ -125,16 +149,34 @@
 
 			var html = '<div class="eff-colors-view">';
 
-			// Filter bar.
+			// ------- FILTER BAR -------
+			// Top row: COLORS title + search + back (close) + expand/collapse toggle.
+			// Bottom row: + Category button at left.
 			html += '<div class="eff-colors-filter-bar">'
+				+ '<div class="eff-filter-bar-top">'
+				+ '<span class="eff-colors-view-title">COLORS</span>'
 				+ '<input type="text" class="eff-colors-search" id="eff-colors-search"'
-				+ ' placeholder="Search variables..." aria-label="Search color variables">'
-				+ '<button class="eff-colors-filter-btn" id="eff-colors-expand-all" title="Expand all categories">Expand all</button>'
-				+ '<button class="eff-colors-filter-btn" id="eff-colors-collapse-all" title="Collapse all categories">Collapse all</button>'
-				+ '<button class="eff-colors-filter-btn eff-btn eff-btn--secondary" id="eff-colors-add-category" title="Add a new color category">+ Category</button>'
-				+ '</div>';
+				+ ' placeholder="Search variables\u2026" aria-label="Search color variables">'
+				+ '<button class="eff-icon-btn eff-colors-back-btn" id="eff-colors-back"'
+				+ ' title="Close colors view" aria-label="Close colors view">'
+				+ self._closeSVG()
+				+ '</button>'
+				+ '<button class="eff-icon-btn" id="eff-colors-collapse-toggle"'
+				+ ' title="Collapse all categories" aria-label="Collapse all categories"'
+				+ ' data-toggle-state="expanded">'
+				+ self._collapseAllSVG()
+				+ '</button>'
+				+ '</div>'
+				+ '<div class="eff-filter-bar-bottom">'
+				+ '<button class="eff-icon-btn eff-colors-add-cat-btn" id="eff-colors-add-category"'
+				+ ' title="Add a new category" aria-label="Add category">'
+				+ self._plusCircleSVG()
+				+ ' <span>Category</span>'
+				+ '</button>'
+				+ '</div>'
+				+ '</div>'; // .eff-colors-filter-bar
 
-			// Category blocks.
+			// ------- CATEGORY BLOCKS -------
 			if (categories.length === 0) {
 				html += '<p class="eff-colors-empty">No categories found. Click "+ Category" to add one.</p>';
 			} else {
@@ -149,6 +191,11 @@
 
 			// Bind all interactive elements.
 			self._bindEvents(container);
+
+			// Jump to focused category if set (from nav click).
+			if (_focusedCategoryId) {
+				self._jumpToCategory(_focusedCategoryId, container);
+			}
 		},
 
 		/**
@@ -168,32 +215,75 @@
 		/**
 		 * Build the HTML for one category block.
 		 *
-		 * @param {{ id: string, name: string, locked: boolean }} cat
+		 * Header layout (two rows):
+		 *   Top:    [Name (Inter 700) + count badge]     [actions: ⧉ ↑ ↓ ✕ ▾]
+		 *   Bottom: [⊕ add-variable button]
+		 *
+		 * @param {{ id: string, name: string, locked: boolean, order: number }} cat
 		 * @returns {string}
 		 */
 		_buildCategoryBlock: function (cat) {
-			var self = this;
-			var vars = self._getVarsForCategory(cat);
+			var self  = this;
+			var vars  = self._getVarsForCategory(cat);
 			var count = vars.length;
 
-			var html = '<div class="eff-category-block" data-category-id="' + this._esc(cat.id) + '">';
+			// Determine initial collapsed state for this render.
+			var isCollapsed;
+			if (_collapsedCategoryIds.hasOwnProperty(cat.id)) {
+				// User has manually toggled this category — respect their choice.
+				isCollapsed = _collapsedCategoryIds[cat.id];
+			} else if (_focusedCategoryId) {
+				// From nav click: focused category expanded, all others collapsed.
+				isCollapsed = (cat.id !== _focusedCategoryId);
+			} else {
+				// No focus set (re-render after CRUD): empty categories collapsed.
+				isCollapsed = (count === 0);
+			}
 
-			// Category header.
+			var html = '<div class="eff-category-block"'
+				+ ' data-category-id="' + self._esc(cat.id) + '"'
+				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '"'
+				+ '>';
+
+			// --- Header: top row ---
 			html += '<div class="eff-category-header">'
-				+ '<span class="eff-category-name">' + this._esc(cat.name) + '</span>'
-				+ '<span class="eff-category-count">' + count + '</span>'
-				+ '<div class="eff-category-actions" role="toolbar" aria-label="Category actions">'
-				+ this._catBtn('duplicate', 'Duplicate category', '⧉', '')
-				+ this._catBtn('move-up',   'Move category up',   '↑', '')
-				+ this._catBtn('move-down', 'Move category down', '↓', '')
-				+ this._catBtn('rename',    'Rename category',    '✎', '')
-				+ this._catBtn('add-var',   'Add variable to this category', '+', '')
-				+ (cat.locked ? '' : this._catBtn('delete',  'Delete category', '✕', 'eff-icon-btn--danger'))
-				+ this._catBtn('collapse',  'Collapse/expand category', '▾', 'eff-category-collapse-btn')
-				+ '</div>'
-				+ '</div>'; // .eff-category-header
+				+ '<div class="eff-cat-header-top">'
+				+ '<div class="eff-cat-header-left">'
 
-			// Column headings (shown only when vars exist).
+				// Name is clickable to start inline rename.
+				+ '<span class="eff-category-name" data-action="rename"'
+				+ ' title="Click to rename" tabindex="0"'
+				+ ' role="button" aria-label="Rename ' + self._esc(cat.name) + '">'
+				+ self._esc(cat.name)
+				+ '</span>'
+
+				// Variable count badge.
+				+ '<span class="eff-category-count">' + count + '</span>'
+
+				+ '</div>' // .eff-cat-header-left
+
+				+ '<div class="eff-category-actions" role="toolbar" aria-label="Category actions">'
+				+ self._catBtn('duplicate', 'Duplicate category', self._duplicateSVG(), '')
+				+ self._catBtn('move-up',   'Move category up',   self._arrowUpSVG(),   '')
+				+ self._catBtn('move-down', 'Move category down', self._arrowDownSVG(), '')
+				+ (cat.locked ? '' : self._catBtn('delete', 'Delete category', self._trashSVG(), 'eff-icon-btn--danger'))
+				+ self._catBtn('collapse', 'Collapse/expand category', self._chevronSVG(), 'eff-category-collapse-btn')
+				+ '</div>' // .eff-category-actions
+
+				+ '</div>'; // .eff-cat-header-top
+
+			// --- Header: bottom row — add variable ⊕ ---
+			html += '<div class="eff-cat-header-bottom">'
+				+ '<button class="eff-icon-btn eff-add-var-btn" data-action="add-var"'
+				+ ' aria-label="Add variable to ' + self._esc(cat.name) + '"'
+				+ ' title="Add variable">'
+				+ self._plusCircleSVG()
+				+ '</button>'
+				+ '</div>'; // .eff-cat-header-bottom
+
+			html += '</div>'; // .eff-category-header
+
+			// Column headings (visible only when category is expanded and has vars).
 			if (count > 0) {
 				html += '<div class="eff-color-list-header" aria-hidden="true">'
 					+ '<span></span>'  // status dot
@@ -208,20 +298,13 @@
 			// Variable rows.
 			html += '<div class="eff-color-list">';
 			if (count === 0) {
-				html += '<p class="eff-colors-empty">No variables in this category. Click "+" to add one.</p>';
+				html += '<p class="eff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var i = 0; i < vars.length; i++) {
 					html += self._buildVariableRow(vars[i]);
 				}
 			}
 			html += '</div>'; // .eff-color-list
-
-			// Add variable footer.
-			html += '<button class="eff-color-add-row" data-category-id="' + this._esc(cat.id) + '"'
-				+ ' data-category-name="' + this._esc(cat.name) + '"'
-				+ ' aria-label="Add variable to ' + this._esc(cat.name) + '">'
-				+ '+ Add variable'
-				+ '</button>';
 
 			html += '</div>'; // .eff-category-block
 			return html;
@@ -232,7 +315,7 @@
 		 *
 		 * @param {string} action    data-action value
 		 * @param {string} label     aria-label
-		 * @param {string} icon      Text/emoji icon
+		 * @param {string} icon      SVG icon HTML
 		 * @param {string} extraClass Additional CSS class
 		 * @returns {string}
 		 */
@@ -252,16 +335,16 @@
 		 * @returns {string}
 		 */
 		_buildVariableRow: function (v) {
-			var status     = v.status || 'synced';
+			var status      = v.status || 'synced';
 			var statusColor = this._statusColor(status);
-			var swatchBg   = this._esc(v.value || '');
-			var isExpanded = (this._openExpandId === v.id) ? ' data-expanded="true"' : '';
+			var swatchBg    = this._esc(v.value || '');
+			var isExpanded  = (this._openExpandId === v.id);
 
 			var html = '<div class="eff-color-row"'
-				+ isExpanded
+				+ (isExpanded ? ' data-expanded="true"' : '')
 				+ ' data-var-id="' + this._esc(v.id) + '">'
 
-				// Status dot (Phase 2e — always rendered, visible once status is set).
+				// Status dot (Phase 2e).
 				+ '<span class="eff-status-dot"'
 				+ ' style="background:' + statusColor + '"'
 				+ ' title="Status: ' + this._esc(status) + '"'
@@ -272,7 +355,7 @@
 				+ '<span class="eff-color-swatch"'
 				+ ' style="background:' + swatchBg + '"'
 				+ ' data-action="open-picker"'
-				+ ' aria-label="Color swatch — click expand to pick">'
+				+ ' aria-label="Color swatch \u2014 click expand to pick">'
 				+ '</span>'
 
 				// Name input (Phase 2c — always editable).
@@ -307,7 +390,7 @@
 				+ '</div>'; // .eff-color-row
 
 			// If this row's expand panel is open, include it immediately after.
-			if (this._openExpandId === v.id) {
+			if (isExpanded) {
 				html += this._buildExpandPanel(v);
 			}
 
@@ -358,7 +441,7 @@
 				+ '<select id="eff-gen-tints-' + self._esc(v.id) + '" class="eff-gen-tints">'
 				+ '<option value="0">Off</option>'
 				+ '<option value="3">3-step (300/600/900)</option>'
-				+ '<option value="9">9-step (100–900)</option>'
+				+ '<option value="9">9-step (100\u2013900)</option>'
 				+ '</select>'
 				+ '</div>'
 
@@ -367,7 +450,7 @@
 				+ '<select id="eff-gen-shades-' + self._esc(v.id) + '" class="eff-gen-shades">'
 				+ '<option value="0">Off</option>'
 				+ '<option value="3">3-step (300/600/900)</option>'
-				+ '<option value="9">9-step (100–900)</option>'
+				+ '<option value="9">9-step (100\u2013900)</option>'
 				+ '</select>'
 				+ '</div>'
 
@@ -459,7 +542,7 @@
 		_bindEvents: function (container) {
 			var self = this;
 
-			// ---- Filter bar ----
+			// ---- Filter bar: search ----
 			var searchInput = container.querySelector('#eff-colors-search');
 			if (searchInput) {
 				searchInput.addEventListener('input', function () {
@@ -467,20 +550,25 @@
 				});
 			}
 
-			var expandAll = container.querySelector('#eff-colors-expand-all');
-			if (expandAll) {
-				expandAll.addEventListener('click', function () {
-					self._setAllCollapsed(container, false);
+			// ---- Filter bar: back / close button ----
+			var backBtn = container.querySelector('#eff-colors-back');
+			if (backBtn) {
+				backBtn.addEventListener('click', function () {
+					self._closeColorsView();
 				});
 			}
 
-			var collapseAll = container.querySelector('#eff-colors-collapse-all');
-			if (collapseAll) {
-				collapseAll.addEventListener('click', function () {
-					self._setAllCollapsed(container, true);
+			// ---- Filter bar: expand/collapse all toggle ----
+			var toggleBtn = container.querySelector('#eff-colors-collapse-toggle');
+			if (toggleBtn) {
+				toggleBtn.addEventListener('click', function () {
+					var state      = toggleBtn.getAttribute('data-toggle-state');
+					var collapse   = (state !== 'collapsed'); // toggle
+					self._setAllCollapsed(container, collapse);
 				});
 			}
 
+			// ---- Filter bar: add category ----
 			var addCatBtn = container.querySelector('#eff-colors-add-category');
 			if (addCatBtn) {
 				addCatBtn.addEventListener('click', function () {
@@ -488,12 +576,12 @@
 				});
 			}
 
-			// ---- Delegated events on category blocks ----
+			// ---- Delegated click events on category blocks ----
 			container.addEventListener('click', function (e) {
 				var target = e.target;
 
-				// Find nearest button with data-action.
-				var btn = target.closest('[data-action]');
+				// Find nearest element with data-action (button or span).
+				var btn    = target.closest('[data-action]');
 				if (!btn) { return; }
 
 				var action = btn.getAttribute('data-action');
@@ -506,37 +594,31 @@
 					case 'move-up':   if (catId) { self._moveCategoryUp(catId); } break;
 					case 'move-down': if (catId) { self._moveCategoryDown(catId); } break;
 					case 'rename':    if (catId) { self._startCategoryRename(block, catId); } break;
-					case 'add-var':   if (catId) { self._addVariable(catId, block); } break;
+					case 'add-var':   if (catId) { self._addVariable(catId); } break;
 					case 'delete':    if (catId) { self._deleteCategory(catId); } break;
 
 					case 'collapse':
-						if (block) {
-							var collapsed = block.getAttribute('data-collapsed') === 'true';
-							block.setAttribute('data-collapsed', collapsed ? 'false' : 'true');
+						if (block && catId) {
+							var isCollapsed = block.getAttribute('data-collapsed') === 'true';
+							var newCollapsed = !isCollapsed;
+							block.setAttribute('data-collapsed', String(newCollapsed));
+							// Track for re-renders.
+							_collapsedCategoryIds[catId] = newCollapsed;
 						}
 						break;
 
 					case 'expand':
-						var row    = btn.closest('.eff-color-row');
-						var varId  = row ? row.getAttribute('data-var-id') : null;
+						var row   = btn.closest('.eff-color-row');
+						var varId = row ? row.getAttribute('data-var-id') : null;
 						if (varId) { self._toggleExpandPanel(varId, row, container); }
 						break;
 
 					case 'open-picker':
-						// Swatch click → open expand panel for this row.
 						var swatchRow = target.closest('.eff-color-row');
 						var swVarId   = swatchRow ? swatchRow.getAttribute('data-var-id') : null;
 						if (swVarId) { self._toggleExpandPanel(swVarId, swatchRow, container); }
 						break;
 				}
-			});
-
-			// ---- Add variable footer buttons ----
-			container.addEventListener('click', function (e) {
-				var addBtn = e.target.closest('.eff-color-add-row');
-				if (!addBtn) { return; }
-				var catId = addBtn.getAttribute('data-category-id');
-				if (catId) { self._addVariable(catId, addBtn.parentElement); }
 			});
 
 			// ---- Generate children button ----
@@ -594,17 +676,15 @@
 				var varId  = picker.getAttribute('data-var-id');
 				var panel  = picker.closest('.eff-expand-panel');
 				if (!varId || !panel) { return; }
-				var newHex     = picker.value; // e.g., '#3d2f1f'
+				var newHex      = picker.value; // e.g., '#3d2f1f'
 				var alphaSlider = panel.querySelector('.eff-alpha-slider');
-				var alphaVal   = alphaSlider ? parseInt(alphaSlider.value, 10) : 100;
-				var fullValue  = self._combineHexAlpha(newHex, alphaVal);
+				var alphaVal    = alphaSlider ? parseInt(alphaSlider.value, 10) : 100;
+				var fullValue   = self._combineHexAlpha(newHex, alphaVal);
 
-				// Update hex text input.
 				var hexInput = panel.querySelector('.eff-hex-input');
 				if (hexInput) { hexInput.value = newHex; }
 
 				self._saveVarValue(varId, fullValue, null);
-				// Update the swatch in the row immediately.
 				self._updateSwatchInDOM(varId, fullValue);
 			});
 
@@ -624,7 +704,6 @@
 				var alphaVal   = alphaSlider ? parseInt(alphaSlider.value, 10) : 100;
 				var fullValue  = self._combineHexAlpha(hex6, alphaVal);
 
-				// Sync native picker.
 				var nativePicker = panel.querySelector('.eff-native-picker');
 				if (nativePicker) { nativePicker.value = hex6; }
 
@@ -654,14 +733,71 @@
 				var panel  = slider.closest('.eff-expand-panel');
 				if (!varId || !panel) { return; }
 
-				var alphaVal    = parseInt(slider.value, 10);
+				var alphaVal     = parseInt(slider.value, 10);
 				var nativePicker = panel.querySelector('.eff-native-picker');
-				var hex6        = nativePicker ? nativePicker.value : '';
-				var fullValue   = self._combineHexAlpha(hex6, alphaVal);
+				var hex6         = nativePicker ? nativePicker.value : '';
+				var fullValue    = self._combineHexAlpha(hex6, alphaVal);
 
 				self._saveVarValue(varId, fullValue, null);
 				self._updateSwatchInDOM(varId, fullValue);
 			});
+		},
+
+		// -----------------------------------------------------------------------
+		// NAVIGATION HELPERS
+		// -----------------------------------------------------------------------
+
+		/**
+		 * Close the Colors view and return to the placeholder / main page.
+		 *
+		 * Clears nav active state, hides edit content, restores placeholder.
+		 */
+		_closeColorsView: function () {
+			// Clear nav selection.
+			if (EFF.PanelLeft && EFF.PanelLeft.clearSelection) {
+				EFF.PanelLeft.clearSelection();
+			}
+
+			// Hide content, show placeholder.
+			var content     = document.getElementById('eff-edit-content');
+			var placeholder = document.getElementById('eff-placeholder');
+			var workspace   = document.getElementById('eff-workspace');
+
+			if (content) {
+				content.setAttribute('hidden', '');
+				content.style.display = '';
+				content.innerHTML = '';
+			}
+			if (placeholder) {
+				placeholder.style.display = '';
+			}
+			if (workspace) {
+				workspace.removeAttribute('data-active');
+			}
+
+			EFF.state.currentSelection = null;
+			_focusedCategoryId = null;
+			this._openExpandId = null;
+		},
+
+		/**
+		 * Scroll to and expand a specific category block.
+		 *
+		 * Called after render when a nav item was clicked.
+		 *
+		 * @param {string}      catId     Category UUID to focus.
+		 * @param {HTMLElement} container The edit-content container.
+		 */
+		_jumpToCategory: function (catId, container) {
+			var block = container.querySelector('.eff-category-block[data-category-id="' + catId + '"]');
+			if (!block) { return; }
+
+			// Ensure it is expanded.
+			block.setAttribute('data-collapsed', 'false');
+			_collapsedCategoryIds[catId] = false;
+
+			// Scroll the block into view.
+			block.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		},
 
 		// -----------------------------------------------------------------------
@@ -702,7 +838,6 @@
 			temp.innerHTML = panelHtml;
 			var panelEl   = temp.firstChild;
 
-			// Insert after the row in the DOM.
 			if (row.nextSibling) {
 				row.parentNode.insertBefore(panelEl, row.nextSibling);
 			} else {
@@ -710,8 +845,6 @@
 			}
 
 			self._openExpandId = varId;
-
-			// Bind events specific to the expand panel (generator, picker already bound via delegation).
 		},
 
 		/**
@@ -722,11 +855,9 @@
 		_closeExpandPanel: function (container) {
 			if (!this._openExpandId) { return; }
 
-			// Remove panel element.
 			var panelEl = container.querySelector('.eff-expand-panel[data-expand-for="' + this._openExpandId + '"]');
 			if (panelEl) { panelEl.parentNode.removeChild(panelEl); }
 
-			// Remove expanded state from row.
 			var row = container.querySelector('.eff-color-row[data-var-id="' + this._openExpandId + '"]');
 			if (row) {
 				row.removeAttribute('data-expanded');
@@ -748,13 +879,12 @@
 		 * @param {HTMLElement} nameInput The name <input> element.
 		 */
 		_saveVarName: function (varId, nameInput) {
-			var self     = this;
-			var newName  = nameInput.value.trim();
-			var oldName  = nameInput.getAttribute('data-original') || '';
+			var self    = this;
+			var newName = nameInput.value.trim();
+			var oldName = nameInput.getAttribute('data-original') || '';
 
 			if (newName === oldName) { return; }
 
-			// Basic validation: must start with --.
 			if (!/^--[\w-]+$/.test(newName)) {
 				nameInput.value = oldName; // Revert.
 				return;
@@ -772,7 +902,7 @@
 				status:              'modified',
 			};
 
-			self._ajaxSaveColor(updateData, function (newState) {
+			self._ajaxSaveColor(updateData, function () {
 				nameInput.setAttribute('data-original', newName);
 				if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
 			});
@@ -824,7 +954,7 @@
 		 * Send eff_save_color AJAX and update EFF.state.variables on success.
 		 *
 		 * @param {Object}   variableData Partial variable object with at least { id }.
-		 * @param {Function} onSuccess    Called on success with updated state data.
+		 * @param {Function} onSuccess    Called on success.
 		 */
 		_ajaxSaveColor: function (variableData, onSuccess) {
 			var self = this;
@@ -836,15 +966,12 @@
 				variable: JSON.stringify(variableData),
 			}).then(function (res) {
 				if (res.success) {
-					// Update state from server response.
 					if (res.data && res.data.data && res.data.data.variables) {
 						EFF.state.variables = res.data.data.variables;
 					}
 					if (onSuccess) { onSuccess(res.data); }
 				}
-			}).catch(function () {
-				// Non-critical at UI level — PHP will log any server errors.
-			});
+			}).catch(function () {});
 		},
 
 		// -----------------------------------------------------------------------
@@ -854,21 +981,22 @@
 		/**
 		 * Add a new blank variable to a category.
 		 *
-		 * @param {string}      catId Category ID.
-		 * @param {HTMLElement} block Category block element (for local re-render).
+		 * @param {string} catId Category ID.
 		 */
-		_addVariable: function (catId, block) {
+		_addVariable: function (catId) {
 			var self = this;
 
-			// Find category name.
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
+			}
+
 			var cats = (EFF.state.config && EFF.state.config.categories) || [];
 			var cat  = null;
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].id === catId) { cat = cats[i]; break; }
 			}
 			var catName = cat ? cat.name : '';
-
-			if (!EFF.state.currentFile) { return; }
 
 			var newVar = {
 				name:        '--new-color',
@@ -888,7 +1016,8 @@
 				if (res.success && res.data && res.data.data) {
 					EFF.state.variables = res.data.data.variables || EFF.state.variables;
 					if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); EFF.App.refreshCounts(); }
-					// Re-render the current category view.
+					// Ensure the category stays expanded so the user sees the new row.
+					_collapsedCategoryIds[catId] = false;
 					self._rerenderView();
 				}
 			}).catch(function () {});
@@ -899,72 +1028,119 @@
 		// -----------------------------------------------------------------------
 
 		/**
-		 * Show a prompt and add a new category.
+		 * Open a modal prompt to add a new category.
 		 */
 		_addCategory: function () {
 			var self = this;
-			var name = window.prompt('New category name:');
-			if (!name || !name.trim()) { return; }
-			name = name.trim();
 
-			if (!EFF.state.currentFile) { return; }
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
+			}
 
-			EFF.App.ajax('eff_save_category', {
-				filename: EFF.state.currentFile,
-				category: JSON.stringify({ name: name }),
-			}).then(function (res) {
-				if (res.success && res.data) {
-					// Update config.categories in state.
-					if (!EFF.state.config) { EFF.state.config = {}; }
-					EFF.state.config.categories = res.data.categories;
-					if (EFF.App) { EFF.App.setDirty(true); }
-					self._rerenderView();
-					// Also refresh left panel nav if supported.
-					if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
-						EFF.PanelLeft.refresh();
-					}
+			EFF.Modal.open({
+				title: 'New Category',
+				body:  '<p style="margin-bottom:10px">Enter a name for the new category.</p>'
+					+ '<input type="text" class="eff-field-input" id="eff-modal-cat-name"'
+					+ ' placeholder="e.g., Accent" autocomplete="off" style="width:100%">',
+				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+					+ '<button class="eff-btn eff-btn--secondary" id="eff-modal-cat-cancel">Cancel</button>'
+					+ '<button class="eff-btn" id="eff-modal-cat-ok">Add Category</button>'
+					+ '</div>',
+			});
+
+			// Focus the input.
+			setTimeout(function () {
+				var input = document.getElementById('eff-modal-cat-name');
+				if (input) { input.focus(); }
+			}, 50);
+
+			function handleClick(e) {
+				if (e.target.id === 'eff-modal-cat-cancel') {
+					EFF.Modal.close();
+					document.removeEventListener('click', handleClick);
+				} else if (e.target.id === 'eff-modal-cat-ok') {
+					var input = document.getElementById('eff-modal-cat-name');
+					var name  = input ? input.value.trim() : '';
+					EFF.Modal.close();
+					document.removeEventListener('click', handleClick);
+
+					if (!name) { return; }
+
+					EFF.App.ajax('eff_save_category', {
+						filename: EFF.state.currentFile,
+						category: JSON.stringify({ name: name }),
+					}).then(function (res) {
+						if (res.success && res.data) {
+							if (!EFF.state.config) { EFF.state.config = {}; }
+							EFF.state.config.categories = res.data.categories;
+							if (EFF.App) { EFF.App.setDirty(true); }
+							self._rerenderView();
+							if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
+								EFF.PanelLeft.refresh();
+							}
+						}
+					}).catch(function () {});
 				}
-			}).catch(function () {});
+			}
+
+			document.addEventListener('click', handleClick);
 		},
 
 		/**
 		 * Start an inline rename for a category.
 		 *
-		 * Replaces the category name span with a text input temporarily.
+		 * Triggered by clicking the .eff-category-name span (data-action="rename").
 		 *
 		 * @param {HTMLElement} block Category block element.
 		 * @param {string}      catId Category ID.
 		 */
 		_startCategoryRename: function (block, catId) {
 			var self       = this;
-			var header     = block.querySelector('.eff-category-header');
-			var nameSpan   = header ? header.querySelector('.eff-category-name') : null;
+			var nameSpan   = block ? block.querySelector('.eff-category-name') : null;
 			if (!nameSpan) { return; }
+
+			// If already a rename input is active, do nothing.
+			if (nameSpan.tagName === 'INPUT') { return; }
 
 			var currentName = nameSpan.textContent || '';
 
-			// Replace span with input.
 			var input     = document.createElement('input');
 			input.type    = 'text';
-			input.className = 'eff-color-name-input eff-category-name-input';
+			input.className = 'eff-category-name-input';
 			input.value   = currentName;
 			input.setAttribute('aria-label', 'Category name');
+
 			nameSpan.parentNode.replaceChild(input, nameSpan);
 			input.focus();
 			input.select();
 
+			function revert() {
+				var span = document.createElement('span');
+				span.className    = 'eff-category-name';
+				span.setAttribute('data-action', 'rename');
+				span.setAttribute('title', 'Click to rename');
+				span.setAttribute('tabindex', '0');
+				span.setAttribute('role', 'button');
+				span.setAttribute('aria-label', 'Rename ' + currentName);
+				span.textContent = currentName;
+				if (input.parentNode) {
+					input.parentNode.replaceChild(span, input);
+				}
+			}
+
 			function commit() {
 				var newName = input.value.trim();
 				if (!newName || newName === currentName) {
-					// Revert.
-					var span = document.createElement('span');
-					span.className   = 'eff-category-name';
-					span.textContent = currentName;
-					input.parentNode.replaceChild(span, input);
+					revert();
 					return;
 				}
 
-				if (!EFF.state.currentFile) { return; }
+				if (!EFF.state.currentFile) {
+					revert();
+					self._noFileModal();
+					return;
+				}
 
 				EFF.App.ajax('eff_save_category', {
 					filename: EFF.state.currentFile,
@@ -978,8 +1154,10 @@
 						if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
 							EFF.PanelLeft.refresh();
 						}
+					} else {
+						revert();
 					}
-				}).catch(function () {});
+				}).catch(function () { revert(); });
 			}
 
 			input.addEventListener('blur', commit);
@@ -987,16 +1165,13 @@
 				if (e.key === 'Enter') { input.blur(); }
 				if (e.key === 'Escape') {
 					input.removeEventListener('blur', commit);
-					var span = document.createElement('span');
-					span.className   = 'eff-category-name';
-					span.textContent = currentName;
-					input.parentNode.replaceChild(span, input);
+					revert();
 				}
 			});
 		},
 
 		/**
-		 * Delete a category (with confirmation if it has variables).
+		 * Delete a category with confirmation modal.
 		 *
 		 * @param {string} catId Category ID.
 		 */
@@ -1004,33 +1179,51 @@
 			var self = this;
 			var vars = self._getVarsForCategoryId(catId);
 
-			if (vars.length > 0) {
-				var confirmed = window.confirm(
-					vars.length + ' variable(s) are in this category. '
-					+ 'Delete the category anyway? Variables will be moved to Uncategorized.'
-				);
-				if (!confirmed) { return; }
-			} else {
-				var ok = window.confirm('Delete this category?');
-				if (!ok) { return; }
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
 			}
 
-			if (!EFF.state.currentFile) { return; }
+			var bodyText = vars.length > 0
+				? '<p>' + vars.length + ' variable(s) are in this category. Variables will be moved to Uncategorized.</p><p style="margin-top:8px">Delete the category anyway?</p>'
+				: '<p>Delete this category?</p>';
 
-			EFF.App.ajax('eff_delete_category', {
-				filename:    EFF.state.currentFile,
-				category_id: catId,
-			}).then(function (res) {
-				if (res.success && res.data) {
-					if (!EFF.state.config) { EFF.state.config = {}; }
-					EFF.state.config.categories = res.data.categories;
-					if (EFF.App) { EFF.App.setDirty(true); }
-					self._rerenderView();
-					if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
-						EFF.PanelLeft.refresh();
-					}
+			EFF.Modal.open({
+				title: 'Delete Category',
+				body:  bodyText,
+				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+					+ '<button class="eff-btn eff-btn--secondary" id="eff-modal-del-cancel">Cancel</button>'
+					+ '<button class="eff-btn eff-btn--danger" id="eff-modal-del-ok">Delete</button>'
+					+ '</div>',
+			});
+
+			function handleClick(e) {
+				if (e.target.id === 'eff-modal-del-cancel') {
+					EFF.Modal.close();
+					document.removeEventListener('click', handleClick);
+				} else if (e.target.id === 'eff-modal-del-ok') {
+					EFF.Modal.close();
+					document.removeEventListener('click', handleClick);
+
+					EFF.App.ajax('eff_delete_category', {
+						filename:    EFF.state.currentFile,
+						category_id: catId,
+					}).then(function (res) {
+						if (res.success && res.data) {
+							if (!EFF.state.config) { EFF.state.config = {}; }
+							EFF.state.config.categories = res.data.categories;
+							delete _collapsedCategoryIds[catId];
+							if (EFF.App) { EFF.App.setDirty(true); }
+							self._rerenderView();
+							if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
+								EFF.PanelLeft.refresh();
+							}
+						}
+					}).catch(function () {});
 				}
-			}).catch(function () {});
+			}
+
+			document.addEventListener('click', handleClick);
 		},
 
 		/**
@@ -1039,8 +1232,14 @@
 		 * @param {string} catId Category ID to move up.
 		 */
 		_moveCategoryUp: function (catId) {
-			var self  = this;
-			var cats  = (EFF.state.config && EFF.state.config.categories)
+			var self = this;
+
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
+			}
+
+			var cats = (EFF.state.config && EFF.state.config.categories)
 				? EFF.state.config.categories.slice().sort(function (a, b) {
 					return (a.order || 0) - (b.order || 0);
 				})
@@ -1050,12 +1249,11 @@
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].id === catId) { idx = i; break; }
 			}
-			if (idx <= 0) { return; } // Already at top.
+			if (idx <= 0) { return; }
 
-			// Swap with the category above.
-			var temp   = cats[idx - 1];
+			var tmp     = cats[idx - 1];
 			cats[idx - 1] = cats[idx];
-			cats[idx]     = temp;
+			cats[idx]     = tmp;
 
 			var orderedIds = cats.map(function (c) { return c.id; });
 			self._ajaxReorderCategories(orderedIds);
@@ -1068,6 +1266,12 @@
 		 */
 		_moveCategoryDown: function (catId) {
 			var self = this;
+
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
+			}
+
 			var cats = (EFF.state.config && EFF.state.config.categories)
 				? EFF.state.config.categories.slice().sort(function (a, b) {
 					return (a.order || 0) - (b.order || 0);
@@ -1078,11 +1282,11 @@
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].id === catId) { idx = i; break; }
 			}
-			if (idx < 0 || idx >= cats.length - 1) { return; } // Already at bottom.
+			if (idx < 0 || idx >= cats.length - 1) { return; }
 
-			var temp   = cats[idx + 1];
+			var tmp     = cats[idx + 1];
 			cats[idx + 1] = cats[idx];
-			cats[idx]     = temp;
+			cats[idx]     = tmp;
 
 			var orderedIds = cats.map(function (c) { return c.id; });
 			self._ajaxReorderCategories(orderedIds);
@@ -1095,13 +1299,18 @@
 		 */
 		_duplicateCategory: function (catId) {
 			var self = this;
+
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
+			}
+
 			var cats = (EFF.state.config && EFF.state.config.categories) || [];
 			var cat  = null;
-
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].id === catId) { cat = cats[i]; break; }
 			}
-			if (!cat || !EFF.state.currentFile) { return; }
+			if (!cat) { return; }
 
 			var newName = cat.name + ' (copy)';
 
@@ -1114,10 +1323,10 @@
 				var newCatId   = res.data.id;
 				var newCatName = newName;
 
+				if (!EFF.state.config) { EFF.state.config = {}; }
 				EFF.state.config.categories = res.data.categories;
 
-				// Duplicate all variables in the source category.
-				var vars = self._getVarsForCategoryId(catId);
+				var vars         = self._getVarsForCategoryId(catId);
 				var savePromises = [];
 
 				for (var j = 0; j < vars.length; j++) {
@@ -1187,19 +1396,22 @@
 		 * @param {HTMLElement} panel The .eff-expand-panel element.
 		 */
 		_generateChildren: function (varId, panel) {
-			var self     = this;
-			var tints    = panel.querySelector('.eff-gen-tints');
-			var shades   = panel.querySelector('.eff-gen-shades');
-			var trans    = panel.querySelector('.eff-gen-trans');
+			var self  = this;
+			var tints = panel.querySelector('.eff-gen-tints');
+			var shades = panel.querySelector('.eff-gen-shades');
+			var trans  = panel.querySelector('.eff-gen-trans');
 
-			if (!EFF.state.currentFile) { return; }
+			if (!EFF.state.currentFile) {
+				self._noFileModal();
+				return;
+			}
 
 			EFF.App.ajax('eff_generate_children', {
 				filename:       EFF.state.currentFile,
 				parent_id:      varId,
-				tints:          tints   ? tints.value   : '0',
-				shades:         shades  ? shades.value  : '0',
-				transparencies: trans   ? trans.value   : '0',
+				tints:          tints  ? tints.value  : '0',
+				shades:         shades ? shades.value : '0',
+				transparencies: trans  ? trans.value  : '0',
 			}).then(function (res) {
 				if (res.success && res.data) {
 					if (res.data.data && res.data.data.variables) {
@@ -1226,7 +1438,7 @@
 			_redoStack.push(op);
 
 			if (op.type === 'value-change' || op.type === 'name-change') {
-				var field = (op.type === 'value-change') ? 'value' : 'name';
+				var field  = (op.type === 'value-change') ? 'value' : 'name';
 				var update = { id: op.id, status: 'modified' };
 				update[field] = op.oldValue;
 				self._ajaxSaveColor(update, function () {
@@ -1247,7 +1459,7 @@
 			_undoStack.push(op);
 
 			if (op.type === 'value-change' || op.type === 'name-change') {
-				var field = (op.type === 'value-change') ? 'value' : 'name';
+				var field  = (op.type === 'value-change') ? 'value' : 'name';
 				var update = { id: op.id, status: 'modified' };
 				update[field] = op.newValue;
 				self._ajaxSaveColor(update, function () {
@@ -1258,13 +1470,11 @@
 		},
 
 		// -----------------------------------------------------------------------
-		// FILTER
+		// FILTER / COLLAPSE
 		// -----------------------------------------------------------------------
 
 		/**
 		 * Filter color rows by search query.
-		 *
-		 * Shows/hides rows based on whether name or value contains the query.
 		 *
 		 * @param {HTMLElement} container
 		 * @param {string}      query
@@ -1285,7 +1495,7 @@
 		},
 
 		/**
-		 * Expand or collapse all category blocks.
+		 * Expand or collapse all category blocks and update the toggle button.
 		 *
 		 * @param {HTMLElement} container
 		 * @param {boolean}     collapsed True to collapse, false to expand.
@@ -1293,7 +1503,25 @@
 		_setAllCollapsed: function (container, collapsed) {
 			var blocks = container.querySelectorAll('.eff-category-block');
 			for (var i = 0; i < blocks.length; i++) {
+				var catId = blocks[i].getAttribute('data-category-id');
 				blocks[i].setAttribute('data-collapsed', collapsed ? 'true' : 'false');
+				if (catId) { _collapsedCategoryIds[catId] = collapsed; }
+			}
+
+			// Update toggle button icon and label.
+			var toggleBtn = container.querySelector('#eff-colors-collapse-toggle');
+			if (toggleBtn) {
+				if (collapsed) {
+					toggleBtn.setAttribute('title', 'Expand all categories');
+					toggleBtn.setAttribute('aria-label', 'Expand all categories');
+					toggleBtn.setAttribute('data-toggle-state', 'collapsed');
+					toggleBtn.innerHTML = this._expandAllSVG();
+				} else {
+					toggleBtn.setAttribute('title', 'Collapse all categories');
+					toggleBtn.setAttribute('aria-label', 'Collapse all categories');
+					toggleBtn.setAttribute('data-toggle-state', 'expanded');
+					toggleBtn.innerHTML = this._collapseAllSVG();
+				}
 			}
 		},
 
@@ -1304,12 +1532,15 @@
 		/**
 		 * Re-render the Colors view after a state change.
 		 *
-		 * Preserves the current selection and open expand panel.
+		 * Clears focused category (so collapse state is preserved, not overridden
+		 * by the nav-click behaviour) then re-renders with current selection.
 		 */
 		_rerenderView: function () {
 			var content = document.getElementById('eff-edit-content');
 			if (!content || !EFF.state.currentSelection) { return; }
 
+			// Preserve collapse state across re-renders; don't override with focus.
+			_focusedCategoryId = null;
 			this.loadColors(EFF.state.currentSelection);
 		},
 
@@ -1333,13 +1564,47 @@
 		// -----------------------------------------------------------------------
 
 		/**
-		 * Get variables that belong to a given category object (by name + id).
+		 * Get variables that belong to a given category object.
+		 *
+		 * Special case: "Uncategorized" is a catch-all — it includes any Colors
+		 * variable that is not explicitly assigned to another defined category.
+		 * This ensures Elementor-synced vars (which have no category set) appear
+		 * somewhere in the UI.
 		 *
 		 * @param {{ id: string, name: string }} cat
 		 * @returns {Array}
 		 */
 		_getVarsForCategory: function (cat) {
-			return (EFF.state.variables || []).filter(function (v) {
+			var allVars = EFF.state.variables || [];
+
+			if (cat.name === 'Uncategorized') {
+				// Build lookup of all non-Uncategorized category IDs and names.
+				var cats = (EFF.state.config && EFF.state.config.categories)
+					? EFF.state.config.categories
+					: this._getDefaultCategories();
+
+				var validIds   = {};
+				var validNames = {};
+				for (var i = 0; i < cats.length; i++) {
+					if (cats[i].name !== 'Uncategorized') {
+						validIds[cats[i].id] = true;
+						if (cats[i].name) { validNames[cats[i].name] = true; }
+					}
+				}
+
+				return allVars.filter(function (v) {
+					if (v.subgroup !== 'Colors' || v.status === 'deleted') { return false; }
+					// Explicitly assigned to this Uncategorized category.
+					if (v.category_id === cat.id || v.category === cat.name) { return true; }
+					// Falls through — not matched by any other category.
+					var hasOtherCatId   = v.category_id && validIds[v.category_id];
+					var hasOtherCatName = v.category    && validNames[v.category];
+					return !hasOtherCatId && !hasOtherCatName;
+				});
+			}
+
+			// Standard filter: match by category_id or category name.
+			return allVars.filter(function (v) {
 				return v.subgroup === 'Colors'
 					&& (v.category_id === cat.id || v.category === cat.name)
 					&& v.status !== 'deleted';
@@ -1385,14 +1650,25 @@
 		},
 
 		// -----------------------------------------------------------------------
+		// MODAL HELPERS
+		// -----------------------------------------------------------------------
+
+		/**
+		 * Show a "no file loaded" info modal.
+		 */
+		_noFileModal: function () {
+			EFF.Modal.open({
+				title: 'No file loaded',
+				body:  '<p>Please load or save a project file before managing colors and categories.</p>',
+			});
+		},
+
+		// -----------------------------------------------------------------------
 		// COLOR UTILITIES
 		// -----------------------------------------------------------------------
 
 		/**
 		 * Return the CSS color string for a status enum value.
-		 *
-		 * Uses CSS custom properties from eff-theme.css so it works in both themes.
-		 * Falls back to a hard-coded muted color if the var() token is unavailable.
 		 *
 		 * @param {string} status
 		 * @returns {string} CSS color string.
@@ -1412,8 +1688,6 @@
 		/**
 		 * Extract a 6-character hex string from a CSS color value.
 		 *
-		 * Handles #rrggbb and #rrggbbaa. Returns null for non-hex values.
-		 *
 		 * @param {string} value CSS color value.
 		 * @returns {string|null} '#rrggbb' or null.
 		 */
@@ -1425,8 +1699,6 @@
 
 		/**
 		 * Extract the alpha channel (0–1) from a CSS color value.
-		 *
-		 * Returns 1.0 if no alpha is present or value is not #rrggbbaa.
 		 *
 		 * @param {string} value CSS color value.
 		 * @returns {number} Alpha 0–1.
@@ -1443,26 +1715,107 @@
 		 *
 		 * @param {string} hex6     '#rrggbb' format.
 		 * @param {number} alphaPct 0–100.
-		 * @returns {string} '#rrggbb' if alpha=100, '#rrggbbaa' otherwise.
+		 * @returns {string}
 		 */
 		_combineHexAlpha: function (hex6, alphaPct) {
 			if (alphaPct >= 100) { return hex6; }
-			var alpha = Math.round((alphaPct / 100) * 255);
+			var alpha    = Math.round((alphaPct / 100) * 255);
 			var alphaHex = alpha.toString(16);
 			if (alphaHex.length < 2) { alphaHex = '0' + alphaHex; }
 			return hex6 + alphaHex;
 		},
 
-		/**
-		 * Inline SVG chevron icon.
-		 *
-		 * @returns {string}
-		 */
+		// -----------------------------------------------------------------------
+		// SVG ICONS (inline, no external dependencies)
+		// -----------------------------------------------------------------------
+
+		/** Chevron-down (expand row / collapse-category direction indicator). */
 		_chevronSVG: function () {
 			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
 				+ ' fill="none" stroke="currentColor" stroke-width="2"'
 				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
 				+ '<polyline points="6 9 12 15 18 9"></polyline>'
+				+ '</svg>';
+		},
+
+		/** × close / back button. */
+		_closeSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<line x1="18" y1="6" x2="6" y2="18"></line>'
+				+ '<line x1="6" y1="6" x2="18" y2="18"></line>'
+				+ '</svg>';
+		},
+
+		/** Double-chevron up (collapse-all icon — shown when expanded). */
+		_collapseAllSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<polyline points="18 15 12 9 6 15"></polyline>'
+				+ '</svg>';
+		},
+
+		/** Double-chevron down (expand-all icon — shown when collapsed). */
+		_expandAllSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<polyline points="6 9 12 15 18 9"></polyline>'
+				+ '</svg>';
+		},
+
+		/** Plus inside a circle (add variable / add category). */
+		_plusCircleSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<circle cx="12" cy="12" r="10"></circle>'
+				+ '<line x1="12" y1="8" x2="12" y2="16"></line>'
+				+ '<line x1="8" y1="12" x2="16" y2="12"></line>'
+				+ '</svg>';
+		},
+
+		/** Duplicate / copy icon. */
+		_duplicateSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>'
+				+ '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>'
+				+ '</svg>';
+		},
+
+		/** Arrow pointing up (move category up). */
+		_arrowUpSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<line x1="12" y1="19" x2="12" y2="5"></line>'
+				+ '<polyline points="5 12 12 5 19 12"></polyline>'
+				+ '</svg>';
+		},
+
+		/** Arrow pointing down (move category down). */
+		_arrowDownSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<line x1="12" y1="5" x2="12" y2="19"></line>'
+				+ '<polyline points="19 12 12 19 5 12"></polyline>'
+				+ '</svg>';
+		},
+
+		/** Trash bin (delete category). */
+		_trashSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<polyline points="3 6 5 6 21 6"></polyline>'
+				+ '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>'
+				+ '<path d="M10 11v6"></path><path d="M14 11v6"></path>'
+				+ '<path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>'
 				+ '</svg>';
 		},
 
