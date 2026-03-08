@@ -77,7 +77,41 @@ class EFF_Data_Store {
 			return false;
 		}
 
-		$this->data         = $this->merge_with_defaults( $decoded );
+		$merged = $this->merge_with_defaults( $decoded );
+
+		// Phase 2 migration: convert legacy `modified` boolean to `status` enum.
+		// v1.0.0 files use `modified: true/false`; Phase 2 uses `status` enum.
+		if ( isset( $merged['variables'] ) && is_array( $merged['variables'] ) ) {
+			foreach ( $merged['variables'] as &$var ) {
+				if ( ! isset( $var['status'] ) ) {
+					$var['status'] = ( isset( $var['modified'] ) && true === $var['modified'] )
+						? 'modified'
+						: 'synced';
+				}
+				// Backfill other Phase 2 fields if absent.
+				if ( ! isset( $var['original_value'] ) ) {
+					$var['original_value'] = $var['value'] ?? '';
+				}
+				if ( ! array_key_exists( 'pending_rename_from', $var ) ) {
+					$var['pending_rename_from'] = null;
+				}
+				if ( ! array_key_exists( 'parent_id', $var ) ) {
+					$var['parent_id'] = null;
+				}
+				if ( ! isset( $var['format'] ) ) {
+					$var['format'] = 'HEX';
+				}
+				if ( ! isset( $var['category_id'] ) ) {
+					$var['category_id'] = '';
+				}
+				if ( ! isset( $var['order'] ) ) {
+					$var['order'] = 0;
+				}
+			}
+			unset( $var );
+		}
+
+		$this->data         = $merged;
 		$this->current_file = $file_path;
 		$this->dirty        = false;
 
@@ -178,8 +212,12 @@ class EFF_Data_Store {
 			if ( $var['id'] === $id ) {
 				$data['updated_at'] = gmdate( 'c' );
 				$data['modified']   = true;
-				$var                = array_merge( $var, $data );
-				$this->dirty        = true;
+				// Phase 2: update status to 'modified' unless caller explicitly sets it.
+				if ( ! isset( $data['status'] ) ) {
+					$data['status'] = 'modified';
+				}
+				$var         = array_merge( $var, $data );
+				$this->dirty = true;
 				return true;
 			}
 		}
@@ -220,6 +258,124 @@ class EFF_Data_Store {
 		}
 
 		return null;
+	}
+
+	// -----------------------------------------------------------------------
+	// CATEGORY CRUD (Phase 2 — Colors category management)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Return the category list for Colors (or all subgroups).
+	 *
+	 * @return array[]
+	 */
+	public function get_categories(): array {
+		return $this->data['config']['categories'] ?? array();
+	}
+
+	/**
+	 * Add a new category. Returns the generated ID.
+	 *
+	 * @param array $cat Category data (name, locked, order).
+	 * @return string UUID-style ID.
+	 */
+	public function add_category( array $cat ): string {
+		$id        = $this->generate_id();
+		$cat['id'] = $id;
+		$cat       = array_merge( $this->category_defaults(), $cat );
+
+		if ( ! isset( $this->data['config']['categories'] ) ) {
+			$this->data['config']['categories'] = array();
+		}
+
+		$this->data['config']['categories'][] = $cat;
+		$this->dirty                          = true;
+
+		return $id;
+	}
+
+	/**
+	 * Update an existing category by ID.
+	 *
+	 * @param string $id   Category UUID.
+	 * @param array  $data Fields to update.
+	 * @return bool True if found and updated.
+	 */
+	public function update_category( string $id, array $data ): bool {
+		if ( ! isset( $this->data['config']['categories'] ) ) {
+			return false;
+		}
+
+		foreach ( $this->data['config']['categories'] as &$cat ) {
+			if ( $cat['id'] === $id ) {
+				// Never allow changing the locked flag via this method.
+				unset( $data['locked'] );
+				$cat         = array_merge( $cat, $data );
+				$this->dirty = true;
+				return true;
+			}
+		}
+		unset( $cat );
+
+		return false;
+	}
+
+	/**
+	 * Delete a category by ID.
+	 *
+	 * Refuses to delete locked categories (e.g., Uncategorized).
+	 *
+	 * @param string $id Category UUID.
+	 * @return bool True if found and deleted.
+	 */
+	public function delete_category( string $id ): bool {
+		if ( ! isset( $this->data['config']['categories'] ) ) {
+			return false;
+		}
+
+		foreach ( $this->data['config']['categories'] as $k => $cat ) {
+			if ( $cat['id'] === $id ) {
+				if ( ! empty( $cat['locked'] ) ) {
+					return false; // Cannot delete locked categories.
+				}
+				array_splice( $this->data['config']['categories'], $k, 1 );
+				$this->dirty = true;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Reorder categories to match the given ordered list of IDs.
+	 *
+	 * @param string[] $ordered_ids Category IDs in the desired display order.
+	 * @return bool True on success.
+	 */
+	public function reorder_categories( array $ordered_ids ): bool {
+		if ( ! isset( $this->data['config']['categories'] ) ) {
+			return false;
+		}
+
+		$index = array_flip( $ordered_ids );
+
+		foreach ( $this->data['config']['categories'] as &$cat ) {
+			if ( isset( $index[ $cat['id'] ] ) ) {
+				$cat['order'] = $index[ $cat['id'] ];
+			}
+		}
+		unset( $cat );
+
+		usort(
+			$this->data['config']['categories'],
+			static function ( array $a, array $b ): int {
+				return $a['order'] <=> $b['order'];
+			}
+		);
+
+		$this->dirty = true;
+		return true;
 	}
 
 	// -----------------------------------------------------------------------
@@ -340,21 +496,46 @@ class EFF_Data_Store {
 	/**
 	 * Return the default variable data model.
 	 *
+	 * Includes Phase 2 fields. The legacy `modified` boolean is kept for
+	 * backward compatibility when reading v1.0.0 files; it is superseded
+	 * by the `status` enum (see load_from_file() migration).
+	 *
 	 * @return array
 	 */
 	private function variable_defaults(): array {
 		return array(
-			'id'         => '',
-			'name'       => '',
-			'value'      => '',
-			'type'       => 'unknown',
-			'group'      => 'Variables',
-			'subgroup'   => 'Colors',
-			'category'   => '',
-			'source'     => 'user-defined',
-			'modified'   => false,
-			'created_at' => '',
-			'updated_at' => '',
+			'id'                  => '',
+			'name'                => '',
+			'value'               => '',
+			'original_value'      => '',
+			'pending_rename_from' => null,
+			'parent_id'           => null,
+			'type'                => 'color',
+			'format'              => 'HEX',
+			'group'               => 'Variables',
+			'subgroup'            => 'Colors',
+			'category'            => '',
+			'category_id'         => '',
+			'order'               => 0,
+			'source'              => 'user-defined',
+			'status'              => 'synced',
+			'modified'            => false,
+			'created_at'          => '',
+			'updated_at'          => '',
+		);
+	}
+
+	/**
+	 * Return the default category data model.
+	 *
+	 * @return array
+	 */
+	private function category_defaults(): array {
+		return array(
+			'id'     => '',
+			'name'   => '',
+			'order'  => 0,
+			'locked' => false,
 		);
 	}
 
@@ -391,5 +572,46 @@ class EFF_Data_Store {
 		$base = preg_replace( '/\.eff$/', '', $base );
 
 		return $base . '.eff.json';
+	}
+
+	// -----------------------------------------------------------------------
+	// BASELINE ADAPTER METHODS — Elementor baseline snapshot storage.
+	// Baseline is stored in wp_options, keyed by a hash of the filename.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Retrieve the Elementor baseline snapshot for a given .eff.json file.
+	 *
+	 * The baseline is a flat array of { name, value } pairs representing
+	 * Elementor's variable values at the time of the last Sync.
+	 *
+	 * @param string $filename Sanitized .eff.json filename (e.g., 'my-project.eff.json').
+	 * @return array Baseline variable array, or empty array if not yet set.
+	 */
+	public static function get_baseline( string $filename ): array {
+		$key  = 'eff_elementor_baseline_' . md5( $filename );
+		$data = get_option( $key, array() );
+		return is_array( $data ) ? $data : array();
+	}
+
+	/**
+	 * Save the Elementor baseline snapshot for a given .eff.json file.
+	 *
+	 * @param string  $filename  Sanitized .eff.json filename.
+	 * @param array   $variables Array of { name, value } pairs from Elementor.
+	 */
+	public static function save_baseline( string $filename, array $variables ): void {
+		$key = 'eff_elementor_baseline_' . md5( $filename );
+		update_option( $key, $variables, false ); // autoload=false: only needed on demand.
+	}
+
+	/**
+	 * Delete the Elementor baseline snapshot for a given .eff.json file.
+	 *
+	 * @param string $filename Sanitized .eff.json filename.
+	 */
+	public static function delete_baseline( string $filename ): void {
+		$key = 'eff_elementor_baseline_' . md5( $filename );
+		delete_option( $key );
 	}
 }
