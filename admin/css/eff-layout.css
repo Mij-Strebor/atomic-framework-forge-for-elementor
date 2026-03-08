@@ -59,7 +59,7 @@
 }
 
 .eff-brand-name {
-	font-size:   var(--fs-xxl);     /* 24px */
+	font-size:   var(--fs-xxxl);    /* 32px */
 	font-weight: var(--fw-bold);    /* 700 */
 	color:       var(--eff-clr-accent);
 	white-space: nowrap;

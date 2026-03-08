@@ -72,9 +72,10 @@
 	user-select:    none;
 }
 
-/* Search input */
+/* Search input — fixed width, not flex-grow */
 .eff-colors-search {
-	flex:          1;
+	flex:          0 0 180px;
+	max-width:     180px;
 	padding:       var(--sp-1) var(--sp-3);
 	background:    var(--eff-bg-field);
 	border:        1px solid var(--eff-clr-border);
@@ -165,33 +166,28 @@
 	padding:     0 var(--sp-4) var(--sp-1);
 }
 
-/* Category name — Inter 700, clickable for rename */
-.eff-category-name {
-	font-size:   24px;
-	font-weight: 700;
-	color:       var(--eff-clr-primary);
-	cursor:      pointer;
-	white-space: nowrap;
-	overflow:    hidden;
-	text-overflow: ellipsis;
-}
-
-.eff-category-name:hover {
-	color: var(--eff-clr-accent);
-}
-
-/* Inline rename input */
+/* Category name — always-on input, ghost style until focused */
 .eff-category-name-input {
 	padding:       2px var(--sp-2);
-	background:    var(--eff-bg-field);
-	border:        1px solid var(--eff-clr-accent);
+	background:    transparent;
+	border:        1px solid transparent;
 	border-radius: var(--eff-border-radius-sm);
-	font-size:     15px;
+	font-size:     24px;
 	font-weight:   700;
 	color:         var(--eff-clr-primary);
-	box-shadow:    var(--eff-field-shadow);
 	min-width:     0;
 	flex:          1;
+	transition:    border-color var(--eff-transition), background-color var(--eff-transition);
+}
+
+.eff-category-name-input:hover {
+	border-color: var(--eff-clr-border);
+}
+
+.eff-category-name-input:focus {
+	border-color: var(--eff-clr-accent);
+	background:   var(--eff-bg-field);
+	outline:      none;
 }
 
 /* Variable count badge (next to name) */
@@ -224,6 +220,13 @@
 
 .eff-add-var-btn:hover {
 	color: var(--eff-clr-accent);
+}
+
+/* Add-variable footer row inside .eff-color-list */
+.eff-cat-list-footer {
+	display:     flex;
+	align-items: center;
+	padding:     var(--sp-1) var(--sp-4);
 }
 
 /* ==========================================================================
@@ -277,9 +280,7 @@
    6. COLLAPSE STATE — hide list and add-var button when collapsed
    ========================================================================== */
 
-.eff-category-block[data-collapsed="true"] .eff-color-list,
-.eff-category-block[data-collapsed="true"] .eff-color-list-header,
-.eff-category-block[data-collapsed="true"] .eff-cat-header-bottom {
+.eff-category-block[data-collapsed="true"] .eff-color-list {
 	display: none;
 }
 
@@ -289,7 +290,7 @@
 
 .eff-color-list-header {
 	display:               grid;
-	grid-template-columns: 8px 24px 1fr 180px 90px 32px;
+	grid-template-columns: 8px 60px 1fr 180px 90px 32px;
 	gap:           var(--sp-2);
 	align-items:   center;
 	padding:       var(--sp-1) var(--sp-4);
@@ -305,20 +306,15 @@
 	flex-direction: column;
 }
 
-/* Single color variable row */
+/* Single color variable row — no dividers (category is a single entity) */
 .eff-color-row {
 	display:               grid;
-	grid-template-columns: 8px 24px 1fr 180px 90px 32px;
+	grid-template-columns: 8px 60px 1fr 180px 90px 32px;
 	gap:           var(--sp-2);
 	align-items:   center;
 	padding:       var(--sp-2) var(--sp-4);
-	border-bottom: 1px solid var(--eff-clr-border);
 	min-height:    40px;
 	transition:    background-color var(--eff-transition);
-}
-
-.eff-color-row:last-of-type {
-	border-bottom: none;
 }
 
 .eff-color-row:hover {
@@ -334,10 +330,10 @@
 	background:    var(--eff-clr-muted);
 }
 
-/* Color swatch (second column) */
+/* Color swatch (second column) — wider for better color preview */
 .eff-color-swatch {
-	width:         24px;
-	height:        24px;
+	width:         60px;
+	height:        36px;
 	border-radius: var(--eff-border-radius-sm);
 	box-shadow:    var(--eff-swatch-shadow);
 	cursor:        pointer;
@@ -353,7 +349,6 @@
 /* Name field (third column) */
 .eff-color-name-field {
 	min-width: 0;
-	overflow:  hidden;
 }
 
 /* Editable name input */

@@ -169,12 +169,16 @@
 			var _toggleTitle = _anyExpanded ? 'Collapse all categories' : 'Expand all categories';
 
 			// ------- FILTER BAR -------
-			// Top row: search + back (close) + expand/collapse toggle.
-			// Bottom row: + Category button at left.
+			// Single row: search (narrow) | add-category | spacer | close | collapse-toggle
 			html += '<div class="eff-colors-filter-bar">'
 				+ '<div class="eff-filter-bar-top">'
 				+ '<input type="text" class="eff-colors-search" id="eff-colors-search"'
-				+ ' placeholder="Search variables\u2026" aria-label="Search color variables">'
+				+ ' placeholder="Search\u2026" aria-label="Search color variables">'
+				+ '<button class="eff-icon-btn eff-colors-add-cat-btn" id="eff-colors-add-category"'
+				+ ' title="Add a new category" aria-label="Add category">'
+				+ self._plusCircleSVG()
+				+ '</button>'
+				+ '<span style="flex:1"></span>'
 				+ '<button class="eff-icon-btn eff-colors-back-btn" id="eff-colors-back"'
 				+ ' title="Close colors view" aria-label="Close colors view">'
 				+ self._closeSVG()
@@ -183,12 +187,6 @@
 				+ ' title="' + _toggleTitle + '" aria-label="' + _toggleTitle + '"'
 				+ ' data-toggle-state="' + _toggleState + '">'
 				+ _toggleSVG
-				+ '</button>'
-				+ '</div>'
-				+ '<div class="eff-filter-bar-bottom">'
-				+ '<button class="eff-icon-btn eff-colors-add-cat-btn" id="eff-colors-add-category"'
-				+ ' title="Add a new category" aria-label="Add category">'
-				+ self._plusCircleSVG()
 				+ '</button>'
 				+ '</div>'
 				+ '</div>'; // .eff-colors-filter-bar
@@ -262,17 +260,18 @@
 				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '"'
 				+ '>';
 
-			// --- Header: top row ---
+			// --- Header: single row — always-on name input + count + actions ---
 			html += '<div class="eff-category-header">'
 				+ '<div class="eff-cat-header-top">'
 				+ '<div class="eff-cat-header-left">'
 
-				// Name is clickable to start inline rename.
-				+ '<span class="eff-category-name" data-action="rename"'
-				+ ' title="Click to rename" tabindex="0"'
-				+ ' role="button" aria-label="Rename ' + self._esc(cat.name) + '">'
-				+ self._esc(cat.name)
-				+ '</span>'
+				// Always-on name input (same editing style as variable names).
+				+ '<input type="text" class="eff-category-name-input"'
+				+ ' data-cat-id="' + self._esc(cat.id) + '"'
+				+ ' value="' + self._esc(cat.name) + '"'
+				+ ' data-original="' + self._esc(cat.name) + '"'
+				+ ' aria-label="Category name"'
+				+ (cat.locked ? ' readonly' : '') + '>'
 
 				// Variable count badge.
 				+ '<span class="eff-category-count">' + count + '</span>'
@@ -287,32 +286,10 @@
 				+ self._catBtn('collapse', 'Collapse/expand category', self._chevronSVG(), 'eff-category-collapse-btn')
 				+ '</div>' // .eff-category-actions
 
-				+ '</div>'; // .eff-cat-header-top
+				+ '</div>' // .eff-cat-header-top
+				+ '</div>'; // .eff-category-header
 
-			// --- Header: bottom row — add variable ⊕ ---
-			html += '<div class="eff-cat-header-bottom">'
-				+ '<button class="eff-icon-btn eff-add-var-btn" data-action="add-var"'
-				+ ' aria-label="Add variable to ' + self._esc(cat.name) + '"'
-				+ ' title="Add variable">'
-				+ self._plusCircleSVG()
-				+ '</button>'
-				+ '</div>'; // .eff-cat-header-bottom
-
-			html += '</div>'; // .eff-category-header
-
-			// Column headings (visible only when category is expanded and has vars).
-			if (count > 0) {
-				html += '<div class="eff-color-list-header" aria-hidden="true">'
-					+ '<span></span>'  // status dot
-					+ '<span></span>'  // swatch
-					+ '<span>Variable</span>'
-					+ '<span>Value</span>'
-					+ '<span>Format</span>'
-					+ '<span></span>'  // expand
-					+ '</div>';
-			}
-
-			// Variable rows.
+			// Variable rows (no column headers, no dividers — category is a single entity).
 			html += '<div class="eff-color-list">';
 			if (count === 0) {
 				html += '<p class="eff-colors-empty">No variables in this category.</p>';
@@ -321,6 +298,14 @@
 					html += self._buildVariableRow(vars[i]);
 				}
 			}
+			// Add-variable footer button (inside list so it hides with collapse).
+			html += '<div class="eff-cat-list-footer">'
+				+ '<button class="eff-icon-btn eff-add-var-btn" data-action="add-var"'
+				+ ' aria-label="Add variable to ' + self._esc(cat.name) + '"'
+				+ ' title="Add variable">'
+				+ self._plusCircleSVG()
+				+ '</button>'
+				+ '</div>';
 			html += '</div>'; // .eff-color-list
 
 			html += '</div>'; // .eff-category-block
@@ -357,11 +342,12 @@
 			var status      = v.status || 'synced';
 			var statusColor = this._statusColor(status);
 			var swatchBg    = this._esc(v.value || '');
-			var isExpanded  = (this._openExpandId === v.id);
+			var rowKey      = this._rowKey(v);
+			var isExpanded  = (this._openExpandId === rowKey);
 
 			var html = '<div class="eff-color-row"'
 				+ (isExpanded ? ' data-expanded="true"' : '')
-				+ ' data-var-id="' + this._esc(v.id) + '">'
+				+ ' data-var-id="' + this._esc(rowKey) + '">'
 
 				// Status dot (Phase 2e).
 				+ '<span class="eff-status-dot"'
@@ -410,7 +396,7 @@
 
 			// If this row's expand panel is open, include it immediately after.
 			if (isExpanded) {
-				html += this._buildExpandPanel(v);
+				html += this._buildExpandPanel(v, rowKey);
 			}
 
 			return html;
@@ -435,11 +421,13 @@
 		/**
 		 * Build the inline expand panel for a variable.
 		 *
-		 * @param {Object} v Variable object.
+		 * @param {Object} v      Variable object.
+		 * @param {string} rowKey Unique row key (v.id or synthetic name key).
 		 * @returns {string}
 		 */
-		_buildExpandPanel: function (v) {
+		_buildExpandPanel: function (v, rowKey) {
 			var self     = this;
+			rowKey       = rowKey || self._rowKey(v);
 			var children = self._getChildVars(v.id);
 			var tints    = children.filter(function (c) { return c.name.indexOf('-plus-') !== -1; });
 			var shades   = children.filter(function (c) { return c.name.indexOf('-minus-') !== -1; });
@@ -449,15 +437,15 @@
 			var alphaVal = self._parseAlpha(v.value || '');
 			var alphaPct = Math.round(alphaVal * 100);
 
-			var html = '<div class="eff-expand-panel" data-expand-for="' + self._esc(v.id) + '">';
+			var html = '<div class="eff-expand-panel" data-expand-for="' + self._esc(rowKey) + '">';
 
 			// Zone 1 — Generator controls.
 			html += '<div class="eff-expand-zone eff-expand-zone--generator">'
 				+ '<div class="eff-expand-zone-label">Generate</div>'
 
 				+ '<div class="eff-gen-row">'
-				+ '<label for="eff-gen-tints-' + self._esc(v.id) + '">Tints</label>'
-				+ '<select id="eff-gen-tints-' + self._esc(v.id) + '" class="eff-gen-tints">'
+				+ '<label for="eff-gen-tints-' + self._esc(rowKey) + '">Tints</label>'
+				+ '<select id="eff-gen-tints-' + self._esc(rowKey) + '" class="eff-gen-tints">'
 				+ '<option value="0">Off</option>'
 				+ '<option value="3">3-step (300/600/900)</option>'
 				+ '<option value="9">9-step (100\u2013900)</option>'
@@ -465,8 +453,8 @@
 				+ '</div>'
 
 				+ '<div class="eff-gen-row">'
-				+ '<label for="eff-gen-shades-' + self._esc(v.id) + '">Shades</label>'
-				+ '<select id="eff-gen-shades-' + self._esc(v.id) + '" class="eff-gen-shades">'
+				+ '<label for="eff-gen-shades-' + self._esc(rowKey) + '">Shades</label>'
+				+ '<select id="eff-gen-shades-' + self._esc(rowKey) + '" class="eff-gen-shades">'
 				+ '<option value="0">Off</option>'
 				+ '<option value="3">3-step (300/600/900)</option>'
 				+ '<option value="9">9-step (100\u2013900)</option>'
@@ -474,15 +462,15 @@
 				+ '</div>'
 
 				+ '<div class="eff-gen-row">'
-				+ '<label for="eff-gen-trans-' + self._esc(v.id) + '">Transparencies</label>'
-				+ '<select id="eff-gen-trans-' + self._esc(v.id) + '" class="eff-gen-trans">'
+				+ '<label for="eff-gen-trans-' + self._esc(rowKey) + '">Transparencies</label>'
+				+ '<select id="eff-gen-trans-' + self._esc(rowKey) + '" class="eff-gen-trans">'
 				+ '<option value="0">Off</option>'
 				+ '<option value="5">5 steps</option>'
 				+ '<option value="10">10 steps</option>'
 				+ '</select>'
 				+ '</div>'
 
-				+ '<button class="eff-btn eff-btn--secondary eff-gen-generate-btn" data-var-id="' + self._esc(v.id) + '">Generate</button>'
+				+ '<button class="eff-btn eff-btn--secondary eff-gen-generate-btn" data-var-id="' + self._esc(rowKey) + '">Generate</button>'
 				+ '</div>'; // Zone 1
 
 			// Zone 2 — Preview bars (conditional on existing children).
@@ -522,22 +510,22 @@
 				+ '<div class="eff-picker-row">'
 				+ '<input type="color" class="eff-native-picker"'
 				+ ' value="' + self._esc(hex6 || '#000000') + '"'
-				+ ' data-var-id="' + self._esc(v.id) + '"'
+				+ ' data-var-id="' + self._esc(rowKey) + '"'
 				+ ' aria-label="Color picker">'
 				+ '<input type="text" class="eff-hex-input"'
 				+ ' value="' + self._esc(hex6 || '') + '"'
 				+ ' placeholder="#000000"'
-				+ ' data-var-id="' + self._esc(v.id) + '"'
+				+ ' data-var-id="' + self._esc(rowKey) + '"'
 				+ ' aria-label="Hex color value"'
 				+ ' spellcheck="false"'
 				+ ' maxlength="7">'
 				+ '</div>'
 				+ '<div class="eff-alpha-row">'
-				+ '<label for="eff-alpha-' + self._esc(v.id) + '">Alpha</label>'
+				+ '<label for="eff-alpha-' + self._esc(rowKey) + '">Alpha</label>'
 				+ '<input type="range" class="eff-alpha-slider"'
-				+ ' id="eff-alpha-' + self._esc(v.id) + '"'
+				+ ' id="eff-alpha-' + self._esc(rowKey) + '"'
 				+ ' min="0" max="100" value="' + alphaPct + '"'
-				+ ' data-var-id="' + self._esc(v.id) + '"'
+				+ ' data-var-id="' + self._esc(rowKey) + '"'
 				+ ' aria-label="Alpha channel (' + alphaPct + '%)">'
 				+ '<span class="eff-alpha-value">' + alphaPct + '%</span>'
 				+ '</div>'
@@ -612,7 +600,6 @@
 					case 'duplicate': if (catId) { self._duplicateCategory(catId); } break;
 					case 'move-up':   if (catId) { self._moveCategoryUp(catId); } break;
 					case 'move-down': if (catId) { self._moveCategoryDown(catId); } break;
-					case 'rename':    if (catId) { self._startCategoryRename(block, catId); } break;
 					case 'add-var':   if (catId) { self._addVariable(catId); } break;
 					case 'delete':    if (catId) { self._deleteCategory(catId); } break;
 
@@ -629,13 +616,13 @@
 					case 'expand':
 						var row   = btn.closest('.eff-color-row');
 						var varId = row ? row.getAttribute('data-var-id') : null;
-						if (varId) { self._toggleExpandPanel(varId, row, container); }
+						if (varId !== null) { self._toggleExpandPanel(varId, row, container); }
 						break;
 
 					case 'open-picker':
 						var swatchRow = target.closest('.eff-color-row');
 						var swVarId   = swatchRow ? swatchRow.getAttribute('data-var-id') : null;
-						if (swVarId) { self._toggleExpandPanel(swVarId, swatchRow, container); }
+						if (swVarId !== null) { self._toggleExpandPanel(swVarId, swatchRow, container); }
 						break;
 				}
 			});
@@ -645,7 +632,20 @@
 				var genBtn = e.target.closest('.eff-gen-generate-btn');
 				if (!genBtn) { return; }
 				var varId = genBtn.getAttribute('data-var-id');
-				if (varId) { self._generateChildren(varId, genBtn.closest('.eff-expand-panel')); }
+				if (varId !== null) { self._generateChildren(varId, genBtn.closest('.eff-expand-panel')); }
+			});
+
+			// ---- Category name input: save on blur and Enter ----
+			container.addEventListener('change', function (e) {
+				var catInput = e.target.closest('.eff-category-name-input');
+				if (!catInput) { return; }
+				self._saveCategoryName(catInput);
+			});
+			container.addEventListener('keydown', function (e) {
+				if (e.key !== 'Enter') { return; }
+				var catInput = e.target.closest('.eff-category-name-input');
+				if (!catInput) { return; }
+				catInput.blur();
 			});
 
 			// ---- Name input: save on blur and Enter ----
@@ -654,7 +654,7 @@
 				if (!nameInput) { return; }
 				var row   = nameInput.closest('.eff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
-				if (varId) { self._saveVarName(varId, nameInput); }
+				if (varId !== null) { self._saveVarName(varId, nameInput); }
 			});
 			container.addEventListener('keydown', function (e) {
 				if (e.key !== 'Enter') { return; }
@@ -669,7 +669,7 @@
 				if (!valueInput) { return; }
 				var row   = valueInput.closest('.eff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
-				if (varId) { self._saveVarValue(varId, valueInput.value, valueInput); }
+				if (varId !== null) { self._saveVarValue(varId, valueInput.value, valueInput); }
 			});
 			container.addEventListener('keydown', function (e) {
 				if (e.key !== 'Enter') { return; }
@@ -684,7 +684,7 @@
 				if (!formatSel) { return; }
 				var row   = formatSel.closest('.eff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
-				if (varId) { self._saveVarFormat(varId, formatSel.value); }
+				if (varId !== null) { self._saveVarFormat(varId, formatSel.value); }
 			});
 
 			// ---- Color picker Zone 3 ----
@@ -694,7 +694,7 @@
 				if (!picker) { return; }
 				var varId  = picker.getAttribute('data-var-id');
 				var panel  = picker.closest('.eff-expand-panel');
-				if (!varId || !panel) { return; }
+				if (varId === null || !panel) { return; }
 				var newHex      = picker.value; // e.g., '#3d2f1f'
 				var alphaSlider = panel.querySelector('.eff-alpha-slider');
 				var alphaVal    = alphaSlider ? parseInt(alphaSlider.value, 10) : 100;
@@ -713,7 +713,7 @@
 				if (!hexInput) { return; }
 				var varId = hexInput.getAttribute('data-var-id');
 				var panel  = hexInput.closest('.eff-expand-panel');
-				if (!varId || !panel) { return; }
+				if (varId === null || !panel) { return; }
 
 				var raw    = hexInput.value.trim();
 				var hex6   = self._parseHex6(raw);
@@ -750,7 +750,7 @@
 				if (!slider) { return; }
 				var varId  = slider.getAttribute('data-var-id');
 				var panel  = slider.closest('.eff-expand-panel');
-				if (!varId || !panel) { return; }
+				if (varId === null || !panel) { return; }
 
 				var alphaVal     = parseInt(slider.value, 10);
 				var nativePicker = panel.querySelector('.eff-native-picker');
@@ -843,7 +843,7 @@
 			self._closeExpandPanel(container);
 
 			// Find the variable.
-			var v = self._findVarById(varId);
+			var v = self._findVarByKey(varId);
 			if (!v) { return; }
 
 			// Mark row as expanded.
@@ -852,7 +852,7 @@
 			if (expandBtn) { expandBtn.setAttribute('aria-expanded', 'true'); }
 
 			// Insert expand panel after the row.
-			var panelHtml = self._buildExpandPanel(v);
+			var panelHtml = self._buildExpandPanel(v, varId);
 			var temp      = document.createElement('div');
 			temp.innerHTML = panelHtml;
 			var panelEl   = temp.firstChild;
@@ -909,13 +909,13 @@
 				return;
 			}
 
-			var v = self._findVarById(varId);
+			var v = self._findVarByKey(varId);
 			if (!v) { return; }
 
-			pushUndo({ type: 'name-change', id: varId, oldValue: oldName, newValue: newName });
+			pushUndo({ type: 'name-change', id: v.id, oldValue: oldName, newValue: newName });
 
 			var updateData = {
-				id:                  varId,
+				id:                  v.id,
 				name:                newName,
 				pending_rename_from: oldName,
 				status:              'modified',
@@ -936,16 +936,16 @@
 		 */
 		_saveVarValue: function (varId, newValue, input) {
 			var self = this;
-			var v    = self._findVarById(varId);
+			var v    = self._findVarByKey(varId);
 			if (!v) { return; }
 
 			var oldValue = v.value || '';
 			if (newValue === oldValue) { return; }
 
-			pushUndo({ type: 'value-change', id: varId, oldValue: oldValue, newValue: newValue });
+			pushUndo({ type: 'value-change', id: v.id, oldValue: oldValue, newValue: newValue });
 
 			var updateData = {
-				id:     varId,
+				id:     v.id,
 				value:  newValue,
 				status: 'modified',
 			};
@@ -958,14 +958,40 @@
 
 		/**
 		 * Save a variable's format after selection change.
+		 * Converts the current value to the new format before saving.
 		 *
-		 * @param {string} varId     Variable ID.
+		 * @param {string} varId     Row key.
 		 * @param {string} newFormat New format string.
 		 */
 		_saveVarFormat: function (varId, newFormat) {
 			var self = this;
-			self._ajaxSaveColor({ id: varId, format: newFormat }, function () {
+			var v    = self._findVarByKey(varId);
+			if (!v) { return; }
+
+			var converted = self._convertColor(v.value || '', newFormat);
+			var updateData = {
+				id:     v.id,
+				format: newFormat,
+			};
+			if (converted !== null) {
+				updateData.value = converted;
+			}
+
+			self._ajaxSaveColor(updateData, function (data) {
 				if (EFF.App) { EFF.App.setDirty(true); }
+				// Update the value input and swatch in the DOM if conversion occurred.
+				if (converted !== null) {
+					var content = document.getElementById('eff-edit-content');
+					if (content) {
+						var row = content.querySelector('.eff-color-row[data-var-id="' + self._esc(varId) + '"]');
+						if (row) {
+							var valInput = row.querySelector('.eff-color-value-input');
+							if (valInput) { valInput.value = converted; valInput.setAttribute('data-original', converted); }
+							var swatch = row.querySelector('.eff-color-swatch');
+							if (swatch) { swatch.style.background = converted; }
+						}
+					}
+				}
 			});
 		},
 
@@ -1107,10 +1133,50 @@
 		},
 
 		/**
+		 * Save a category name from the always-on name input.
+		 *
+		 * @param {HTMLElement} input The .eff-category-name-input element.
+		 */
+		_saveCategoryName: function (input) {
+			var self       = this;
+			var newName    = input.value.trim();
+			var oldName    = input.getAttribute('data-original') || '';
+			var catId      = input.getAttribute('data-cat-id') || '';
+
+			if (!newName || newName === oldName) {
+				input.value = oldName;
+				return;
+			}
+
+			if (!EFF.state.currentFile) {
+				input.value = oldName;
+				self._noFileModal();
+				return;
+			}
+
+			EFF.App.ajax('eff_save_category', {
+				filename: EFF.state.currentFile,
+				category: JSON.stringify({ id: catId, name: newName }),
+			}).then(function (res) {
+				if (res.success && res.data) {
+					if (!EFF.state.config) { EFF.state.config = {}; }
+					EFF.state.config.categories = res.data.categories;
+					input.setAttribute('data-original', newName);
+					if (EFF.App) { EFF.App.setDirty(true); }
+					self._rerenderView();
+					if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
+						EFF.PanelLeft.refresh();
+					}
+				} else {
+					input.value = oldName;
+				}
+			}).catch(function () { input.value = oldName; });
+		},
+
+		/**
 		 * Start an inline rename for a category.
 		 *
-		 * Triggered by clicking the .eff-category-name span (data-action="rename").
-		 *
+		 * @deprecated Category name is now an always-on input; kept for reference.
 		 * @param {HTMLElement} block Category block element.
 		 * @param {string}      catId Category ID.
 		 */
@@ -1430,6 +1496,7 @@
 		 */
 		_generateChildren: function (varId, panel) {
 			var self  = this;
+			var v     = self._findVarByKey(varId);
 			var tints = panel.querySelector('.eff-gen-tints');
 			var shades = panel.querySelector('.eff-gen-shades');
 			var trans  = panel.querySelector('.eff-gen-trans');
@@ -1441,7 +1508,7 @@
 
 			EFF.App.ajax('eff_generate_children', {
 				filename:       EFF.state.currentFile,
-				parent_id:      varId,
+				parent_id:      v ? v.id : varId,
 				tints:          tints  ? tints.value  : '0',
 				shades:         shades ? shades.value : '0',
 				transparencies: trans  ? trans.value  : '0',
@@ -1682,6 +1749,33 @@
 			return null;
 		},
 
+		/**
+		 * Compute a unique row key for a variable.
+		 * Uses v.id when available; falls back to a synthetic key from v.name
+		 * so that synced variables (id:'') can still open expand panels.
+		 *
+		 * @param {Object} v Variable object.
+		 * @returns {string}
+		 */
+		_rowKey: function (v) {
+			return (v.id) ? v.id : ('__n_' + v.name);
+		},
+
+		/**
+		 * Find a variable by its row key (v.id or synthetic __n_name key).
+		 *
+		 * @param {string} key Row key from data-var-id attribute.
+		 * @returns {Object|null}
+		 */
+		_findVarByKey: function (key) {
+			var self = this;
+			var vars = EFF.state.variables || [];
+			for (var i = 0; i < vars.length; i++) {
+				if (self._rowKey(vars[i]) === key) { return vars[i]; }
+			}
+			return null;
+		},
+
 		// -----------------------------------------------------------------------
 		// MODAL HELPERS
 		// -----------------------------------------------------------------------
@@ -1756,6 +1850,141 @@
 			var alphaHex = alpha.toString(16);
 			if (alphaHex.length < 2) { alphaHex = '0' + alphaHex; }
 			return hex6 + alphaHex;
+		},
+
+		/**
+		 * Parse any supported CSS color value to {r, g, b, a} (r/g/b: 0-255, a: 0-1).
+		 *
+		 * Supports: #rrggbb, #rrggbbaa, rgb(...), rgba(...), hsl(...), hsla(...)
+		 *
+		 * @param {string} value CSS color value.
+		 * @returns {{r:number,g:number,b:number,a:number}|null}
+		 */
+		_parseToRgba: function (value) {
+			if (!value) { return null; }
+			var v = value.trim();
+
+			// HEX 8-char (#rrggbbaa)
+			var m8 = v.match(/^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/);
+			if (m8) {
+				return { r: parseInt(m8[1],16), g: parseInt(m8[2],16), b: parseInt(m8[3],16), a: parseInt(m8[4],16)/255 };
+			}
+			// HEX 6-char (#rrggbb)
+			var m6 = v.match(/^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/);
+			if (m6) {
+				return { r: parseInt(m6[1],16), g: parseInt(m6[2],16), b: parseInt(m6[3],16), a: 1 };
+			}
+			// rgba(r, g, b, a)
+			var mRgba = v.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)$/i);
+			if (mRgba) {
+				return { r: parseInt(mRgba[1]), g: parseInt(mRgba[2]), b: parseInt(mRgba[3]), a: parseFloat(mRgba[4]) };
+			}
+			// rgb(r, g, b)
+			var mRgb = v.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+			if (mRgb) {
+				return { r: parseInt(mRgb[1]), g: parseInt(mRgb[2]), b: parseInt(mRgb[3]), a: 1 };
+			}
+			// hsla(h, s%, l%, a)
+			var mHsla = v.match(/^hsla\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*([\d.]+)\s*\)$/i);
+			if (mHsla) {
+				var rgb = this._hslToRgb(parseFloat(mHsla[1]), parseFloat(mHsla[2]), parseFloat(mHsla[3]));
+				return { r: rgb.r, g: rgb.g, b: rgb.b, a: parseFloat(mHsla[4]) };
+			}
+			// hsl(h, s%, l%)
+			var mHsl = v.match(/^hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)$/i);
+			if (mHsl) {
+				var rgb2 = this._hslToRgb(parseFloat(mHsl[1]), parseFloat(mHsl[2]), parseFloat(mHsl[3]));
+				return { r: rgb2.r, g: rgb2.g, b: rgb2.b, a: 1 };
+			}
+			return null;
+		},
+
+		/**
+		 * Convert H/S/L (h: 0-360, s: 0-100, l: 0-100) to {r,g,b} (0-255).
+		 *
+		 * @param {number} h Hue 0-360.
+		 * @param {number} s Saturation 0-100.
+		 * @param {number} l Lightness 0-100.
+		 * @returns {{r:number,g:number,b:number}}
+		 */
+		_hslToRgb: function (h, s, l) {
+			s /= 100; l /= 100;
+			var c = (1 - Math.abs(2*l - 1)) * s;
+			var x = c * (1 - Math.abs((h/60) % 2 - 1));
+			var m = l - c/2;
+			var r = 0, g = 0, b = 0;
+			if (h < 60)       { r=c; g=x; b=0; }
+			else if (h < 120) { r=x; g=c; b=0; }
+			else if (h < 180) { r=0; g=c; b=x; }
+			else if (h < 240) { r=0; g=x; b=c; }
+			else if (h < 300) { r=x; g=0; b=c; }
+			else               { r=c; g=0; b=x; }
+			return { r: Math.round((r+m)*255), g: Math.round((g+m)*255), b: Math.round((b+m)*255) };
+		},
+
+		/**
+		 * Convert {r,g,b} (0-255) to {h,s,l} (h: 0-360, s: 0-100, l: 0-100).
+		 *
+		 * @param {number} r 0-255.
+		 * @param {number} g 0-255.
+		 * @param {number} b 0-255.
+		 * @returns {{h:number,s:number,l:number}}
+		 */
+		_rgbToHsl: function (r, g, b) {
+			r /= 255; g /= 255; b /= 255;
+			var max = Math.max(r,g,b), min = Math.min(r,g,b);
+			var l   = (max+min)/2, s = 0, h = 0;
+			if (max !== min) {
+				var d = max - min;
+				s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+				switch (max) {
+					case r: h = (g-b)/d + (g<b ? 6 : 0); break;
+					case g: h = (b-r)/d + 2; break;
+					default: h = (r-g)/d + 4;
+				}
+				h /= 6;
+			}
+			return { h: Math.round(h*360), s: Math.round(s*100), l: Math.round(l*100) };
+		},
+
+		/**
+		 * Convert a CSS color value to a different format string.
+		 *
+		 * @param {string} value     Current CSS color value.
+		 * @param {string} newFormat Target format: HEX | HEXA | RGB | RGBA | HSL | HSLA.
+		 * @returns {string|null} Converted value, or null if parse failed.
+		 */
+		_convertColor: function (value, newFormat) {
+			var self = this;
+			var rgba = self._parseToRgba(value);
+			if (!rgba) { return null; }
+
+			var r = rgba.r, g = rgba.g, b = rgba.b, a = rgba.a;
+
+			function hex2(n) {
+				var s = Math.round(n).toString(16);
+				return s.length < 2 ? '0'+s : s;
+			}
+
+			switch (newFormat) {
+				case 'HEX':
+					return '#' + hex2(r) + hex2(g) + hex2(b);
+				case 'HEXA':
+					return '#' + hex2(r) + hex2(g) + hex2(b) + hex2(a * 255);
+				case 'RGB':
+					return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+				case 'RGBA':
+					return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + Math.round(a*100)/100 + ')';
+				case 'HSL': {
+					var hsl = self._rgbToHsl(r, g, b);
+					return 'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)';
+				}
+				case 'HSLA': {
+					var hsl2 = self._rgbToHsl(r, g, b);
+					return 'hsla(' + hsl2.h + ', ' + hsl2.s + '%, ' + hsl2.l + '%, ' + Math.round(a*100)/100 + ')';
+				}
+			}
+			return null;
 		},
 
 		// -----------------------------------------------------------------------
