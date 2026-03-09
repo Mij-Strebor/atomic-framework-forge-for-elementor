@@ -4,9 +4,9 @@
     "Variables": {
       "Colors": [
         "Branding",
-        "Backgrounds",
+        "Background",
         "Neutral",
-        "Status",
+        "Semantic",
         "Uncategorized"
       ],
       "Fonts": [],

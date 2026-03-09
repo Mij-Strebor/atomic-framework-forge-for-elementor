@@ -195,7 +195,7 @@
 			if (colorItems.indexOf('Uncategorized') === -1) { colorItems.push('Uncategorized'); }
 			this._populateList('eff-nav-colors', colorItems);
 			} else {
-				this._populateList('eff-nav-colors', ['Branding', 'Backgrounds', 'Neutral', 'Status', 'Uncategorized']);
+				this._populateList('eff-nav-colors', ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
 			}
 
 			var vars = (config.groups && config.groups.Variables) ? config.groups.Variables : {};
@@ -207,7 +207,7 @@
 		 * Load the hard-coded default subgroup items (used before config loads).
 		 */
 		_loadDefaultItems: function () {
-			this._populateList('eff-nav-colors',  ['Branding', 'Backgrounds', 'Neutral', 'Status', 'Uncategorized']);
+			this._populateList('eff-nav-colors',  ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
 			this._populateList('eff-nav-fonts',   []);
 			this._populateList('eff-nav-numbers', ['Spacing', 'Gaps', 'Grids', 'Radius']);
 		},

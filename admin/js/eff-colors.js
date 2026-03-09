@@ -387,17 +387,21 @@
 				+ ' spellcheck="false">'
 				+ '</div>'
 
-				// Value input.
+				// Value field wrapper (shadows applied to wrapper in CSS).
+				+ '<div class="eff-color-value-field">'
 				+ '<input type="text" class="eff-color-value-input"'
 				+ ' value="' + this._esc(v.value || '') + '"'
 				+ ' data-original="' + this._esc(v.value || '') + '"'
 				+ ' aria-label="Color value"'
 				+ ' spellcheck="false">'
+				+ '</div>'
 
-				// Format selector.
+				// Format field wrapper (shadows applied to wrapper in CSS).
+				+ '<div class="eff-color-format-field">'
 				+ '<select class="eff-color-format-sel" aria-label="Color format">'
 				+ this._formatOptions(v.format || 'HEX')
 				+ '</select>'
+				+ '</div>'
 
 				// Expand button.
 				+ '<button class="eff-icon-btn eff-color-expand-btn"'
@@ -597,6 +601,15 @@
 					self._addCategory();
 				});
 			}
+
+			// ---- Delegated events — bound only once to prevent listener accumulation ----
+			// The container element persists across re-renders; only its innerHTML is
+			// replaced. Without this guard, each _renderAll call adds another copy of
+			// every delegated handler, causing collapse/expand to double-fire and
+			// immediately undo themselves, and the timing-based double-click detection
+			// to falsely trigger on single clicks.
+			if (container._effEventsBound) { return; }
+			container._effEventsBound = true;
 
 			// ---- Delegated click events on category blocks ----
 			container.addEventListener('click', function (e) {
