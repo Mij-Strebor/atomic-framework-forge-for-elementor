@@ -209,6 +209,7 @@
 
 		// 6. Load project config, then init left panel
 		EFF.App.loadConfig().then(function () {
+			if (EFF.Colors && EFF.Colors._ensureUncategorized) { EFF.Colors._ensureUncategorized(); }
 			if (EFF.PanelLeft) {
 				EFF.PanelLeft.init();
 			}
@@ -217,21 +218,19 @@
 		// 7. Initial counts (all zero until a file is loaded)
 		EFF.App.refreshCounts();
 
-		// Scroll to top — prevents WP admin notices or footer content from
-		// pulling the page down on load (Local WP / certain WP setups scroll to notices).
-		window.scrollTo(0, 0);
-
-		// Title fade — fades the brand name as the user scrolls down, so the sticky
-		// top bar stays compact with just the action buttons visible.
+		// Title fade — fades the brand name as the center edit space scrolls,
+		// keeping the top bar compact with just the action buttons visible.
+		// The body never scrolls (panels scroll internally), so we listen on
+		// the edit content container rather than window.
 		(function () {
-			var brandName = document.querySelector('.eff-brand-name');
-			if (!brandName) { return; }
-			window.addEventListener('scroll', function () {
-				var y = window.scrollY || window.pageYOffset;
-				// Fade over the first 80px of scroll.
-				var opacity = Math.max(0, 1 - y / 80);
-				brandName.style.opacity = String(opacity);
-			}, { passive: true });
+			var brandName   = document.querySelector('.eff-brand-name');
+			var editContent = document.getElementById('eff-edit-content');
+			if (brandName && editContent) {
+				editContent.addEventListener('scroll', function () {
+					var y = editContent.scrollTop;
+					brandName.style.opacity = String(Math.max(0, 1 - y / 80));
+				}, { passive: true });
+			}
 		}());
 
 		// 8. Warn on page unload with unsaved or uncommitted changes

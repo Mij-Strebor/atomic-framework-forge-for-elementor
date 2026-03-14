@@ -420,6 +420,7 @@
 						});
 
 						EFF.App.refreshCounts();
+						if (EFF.Colors && EFF.Colors._ensureUncategorized) { EFF.Colors._ensureUncategorized(); }
 						if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
 						if (count > 0 && !silent) {
 							EFF.App.setDirty(true);

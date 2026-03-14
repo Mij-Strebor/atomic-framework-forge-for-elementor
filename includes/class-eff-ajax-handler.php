@@ -475,22 +475,25 @@ class EFF_Ajax_Handler {
 	/**
 	 * Delete a color variable from the .eff.json file.
 	 *
-	 * POST params: filename, variable_id
+	 * POST params: filename, variable_id, delete_children (optional, '1' to delete children)
 	 */
 	public function ajax_eff_delete_color(): void {
 		$this->verify_request();
 
-		$filename    = $this->get_filename_param();
-		$variable_id = isset( $_POST['variable_id'] )
+		$filename        = $this->get_filename_param();
+		$variable_id     = isset( $_POST['variable_id'] )
 			? sanitize_text_field( wp_unslash( $_POST['variable_id'] ) )
 			: '';
+		$delete_children = isset( $_POST['delete_children'] )
+			&& $_POST['delete_children'] !== '0'
+			&& $_POST['delete_children'] !== '';
 
 		if ( empty( $variable_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Variable ID is required.', 'elementor-framework-forge' ) ) );
 		}
 
 		$store   = $this->load_store( $filename );
-		$deleted = $store->delete_variable( $variable_id );
+		$deleted = $store->delete_variable( $variable_id, $delete_children );
 
 		if ( ! $deleted ) {
 			wp_send_json_error( array( 'message' => __( 'Variable not found.', 'elementor-framework-forge' ) ) );
@@ -499,6 +502,7 @@ class EFF_Ajax_Handler {
 		$this->save_store( $store, $filename );
 
 		wp_send_json_success( array(
+			'data'    => $store->get_all_data(),
 			'counts'  => $store->get_counts(),
 			'message' => __( 'Color variable deleted.', 'elementor-framework-forge' ),
 		) );
@@ -757,6 +761,38 @@ class EFF_Ajax_Handler {
 				$committed[] = $name;
 			} else {
 				$skipped[] = $name;
+			}
+		}
+
+		// Issue 7: Insert pass — add newly-created variables not yet in the CSS.
+		if ( ! empty( $skipped ) ) {
+			$insert_block    = '';
+			$newly_committed = array();
+			foreach ( $skipped as $name ) {
+				foreach ( $variables as $v ) {
+					if ( isset( $v['name'] ) && $v['name'] === $name ) {
+						$val           = sanitize_text_field( $v['value'] ?? '' );
+						$insert_block .= "\n  " . $name . ': ' . $val . ';';
+						$newly_committed[] = $name;
+						break;
+					}
+				}
+			}
+			if ( $insert_block ) {
+				// Insert before the closing } of the last :root block.
+				$last_root_pos = strrpos( $css, ':root' );
+				if ( false !== $last_root_pos ) {
+					$close_pos = strpos( $css, '}', $last_root_pos );
+					if ( false !== $close_pos ) {
+						$css = substr( $css, 0, $close_pos )
+							. $insert_block . "\n"
+							. substr( $css, $close_pos );
+						foreach ( $newly_committed as $n ) {
+							$committed[] = $n;
+						}
+						$skipped = array_values( array_diff( $skipped, $newly_committed ) );
+					}
+				}
 			}
 		}
 

@@ -153,6 +153,7 @@
 			content.removeAttribute('hidden');
 			content.style.display = '';
 
+			this._ensureUncategorized();
 			this._renderAll(selection, content);
 		},
 
@@ -212,6 +213,10 @@
 				+ '<span style="flex:1"></span>'
 				+ '<input type="text" class="eff-colors-search" id="eff-colors-search"'
 				+ ' placeholder="Search\u2026" aria-label="Search color variables">'
+				+ '<button class="eff-sort-btn" data-sort="colors-asc" title="Sort colors A\u2192Z">A\u2191</button>'
+				+ '<button class="eff-sort-btn" data-sort="colors-desc" title="Sort colors Z\u2192A">A\u2193</button>'
+				+ '<button class="eff-sort-btn" data-sort="cats-asc" title="Sort categories A\u2192Z">C\u2191</button>'
+				+ '<button class="eff-sort-btn" data-sort="cats-desc" title="Sort categories Z\u2192A">C\u2193</button>'
 				+ '<button class="eff-icon-btn eff-colors-back-btn" id="eff-colors-back"'
 				+ ' title="Close colors view" aria-label="Close colors view">'
 				+ self._closeSVG()
@@ -443,6 +448,9 @@
 				+ ' data-eff-tooltip="Open color editor">'
 				+ this._chevronSVG()
 				+ '</button>'
+
+				// Delete button (col 8).
+				+ '<button class="eff-icon-btn eff-color-delete-btn" data-action="delete-var" data-var-id="' + this._esc(rowKey) + '" title="Delete variable">&#x1F5D1;</button>'
 
 				+ '</div>'; // .eff-color-row
 
@@ -726,6 +734,12 @@
 					case 'add-var':   if (catId) { self._addVariable(catId); } break;
 					case 'delete':    if (catId) { self._deleteCategory(catId); } break;
 
+					case 'delete-var': {
+						var varId = btn.getAttribute('data-var-id');
+						if (varId) { self._deleteVariable(varId); }
+						break;
+					}
+
 					case 'collapse':
 						if (block) {
 							var isCollapsed = block.getAttribute('data-collapsed') === 'true';
@@ -748,6 +762,17 @@
 						if (swVarId !== null) { self._toggleExpandPanel(swVarId, swatchRow, container); }
 						break;
 				}
+			});
+
+			// ---- Sort buttons ----
+			container.addEventListener('click', function (e) {
+				var sortTarget = e.target.closest('.eff-sort-btn');
+				if (!sortTarget) { return; }
+				var sortAction = sortTarget.getAttribute('data-sort');
+				if (sortAction === 'colors-asc')  { self._sortColors(true); }
+				else if (sortAction === 'colors-desc') { self._sortColors(false); }
+				else if (sortAction === 'cats-asc')   { self._sortCategories(true); }
+				else if (sortAction === 'cats-desc')  { self._sortCategories(false); }
 			});
 
 			// ---- Name / Category name: single-click to start editing ----
@@ -1379,12 +1404,38 @@
 			var self = this;
 
 			if (!EFF.state.currentFile) {
-				// No project file yet — auto-create a temp file so the user can start
-				// working immediately without being prompted for a filename.
+				// No project file yet — save the current state to a temp file first so
+				// PHP has the full variable list when we subsequently call eff_save_color.
 				EFF.state.currentFile = 'eff-temp.eff.json';
 				if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
 					EFF.PanelRight._filenameInput.value = 'eff-temp.eff.json';
 				}
+				var initData = {
+					version:   '1.0',
+					config:    EFF.state.config    || {},
+					variables: EFF.state.variables || [],
+				};
+				EFF.App.ajax('eff_save_file', {
+					filename: EFF.state.currentFile,
+					data:     JSON.stringify(initData),
+				}).then(function (initRes) {
+					if (initRes && initRes.success) {
+						self._addVariable(catId);
+					} else {
+						EFF.state.currentFile = null;
+						if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+							EFF.PanelRight._filenameInput.value = '';
+						}
+						EFF.Modal.open({ title: 'Error', body: '<p>Could not initialize project file. Please try again.</p>' });
+					}
+				}).catch(function () {
+					EFF.state.currentFile = null;
+					if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+						EFF.PanelRight._filenameInput.value = '';
+					}
+					EFF.Modal.open({ title: 'Connection error', body: '<p>Could not create project file. Please try again.</p>' });
+				});
+				return;
 			}
 
 
@@ -1634,7 +1685,7 @@
 				body:  bodyText,
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
 					+ '<button class="eff-btn eff-btn--secondary" id="eff-modal-del-cancel">Cancel</button>'
-					+ '<button class="eff-btn eff-btn--danger" id="eff-modal-del-ok">Delete</button>'
+					+ '<button class="eff-btn eff-btn--danger" id="eff-modal-del-ok">Delete Category</button>'
 					+ '</div>',
 			});
 
@@ -1659,8 +1710,13 @@
 							if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
 								EFF.PanelLeft.refresh();
 							}
+						} else if (!res.success) {
+							var errMsg = (res.data && res.data.message) ? res.data.message : 'Delete failed.';
+							EFF.Modal.open({ title: 'Delete failed', body: '<p>' + errMsg + '</p>' });
 						}
-					}).catch(function () {});
+					}).catch(function () {
+						EFF.Modal.open({ title: 'Connection error', body: '<p>Connection error during delete.</p>' });
+					});
 				}
 			}
 
@@ -1767,40 +1823,191 @@
 				if (!EFF.state.config) { EFF.state.config = {}; }
 				EFF.state.config.categories = res.data.categories;
 
-				var vars         = self._getVarsForCategoryId(catId);
-				var savePromises = [];
+				var vars = self._getVarsForCategoryId(catId);
 
-				for (var j = 0; j < vars.length; j++) {
-					var v = vars[j];
+				var chain = Promise.resolve();
+				vars.forEach(function (v) {
 					var dupVar = {
+						id:          'var-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
 						name:        v.name + '-copy',
 						value:       v.value,
-						type:        v.type || 'color',
-						subgroup:    v.subgroup || 'Colors',
-						category:    newCatName,
+						parent_id:   v.parent_id || null,
 						category_id: newCatId,
-						format:      v.format || 'HEX',
-						status:      'new',
+						order:       (v.order || 0),
 					};
-					savePromises.push(EFF.App.ajax('eff_save_color', {
-						filename: EFF.state.currentFile,
-						variable: JSON.stringify(dupVar),
-					}));
-				}
-
-				Promise.all(savePromises).then(function (results) {
-					var lastResult = results[results.length - 1];
-					if (lastResult && lastResult.success && lastResult.data && lastResult.data.data) {
-						EFF.state.variables = lastResult.data.data.variables;
-					}
-					if (EFF.App) { EFF.App.setDirty(true); EFF.App.refreshCounts(); }
+					(function (dv) {
+						chain = chain.then(function () {
+							return EFF.App.ajax('eff_save_color', {
+								filename: EFF.state.currentFile,
+								variable: JSON.stringify(dv),
+							}).then(function (r) {
+								if (r.success && r.data && r.data.data) {
+									EFF.state.variables = r.data.data.variables;
+								}
+							});
+						});
+					}(dupVar));
+				});
+				chain.then(function () {
+					EFF.App.setDirty(true);
+					EFF.App.refreshCounts();
 					self._rerenderView();
-					if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
-						EFF.PanelLeft.refresh();
-					}
+					if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
 				}).catch(function () {});
 
 			}).catch(function () {});
+		},
+
+		/**
+		 * Ensure the Uncategorized category always exists in config.
+		 * Adds it if missing and persists if a file is currently loaded.
+		 */
+		_ensureUncategorized: function () {
+			if (!EFF.state.config) { EFF.state.config = {}; }
+			if (!Array.isArray(EFF.state.config.categories)) {
+				EFF.state.config.categories = [];
+			}
+			var cats = EFF.state.config.categories;
+			var hasUncat = cats.some(function (c) { return c.name === 'Uncategorized'; });
+			if (!hasUncat) {
+				var maxOrder = 0;
+				cats.forEach(function (c) { if ((c.order || 0) > maxOrder) { maxOrder = c.order; } });
+				cats.push({ id: 'default-uncategorized', name: 'Uncategorized',
+							order: maxOrder + 1, locked: true });
+				if (EFF.state.currentFile) {
+					var d = { version: '1.0', config: EFF.state.config,
+							  variables: EFF.state.variables || [] };
+					EFF.App.ajax('eff_save_file', {
+						filename: EFF.state.currentFile,
+						data:     JSON.stringify(d),
+					}).catch(function () {});
+				}
+			}
+		},
+
+		/**
+		 * Sort all color variables alphabetically by name.
+		 * @param {boolean} ascending  true = A→Z, false = Z→A
+		 */
+		_sortColors: function (ascending) {
+			var self = this;
+			var sorted = EFF.state.variables.slice().sort(function (a, b) {
+				var na = (a.name || '').toLowerCase();
+				var nb = (b.name || '').toLowerCase();
+				return ascending ? (na < nb ? -1 : na > nb ? 1 : 0)
+								 : (na > nb ? -1 : na < nb ? 1 : 0);
+			});
+			sorted.forEach(function (v, i) { v.order = i + 1; });
+			var chain = Promise.resolve();
+			sorted.forEach(function (v) {
+				(function (variable) {
+					chain = chain.then(function () {
+						return EFF.App.ajax('eff_save_color', {
+							filename: EFF.state.currentFile,
+							variable: JSON.stringify(variable),
+						}).then(function (r) {
+							if (r.success && r.data && r.data.data) {
+								EFF.state.variables = r.data.data.variables;
+							}
+						});
+					});
+				}(v));
+			});
+			chain.then(function () {
+				EFF.App.setDirty(true);
+				self._rerenderView();
+			}).catch(function () {});
+		},
+
+		/**
+		 * Sort non-locked categories alphabetically (locked always last).
+		 * @param {boolean} ascending  true = A→Z, false = Z→A
+		 */
+		_sortCategories: function (ascending) {
+			var self = this;
+			if (!EFF.state.config || !Array.isArray(EFF.state.config.categories)) { return; }
+			var locked   = EFF.state.config.categories.filter(function (c) { return c.locked; });
+			var unlocked = EFF.state.config.categories.filter(function (c) { return !c.locked; });
+			unlocked.sort(function (a, b) {
+				var na = (a.name || '').toLowerCase();
+				var nb = (b.name || '').toLowerCase();
+				return ascending ? (na < nb ? -1 : na > nb ? 1 : 0)
+								 : (na > nb ? -1 : na < nb ? 1 : 0);
+			});
+			var combined = unlocked.concat(locked);
+			combined.forEach(function (c, i) { c.order = i + 1; });
+			EFF.state.config.categories = combined;
+			EFF.App.ajax('eff_reorder_categories', {
+				filename:   EFF.state.currentFile,
+				categories: JSON.stringify(combined),
+			}).then(function (r) {
+				if (r.success && r.data && r.data.categories) {
+					EFF.state.config.categories = r.data.categories;
+				}
+				EFF.App.setDirty(true);
+				self._rerenderView();
+				if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
+			}).catch(function () {});
+		},
+
+		/**
+		 * Delete a color variable (and optionally its children).
+		 *
+		 * @param {string} varId  Variable ID to delete.
+		 */
+		_deleteVariable: function (varId) {
+			var self     = this;
+			var variable = EFF.state.variables.find(function (v) { return v.id === varId; });
+			if (!variable) { return; }
+
+			var children = EFF.state.variables.filter(function (v) { return v.parent_id === varId; });
+			var hasChildren = children.length > 0;
+
+			var body = hasChildren
+				? '<p>This variable has ' + children.length + ' child variable(s).</p>' +
+				  '<p><button id="eff-del-var-with-children" class="eff-btn eff-btn--danger">Delete variable and all children</button> ' +
+				  '<button id="eff-del-var-only" class="eff-btn">Delete variable only</button> ' +
+				  '<button id="eff-del-var-cancel" class="eff-btn">Cancel</button></p>'
+				: '<p>Delete <strong>' + (variable.name || varId) + '</strong>? This cannot be undone.</p>' +
+				  '<p><button id="eff-del-var-confirm" class="eff-btn eff-btn--danger">Delete</button> ' +
+				  '<button id="eff-del-var-cancel" class="eff-btn">Cancel</button></p>';
+
+			EFF.Modal.open({ title: 'Delete variable', body: body });
+
+			function doDelete(deleteChildren) {
+				EFF.Modal.close();
+				document.removeEventListener('click', handleDelClick);
+				EFF.App.ajax('eff_delete_color', {
+					filename:        EFF.state.currentFile,
+					variable_id:     varId,
+					delete_children: deleteChildren ? '1' : '0',
+				}).then(function (res) {
+					if (res.success && res.data && res.data.variables) {
+						EFF.state.variables = res.data.variables;
+						EFF.App.setDirty(true);
+						EFF.App.refreshCounts();
+						self._rerenderView();
+					} else if (!res.success) {
+						var msg = (res.data && res.data.message) ? res.data.message : 'Delete failed.';
+						EFF.Modal.open({ title: 'Error', body: '<p>' + msg + '</p>' });
+					}
+				}).catch(function () {
+					EFF.Modal.open({ title: 'Connection error', body: '<p>Connection error during delete.</p>' });
+				});
+			}
+
+			function handleDelClick(e) {
+				var t = e.target;
+				if (t.id === 'eff-del-var-cancel') {
+					EFF.Modal.close();
+					document.removeEventListener('click', handleDelClick);
+				} else if (t.id === 'eff-del-var-with-children') {
+					doDelete(true);
+				} else if (t.id === 'eff-del-var-only' || t.id === 'eff-del-var-confirm') {
+					doDelete(false);
+				}
+			}
+			document.addEventListener('click', handleDelClick);
 		},
 
 		/**
@@ -1915,6 +2122,7 @@
 
 			document.addEventListener('mousemove', function (e) {
 				if (!_drag.active || !_drag.ghost) { return; }
+				_drag._forceAfter = false;
 				e.preventDefault();
 
 				var dy = e.clientY - _drag.startY;
@@ -1941,10 +2149,37 @@
 
 				var targetRow = el ? el.closest('.eff-color-row') : null;
 
+				// Auto-expand a collapsed category block when the drag ghost enters it,
+				// so cross-category drops can show a row-level drop indicator.
+				if (!targetRow && el) {
+					var hoverBlock = el.closest('.eff-category-block');
+					if (hoverBlock && hoverBlock.getAttribute('data-collapsed') === 'true') {
+						hoverBlock.setAttribute('data-collapsed', 'false');
+						// Re-probe now that the rows are visible.
+						_drag.ghost.style.display = 'none';
+						var el2 = document.elementFromPoint(e.clientX, e.clientY);
+						_drag.ghost.style.display = '';
+						var newRow = el2 ? el2.closest('.eff-color-row') : null;
+						if (newRow) { targetRow = newRow; }
+					}
+				}
+
+				// Fallback: cursor over expanded block but not on any row → append to end
+				if (!targetRow && el) {
+					var hoverBlock2 = el.closest('.eff-category-block');
+					if (hoverBlock2 && hoverBlock2.getAttribute('data-collapsed') === 'false') {
+						var blockRows = hoverBlock2.querySelectorAll('.eff-color-row:not(.eff-row-dragging)');
+						if (blockRows.length > 0) {
+							targetRow = blockRows[blockRows.length - 1];
+							_drag._forceAfter = true;
+						}
+					}
+				}
+
 				if (targetRow && targetRow.getAttribute('data-var-id') !== _drag.varId) {
 					var rect = targetRow.getBoundingClientRect();
 					var midY = rect.top + rect.height / 2;
-					var insertBefore = e.clientY < midY;
+					var insertBefore = _drag._forceAfter ? false : (e.clientY < midY);
 
 					_drag.indicator.style.display = 'block';
 					_drag.indicator.style.top     = (insertBefore ? rect.top : rect.bottom) - 1 + 'px';
@@ -2004,7 +2239,38 @@
 		_dropVariable: function (draggedId, targetId, insertBefore, targetCatBlock) {
 			var self = this;
 
-			if (!EFF.state.currentFile) { return; }
+			if (!EFF.state.currentFile) {
+				// No project file yet — save current state to temp file first,
+				// then retry the drop once PHP has the full variable list.
+				EFF.state.currentFile = 'eff-temp.eff.json';
+				if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+					EFF.PanelRight._filenameInput.value = 'eff-temp.eff.json';
+				}
+				var initData = {
+					version:   '1.0',
+					config:    EFF.state.config    || {},
+					variables: EFF.state.variables || [],
+				};
+				EFF.App.ajax('eff_save_file', {
+					filename: EFF.state.currentFile,
+					data:     JSON.stringify(initData),
+				}).then(function (initRes) {
+					if (initRes && initRes.success) {
+						self._dropVariable(draggedId, targetId, insertBefore, targetCatBlock);
+					} else {
+						EFF.state.currentFile = null;
+						if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+							EFF.PanelRight._filenameInput.value = '';
+						}
+					}
+				}).catch(function () {
+					EFF.state.currentFile = null;
+					if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+						EFF.PanelRight._filenameInput.value = '';
+					}
+				});
+				return;
+			}
 
 			// Find the dragged and target variable objects.
 			var dragged = null;

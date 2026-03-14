@@ -227,21 +227,38 @@ class EFF_Data_Store {
 	}
 
 	/**
-	 * Delete a variable by ID.
+	 * Delete a variable by ID, optionally also deleting its children.
 	 *
-	 * @param string $id Variable UUID.
+	 * @param string $id              Variable UUID.
+	 * @param bool   $delete_children If true, also remove variables where parent_id === $id.
 	 * @return bool True if found and deleted.
 	 */
-	public function delete_variable( string $id ): bool {
+	public function delete_variable( string $id, bool $delete_children = false ): bool {
+		$found = false;
 		foreach ( $this->data['variables'] as $k => $var ) {
 			if ( $var['id'] === $id ) {
 				array_splice( $this->data['variables'], $k, 1 );
 				$this->dirty = true;
-				return true;
+				$found       = true;
+				break;
 			}
 		}
 
-		return false;
+		if ( ! $found ) {
+			return false;
+		}
+
+		if ( $delete_children ) {
+			$this->data['variables'] = array_values( array_filter(
+				$this->data['variables'],
+				static function ( array $v ) use ( $id ): bool {
+					return ! isset( $v['parent_id'] ) || $v['parent_id'] !== $id;
+				}
+			) );
+			$this->dirty = true;
+		}
+
+		return true;
 	}
 
 	/**

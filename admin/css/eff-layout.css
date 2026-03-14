@@ -15,16 +15,24 @@
    1. ROOT CONTAINER — Fills the WordPress admin content area
    ========================================================================== */
 
+/* Remove WordPress default padding so the EFF top bar sits flush. */
+#wpbody-content {
+	padding-top: 0;
+}
+
 /**
  * .eff-app fills the WP admin content area (#wpbody-content).
  * We use min-height instead of height so tall content still scrolls.
+ * overflow:visible allows panel content to overflow if needed.
+ * The body does not scroll (panels scroll internally), so position:sticky
+ * on .eff-top-bar is not meaningful — it uses position:relative instead.
  */
 .eff-app {
 	display:        flex;
 	flex-direction: column;
 	min-height:     calc(100vh - 32px); /* 32px = WP admin bar height */
 	position:       relative;
-	overflow:       hidden;
+	overflow:       visible;
 }
 
 /* ==========================================================================
@@ -43,8 +51,7 @@
 	border-bottom:   1px solid var(--eff-top-bar-border);
 	flex-shrink:     0;
 	gap:             var(--sp-2);
-	position:        sticky;
-	top:             32px; /* Below WP admin bar */
+	position:        relative; /* Was sticky — body doesn't scroll, sticky had no effect */
 	z-index:         200;
 }
 

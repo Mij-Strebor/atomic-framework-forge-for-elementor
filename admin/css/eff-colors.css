@@ -590,21 +590,22 @@
 	min-height:            52px;
 }
 
-/* Close button (rightmost column in header) */
+/* Close button (rightmost column in header) — Issue 9: centered + bordered */
 .eff-modal-close-btn {
-	display:         inline-flex;
+	display:         flex;
 	align-items:     center;
 	justify-content: center;
+	align-self:      center;
+	justify-self:    center;
 	width:           28px;
 	height:          28px;
-	background:      transparent;
-	border:          none;
-	border-radius:   var(--eff-border-radius-sm);
-	color:           var(--eff-clr-muted);
-	cursor:          pointer;
-	font-size:       20px;
+	font-size:       18px;
 	line-height:     1;
-	transition:      background-color var(--eff-transition), color var(--eff-transition);
+	background:      var(--eff-clr-bg-hover);
+	border:          1px solid var(--eff-clr-border);
+	border-radius:   4px;
+	cursor:          pointer;
+	flex-shrink:     0;
 }
 
 .eff-modal-close-btn:hover {
@@ -876,6 +877,57 @@
 .eff-app .eff-btn--danger:hover:not(:disabled) {
 	background: var(--eff-clr-error, #dc2626);
 	color:      #fff;
+}
+
+/* ==========================================================================
+   12. DELETE VARIABLE BUTTON (Issue 8)
+   ========================================================================== */
+
+/* Eighth column: 28px delete button — added to row and header grids */
+.eff-color-list-header,
+.eff-color-row {
+	grid-template-columns: 24px 8px 15% 1fr 28% 12% 28px 28px;
+}
+
+/* Delete button — trash icon, danger variant on hover */
+.eff-color-delete-btn {
+	width:   28px;
+	height:  28px;
+	padding: 0;
+	opacity: 0;
+	transition: opacity var(--eff-transition);
+}
+
+.eff-color-row:hover .eff-color-delete-btn {
+	opacity: 1;
+}
+
+/* ==========================================================================
+   13. SORT BUTTONS (Issue 5)
+   ========================================================================== */
+
+.eff-sort-btn {
+	display:         inline-flex;
+	align-items:     center;
+	justify-content: center;
+	padding:         2px 5px;
+	font-size:       11px;
+	font-weight:     var(--fw-semibold);
+	color:           var(--eff-clr-muted);
+	background:      transparent;
+	border:          1px solid transparent;
+	border-radius:   var(--eff-border-radius-sm);
+	cursor:          pointer;
+	line-height:     1;
+	height:          24px;
+	white-space:     nowrap;
+	transition:      background-color var(--eff-transition), color var(--eff-transition), border-color var(--eff-transition);
+}
+
+.eff-sort-btn:hover {
+	background:   var(--eff-icon-btn-hover-bg);
+	color:        var(--eff-clr-secondary);
+	border-color: var(--eff-clr-border);
 }
 
 /* Commit button: force gold/accent — overrides .eff-btn--secondary */
