@@ -628,9 +628,13 @@
 	color:      var(--eff-clr-primary) !important;
 }
 
-/* Color swatches — give a visible light border in dark mode so near-white
-   swatches (#FFF, #FAFAFA) don't disappear against a light input background. */
+/* Color swatches — in dark mode the gray drop-shadow disappears against dark
+   backgrounds. Replace with a light outer ring + deep drop shadow to match
+   the lifted appearance swatches have in light mode. */
 [data-eff-theme="dark"] .eff-color-swatch,
 .eff-app[data-eff-theme="dark"] .eff-color-swatch {
-	border-color: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.22);
+	box-shadow:   0 0 0 1px rgba(255, 255, 255, 0.10),
+	              0 3px 8px rgba(0, 0, 0, 0.55),
+	              0 1px 4px rgba(0, 0, 0, 0.35);
 }
