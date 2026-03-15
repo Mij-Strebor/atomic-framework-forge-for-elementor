@@ -1,6 +1,6 @@
-<img src="https://raw.githubusercontent.com/Mij-Strebor/elementor-framework-forge/master/assets/images/eff-git-banner.png" alt="Elementor Framework Forge" width="100%" />
+v<img src="https://raw.githubusercontent.com/Mij-Strebor/elementor-framework-forge/master/assets/images/eff-git-banner.png" alt="Elementor Framework Forge" width="100%" />
 
-# Elementor Framework Forge
+# Elementor V4 Framework Forge
 
 **A professional management interface for Elementor Version 4 CSS Variables.**
 
@@ -13,8 +13,7 @@
 
 ---
 
-> **LytBox Academy Testers** — Welcome! If you are here to test EFF, jump straight to the
-> **[Quick Start Guide →](QUICK-START.md)**
+> **LytBox Academy Testers** — Welcome! If you are here to test EFF, jump straight to the  **[Quick Start Guide →](QUICK-START.md)**
 
 ---
 
@@ -60,21 +59,10 @@ Please report issues in the LytBox Academy community. Your feedback directly sha
 
 ## Interface
 
+![EFF Numbers](docs/images/numbers.png)
+
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│  [⚙] [⊞]                    EFF                     [↑] [↻] [?]    │
-├────────────┬─────────────────────────────────────────┬───────────────┤
-│            │                                         │               │
-│ ▼ Variables│  ── Uncategorized (9) ──────────────── │  mysite.eff   │
-│   ▼ Colors │                                         │  [Load][Save] │
-│     Brand  │  ⠿  ● ████  --primary    #3C2017  ●3   │               │
-│     Text   │  ⠿  ● ████  --accent     #F4C542  ●7   │  Vars:    24  │
-│     Neutral│  ⠿  ● ████  --bg         #FAFAFA  ○0   │  Classes:  0  │
-│   ▼ Fonts  │                                         │  Comps:    0  │
-│   ▼ Numbers│  ── Brand (3) ──────────────────────── │               │
-│ ▶ Classes  │                                         │               │
-│ ▶ Components  ⊕ Add Variable                        │               │
-└────────────┴─────────────────────────────────────────┴───────────────┘
+
 ```
 
 **Four panels:**
