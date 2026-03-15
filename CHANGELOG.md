@@ -7,6 +7,73 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased] — Session 4 Bug Fixes (2026-03-14)
+
+### Fixed
+
+- **Cross-category drag into empty categories** (`eff-colors.js`) — Drop indicator now
+  appears when dragging over an expanded category with no variables. Variables are
+  correctly reassigned via the `__empty-cat__` sentinel path in `_dropVariable()`.
+- **Commit to Elementor V4** (`class-eff-ajax-handler.php`) — Removed the
+  `do_action('elementor/css-file/clear-cache')` call that was causing Elementor to
+  regenerate its CSS and overwrite EFF's committed variables. Added `find_user_root_close_pos()`
+  helper to correctly target the user-defined `:root` block for variable insertion.
+- **Expand modal close button** (`eff-colors.css`) — Restyled to have no background or
+  border; ×  is now 22px bold with opacity-based hover effect.
+
+### Added
+
+- **Manage Project — Categories editor** (`eff-panel-top.js`) — The Manage Project modal
+  now shows the current Colors categories as editable rows. Users can add, rename, and
+  delete non-locked categories. Uncategorized is always locked and protected.
+- **Tooltip system** (`eff-panel-top.js`) — Tooltip binding is now delegated from
+  `document`, covering dynamically created elements. `Show tooltips` and `Extended tooltips`
+  preferences are added to the Preferences modal and persisted via `eff_save_settings`.
+  Extended mode shows longer `data-eff-tooltip-long` text.
+- **Tooltips on all interactive elements** (`eff-colors.js`, `page-eff-main.php`) —
+  `data-eff-tooltip` added to dynamic category/variable action buttons via `_catBtn()`.
+  Commit button now has a tooltip. Key top-bar buttons have `data-eff-tooltip-long` text.
+- **`EFF-Spec-Variables.md`** — New unified specification covering the Variables module
+  data model, category management rules, UI layout, tooltip system, and data flow.
+
+---
+
+## [Unreleased] — Phase 2: Colors Module
+
+### Added — Colors Edit Space (Phase 2a–2d)
+
+- **`eff-colors.js`** — Full Colors subgroup module (`EFF.Colors`) that intercepts `EFF.EditSpace` when the Colors subgroup is selected. Renders category blocks with collapsible variable rows, filter bar, and color swatch previews.
+- **Category management** — Add, rename, reorder (drag handles + move up/move down), and delete categories. Categories stored in `EFF.state.config.categories`. `Uncategorized` is a protected locked category that cannot be deleted or renamed.
+- **Variable rows** — Each row shows: drag handle, color swatch, CSS variable name (editable inline), value (hex), source badge. Grid layout with expand toggle.
+- **Expand panel** — Clicking any row opens an inline expand panel (below the row) showing tint/shade/transparency controls. Tints (A→Z) and shades (A→Z + darker) use a configurable step count 0–10; transparencies are an on/off toggle generating 9 fixed alpha levels (0.1–0.9). Live preview bars for each generated child variable.
+- **Drag-and-drop reorder** — Rows can be dragged within and across categories. Ghost element follows the cursor; drop indicator shows insertion position. Auto-expands collapsed categories on hover.
+- **Commit to Elementor** — `eff_commit_to_elementor` AJAX endpoint writes modified variable values back to the Elementor kit CSS file (in-place `preg_replace`). Commit button activates when pending changes exist.
+- **`eff_save_color` AJAX** — Saves a single color variable (add or update) to the `.eff.json` file. Returns updated full variables array.
+- **`eff_delete_color` AJAX** — Deletes a color variable by ID, with optional child deletion.
+- **`eff_reorder_colors` AJAX** — Persists drag-and-drop order changes.
+- **`eff_add_category` / `eff_rename_category` / `eff_delete_category` / `eff_reorder_categories` AJAX** — Full CRUD for color categories.
+- **`eff_duplicate_category` AJAX** — Duplicates all variables in a category into a new category.
+- **`eff_get_usage_counts`** — Extended to include color variables.
+
+### Added — Data Store (Phase 2)
+
+- `EFF_Data_Store::delete_variable(string $id, bool $delete_children = false)` — Deletes a variable by ID, with optional child cleanup.
+- Category CRUD methods: `add_category()`, `rename_category()`, `delete_category()` (moves orphaned variables to Uncategorized), `reorder_categories()`.
+
+### Added — Session 3: 9-Issue Fix (2026-03-13)
+
+- **Issue 1 — Delete Category error handling** — `_deleteCategory` now shows an error modal when the AJAX response has `success: false` (with server message), and a "Connection error" modal on network failure. Confirm button label changed from "Delete" to "Delete Category".
+- **Issue 2 — Duplicate Category race condition** — Replaced `Promise.all(savePromises)` with a sequential promise chain so each variable is saved one at a time, preventing last-write-wins overwrites.
+- **Issue 3 — Auto-restore Uncategorized** — Added `_ensureUncategorized()` helper that adds the locked Uncategorized category if it is missing from config, then persists the file. Called on `loadColors()`, after `EFF.App.loadConfig()`, and after Sync from Elementor.
+- **Issue 4 — Drag to category header** — Added fallback: when the cursor is over an expanded category block but not over any specific row, the drop appends to the last row of that category. `_drag._forceAfter` flag drives `insertBefore = false` for the drop indicator.
+- **Issue 5 — Sort colors and categories** — Four sort buttons added to the filter bar: A↑ (colors A→Z), A↓ (colors Z→A), C↑ (categories A→Z), C↓ (categories Z→A). `_sortColors()` reassigns order values sequentially and persists via chained `eff_save_color` calls. `_sortCategories()` reorders non-locked categories and persists via `eff_reorder_categories`.
+- **Issue 6 — Sticky header fix** — Removed `position: sticky` and `top: 32px` from `.eff-top-bar` (the top bar is always visible — sticky was structurally unnecessary). Changed `.eff-app` overflow from `clip` to `visible`. Brand name fade-on-scroll now listens on the edit content container scroll event, not `window`.
+- **Issue 7 — Commit adds new variables** — `ajax_eff_commit_to_elementor` now inserts new CSS declarations (variables not yet present in the kit CSS) into the last `:root {}` block, rather than skipping them.
+- **Issue 8 — Delete color variable** — Trash icon button added to each variable row. `_deleteVariable(varId)` opens a confirmation modal; if the variable has children, offers "Delete variable and all children" or "Delete variable only". `eff_delete_color` updated to support `delete_children` parameter and return updated variables array.
+- **Issue 9 — Close button centering** — `.eff-modal-close-btn` updated to `display: flex` with `align-items: center` and `justify-content: center` for proper centering.
+
+---
+
 ## [1.0.0] — 2026-03-01
 
 Initial public release.

@@ -2,20 +2,9 @@
   "version": "1.0",
   "groups": {
     "Variables": {
-      "Colors": [
-        "Branding",
-        "Background",
-        "Neutral",
-        "Semantic",
-        "Uncategorized"
-      ],
-      "Fonts": [],
-      "Numbers": [
-        "Spacing",
-        "Gaps",
-        "Grids",
-        "Radius"
-      ]
+      "Colors":  ["Branding","Backgrounds","Neutral","Status","Uncategorized"],
+      "Fonts":   ["Titles","Text","Uncategorized"],
+      "Numbers": ["Spacing","Gaps","Grids","Radius","Uncategorized"]
     }
   }
 }
