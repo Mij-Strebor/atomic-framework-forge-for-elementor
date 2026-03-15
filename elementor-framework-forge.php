@@ -3,13 +3,13 @@
  * Plugin Name:       Elementor Framework Forge
  * Plugin URI:        https://jimrforge.com/plugins/elementor-framework-forge
  * Description:       Professional management interface for Elementor Version 4 (atomic widget architecture) assets — Variables, Classes, and Components.
- * Version:           1.0.0
+ * Version:           0.0.1-alpha
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Jim Roberts
  * Author URI:        https://jimrforge.com
- * License:           GPL-2.0-or-later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * License:           Proprietary
+ * License URI:       https://github.com/Mij-Strebor/elementor-framework-forge/blob/master/LICENSE
  * Text Domain:       elementor-framework-forge
  * Domain Path:       /languages
  *
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'EFF_VERSION',    '1.0.0' );
+define( 'EFF_VERSION',    '0.0.1-alpha' );
 define( 'EFF_PLUGIN_FILE', __FILE__ );
 define( 'EFF_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'EFF_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
