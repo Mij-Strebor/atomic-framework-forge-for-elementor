@@ -511,10 +511,12 @@
 		 * @returns {string} HTML option string.
 		 */
 		_formatOptions: function (current) {
-			var formats = ['HEX', 'HEXA', 'RGB', 'RGBA', 'HSL', 'HSLA'];
+			// Normalise legacy alpha-suffix formats (HEXA→HEX, RGBA→RGB, HSLA→HSL).
+			var base = current.replace(/A$/, '');
+			var formats = ['HEX', 'RGB', 'HSL'];
 			var html = '';
 			for (var i = 0; i < formats.length; i++) {
-				var sel = (formats[i] === current) ? ' selected' : '';
+				var sel = (formats[i] === base) ? ' selected' : '';
 				html += '<option value="' + formats[i] + '"' + sel + '>' + formats[i] + '</option>';
 			}
 			return html;
@@ -552,13 +554,10 @@
 				// Status dot (col 2) — matches color row col 2
 				+ '<span class="eff-status-dot" style="background:' + statusColor + '"'
 				+ ' title="Status: ' + self._esc(v.status || 'synced') + '"></span>'
-				// Swatch (col 3) — Pickr trigger button for HEXA/RGBA/HSLA formats
-				+ (['HEXA', 'RGBA', 'HSLA'].indexOf(v.format || 'HEX') !== -1
-					? '<button class="eff-color-swatch eff-pickr-btn" type="button" style="background:' + swatchBg + '"'
-						+ ' aria-label="Open color picker"'
-						+ ' data-eff-tooltip="Click to open color picker"></button>'
-					: '<span class="eff-color-swatch" style="background:' + swatchBg + '"'
-						+ ' aria-label="Color swatch"></span>')
+				// Swatch (col 3) — Pickr trigger button (all formats)
+				+ '<button class="eff-color-swatch eff-pickr-btn" type="button" style="background:' + swatchBg + '"'
+					+ ' aria-label="Open color picker"'
+					+ ' data-eff-tooltip="Click to open color picker"></button>'
 				// Name input (col 3)
 				+ '<input type="text" class="eff-color-name-input"'
 				+ ' value="' + self._esc(v.name) + '"'
@@ -1224,22 +1223,23 @@
 				});
 			}
 
-			// Pickr — visual color picker for HEXA / RGBA / HSLA formats.
+			// Pickr — visual color picker for all formats.
 			var pickrBtn = modal.querySelector('.eff-pickr-btn');
 			if (pickrBtn && typeof Pickr !== 'undefined') {
-				var pickerFmt = v.format || 'HEX';
+				// Normalise legacy alpha-suffix formats.
+				var pickerFmt = (v.format || 'HEX').replace(/A$/, '');
 				var pickr = Pickr.create({
 					el:    pickrBtn,
 					theme: 'classic',
-					default: v.value || '#000000FF',
+					default: v.value || '#000000',
 					components: {
 						preview: true,
 						opacity: true,
 						hue:     true,
 						interaction: {
-							hex:   pickerFmt === 'HEXA',
-							rgba:  pickerFmt === 'RGBA',
-							hsla:  pickerFmt === 'HSLA',
+							hex:   pickerFmt === 'HEX',
+							rgba:  pickerFmt === 'RGB',
+							hsla:  pickerFmt === 'HSL',
 							input: true,
 							save:  true,
 						},
@@ -3133,31 +3133,25 @@
 			// ---- HEX / HEXA ----
 			if (format === 'HEX' || format === 'HEXA') {
 				var bare = v.replace(/^#/, '').toUpperCase();
-				// Expand 3-char shorthand: FFF → FFFFFF
+				// 3-digit → 6-digit: F53 → FF5533
 				if (/^[0-9A-F]{3}$/.test(bare)) {
 					bare = bare[0]+bare[0] + bare[1]+bare[1] + bare[2]+bare[2];
+				// 4-digit → 8-digit (each digit doubled): F004 → FF000044
+				} else if (/^[0-9A-F]{4}$/.test(bare)) {
+					bare = bare[0]+bare[0] + bare[1]+bare[1] + bare[2]+bare[2] + bare[3]+bare[3];
 				}
-				if (format === 'HEX') {
-					if (!/^[0-9A-F]{6}$/.test(bare)) {
-						return { value: v, error: 'HEX color must be 3 or 6 hex digits (0–9, A–F). Example: #FF5733 or #F53' };
-					}
+				if (/^[0-9A-F]{6}$/.test(bare) || /^[0-9A-F]{8}$/.test(bare)) {
 					return { value: '#' + bare, error: null };
 				}
-				// HEXA: accept 6 (append FF) or 8 digits.
-				if (/^[0-9A-F]{6}$/.test(bare)) { bare += 'FF'; }
-				if (!/^[0-9A-F]{8}$/.test(bare)) {
-					return { value: v, error: 'HEXA color must be 6 or 8 hex digits. Example: #FF5733CC' };
-				}
-				return { value: '#' + bare, error: null };
+				return { value: v, error: 'HEX must be 3, 4, 6, or 8 hex digits (0–9, A–F). Examples: #F53, #F004, #FF5733, #FF573380' };
 			}
 
 			// ---- RGB / RGBA ----
 			if (format === 'RGB' || format === 'RGBA') {
 				var inner = v.replace(/^rgba?\s*\(/i, '').replace(/\)\s*$/, '').trim();
 				var parts = inner.split(/[\s,]+/).filter(function (s) { return s !== ''; });
-				var need  = (format === 'RGBA') ? 4 : 3;
-				if (parts.length < need) {
-					return { value: v, error: format + ' requires ' + need + ' values separated by commas. Example: ' + (format === 'RGB' ? 'rgb(255, 87, 51)' : 'rgba(255, 87, 51, 0.8)') };
+				if (parts.length < 3) {
+					return { value: v, error: 'RGB requires at least 3 values. Example: rgb(255, 87, 51) or rgba(255, 87, 51, 0.8)' };
 				}
 				var r = parseInt(parts[0], 10);
 				var g = parseInt(parts[1], 10);
@@ -3168,15 +3162,16 @@
 				r = Math.max(0, Math.min(255, r));
 				g = Math.max(0, Math.min(255, g));
 				b = Math.max(0, Math.min(255, b));
-				if (format === 'RGB') {
-					return { value: 'rgb(' + r + ', ' + g + ', ' + b + ')', error: null };
+				// 4th value = alpha → output rgba(); otherwise rgb()
+				if (parts.length >= 4) {
+					var a = parseFloat(parts[3]);
+					if (isNaN(a)) {
+						return { value: v, error: 'Alpha must be a decimal number (0–1). Example: 0.5' };
+					}
+					a = Math.round(Math.max(0, Math.min(1, a)) * 100) / 100;
+					return { value: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')', error: null };
 				}
-				var a = parseFloat(parts[3]);
-				if (isNaN(a)) {
-					return { value: v, error: 'RGBA alpha must be a decimal number (0–1). Example: 0.5' };
-				}
-				a = Math.round(Math.max(0, Math.min(1, a)) * 100) / 100;
-				return { value: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')', error: null };
+				return { value: 'rgb(' + r + ', ' + g + ', ' + b + ')', error: null };
 			}
 
 			// ---- HSL / HSLA ----
@@ -3184,9 +3179,8 @@
 				var inner2 = v.replace(/^hsla?\s*\(/i, '').replace(/\)\s*$/, '').trim();
 				var raw2   = inner2.replace(/%/g, '');
 				var pts    = raw2.split(/[\s,]+/).filter(function (s) { return s !== ''; });
-				var need2  = (format === 'HSLA') ? 4 : 3;
-				if (pts.length < need2) {
-					return { value: v, error: format + ' requires ' + need2 + ' values. Example: ' + (format === 'HSL' ? 'hsl(200, 60%, 40%)' : 'hsla(200, 60%, 40%, 0.8)') };
+				if (pts.length < 3) {
+					return { value: v, error: 'HSL requires at least 3 values. Example: hsl(200, 60%, 40%) or hsla(200, 60%, 40%, 0.8)' };
 				}
 				var h = parseFloat(pts[0]);
 				var s = parseFloat(pts[1]);
@@ -3197,15 +3191,16 @@
 				h = Math.round(((h % 360) + 360) % 360);
 				s = Math.round(Math.max(0, Math.min(100, s)));
 				l = Math.round(Math.max(0, Math.min(100, l)));
-				if (format === 'HSL') {
-					return { value: 'hsl(' + h + ', ' + s + '%, ' + l + '%)', error: null };
+				// 4th value = alpha → output hsla(); otherwise hsl()
+				if (pts.length >= 4) {
+					var a2 = parseFloat(pts[3]);
+					if (isNaN(a2)) {
+						return { value: v, error: 'Alpha must be a decimal number (0–1). Example: 0.5' };
+					}
+					a2 = Math.round(Math.max(0, Math.min(1, a2)) * 100) / 100;
+					return { value: 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a2 + ')', error: null };
 				}
-				var a2 = parseFloat(pts[3]);
-				if (isNaN(a2)) {
-					return { value: v, error: 'HSLA alpha must be a decimal number (0–1). Example: 0.5' };
-				}
-				a2 = Math.round(Math.max(0, Math.min(1, a2)) * 100) / 100;
-				return { value: 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a2 + ')', error: null };
+				return { value: 'hsl(' + h + ', ' + s + '%, ' + l + '%)', error: null };
 			}
 
 			return { value: v, error: null };
@@ -3226,9 +3221,32 @@
 		 * @returns {string}
 		 */
 		_pickrColorToString: function (color, format) {
-			if (format === 'HEXA') { return color.toHEXA().toString(); }
-			if (format === 'RGBA') { return color.toRGBA().toString(); }
-			if (format === 'HSLA') { return color.toHSLA().toString(); }
+			var rgba    = color.toRGBA();
+			var alpha   = rgba[3]; // 0–1
+			var opaque  = alpha >= 0.999;
+			// Normalise legacy alpha-suffix formats.
+			var fmt = (format || 'HEX').replace(/A$/, '');
+			if (fmt === 'HEX') {
+				var hexStr = color.toHEXA().toString(); // #RRGGBBAA
+				return opaque ? hexStr.slice(0, 7) : hexStr;
+			}
+			if (fmt === 'RGB') {
+				var r = Math.round(rgba[0]);
+				var g = Math.round(rgba[1]);
+				var b = Math.round(rgba[2]);
+				if (opaque) { return 'rgb(' + r + ', ' + g + ', ' + b + ')'; }
+				var a = Math.round(alpha * 100) / 100;
+				return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
+			}
+			if (fmt === 'HSL') {
+				var hsla = color.toHSLA();
+				var h = Math.round(hsla[0]);
+				var s = Math.round(hsla[1]);
+				var l = Math.round(hsla[2]);
+				if (opaque) { return 'hsl(' + h + ', ' + s + '%, ' + l + '%)'; }
+				var a2 = Math.round(alpha * 100) / 100;
+				return 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a2 + ')';
+			}
 			return '';
 		},
 
