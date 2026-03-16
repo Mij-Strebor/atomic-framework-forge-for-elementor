@@ -1920,6 +1920,7 @@
 				EFF.state.config.categories = [];
 			}
 			var cats = EFF.state.config.categories;
+			var _needsSave = false;
 
 			// --- v1 → Phase 2 migration ---
 			// If no Phase 2 category objects exist yet, seed from the v1 string list
@@ -1938,6 +1939,8 @@
 						locked: (name === 'Uncategorized'),
 					});
 				});
+				// Categories were seeded in memory but not yet on disk — must persist.
+				if (v1names.length > 0) { _needsSave = true; }
 			}
 
 			var hasUncat = cats.some(function (c) { return c.name === 'Uncategorized'; });
@@ -1946,14 +1949,18 @@
 				cats.forEach(function (c) { if ((c.order || 0) > maxOrder) { maxOrder = c.order; } });
 				cats.push({ id: 'default-uncategorized', name: 'Uncategorized',
 							order: maxOrder + 1, locked: true });
-				if (EFF.state.currentFile) {
-					var d = { version: '1.0', config: EFF.state.config,
-							  variables: EFF.state.variables || [] };
-					EFF.App.ajax('eff_save_file', {
-						filename: EFF.state.currentFile,
-						data:     JSON.stringify(d),
-					}).catch(function () {});
-				}
+				_needsSave = true;
+			}
+
+			// Persist seeded/added categories to the file so that subsequent
+			// eff_save_category calls load a file that already has the full list.
+			if (_needsSave && EFF.state.currentFile) {
+				var d = { version: '1.0', config: EFF.state.config,
+						  variables: EFF.state.variables || [] };
+				EFF.App.ajax('eff_save_file', {
+					filename: EFF.state.currentFile,
+					data:     JSON.stringify(d),
+				}).catch(function () {});
 			}
 		},
 
