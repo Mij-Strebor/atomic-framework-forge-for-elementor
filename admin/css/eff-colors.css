@@ -443,6 +443,24 @@
 	border:        1px solid rgba(0, 0, 0, 0.08);
 }
 
+/* Pickr trigger — swatch rendered as a button; reset browser button defaults */
+button.eff-pickr-btn {
+	padding:            0;
+	font:               inherit;
+	background-color:   transparent; /* overridden by inline style */
+	-webkit-appearance: none;
+}
+
+button.eff-pickr-btn:focus-visible {
+	outline:        2px solid var(--eff-clr-accent);
+	outline-offset: 2px;
+}
+
+/* Ensure the Pickr popup renders above the expand modal (z-index: 991) */
+.pcr-app {
+	z-index: 1000 !important;
+}
+
 /* Variable name — bare input, single-click to edit */
 .eff-color-name-input {
 	width:         100%;

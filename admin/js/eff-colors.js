@@ -85,6 +85,8 @@
 		 * @type {string|null}
 		 */
 		_openExpandId: null,
+		/** @type {object|null} */
+		_pickrInstance: null,
 
 		/**
 		 * Initialize: intercept EFF.EditSpace.loadCategory for Colors subgroup.
@@ -550,9 +552,13 @@
 				// Status dot (col 2) — matches color row col 2
 				+ '<span class="eff-status-dot" style="background:' + statusColor + '"'
 				+ ' title="Status: ' + self._esc(v.status || 'synced') + '"></span>'
-				// Swatch (col 2)
-				+ '<span class="eff-color-swatch" style="background:' + swatchBg + '"'
-				+ ' aria-label="Color swatch"></span>'
+				// Swatch (col 3) — Pickr trigger button for HEXA/RGBA/HSLA formats
+				+ (['HEXA', 'RGBA', 'HSLA'].indexOf(v.format || 'HEX') !== -1
+					? '<button class="eff-color-swatch eff-pickr-btn" type="button" style="background:' + swatchBg + '"'
+						+ ' aria-label="Open color picker"'
+						+ ' data-eff-tooltip="Click to open color picker"></button>'
+					: '<span class="eff-color-swatch" style="background:' + swatchBg + '"'
+						+ ' aria-label="Color swatch"></span>')
 				// Name input (col 3)
 				+ '<input type="text" class="eff-color-name-input"'
 				+ ' value="' + self._esc(v.name) + '"'
@@ -1121,6 +1127,10 @@
 				}
 			}
 
+			if (this._pickrInstance) {
+				try { this._pickrInstance.destroyAndRemove(); } catch (e) {}
+				this._pickrInstance = null;
+			}
 			this._openExpandId = null;
 		},
 
@@ -1212,6 +1222,50 @@
 						if (modalSwatch) { modalSwatch.style.background = vv.value; }
 					}
 				});
+			}
+
+			// Pickr — visual color picker for HEXA / RGBA / HSLA formats.
+			var pickrBtn = modal.querySelector('.eff-pickr-btn');
+			if (pickrBtn && typeof Pickr !== 'undefined') {
+				var pickerFmt = v.format || 'HEX';
+				var pickr = Pickr.create({
+					el:    pickrBtn,
+					theme: 'classic',
+					default: v.value || '#000000FF',
+					components: {
+						preview: true,
+						opacity: true,
+						hue:     true,
+						interaction: {
+							hex:   pickerFmt === 'HEXA',
+							rgba:  pickerFmt === 'RGBA',
+							hsla:  pickerFmt === 'HSLA',
+							input: true,
+							save:  true,
+						},
+					},
+				});
+
+				pickr.on('change', function (color) {
+					var preview = self._pickrColorToString(color, pickerFmt);
+					if (preview && pickrBtn) { pickrBtn.style.background = preview; }
+				});
+
+				pickr.on('save', function (color) {
+					if (!color) { return; }
+					var raw = self._pickrColorToString(color, pickerFmt);
+					var res = self._normalizeColorValue(raw, pickerFmt);
+					if (res.error) { return; }
+					if (valueInput) {
+						valueInput.value = res.value;
+						valueInput.setAttribute('data-original', res.value);
+					}
+					if (pickrBtn) { pickrBtn.style.background = res.value; }
+					self._saveVarValue(varId, res.value, valueInput);
+					pickr.hide();
+				});
+
+				self._pickrInstance = pickr;
 			}
 
 			// Tints number — live preview.
@@ -3164,6 +3218,20 @@
 		 * @param {HTMLElement} input   The input with the invalid value.
 		 * @param {string}      message Error message to display.
 		 */
+		/**
+		 * Convert a Pickr Color object to a normalizable CSS string.
+		 *
+		 * @param {object} color  Pickr Color instance.
+		 * @param {string} format 'HEXA' | 'RGBA' | 'HSLA'
+		 * @returns {string}
+		 */
+		_pickrColorToString: function (color, format) {
+			if (format === 'HEXA') { return color.toHEXA().toString(); }
+			if (format === 'RGBA') { return color.toRGBA().toString(); }
+			if (format === 'HSLA') { return color.toHSLA().toString(); }
+			return '';
+		},
+
 		_showFieldError: function (input, message) {
 			this._clearFieldError(input);
 			var el  = document.createElement('div');

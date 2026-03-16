@@ -142,7 +142,7 @@ class EFF_Ajax_Handler {
 
 			// Reject anything outside the allowed directory or that is not a .css file.
 			if (
-				str_starts_with( $candidate, $allowed_base ) &&
+				0 === strpos( $candidate, $allowed_base ) &&
 				'.css' === substr( $candidate, -4 ) &&
 				file_exists( $candidate )
 			) {

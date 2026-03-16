@@ -83,6 +83,21 @@ class EFF_Admin {
 			$this->asset_version( 'admin/css/eff-variables.css' )
 		);
 
+		// Pickr color picker — CDN, loaded before EFF JS modules.
+		wp_enqueue_style(
+			'pickr-classic',
+			'https://cdn.jsdelivr.net/npm/@simonwep/pickr@1.9.0/dist/themes/classic.min.css',
+			array( 'eff-colors' ),
+			null
+		);
+		wp_enqueue_script(
+			'pickr',
+			'https://cdn.jsdelivr.net/npm/@simonwep/pickr@1.9.0/dist/pickr.min.js',
+			array(),
+			null,
+			true
+		);
+
 		// JavaScript modules — loaded in dependency order, all in footer.
 		$js_modules = array(
 			'eff-theme'       => 'admin/js/eff-theme.js',
@@ -96,7 +111,7 @@ class EFF_Admin {
 			'eff-app'         => 'admin/js/eff-app.js',
 		);
 
-		$deps = array();
+		$deps = array( 'pickr' );
 		foreach ( $js_modules as $handle => $file ) {
 			wp_enqueue_script(
 				$handle,
