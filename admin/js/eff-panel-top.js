@@ -751,7 +751,8 @@
 							});
 						}
 					} else if (!silent) {
-						self._showSyncFailedModal(res.data || {});
+						EFF.PanelTop._showSyncFailedModal(res.data || {});
+					}
 				})
 				.catch(function () {
 					if (btn) {
