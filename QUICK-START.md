@@ -17,8 +17,7 @@ You will need:
 - ✅ At least one **Elementor Kit** configured with CSS variables
   *(If your site uses Elementor's Site Settings → Global Colors or Typography, you already have these)*
 
-> **Alpha note:** EFF is read-only-safe. It will never modify your Elementor kit unless you
-> explicitly click **Commit to Elementor**. Feel free to explore.
+> **Alpha note:** EFF is read-only-safe. It will never modify your Elementor kit unless you explicitly click **Commit to Elementor**. Feel free to explore.
 
 ---
 
@@ -44,8 +43,7 @@ Click **Code → Download ZIP** on the GitHub repository page. Unzip into
 2. Find **Elementor Framework Forge** and click **Activate**.
 3. You should see **EFF** appear in your WordPress admin sidebar.
 
-> If EFF shows an error about missing dependencies, make sure both Elementor and
-> Elementor Pro are installed and active.
+> If EFF shows an error about missing dependencies, make sure both Elementor and Elementor Pro are installed and active.
 
 ---
 
@@ -54,19 +52,8 @@ Click **Code → Download ZIP** on the GitHub repository page. Unzip into
 Click **EFF** in the WordPress admin sidebar. You will see the four-panel interface:
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  TOP BAR  — Preferences · Manage Project  ···  Sync · Help  │
-├────────────┬──────────────────────────────────┬──────────────┤
-│            │                                  │              │
-│  LEFT NAV  │     CENTER EDIT SPACE            │  RIGHT PANEL │
-│            │                                  │              │
-│ Variables  │  (Select a category from the     │  filename    │
-│  Colors    │   left panel to begin)           │  Load / Save │
-│  Fonts     │                                  │              │
-│  Numbers   │                                  │  Vars: 0     │
-│ Classes    │                                  │  Classes: 0  │
-│ Components │                                  │  Comps: 0    │
-└────────────┴──────────────────────────────────┴──────────────┘
+![EFF Home](docs/images/home.png)
+
 ```
 
 On first load, the edit space shows a placeholder banner. That's expected — nothing has been loaded yet.
@@ -86,9 +73,7 @@ EFF will:
 
 A summary modal shows how many variables were imported and which CSS file was used.
 
-> **If the sync finds 0 variables:** Your Elementor kit may not have custom CSS variables
-> defined yet, or Elementor may not have generated its kit CSS file. Go to
-> **Elementor → Site Settings → Save Changes** to regenerate it, then try Sync again.
+> **If the sync finds 0 variables:** Your Elementor kit may not have custom CSS variables defined yet, or Elementor may not have generated its kit CSS file. Go to **Elementor → Site Settings → Save Changes** to regenerate it, then try Sync again.
 
 ---
 
@@ -242,7 +227,7 @@ Your testing feedback directly shapes EFF's development. When reporting:
 3. **What happened** — What actually occurred (include any browser console errors if possible)
 4. **Your setup** — WordPress version, Elementor version, browser
 
-Report in the **LytBox Academy** community portal.
+Report to me, Jim Roberts, in the **LytBox Academy** community portal.
 
 ---
 
