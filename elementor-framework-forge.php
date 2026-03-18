@@ -3,7 +3,7 @@
  * Plugin Name:       Elementor Framework Forge
  * Plugin URI:        https://jimrforge.com/plugins/elementor-framework-forge
  * Description:       Professional management interface for Elementor Version 4 (atomic widget architecture) assets — Variables, Classes, and Components.
- * Version:           0.2.2
+ * Version:           ..10.2.2
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Jim Roberts
