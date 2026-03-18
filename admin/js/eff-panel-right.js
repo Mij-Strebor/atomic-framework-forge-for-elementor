@@ -216,11 +216,12 @@
 		 * @param {string} name  Human-readable project name.
 		 */
 		_saveFile: function (name) {
-			var self     = this;
-			var filename = this._getFilename(name);
+			var self      = this;
+			var cleanName = (name || '').trim().replace(/(?:\.eff)+(?:\.json)?$/i, '');
+			var filename  = this._getFilename(cleanName);
 			var data = {
 				version:    '1.0',
-				name:       name,
+				name:       cleanName,
 				config:     EFF.state.config,
 				variables:  EFF.state.variables,
 				classes:    EFF.state.classes,
@@ -229,15 +230,15 @@
 
 			EFF.App.ajax('eff_save_file', {
 				filename:     filename,
-				project_name: name,
+				project_name: cleanName,
 				data:         JSON.stringify(data),
 			})
 				.then(function (res) {
 					if (res.success) {
 						EFF.state.currentFile = res.data.filename;
-						EFF.state.projectName = name;
+						EFF.state.projectName = cleanName;
 						if (self._filenameInput) {
-							self._filenameInput.value = name;
+							self._filenameInput.value = cleanName;
 						}
 						EFF.App.setDirty(false);
 						// Keep last_file in sync so auto-load restores the correct project.

@@ -15,6 +15,39 @@
 
 	window.EFF = window.EFF || {};
 
+	// ------------------------------------------------------------------
+	// FILE PICKER DIRECTORY MEMORY
+	// Stores the last FileSystemFileHandle from Export / Import in
+	// IndexedDB so the next call opens in the same directory.
+	// Falls back to the Desktop on first use.
+	// ------------------------------------------------------------------
+
+	var _effPickerDB = null;
+
+	function _effPickerDbOpen(cb) {
+		if (_effPickerDB) { cb(_effPickerDB); return; }
+		var req = indexedDB.open('eff-picker', 1);
+		req.onupgradeneeded = function (e) { e.target.result.createObjectStore('handles'); };
+		req.onsuccess   = function (e) { _effPickerDB = e.target.result; cb(_effPickerDB); };
+		req.onerror     = function ()  { cb(null); };
+	}
+
+	function _effPickerGet(key, cb) {
+		_effPickerDbOpen(function (db) {
+			if (!db) { cb(null); return; }
+			var req = db.transaction('handles').objectStore('handles').get(key);
+			req.onsuccess = function () { cb(req.result || null); };
+			req.onerror   = function () { cb(null); };
+		});
+	}
+
+	function _effPickerSave(key, handle) {
+		_effPickerDbOpen(function (db) {
+			if (!db) { return; }
+			db.transaction('handles', 'readwrite').objectStore('handles').put(handle, key);
+		});
+	}
+
 	EFF.PanelTop = {
 
 		_showTooltips:     true,  // false → all tooltips suppressed
@@ -462,6 +495,8 @@
 			var saveBtn   = document.getElementById('eff-proj-save');
 			if (cancelBtn) { cancelBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
 			if (saveBtn)   { saveBtn.addEventListener('click', this._saveProjectConfig.bind(this)); }
+			var projNameInput = document.getElementById('eff-proj-name');
+			if (projNameInput) { projNameInput.focus(); projNameInput.select(); }
 			// Load saved default types and populate selects
 			EFF.App.ajax('eff_get_settings', {}).then(function (res) {
 				var s = res.success && res.data && res.data.settings ? res.data.settings : {};
@@ -713,7 +748,7 @@
 							var subgroup = isColor ? 'Colors' : (isFont ? 'Fonts' : (isNumber ? 'Numbers' : ''));
 								EFF.state.variables.push({
 									id:         '',
-									name:       v.name,
+									name:       v.name.toLowerCase(),
 									value:      v.value,
 									source:     'elementor-parsed',
 									type:        isColor ? 'color' : (isFont ? 'font' : (isNumber ? 'number' : 'unknown')),
@@ -887,109 +922,150 @@
 				return;
 			}
 
-			var projectName = EFF.state.projectName || 'eff-project';
-			var filename    = projectName.trim().toLowerCase()
-			                      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-			                  + '.eff.json';
+			var exportName = (EFF.state.projectName || 'eff-project')
+				.trim().replace(/(?:\.eff)+(?:\.json)?$/i, '');
+			var suggestedName = exportName
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+				+ '.eff.json';
 
 			var payload = {
 				version:    '1.0',
-				name:       EFF.state.projectName || '',
+				name:       exportName || '',
 				config:     EFF.state.config      || {},
 				variables:  EFF.state.variables   || [],
 				classes:    EFF.state.classes     || [],
 				components: EFF.state.components  || [],
 				metadata:   { exported_at: new Date().toISOString() },
 			};
+			var json = JSON.stringify(payload, null, 2);
 
-			var json  = JSON.stringify(payload, null, 2);
-			var blob  = new Blob([json], { type: 'application/json' });
-			var url   = URL.createObjectURL(blob);
-			var link  = document.createElement('a');
-			link.href     = url;
-			link.download = filename;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+			if (typeof window.showSaveFilePicker === 'function') {
+				_effPickerGet('export', function (remembered) {
+					window.showSaveFilePicker({
+						suggestedName: suggestedName,
+						startIn:       remembered || 'desktop',
+						types: [{ description: 'EFF Project File', accept: { 'application/json': ['.json'] } }],
+					}).then(function (fileHandle) {
+						_effPickerSave('export', fileHandle);
+						return fileHandle.createWritable().then(function (writable) {
+							return writable.write(json).then(function () { return writable.close(); });
+						});
+					}).catch(function (err) {
+						if (err && err.name !== 'AbortError') { console.warn('EFF export error:', err); }
+					});
+				});
+			} else {
+				// Fallback for browsers without File System Access API.
+				var blob = new Blob([json], { type: 'application/json' });
+				var url  = URL.createObjectURL(blob);
+				var link = document.createElement('a');
+				link.href = url; link.download = suggestedName;
+				document.body.appendChild(link); link.click(); document.body.removeChild(link);
+				setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+			}
 		},
 
 		_openImport: function () {
-			var body =
-				'<p style="margin-bottom:12px;color:var(--eff-clr-secondary);line-height:1.6">'
-				+ 'Select a <code>.eff.json</code> file exported from EFF. The project will be '
-				+ 'loaded into the editor. Use <strong>Save Project</strong> to keep it.</p>'
-				+ '<div style="margin-bottom:16px">'
-				+ '<input type="file" id="eff-import-file" accept=".json" '
-				+ 'style="display:block;width:100%;padding:8px 0;cursor:pointer">'
-				+ '</div>'
-				+ '<div id="eff-import-status" style="font-size:12px;color:var(--eff-clr-muted);min-height:18px"></div>';
+			var self = this;
 
-			var footer =
-				'<button class="eff-btn" id="eff-import-cancel" style="margin-right:8px">Cancel</button>'
-				+ '<button class="eff-btn" id="eff-import-go">Import</button>';
-
-			EFF.Modal.open({ title: 'Import project', body: body, footer: footer });
-
-			requestAnimationFrame(function () {
-				var fileInput = document.getElementById('eff-import-file');
-				var statusEl  = document.getElementById('eff-import-status');
-				var cancelBtn = document.getElementById('eff-import-cancel');
-				var importBtn = document.getElementById('eff-import-go');
-
-				if (cancelBtn) { cancelBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
-
-				if (fileInput) {
-					fileInput.addEventListener('change', function () {
-						if (statusEl) { statusEl.textContent = fileInput.files[0] ? fileInput.files[0].name : ''; }
+			if (typeof window.showOpenFilePicker === 'function') {
+				_effPickerGet('import', function (remembered) {
+					window.showOpenFilePicker({
+						startIn:  remembered || 'desktop',
+						multiple: false,
+						types: [{ description: 'EFF Project File', accept: { 'application/json': ['.json'] } }],
+					}).then(function (fileHandles) {
+						var fileHandle = fileHandles[0];
+						_effPickerSave('import', fileHandle);
+						return fileHandle.getFile().then(function (file) {
+							return file.text();
+						}).then(function (text) {
+							self._applyImport(text, null);
+						});
+					}).catch(function (err) {
+						if (err && err.name !== 'AbortError') { console.warn('EFF import error:', err); }
 					});
-				}
+				});
+			} else {
+				// Fallback for browsers without File System Access API.
+				var body =
+					'<p style="margin-bottom:12px;color:var(--eff-clr-secondary);line-height:1.6">'
+					+ 'Select a <code>.eff.json</code> file exported from EFF.</p>'
+					+ '<input type="file" id="eff-import-file" accept=".json" '
+					+ 'style="display:block;width:100%;padding:8px 0;cursor:pointer">'
+					+ '<div id="eff-import-status" style="font-size:12px;color:var(--eff-clr-muted);margin-top:8px;min-height:18px"></div>';
+				var footer =
+					'<button class="eff-btn" id="eff-import-cancel" style="margin-right:8px">Cancel</button>'
+					+ '<button class="eff-btn" id="eff-import-go">Import</button>';
 
-				if (importBtn) {
-					importBtn.addEventListener('click', function () {
-						if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-							if (statusEl) { statusEl.textContent = 'Please choose a file first.'; }
-							return;
-						}
-						var reader = new FileReader();
-						reader.onload = function (e) {
-							var parsed;
-							try { parsed = JSON.parse(e.target.result); } catch (err) {
-								if (statusEl) { statusEl.textContent = 'Invalid JSON \u2014 could not parse file.'; }
+				EFF.Modal.open({ title: 'Import project', body: body, footer: footer });
+
+				requestAnimationFrame(function () {
+					var fileInput = document.getElementById('eff-import-file');
+					var statusEl  = document.getElementById('eff-import-status');
+					var cancelBtn = document.getElementById('eff-import-cancel');
+					var importBtn = document.getElementById('eff-import-go');
+
+					if (cancelBtn) { cancelBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
+					if (fileInput) {
+						fileInput.addEventListener('change', function () {
+							if (statusEl) { statusEl.textContent = fileInput.files[0] ? fileInput.files[0].name : ''; }
+						});
+					}
+					if (importBtn) {
+						importBtn.addEventListener('click', function () {
+							if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+								if (statusEl) { statusEl.textContent = 'Please choose a file first.'; }
 								return;
 							}
-							if (!parsed || typeof parsed !== 'object') {
-								if (statusEl) { statusEl.textContent = 'File does not look like an EFF project.'; }
-								return;
-							}
+							var reader = new FileReader();
+							reader.onload = function (e) { self._applyImport(e.target.result, statusEl); };
+							reader.readAsText(fileInput.files[0]);
+						});
+					}
+				});
+			}
+		},
 
-							// Load into state
-							EFF.state.variables   = Array.isArray(parsed.variables)  ? parsed.variables  : [];
-							EFF.state.classes     = Array.isArray(parsed.classes)     ? parsed.classes    : [];
-							EFF.state.components  = Array.isArray(parsed.components)  ? parsed.components : [];
-							EFF.state.config      = (parsed.config && typeof parsed.config === 'object') ? parsed.config : {};
-							EFF.state.projectName = parsed.name || '';
+		/**
+		 * Parse and load an imported .eff.json text string into app state.
+		 *
+		 * @param {string}          text      Raw JSON string.
+		 * @param {HTMLElement|null} statusEl  Element to write error messages into (fallback modal only).
+		 */
+		_applyImport: function (text, statusEl) {
+			var parsed;
+			try { parsed = JSON.parse(text); } catch (err) {
+				if (statusEl) { statusEl.textContent = 'Invalid JSON \u2014 could not parse file.'; }
+				else { EFF.Modal.open({ title: 'Import error', body: '<p>Invalid JSON \u2014 could not parse file.</p>' }); }
+				return;
+			}
+			if (!parsed || typeof parsed !== 'object') {
+				if (statusEl) { statusEl.textContent = 'File does not look like an EFF project.'; }
+				else { EFF.Modal.open({ title: 'Import error', body: '<p>File does not look like an EFF project.</p>' }); }
+				return;
+			}
 
-							// Populate the project name input in the right panel
-							if (EFF.PanelRight && EFF.PanelRight._filenameInput && parsed.name) {
-								EFF.PanelRight._filenameInput.value = parsed.name;
-							}
+			EFF.state.variables   = Array.isArray(parsed.variables)                          ? parsed.variables  : [];
+			EFF.state.classes     = Array.isArray(parsed.classes)                            ? parsed.classes    : [];
+			EFF.state.components  = Array.isArray(parsed.components)                         ? parsed.components : [];
+			EFF.state.config      = (parsed.config && typeof parsed.config === 'object')     ? parsed.config     : {};
+			var importedName = (parsed.name || '').replace(/(?:\.eff)+(?:\.json)?$/i, '');
+			EFF.state.projectName = importedName;
 
-							// Refresh all views
-							EFF.App.refreshCounts();
-							if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
-							if (EFF.state.currentSelection && EFF.EditSpace) {
-								EFF.EditSpace.loadCategory(EFF.state.currentSelection);
-							}
-							EFF.App.setDirty(true);  // user must save to persist
-							EFF.App.fetchUsageCounts();
+			if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+				EFF.PanelRight._filenameInput.value = importedName;
+			}
 
-							EFF.Modal.close();
-						};
-						reader.readAsText(fileInput.files[0]);
-					});
-				}
-			});
+			EFF.App.refreshCounts();
+			if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
+			if (EFF.state.currentSelection && EFF.EditSpace) {
+				EFF.EditSpace.loadCategory(EFF.state.currentSelection);
+			}
+			EFF.App.setDirty(true);
+			EFF.App.fetchUsageCounts();
+			EFF.Modal.close();
 		},
 
 		_openHistory: function () {

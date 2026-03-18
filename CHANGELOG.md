@@ -7,6 +7,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.2.3] — 2026-03-18
+
+### Added
+
+- **Auto-select project name** — Manage Project modal focuses and selects the project name field on open so the user can immediately type a new name.
+
+### Fixed
+
+- **Elementor sync — lowercase variable names** — Variables imported via Sync from Elementor now have their names lowercased (`--PrimaryColor` → `--primarycolor`) for consistent naming.
+- **Stacked `.eff` suffix in filenames** — Projects with legacy `.eff` or `.eff.json` in their stored name no longer produce filenames like `demo-eff-eff.eff.json`. All paths that store or display the project name now strip stacked `.eff[.json]` suffixes before use.
+
+---
+
 ## [0.2.2] — 2026-03-17
 
 ### Added
@@ -164,6 +177,7 @@ Initial Alpha release — distributed to LytBox Academy testers.
 | **0.1.0** | Preferences: default categories per set; auto-load last project on startup |
 | **0.2.0** | Pickr color picker; value format conversion (HEX ↔ RGB ↔ HSL) |
 | **0.2.2** | Export/Import; Save Changes contrast fix; category CRUD merge fix |
+| **0.2.3** | Elementor sync lowercase names; Manage Project select-all; stacked `.eff` suffix fix |
 | **1.0.0** | Full variable workflow stable; Classes management; Change history |
 | **2.0.0** | Components registry; Elementor Kit Manager API write-back; Bulk variable rename |
 | **Future** | Standalone Windows / Mac desktop application |

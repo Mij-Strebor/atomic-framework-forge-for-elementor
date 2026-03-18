@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS Variables.**
 
-[![Alpha](https://img.shields.io/badge/status-Alpha%200.2.2-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
-[![Version](https://img.shields.io/badge/version-0.2.2-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
+[![Alpha](https://img.shields.io/badge/status-Alpha%200.2.3-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
+[![Version](https://img.shields.io/badge/version-0.2.3-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -34,13 +34,13 @@ EFF is a **read-first, non-destructive** tool — it never modifies Elementor's 
 
 ## Alpha Status
 
-This is **Alpha 0.2.2** — distributed exclusively to LytBox Academy members. The core variable workflow (Colors, Fonts, Numbers) is fully functional. This release adds the Pickr visual color picker with HEX / RGB / HSL support, alpha auto-detection, and live tint/shade/transparency palette refresh. Previous releases added default categories per set, auto-load last project on startup, and the Functions dropdown.
+This is **Alpha 0.2.3** — distributed exclusively to LytBox Academy members. The core variable workflow (Colors, Fonts, Numbers) is fully functional. This release adds the Pickr visual color picker with HEX / RGB / HSL support, alpha auto-detection, and live tint/shade/transparency palette refresh. Previous releases added default categories per set, auto-load last project on startup, and the Functions dropdown.
 
 Please report issues in the LytBox Academy community. Your feedback directly shapes the next release.
 
 ---
 
-## What Works in Alpha 0.2.2
+## What Works in Alpha 0.2.3
 
 | Feature | Status |
 |---------|--------|
@@ -214,7 +214,7 @@ elementor-framework-forge/
 |---------|-------|
 | **0.0.1-alpha** | Variables module — Colors, Fonts, Numbers. Sync, organize, save, commit. |
 | **0.1.0** | Default categories/types per set. Auto-load last project. Functions menu. Sync manual-path fallback. |
-| **0.2.2** *(this release)* | Pickr color picker (HEX / RGB / HSL + alpha). Per-variable format selector. Live palette refresh. |
+| **0.2.3** *(this release)* | Pickr color picker (HEX / RGB / HSL + alpha). Per-variable format selector. Live palette refresh. |
 | **1.0.0** | Full variable workflow stable. Classes management. Export / Import. Change history. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. Bulk variable rename. |
 | **Future** | Standalone Windows / Mac desktop application. |

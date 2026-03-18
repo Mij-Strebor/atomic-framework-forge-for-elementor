@@ -1,5 +1,5 @@
 # EFF User Manual
-## Elementor Framework Forge — Alpha 0.2.2
+## Elementor Framework Forge — Alpha 0.2.3
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**
@@ -576,7 +576,7 @@ EFF meets WCAG 2.1 AA contrast standards:
 → Make sure you are grabbing the ⠿ drag handle, not the variable name or value. Dragging from anywhere else in the row does not trigger the reorder.
 
 **Left panel shows Classes or Components but clicking does nothing**
-→ These sections are placeholders in Alpha 0.2.2. They are planned for EFF 1.0.0 and EFF 2.0.0 respectively.
+→ These sections are placeholders in Alpha 0.2.3. They are planned for EFF 1.0.0 and EFF 2.0.0 respectively.
 
 ---
 

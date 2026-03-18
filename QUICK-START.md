@@ -1,5 +1,5 @@
 # EFF Quick Start Guide
-## Elementor Framework Forge — Alpha 0.2.2
+## Elementor Framework Forge — Alpha 0.2.3
 
 > **LytBox Academy Testing Edition**
 > Welcome, and thank you for being an early tester. This guide gets you from zero to your first
