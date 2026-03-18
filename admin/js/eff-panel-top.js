@@ -463,6 +463,12 @@
 			+ _catPanel('Fonts',   'eff-proj-cat-fonts',   this._escapeHtml(fontsStr))
 			+ _catPanel('Numbers', 'eff-proj-cat-numbers', this._escapeHtml(numbersStr))
 			+ '</div>'
+			+ '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--eff-clr-border,#d6ccc2)">'
+			+ '<label class="eff-field-label" for="eff-proj-max-backups"'
+			+ ' style="font-size:11px;margin-bottom:4px">Max backups per project</label>'
+			+ '<input type="number" class="eff-field-input" id="eff-proj-max-backups"'
+			+ ' min="1" max="50" style="width:80px" />'
+			+ '</div>'
 			+ '<div style="border-top:1px solid var(--eff-clr-border,#d6ccc2);padding-top:16px;margin-top:16px">'
 			+ '<p class="eff-field-label">Default Format</p>'
 			+ '<p style="font-size:12px;color:var(--eff-clr-muted);margin-bottom:8px">Formatting default for variables.</p>'
@@ -510,6 +516,8 @@
 				if (selColors  && s.colors_default_type)  { selColors.value  = s.colors_default_type; }
 				if (selFonts   && s.fonts_default_type)   { selFonts.value   = s.fonts_default_type; }
 				if (selNumbers && s.numbers_default_type) { selNumbers.value = s.numbers_default_type; }
+				var maxInput = document.getElementById('eff-proj-max-backups');
+				if (maxInput && s.max_backups) { maxInput.value = s.max_backups; }
 			});
 			// Save default types on change
 			var colorsTypeSel  = document.getElementById('eff-proj-colors-type');
@@ -629,6 +637,13 @@
 			categories:       newColCats,   // backward-compat alias
 			groups:           cfg.groups || {},
 		};
+
+		var maxInput = document.getElementById('eff-proj-max-backups');
+		if (maxInput && maxInput.value) {
+			EFF.App.ajax('eff_save_settings', {
+				settings: JSON.stringify({ max_backups: parseInt(maxInput.value, 10) || 10 }),
+			});
+		}
 
 		Promise.all(saveVarPromises).then(function () {
 			return EFF.App.ajax('eff_save_config', { config: JSON.stringify(config) });

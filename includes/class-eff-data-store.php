@@ -802,6 +802,128 @@ class EFF_Data_Store {
 		);
 	}
 
+	// -----------------------------------------------------------------------
+	// VERSIONED BACKUP METHODS — Subdirectory-per-project storage.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Lowercase kebab slug. "My Demo" → "my-demo".
+	 *
+	 * @param string $name Human-readable project name.
+	 * @return string Slug.
+	 */
+	public static function sanitize_project_slug( string $name ): string {
+		$name = mb_strtolower( $name );
+		$name = preg_replace( '/[^a-z0-9]+/', '-', $name );
+		return trim( $name, '-' );
+	}
+
+	/**
+	 * Return (and create) the project subdirectory.
+	 *
+	 * @param string $project_slug Slug from sanitize_project_slug().
+	 * @return string Absolute path with trailing slash.
+	 */
+	public static function get_project_dir( string $project_slug ): string {
+		$dir = self::get_wp_storage_dir() . $project_slug . '/';
+		if ( ! is_dir( $dir ) ) {
+			wp_mkdir_p( $dir );
+		}
+		return $dir;
+	}
+
+	/**
+	 * Generate a timestamped backup filename.
+	 *
+	 * @param string $project_slug Slug.
+	 * @return string e.g. "my-demo_2026-03-18_14-30-00.eff.json"
+	 */
+	public static function generate_backup_filename( string $project_slug ): string {
+		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.eff.json';
+	}
+
+	/**
+	 * List all projects from subdirectories, sorted newest-first.
+	 *
+	 * @param string $base_dir Absolute path with trailing slash.
+	 * @return array[] Each item: { slug, name, backup_count, latest_modified }.
+	 */
+	public static function list_projects_v2( string $base_dir ): array {
+		$dirs = glob( $base_dir . '*/', GLOB_ONLYDIR ) ?: array();
+		$list = array();
+
+		foreach ( $dirs as $d ) {
+			$slug    = basename( $d );
+			$backups = self::list_project_backups( $base_dir, $slug );
+			if ( empty( $backups ) ) {
+				continue;
+			}
+			$latest  = $backups[0];
+			$list[]  = array(
+				'slug'            => $slug,
+				'name'            => $latest['name'] ?: $slug,
+				'backup_count'    => count( $backups ),
+				'latest_modified' => $latest['modified'],
+			);
+		}
+
+		usort( $list, function ( $a, $b ) use ( $base_dir ) {
+			$fa = $base_dir . $a['slug'] . '/';
+			$fb = $base_dir . $b['slug'] . '/';
+			$ta = ( $files_a = glob( $fa . '*.eff.json' ) ) ? max( array_map( 'filemtime', $files_a ) ) : 0;
+			$tb = ( $files_b = glob( $fb . '*.eff.json' ) ) ? max( array_map( 'filemtime', $files_b ) ) : 0;
+			return $tb - $ta;
+		} );
+
+		return $list;
+	}
+
+	/**
+	 * List backups for one project, newest first.
+	 *
+	 * @param string $base_dir    Absolute path with trailing slash.
+	 * @param string $project_slug Slug.
+	 * @return array[] Each item: { filename (relative: slug/file.eff.json), name, modified }.
+	 */
+	public static function list_project_backups( string $base_dir, string $project_slug ): array {
+		$dir   = $base_dir . $project_slug . '/';
+		$files = glob( $dir . '*.eff.json' ) ?: array();
+		usort( $files, function ( $a, $b ) { return filemtime( $b ) - filemtime( $a ); } );
+
+		$list = array();
+		foreach ( $files as $f ) {
+			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$list[] = array(
+				'filename' => $project_slug . '/' . basename( $f ),
+				'name'     => isset( $raw['name'] ) ? preg_replace( '/(\.eff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
+				'modified' => date( 'M j, g:i a', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+			);
+		}
+
+		return $list;
+	}
+
+	/**
+	 * Delete oldest backups until count <= $max.
+	 *
+	 * @param string $project_dir Absolute path to project subdirectory (with trailing slash).
+	 * @param int    $max         Maximum number of backups to keep.
+	 */
+	public static function prune_backups( string $project_dir, int $max ): void {
+		if ( $max < 1 ) {
+			return;
+		}
+		$files = glob( $project_dir . '*.eff.json' ) ?: array();
+		if ( count( $files ) <= $max ) {
+			return;
+		}
+		usort( $files, function ( $a, $b ) { return filemtime( $a ) - filemtime( $b ); } ); // oldest first
+		$to_delete = array_slice( $files, 0, count( $files ) - $max );
+		foreach ( $to_delete as $f ) {
+			@unlink( $f ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+	}
+
 	/**
 	 * List all .eff.json projects in a directory, sorted by most recently modified.
 	 *

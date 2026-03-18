@@ -33,6 +33,7 @@ class EFF_Ajax_Handler {
 			'eff_get_usage_counts',
 			// Project management endpoints
 			'eff_list_projects',
+			'eff_list_backups',
 			'eff_delete_project',
 			// Phase 2 — Colors endpoints
 			'eff_save_category',
@@ -58,14 +59,14 @@ class EFF_Ajax_Handler {
 	public function ajax_eff_save_file(): void {
 		$this->verify_request();
 
-		$filename = isset( $_POST['filename'] )
-			? sanitize_text_field( wp_unslash( $_POST['filename'] ) )
+		$project_name = isset( $_POST['project_name'] )
+			? sanitize_text_field( wp_unslash( $_POST['project_name'] ) )
 			: '';
 
 		$data_raw = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : '';
 
-		if ( empty( $filename ) ) {
-			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
+		if ( empty( $project_name ) ) {
+			wp_send_json_error( array( 'message' => __( 'Project name is required.', 'elementor-framework-forge' ) ) );
 		}
 
 		$decoded = json_decode( $data_raw, true );
@@ -73,18 +74,22 @@ class EFF_Ajax_Handler {
 			wp_send_json_error( array( 'message' => __( 'Invalid data format.', 'elementor-framework-forge' ) ) );
 		}
 
-		$filename = EFF_Data_Store::sanitize_filename( $filename );
-		$dir      = EFF_Data_Store::get_wp_storage_dir();
-		$file     = $dir . $filename;
+		$slug  = EFF_Data_Store::sanitize_project_slug( $project_name );
+		$dir   = EFF_Data_Store::get_project_dir( $slug );
+		$fname = EFF_Data_Store::generate_backup_filename( $slug );
+		$file  = $dir . $fname;
 
 		$json = wp_json_encode( $decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 		if ( false === file_put_contents( $file, $json ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not write file. Check directory permissions.', 'elementor-framework-forge' ) ) );
 		}
 
+		EFF_Data_Store::prune_backups( $dir, (int) EFF_Settings::get( 'max_backups' ) );
+
+		$relative = $slug . '/' . $fname;
 		wp_send_json_success( array(
 			'message'  => __( 'File saved successfully.', 'elementor-framework-forge' ),
-			'filename' => $filename,
+			'filename' => $relative,
 		) );
 	}
 
@@ -95,36 +100,49 @@ class EFF_Ajax_Handler {
 	public function ajax_eff_load_file(): void {
 		$this->verify_request();
 
-		$filename = isset( $_POST['filename'] )
+		$raw = isset( $_POST['filename'] )
 			? sanitize_text_field( wp_unslash( $_POST['filename'] ) )
 			: '';
 
-		if ( empty( $filename ) ) {
+		if ( empty( $raw ) ) {
 			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
 		}
 
-		$filename = EFF_Data_Store::sanitize_filename( $filename );
+		$resolved = $this->resolve_file( $raw );
+		$file     = $resolved['absolute'];
+		$filename = $resolved['relative'];
 		$dir      = EFF_Data_Store::get_wp_storage_dir();
-		$file     = $dir . $filename;
 
 		if ( ! file_exists( $file ) ) {
-			// File not found → return a fresh empty project (create-on-load).
-			$project_name = isset( $_POST['project_name'] )
-				? sanitize_text_field( wp_unslash( $_POST['project_name'] ) )
-				: pathinfo( $filename, PATHINFO_FILENAME );
-			// Strip trailing .eff from the basename if present.
-			$project_name = preg_replace( '/\.eff$/', '', $project_name );
+			// Backward compat: old flat path — try newest backup in slug subdir.
+			if ( strpos( $raw, '/' ) === false ) {
+				$slug    = EFF_Data_Store::sanitize_project_slug( preg_replace( '/\.eff\.json$/i', '', $raw ) );
+				$backups = EFF_Data_Store::list_project_backups( $dir, $slug );
+				if ( ! empty( $backups ) ) {
+					$resolved = $this->resolve_file( $backups[0]['filename'] );
+					$file     = $resolved['absolute'];
+					$filename = $resolved['relative'];
+				}
+			}
 
-			$store = new EFF_Data_Store();
-			$data  = $store->new_project( $project_name );
+			if ( ! file_exists( $file ) ) {
+				// Still not found → return a fresh empty project (create-on-load).
+				$project_name = isset( $_POST['project_name'] )
+					? sanitize_text_field( wp_unslash( $_POST['project_name'] ) )
+					: preg_replace( '/\.eff(?:\.json)?$/i', '', basename( $filename ) );
+				$project_name = preg_replace( '/\.eff$/', '', $project_name );
 
-			wp_send_json_success( array(
-				'data'     => $data,
-				'counts'   => array( 'variables' => 0, 'classes' => 0, 'components' => 0 ),
-				'filename' => $filename,
-				'created'  => true,
-			) );
-			return;
+				$store = new EFF_Data_Store();
+				$data  = $store->new_project( $project_name );
+
+				wp_send_json_success( array(
+					'data'     => $data,
+					'counts'   => array( 'variables' => 0, 'classes' => 0, 'components' => 0 ),
+					'filename' => $filename,
+					'created'  => true,
+				) );
+				return;
+			}
 		}
 
 		$store = new EFF_Data_Store();
@@ -333,7 +351,7 @@ class EFF_Ajax_Handler {
 		$this->verify_request();
 
 		$dir      = EFF_Data_Store::get_wp_storage_dir();
-		$projects = EFF_Data_Store::list_projects( $dir );
+		$projects = EFF_Data_Store::list_projects_v2( $dir );
 
 		wp_send_json_success( array( 'projects' => $projects ) );
 	}
@@ -342,20 +360,41 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Delete project
 	// -----------------------------------------------------------------------
 
+	// -----------------------------------------------------------------------
+	// ENDPOINT: List backups for a project
+	// -----------------------------------------------------------------------
+
+	public function ajax_eff_list_backups(): void {
+		$this->verify_request();
+
+		$slug    = isset( $_POST['project_slug'] )
+			? sanitize_text_field( wp_unslash( $_POST['project_slug'] ) )
+			: '';
+		$slug    = EFF_Data_Store::sanitize_project_slug( $slug );
+		$dir     = EFF_Data_Store::get_wp_storage_dir();
+		$backups = EFF_Data_Store::list_project_backups( $dir, $slug );
+
+		wp_send_json_success( array( 'backups' => $backups ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Delete project (single backup)
+	// -----------------------------------------------------------------------
+
 	public function ajax_eff_delete_project(): void {
 		$this->verify_request();
 
-		$filename = isset( $_POST['filename'] )
+		$raw = isset( $_POST['filename'] )
 			? sanitize_text_field( wp_unslash( $_POST['filename'] ) )
 			: '';
 
-		if ( empty( $filename ) ) {
+		if ( empty( $raw ) ) {
 			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
 		}
 
-		$filename = EFF_Data_Store::sanitize_filename( $filename );
-		$dir      = EFF_Data_Store::get_wp_storage_dir();
-		$file     = $dir . $filename;
+		$resolved = $this->resolve_file( $raw );
+		$file     = $resolved['absolute'];
+		$filename = $resolved['relative'];
 
 		if ( ! file_exists( $file ) ) {
 			wp_send_json_error( array( 'message' => __( 'File not found.', 'elementor-framework-forge' ) ) );
@@ -365,10 +404,16 @@ class EFF_Ajax_Handler {
 			wp_send_json_error( array( 'message' => __( 'Could not delete file. Check permissions.', 'elementor-framework-forge' ) ) );
 		}
 
-		// Also clean up the stored baseline for this file.
+		// Clean up stored baseline.
 		EFF_Data_Store::delete_baseline( $filename );
 
-		wp_send_json_success( array( 'message' => __( 'Project deleted.', 'elementor-framework-forge' ) ) );
+		// Remove project subdirectory if now empty.
+		$project_dir = dirname( $file );
+		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.eff.json' ) ) ) {
+			@rmdir( $project_dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		wp_send_json_success( array( 'message' => __( 'Backup deleted.', 'elementor-framework-forge' ) ) );
 	}
 
 	// -----------------------------------------------------------------------
@@ -1009,22 +1054,23 @@ class EFF_Ajax_Handler {
 	}
 
 	/**
-	 * Get and validate the `filename` POST parameter.
+	 * Get and validate the `filename` POST parameter, resolved to an absolute path.
 	 *
 	 * Sends a JSON error and dies if missing or empty.
 	 *
-	 * @return string Sanitized filename.
+	 * @return string Resolved relative path (new or legacy format).
 	 */
 	private function get_filename_param(): string {
-		$filename = isset( $_POST['filename'] )
+		$raw = isset( $_POST['filename'] )
 			? sanitize_text_field( wp_unslash( $_POST['filename'] ) )
 			: '';
 
-		if ( empty( $filename ) ) {
+		if ( empty( $raw ) ) {
 			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
 		}
 
-		return EFF_Data_Store::sanitize_filename( $filename );
+		$resolved = $this->resolve_file( $raw );
+		return $resolved['relative'];
 	}
 
 	/**
@@ -1032,7 +1078,7 @@ class EFF_Ajax_Handler {
 	 *
 	 * Sends a JSON error and dies if the file cannot be read.
 	 *
-	 * @param string $filename Sanitized filename.
+	 * @param string $filename Relative path (slug/file.eff.json or legacy file.eff.json).
 	 * @return EFF_Data_Store Loaded store.
 	 */
 	private function load_store( string $filename ): EFF_Data_Store {
@@ -1053,7 +1099,7 @@ class EFF_Ajax_Handler {
 	 * Sends a JSON error and dies if the file cannot be written.
 	 *
 	 * @param EFF_Data_Store $store    Store to save.
-	 * @param string         $filename Sanitized filename.
+	 * @param string         $filename Relative path (slug/file.eff.json or legacy file.eff.json).
 	 */
 	private function save_store( EFF_Data_Store $store, string $filename ): void {
 		$dir  = EFF_Data_Store::get_wp_storage_dir();
@@ -1134,6 +1180,40 @@ class EFF_Ajax_Handler {
 		$b = (int) round( ( $b1 + $m ) * 255 );
 
 		return sprintf( '#%02x%02x%02x', $r, $g, $b );
+	}
+
+	// -----------------------------------------------------------------------
+	// FILE PATH RESOLUTION
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Resolve a raw filename POST param to an absolute path.
+	 *
+	 * Handles new subdirectory format (slug/slug_YYYY-MM-DD_HH-II-SS.eff.json)
+	 * and old flat format (slug.eff.json) for backward compat.
+	 * Exits with JSON error on invalid input.
+	 *
+	 * @param string $raw Raw filename value from POST.
+	 * @return array { absolute: string, relative: string }
+	 */
+	private function resolve_file( string $raw ): array {
+		$dir = EFF_Data_Store::get_wp_storage_dir();
+
+		if ( strpos( $raw, '/' ) !== false ) {
+			// New subdirectory format — validate, prevent path traversal.
+			$rel  = ltrim( $raw, '/' );
+			$abs  = $dir . $rel;
+			$real = realpath( dirname( $abs ) );
+			$base = rtrim( realpath( $dir ) ?: $dir, DIRECTORY_SEPARATOR );
+			if ( ! $real || strpos( $real, $base ) !== 0 ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid path.', 'elementor-framework-forge' ) ) );
+			}
+			return array( 'absolute' => $abs, 'relative' => $rel );
+		}
+
+		// Old flat format — backward compat.
+		$filename = EFF_Data_Store::sanitize_filename( $raw );
+		return array( 'absolute' => $dir . $filename, 'relative' => $filename );
 	}
 
 	// -----------------------------------------------------------------------

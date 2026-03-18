@@ -784,6 +784,18 @@
 	flex-shrink: 0;
 }
 
+.eff-picker-back-bar {
+	display:       flex;
+	align-items:   center;
+	gap:           var(--sp-2);
+	margin-bottom: var(--sp-2);
+	padding-bottom: var(--sp-2);
+	border-bottom: 1px solid var(--eff-clr-border);
+	font-size:     var(--fs-sm);
+	font-weight:   var(--fw-semibold);
+	color:         var(--eff-clr-primary);
+}
+
 .eff-picker-create {
 	display:     flex;
 	align-items: center;

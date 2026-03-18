@@ -31,6 +31,8 @@
 		_unsyncedIndicator: null,
 		/** @type {HTMLElement|null} */
 		_commitBtn: null,
+		/** @type {string|null} Current project slug shown in Level 2 picker */
+		_pickerCurrentSlug: null,
 
 		/**
 		 * Initialize the right panel.
@@ -72,27 +74,20 @@
 			var self = this;
 
 			this._loadBtn.addEventListener('click', function () {
-				var name = self._filenameInput ? self._filenameInput.value.trim() : '';
-				if (!name) {
-					self._openProjectPicker();
-				} else {
-					self._loadFile(name);
-				}
+				self._openProjectPicker();
 			});
 		},
 
 		/**
-		 * Execute an AJAX load for the given project name.
-		 * Derives the filename from the human name via _getFilename().
-		 * If the server returns created:true the project was just created; show toast.
+		 * Execute an AJAX load for the given file path.
+		 * path can be a relative backup path (slug/slug_date.eff.json) or legacy flat name.
 		 *
-		 * @param {string} name  Human-readable project name.
+		 * @param {string} path  File path passed directly to the server.
 		 */
-		_loadFile: function (name) {
-			var self     = this;
-			var filename = this._getFilename(name);
+		_loadFile: function (path) {
+			var self = this;
 
-			EFF.App.ajax('eff_load_file', { filename: filename, project_name: name })
+			EFF.App.ajax('eff_load_file', { filename: path })
 				.then(function (res) {
 					if (res.success) {
 						EFF.state.variables  = res.data.data.variables  || [];
@@ -219,7 +214,6 @@
 		_saveFile: function (name) {
 			var self      = this;
 			var cleanName = (name || '').trim().replace(/(?:\.eff)+(?:\.json)?$/i, '');
-			var filename  = this._getFilename(cleanName);
 			var data = {
 				version:    '1.0',
 				name:       cleanName,
@@ -230,7 +224,6 @@
 			};
 
 			EFF.App.ajax('eff_save_file', {
-				filename:     filename,
 				project_name: cleanName,
 				data:         JSON.stringify(data),
 			})
@@ -265,11 +258,8 @@
 
 			this._saveChangesBtn.addEventListener('click', function () {
 				if (EFF.state.hasUnsavedChanges) {
-					var name = self._filenameInput ? self._filenameInput.value.trim() : '';
-					if (!name && EFF.state.currentFile) {
-						// Fall back to deriving the name from the stored filename.
-						name = EFF.state.projectName || EFF.state.currentFile.replace(/(?:\.eff)+(?:\.json)?$/i, '');
-					}
+					var name = (self._filenameInput ? self._filenameInput.value.trim() : '')
+						|| EFF.state.projectName || '';
 					if (name) {
 						self._saveFile(name);
 					}
@@ -301,25 +291,21 @@
 		},
 
 		// ------------------------------------------------------------------
-		// PROJECT PICKER MODAL
+		// PROJECT PICKER MODAL — Two-level navigator
 		// ------------------------------------------------------------------
 
 		/**
-		 * Open the project picker modal.
-		 * Fetches the project list from the server, then renders the picker UI.
+		 * Open the project picker: fetch project list and show Level 1.
 		 */
 		_openProjectPicker: function () {
 			var self = this;
+			self._pickerCurrentSlug = null;
 
 			EFF.App.ajax('eff_list_projects', {})
 				.then(function (res) {
 					if (res.success) {
-						EFF.Modal.open({
-							title:  'Load Project',
-							body:   self._buildPickerBody(res.data.projects || []),
-							footer: '',
-						});
-						self._bindPickerEvents();
+						EFF.Modal.open({ title: 'Load Project', body: '', footer: '' });
+						self._showProjectList(res.data.projects || []);
 					} else {
 						EFF.Modal.open({ title: 'Error', body: '<p>' + (res.data.message || 'Could not load projects.') + '</p>' });
 					}
@@ -330,33 +316,145 @@
 		},
 
 		/**
-		 * Build the HTML for the project picker modal body.
-		 *
-		 * @param {Array} projects  Array of { name, filename, modified } objects.
-		 * @returns {string} HTML string.
+		 * Render Level 1 — project list.
+		 * @param {Array} projects  [{slug, name, backup_count, latest_modified}]
 		 */
-		_buildPickerBody: function (projects) {
+		_showProjectList: function (projects) {
+			var self     = this;
+			var modalBody = document.getElementById('eff-modal-body');
+			if (!modalBody) { return; }
+
+			modalBody.innerHTML = self._buildProjectListBody(projects);
+
+			modalBody.addEventListener('click', function pickerL1(e) {
+				// Open project → Level 2
+				var openBtn = e.target.closest('.eff-picker-open-project');
+				if (openBtn) {
+					var slug = openBtn.getAttribute('data-slug');
+					self._pickerCurrentSlug = slug;
+					EFF.App.ajax('eff_list_backups', { project_slug: slug })
+						.then(function (res) {
+							if (res.success) {
+								self._showBackupList(slug, res.data.backups || []);
+							}
+						});
+					modalBody.removeEventListener('click', pickerL1);
+					return;
+				}
+
+				// Create button — clear state, start fresh project
+				if (e.target.id === 'eff-picker-create-btn') {
+					var nameInput = document.getElementById('eff-picker-name-input');
+					var newName   = nameInput ? nameInput.value.trim() : '';
+					if (!newName) {
+						if (nameInput) { nameInput.focus(); }
+						return;
+					}
+					EFF.Modal.close();
+					modalBody.removeEventListener('click', pickerL1);
+
+					// Clear all project data for a genuinely blank new project.
+					EFF.state.variables   = [];
+					EFF.state.classes     = [];
+					EFF.state.components  = [];
+					EFF.state.config      = {};
+					EFF.state.currentFile = null;
+					EFF.state.projectName = newName;
+					EFF.App.setDirty(false);
+					EFF.App.refreshCounts();
+					if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
+					if (self._filenameInput) { self._filenameInput.value = newName; }
+
+					// Save the initial (empty) backup to create the project on disk.
+					self._saveFile(newName);
+				}
+			});
+		},
+
+		/**
+		 * Render Level 2 — backup list for a project.
+		 * @param {string} slug
+		 * @param {Array}  backups  [{filename, name, modified}]
+		 */
+		_showBackupList: function (slug, backups) {
+			var self     = this;
+			var modalBody = document.getElementById('eff-modal-body');
+			if (!modalBody) { return; }
+
+			modalBody.innerHTML = self._buildBackupListBody(slug, backups);
+
+			modalBody.addEventListener('click', function pickerL2(e) {
+				// Back button → Level 1
+				if (e.target.closest('.eff-picker-back')) {
+					modalBody.removeEventListener('click', pickerL2);
+					EFF.App.ajax('eff_list_projects', {})
+						.then(function (res) {
+							if (res.success) {
+								self._showProjectList(res.data.projects || []);
+							}
+						});
+					return;
+				}
+
+				// Load backup
+				var loadBtn = e.target.closest('.eff-picker-load');
+				if (loadBtn) {
+					var file    = loadBtn.getAttribute('data-file');
+					var rawName = (loadBtn.getAttribute('data-name') || '').replace(/(?:\.eff)+(?:\.json)?$/i, '');
+					EFF.Modal.close();
+					if (self._filenameInput) { self._filenameInput.value = rawName; }
+					self._loadFile(file);
+					modalBody.removeEventListener('click', pickerL2);
+					return;
+				}
+
+				// Delete backup
+				var delBtn = e.target.closest('.eff-picker-delete');
+				if (delBtn) {
+					var filename = delBtn.getAttribute('data-filename');
+					EFF.App.ajax('eff_delete_project', { filename: filename })
+						.then(function (res) {
+							if (res.success) {
+								// Refresh Level 2; if empty, go back to Level 1.
+								modalBody.removeEventListener('click', pickerL2);
+								EFF.App.ajax('eff_list_backups', { project_slug: self._pickerCurrentSlug })
+									.then(function (r) {
+										if (r.success && r.data.backups && r.data.backups.length > 0) {
+											self._showBackupList(self._pickerCurrentSlug, r.data.backups);
+										} else {
+											EFF.App.ajax('eff_list_projects', {})
+												.then(function (pr) {
+													if (pr.success) { self._showProjectList(pr.data.projects || []); }
+												});
+										}
+									});
+							} else {
+								EFF.Modal.open({ title: 'Delete error', body: '<p>' + (res.data.message || 'Could not delete.') + '</p>' });
+							}
+						})
+						.catch(function () {});
+					return;
+				}
+			});
+		},
+
+		/**
+		 * Build Level 1 HTML — project rows + create section.
+		 * @param {Array} projects
+		 * @returns {string}
+		 */
+		_buildProjectListBody: function (projects) {
+			var self = this;
 			var html = '<div class="eff-picker-list">';
 
 			if (projects.length > 0) {
 				for (var i = 0; i < projects.length; i++) {
 					var p = projects[i];
-					html += '<div class="eff-picker-row"'
-						+ ' data-filename="' + this._escAttr(p.filename) + '"'
-						+ ' data-name="'     + this._escAttr(p.name)     + '">'
-						+ '<span class="eff-picker-row__name">'  + this._escHtml(p.name)     + '</span>'
-						+ '<span class="eff-picker-row__date">'  + this._escHtml(p.modified) + '</span>'
-						+ '<button class="eff-btn eff-btn--xs eff-picker-load"'
-						+ ' data-name="' + this._escAttr(p.name) + '">Load</button>'
-						+ '<button class="eff-icon-btn eff-picker-delete"'
-						+ ' data-filename="' + this._escAttr(p.filename) + '"'
-						+ ' aria-label="Delete project"'
-						+ ' data-eff-tooltip="Delete project">'
-						+ '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">'
-						+ '<path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>'
-						+ '<path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>'
-						+ '</svg>'
-						+ '</button>'
+					html += '<div class="eff-picker-row">'
+						+ '<span class="eff-picker-row__name">' + self._escHtml(p.name) + '</span>'
+						+ '<span class="eff-picker-row__date">' + self._escHtml(p.backup_count + ' save' + (p.backup_count !== 1 ? 's' : '') + ' \u00b7 ' + p.latest_modified) + '</span>'
+						+ '<button class="eff-btn eff-btn--xs eff-picker-open-project"'
+						+ ' data-slug="' + self._escAttr(p.slug) + '">Open</button>'
 						+ '</div>';
 				}
 			} else {
@@ -369,67 +467,57 @@
 				+ '<input type="text" class="eff-field-input" id="eff-picker-name-input"'
 				+ ' placeholder="New project name\u2026" autocomplete="off" />'
 				+ '<button class="eff-btn" id="eff-picker-create-btn">Create</button>'
-			+ '</div>';
+				+ '</div>';
 
-		var _storageNote = (typeof EFFData !== 'undefined' && EFFData.uploadUrl)
-			? EFFData.uploadUrl.replace(/^https?:\/\/[^/]+/, '')
-			: 'wp-content/uploads/eff/';
-		html += '<p style="font-size:11px;color:var(--eff-clr-muted);margin-top:12px;padding-top:8px;border-top:1px solid var(--eff-clr-border)">'
-			+ 'Files stored in: <code style="user-select:all">' + _storageNote + '</code></p>';
+			var _storageNote = (typeof EFFData !== 'undefined' && EFFData.uploadUrl)
+				? EFFData.uploadUrl.replace(/^https?:\/\/[^/]+/, '')
+				: 'wp-content/uploads/eff/';
+			html += '<p style="font-size:11px;color:var(--eff-clr-muted);margin-top:12px;padding-top:8px;border-top:1px solid var(--eff-clr-border)">'
+				+ 'Files stored in: <code style="user-select:all">' + _storageNote + '</code></p>';
 
-		return html;
+			return html;
 		},
 
 		/**
-		 * Bind click events inside the project picker modal.
-		 * Uses event delegation on #eff-modal-body.
+		 * Build Level 2 HTML — back bar + backup rows.
+		 * @param {string} slug
+		 * @param {Array}  backups  [{filename, name, modified}]
+		 * @returns {string}
 		 */
-		_bindPickerEvents: function () {
-			var self      = this;
-			var modalBody = document.getElementById('eff-modal-body');
-			if (!modalBody) { return; }
+		_buildBackupListBody: function (slug, backups) {
+			var self = this;
+			var trashSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">'
+				+ '<path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>'
+				+ '<path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>'
+				+ '</svg>';
 
-			modalBody.addEventListener('click', function pickerClick(e) {
-				// Load row button
-				var loadBtn = e.target.closest('.eff-picker-load');
-				if (loadBtn) {
-					var name = (loadBtn.getAttribute('data-name') || '').replace(/(?:\.eff)+(?:\.json)?$/i, '');
-					EFF.Modal.close();
-					if (self._filenameInput) { self._filenameInput.value = name; }
-					self._loadFile(name);
-					return;
-				}
+			var html = '<div class="eff-picker-back-bar">'
+				+ '<button class="eff-icon-btn eff-picker-back" aria-label="Back to projects">\u2190</button>'
+				+ '<span>' + self._escHtml(slug) + '</span>'
+				+ '</div>'
+				+ '<div class="eff-picker-list">';
 
-				// Delete row button
-				var delBtn = e.target.closest('.eff-picker-delete');
-				if (delBtn) {
-					var filename = delBtn.getAttribute('data-filename');
-					EFF.App.ajax('eff_delete_project', { filename: filename })
-						.then(function (res) {
-							if (res.success) {
-								var row = delBtn.closest('.eff-picker-row');
-								if (row) { row.remove(); }
-							} else {
-								EFF.Modal.open({ title: 'Delete error', body: '<p>' + (res.data.message || 'Could not delete.') + '</p>' });
-							}
-						})
-						.catch(function () {});
-					return;
+			if (backups.length > 0) {
+				for (var i = 0; i < backups.length; i++) {
+					var b = backups[i];
+					html += '<div class="eff-picker-row">'
+						+ '<span class="eff-picker-row__name">' + self._escHtml(b.modified) + '</span>'
+						+ '<button class="eff-btn eff-btn--xs eff-picker-load"'
+						+ ' data-name="' + self._escAttr(b.name) + '"'
+						+ ' data-file="' + self._escAttr(b.filename) + '">Load</button>'
+						+ '<button class="eff-icon-btn eff-picker-delete"'
+						+ ' data-filename="' + self._escAttr(b.filename) + '"'
+						+ ' aria-label="Delete backup">'
+						+ trashSvg
+						+ '</button>'
+						+ '</div>';
 				}
+			} else {
+				html += '<p class="eff-text-muted" style="padding:8px 0">No backups found.</p>';
+			}
 
-				// Create button
-				if (e.target.id === 'eff-picker-create-btn') {
-					var nameInput = document.getElementById('eff-picker-name-input');
-					var newName   = nameInput ? nameInput.value.trim() : '';
-					if (!newName) {
-						if (nameInput) { nameInput.focus(); }
-						return;
-					}
-					EFF.Modal.close();
-					if (self._filenameInput) { self._filenameInput.value = newName; }
-					self._saveFile(newName);
-				}
-			});
+			html += '</div>'; // .eff-picker-list
+			return html;
 		},
 
 		// ------------------------------------------------------------------

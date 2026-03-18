@@ -30,6 +30,7 @@ class EFF_Settings {
 		'colors_default_categories'  => array( 'Branding', 'Backgrounds', 'Neutral', 'Status' ),
 		'fonts_default_categories'   => array( 'Titles', 'Text' ),
 		'numbers_default_categories' => array( 'Spacing', 'Gaps', 'Grids', 'Radius' ),
+		'max_backups'                => 10,
 	);
 
 	/**
