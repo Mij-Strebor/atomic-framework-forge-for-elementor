@@ -60,6 +60,8 @@
 			if (EFF.PanelRight) {
 				EFF.PanelRight.updateSaveChangesBtn();
 			}
+			var saveBtn = document.getElementById('eff-btn-save-changes');
+			if (saveBtn) { saveBtn.classList.toggle('has-changes', !!isDirty); }
 		},
 
 		/**
@@ -173,6 +175,7 @@
 				.then(function (res) {
 					if (res.success && res.data.config) {
 						EFF.state.config = res.data.config;
+						EFF.state.globalConfig = res.data.config;
 						if (res.data.config.projectName) {
 							EFF.state.projectName = res.data.config.projectName;
 						}
@@ -361,10 +364,8 @@
 
 		// 8. Warn on page unload with unsaved or uncommitted changes
 		window.addEventListener('beforeunload', function (e) {
-			if (EFF.state.hasUnsavedChanges || EFF.state.hasPendingElementorCommit) {
-				var msg = EFF.state.hasPendingElementorCommit
-					? 'You have unsynced changes not yet committed to Elementor. Leave anyway?'
-					: 'You have unsaved changes. Leave anyway?';
+			if (EFF.state.hasUnsavedChanges) {
+				var msg = 'You have unsaved changes. Leave anyway?';
 				e.preventDefault();
 				e.returnValue = msg;
 				return msg;

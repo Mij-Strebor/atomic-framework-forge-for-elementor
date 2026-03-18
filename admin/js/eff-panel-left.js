@@ -206,7 +206,8 @@
 			});
 			this._populateList('eff-nav-fonts', sortedFontCats);
 		} else {
-			this._populateList('eff-nav-fonts', vars.Fonts || []);
+			var globalVarsF = (EFF.state.globalConfig && EFF.state.globalConfig.groups && EFF.state.globalConfig.groups.Variables) ? EFF.state.globalConfig.groups.Variables : {};
+			this._populateList('eff-nav-fonts', (vars.Fonts && vars.Fonts.length > 0) ? vars.Fonts : (globalVarsF.Fonts || []));
 		}
 
 		// Phase 2: Numbers use config.numberCategories when available.
@@ -216,7 +217,9 @@
 			});
 			this._populateList('eff-nav-numbers', sortedNumCats);
 		} else {
-			this._populateList('eff-nav-numbers', vars.Numbers || []);
+			var globalVarsN = (EFF.state.globalConfig && EFF.state.globalConfig.groups && EFF.state.globalConfig.groups.Variables) ? EFF.state.globalConfig.groups.Variables : {};
+			var numList = (vars.Numbers && vars.Numbers.length > 0) ? vars.Numbers : ((globalVarsN.Numbers && globalVarsN.Numbers.length > 0) ? globalVarsN.Numbers : ['Spacing', 'Gaps', 'Grids', 'Radius']);
+			this._populateList('eff-nav-numbers', numList);
 		}
 		},
 

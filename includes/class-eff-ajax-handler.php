@@ -31,6 +31,9 @@ class EFF_Ajax_Handler {
 			'eff_save_settings',
 			'eff_get_settings',
 			'eff_get_usage_counts',
+			// Project management endpoints
+			'eff_list_projects',
+			'eff_delete_project',
 			// Phase 2 — Colors endpoints
 			'eff_save_category',
 			'eff_delete_category',
@@ -105,7 +108,23 @@ class EFF_Ajax_Handler {
 		$file     = $dir . $filename;
 
 		if ( ! file_exists( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'File not found.', 'elementor-framework-forge' ) ) );
+			// File not found → return a fresh empty project (create-on-load).
+			$project_name = isset( $_POST['project_name'] )
+				? sanitize_text_field( wp_unslash( $_POST['project_name'] ) )
+				: pathinfo( $filename, PATHINFO_FILENAME );
+			// Strip trailing .eff from the basename if present.
+			$project_name = preg_replace( '/\.eff$/', '', $project_name );
+
+			$store = new EFF_Data_Store();
+			$data  = $store->new_project( $project_name );
+
+			wp_send_json_success( array(
+				'data'     => $data,
+				'counts'   => array( 'variables' => 0, 'classes' => 0, 'components' => 0 ),
+				'filename' => $filename,
+				'created'  => true,
+			) );
+			return;
 		}
 
 		$store = new EFF_Data_Store();
@@ -304,6 +323,52 @@ class EFF_Ajax_Handler {
 	public function ajax_eff_get_settings(): void {
 		$this->verify_request();
 		wp_send_json_success( array( 'settings' => EFF_Settings::get() ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: List projects
+	// -----------------------------------------------------------------------
+
+	public function ajax_eff_list_projects(): void {
+		$this->verify_request();
+
+		$dir      = EFF_Data_Store::get_wp_storage_dir();
+		$projects = EFF_Data_Store::list_projects( $dir );
+
+		wp_send_json_success( array( 'projects' => $projects ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Delete project
+	// -----------------------------------------------------------------------
+
+	public function ajax_eff_delete_project(): void {
+		$this->verify_request();
+
+		$filename = isset( $_POST['filename'] )
+			? sanitize_text_field( wp_unslash( $_POST['filename'] ) )
+			: '';
+
+		if ( empty( $filename ) ) {
+			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
+		}
+
+		$filename = EFF_Data_Store::sanitize_filename( $filename );
+		$dir      = EFF_Data_Store::get_wp_storage_dir();
+		$file     = $dir . $filename;
+
+		if ( ! file_exists( $file ) ) {
+			wp_send_json_error( array( 'message' => __( 'File not found.', 'elementor-framework-forge' ) ) );
+		}
+
+		if ( ! unlink( $file ) ) {
+			wp_send_json_error( array( 'message' => __( 'Could not delete file. Check permissions.', 'elementor-framework-forge' ) ) );
+		}
+
+		// Also clean up the stored baseline for this file.
+		EFF_Data_Store::delete_baseline( $filename );
+
+		wp_send_json_success( array( 'message' => __( 'Project deleted.', 'elementor-framework-forge' ) ) );
 	}
 
 	// -----------------------------------------------------------------------

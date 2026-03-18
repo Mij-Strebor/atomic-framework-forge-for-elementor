@@ -783,4 +783,48 @@ class EFF_Data_Store {
 		$key = 'eff_elementor_baseline_' . md5( $filename );
 		delete_option( $key );
 	}
+
+	/**
+	 * Return a fresh empty project data structure.
+	 *
+	 * @param string $name Human-readable project name.
+	 * @return array
+	 */
+	public function new_project( string $name ): array {
+		return array(
+			'version'    => '1.0',
+			'name'       => $name,
+			'config'     => array(),
+			'variables'  => array(),
+			'classes'    => array(),
+			'components' => array(),
+			'metadata'   => array(),
+		);
+	}
+
+	/**
+	 * List all .eff.json projects in a directory, sorted by most recently modified.
+	 *
+	 * @param string $dir Absolute path with trailing slash.
+	 * @return array[] Array of { name, filename, modified } maps.
+	 */
+	public static function list_projects( string $dir ): array {
+		$files = glob( $dir . '*.eff.json' ) ?: array();
+		$list  = array();
+
+		foreach ( $files as $f ) {
+			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$list[] = array(
+				'name'     => isset( $raw['name'] ) ? $raw['name'] : basename( $f, '.eff.json' ),
+				'filename' => basename( $f ),
+				'modified' => date( 'M j', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+			);
+		}
+
+		usort( $list, function ( $a, $b ) use ( $dir ) {
+			return filemtime( $dir . $b['filename'] ) - filemtime( $dir . $a['filename'] );
+		} );
+
+		return $list;
+	}
 }

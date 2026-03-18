@@ -955,7 +955,14 @@
 				}
 				self._clearFieldError(valueInput);
 				if (res.value !== valueInput.value) { valueInput.value = res.value; }
+				if (EFF.App) { EFF.App.setDirty(true); }
 				self._saveVarValue(varId, res.value, valueInput);
+			});
+			// Select all text when a color value input is focused (makes editing easier).
+			container.addEventListener('focusin', function (e) {
+				if (e.target.classList.contains('eff-color-value-input')) {
+					e.target.select();
+				}
 			});
 			container.addEventListener('keydown', function (e) {
 				if (e.key !== 'Enter') { return; }
@@ -1384,7 +1391,7 @@
 
 			self._ajaxSaveColor(updateData, function () {
 				nameInput.setAttribute('data-original', newName);
-				if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+				if (EFF.App) { EFF.App.setDirty(true); }
 			});
 		},
 
@@ -1431,7 +1438,7 @@
 
 			self._ajaxSaveColor(updateData, function () {
 				if (input) { input.setAttribute('data-original', newValue); }
-				if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+				if (EFF.App) { EFF.App.setDirty(true); }
 			});
 		},
 
@@ -1477,7 +1484,7 @@
 			if (converted !== null) { updateData.value = converted; }
 
 			self._ajaxSaveColor(updateData, function () {
-				if (EFF.App) { EFF.App.setPendingCommit(true); }
+				/* EFF.App.setPendingCommit removed */
 			});
 		},
 
@@ -1577,7 +1584,7 @@
 			}).then(function (res) {
 				if (res.success && res.data && res.data.data) {
 					EFF.state.variables = res.data.data.variables || EFF.state.variables;
-					if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); EFF.App.refreshCounts(); }
+					if (EFF.App) { EFF.App.setDirty(true); EFF.App.refreshCounts(); }
 					_collapsedCategoryIds[catId] = false;
 					self._rerenderView();
 				} else if (!res.success) {
@@ -1639,7 +1646,24 @@
 					}).then(function (res) {
 						if (res.success && res.data) {
 							if (!EFF.state.config) { EFF.state.config = {}; }
-							EFF.state.config.categories = res.data.categories;
+							// Use in-memory categories as the authoritative base — they are
+							// always complete (set by _ensureUncategorized). The server response
+							// may be stale if _ensureUncategorized's async save was still
+							// in-flight when eff_save_category ran. Only splice in the new
+							// category by ID so the full list is never truncated.
+							var existing = (EFF.state.config.categories || []).slice();
+							var newId = res.data.id;
+							var alreadyInList = existing.some(function (c) { return c.id === newId; });
+							if (!alreadyInList) {
+								var serverCats = res.data.categories || [];
+								for (var _sci = 0; _sci < serverCats.length; _sci++) {
+									if (serverCats[_sci].id === newId) {
+										existing.push(serverCats[_sci]);
+										break;
+									}
+								}
+							}
+							EFF.state.config.categories = existing;
 							if (EFF.App) { EFF.App.setDirty(true); }
 							self._rerenderView();
 							if (EFF.PanelLeft && EFF.PanelLeft.refresh) {
@@ -1994,17 +2018,28 @@
 				var v1names = (EFF.state.config.groups &&
 				               EFF.state.config.groups.Variables &&
 				               EFF.state.config.groups.Variables.Colors) || [];
-				v1names.forEach(function (name, idx) {
-					var safeName = String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-					cats.push({
-						id:     'default-' + safeName,
-						name:   String(name),
-						order:  idx,
-						locked: (name === 'Uncategorized'),
+				if (v1names.length > 0) {
+					// v1 — Phase 2 migration: seed from old string list.
+					v1names.forEach(function (name, idx) {
+						var safeName = String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+						cats.push({
+							id:     'default-' + safeName,
+							name:   String(name),
+							order:  idx,
+							locked: (name === 'Uncategorized'),
+						});
 					});
-				});
+				} else {
+					// Brand new project — seed all 5 default categories so the
+					// edit view is fully populated and the file is written with
+					// the complete list before any category-add requests arrive.
+					var defaults = this._getDefaultCategories();
+					for (var _di = 0; _di < defaults.length; _di++) {
+						cats.push(defaults[_di]);
+					}
+				}
 				// Categories were seeded in memory but not yet on disk — must persist.
-				if (v1names.length > 0) { _needsSave = true; }
+				_needsSave = true;
 			}
 
 			var hasUncat = cats.some(function (c) { return c.name === 'Uncategorized'; });
@@ -2671,7 +2706,7 @@
 				}
 			}
 			self._rerenderView();
-			if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+			if (EFF.App) { EFF.App.setDirty(true); }
 			EFF.App.ajax('eff_save_color', {
 				filename: EFF.state.currentFile,
 				variable: JSON.stringify({ id: dragged.id, order: 0, category: emptyCatName, category_id: emptyCatId }),
@@ -2740,7 +2775,7 @@
 			}
 
 			self._rerenderView();
-			if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+			if (EFF.App) { EFF.App.setDirty(true); }
 
 			// Persist each affected variable via AJAX (fire-and-forget).
 			for (var pi = 0; pi < saves.length; pi++) {
@@ -2778,7 +2813,7 @@
 			self._rerenderView();
 
 			if (!EFF.state.currentFile) { return; }
-			if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+			if (EFF.App) { EFF.App.setDirty(true); }
 
 			EFF.App.ajax('eff_save_color', {
 				filename: EFF.state.currentFile,
@@ -2861,7 +2896,7 @@
 					if (res.data.data && res.data.data.variables) {
 						EFF.state.variables = res.data.data.variables;
 					}
-					if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); EFF.App.refreshCounts(); }
+					if (EFF.App) { EFF.App.setDirty(true); EFF.App.refreshCounts(); }
 				}
 			}).catch(function () {});
 		},
@@ -2885,7 +2920,7 @@
 				var update = { id: op.id, status: 'modified' };
 				update[field] = op.oldValue;
 				self._ajaxSaveColor(update, function () {
-					if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+					if (EFF.App) { EFF.App.setDirty(true); }
 					self._rerenderView();
 				});
 			}
@@ -2906,7 +2941,7 @@
 				var update = { id: op.id, status: 'modified' };
 				update[field] = op.newValue;
 				self._ajaxSaveColor(update, function () {
-					if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+					if (EFF.App) { EFF.App.setDirty(true); }
 					self._rerenderView();
 				});
 			}

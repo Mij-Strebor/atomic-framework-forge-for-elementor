@@ -273,7 +273,7 @@ function eff_icon( string $name ): string {
 			<!-- File Management -->
 			<div class="eff-panel-right__files">
 				<label class="eff-field-label" for="eff-filename">
-					<?php esc_html_e( 'Name', 'elementor-framework-forge' ); ?>
+					<?php esc_html_e( 'Project', 'elementor-framework-forge' ); ?>
 				</label>
 				<input type="text"
 				       class="eff-field-input"
@@ -285,24 +285,24 @@ function eff_icon( string $name ): string {
 
 				<div class="eff-file-actions">
 					<button class="eff-icon-btn" id="eff-btn-load"
-					        aria-label="<?php esc_attr_e( 'Load name', 'elementor-framework-forge' ); ?>"
-					        data-eff-tooltip="<?php esc_attr_e( 'Load name', 'elementor-framework-forge' ); ?>">
+					        aria-label="<?php esc_attr_e( 'Load project', 'elementor-framework-forge' ); ?>"
+					        data-eff-tooltip="<?php esc_attr_e( 'Load project', 'elementor-framework-forge' ); ?>">
 						<?php echo eff_icon( 'folder-open' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 					</button>
 					<button class="eff-icon-btn" id="eff-btn-save"
-					        aria-label="<?php esc_attr_e( 'Save name', 'elementor-framework-forge' ); ?>"
-					        data-eff-tooltip="<?php esc_attr_e( 'Save name', 'elementor-framework-forge' ); ?>">
+					        aria-label="<?php esc_attr_e( 'Save project', 'elementor-framework-forge' ); ?>"
+					        data-eff-tooltip="<?php esc_attr_e( 'Save project', 'elementor-framework-forge' ); ?>">
 						<?php echo eff_icon( 'save' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 					</button>
-					<button class="eff-icon-btn eff-save-changes-btn"
-					        id="eff-btn-save-changes"
-					        aria-label="<?php esc_attr_e( 'Save changes', 'elementor-framework-forge' ); ?>"
-					        data-eff-tooltip="<?php esc_attr_e( 'Save changes', 'elementor-framework-forge' ); ?>"
-					        disabled
-					        aria-disabled="true">
-						<?php echo eff_icon( 'checkmark' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-					</button>
 				</div>
+				<button class="eff-btn eff-save-changes-btn"
+				        id="eff-btn-save-changes"
+				        aria-label="<?php esc_attr_e( 'Save changes', 'elementor-framework-forge' ); ?>"
+				        data-eff-tooltip="<?php esc_attr_e( 'Save changes', 'elementor-framework-forge' ); ?>"
+				        disabled
+				        aria-disabled="true">
+					<?php esc_html_e( 'Save Changes', 'elementor-framework-forge' ); ?>
+				</button>
 			</div><!-- .eff-panel-right__files -->
 
 			<!-- Unsynced indicator — shown when EFF values differ from Elementor -->
