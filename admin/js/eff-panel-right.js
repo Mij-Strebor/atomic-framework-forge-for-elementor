@@ -393,7 +393,7 @@
 				// Load row button
 				var loadBtn = e.target.closest('.eff-picker-load');
 				if (loadBtn) {
-					var name = loadBtn.getAttribute('data-name');
+					var name = (loadBtn.getAttribute('data-name') || '').replace(/(?:\.eff)+(?:\.json)?$/i, '');
 					EFF.Modal.close();
 					if (self._filenameInput) { self._filenameInput.value = name; }
 					self._loadFile(name);

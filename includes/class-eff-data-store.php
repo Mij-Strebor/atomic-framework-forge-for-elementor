@@ -738,7 +738,7 @@ class EFF_Data_Store {
 		// Strip existing extension and enforce .eff.json.
 		$base = pathinfo( $filename, PATHINFO_FILENAME );
 		// Handle double-extension like "my-project.eff" → "my-project".
-		$base = preg_replace( '/\.eff$/', '', $base );
+		$base = preg_replace( '/(\.eff)+$/', '', $base );
 
 		return $base . '.eff.json';
 	}
@@ -815,7 +815,9 @@ class EFF_Data_Store {
 		foreach ( $files as $f ) {
 			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$list[] = array(
-				'name'     => isset( $raw['name'] ) ? $raw['name'] : basename( $f, '.eff.json' ),
+				'name'     => isset( $raw['name'] ) && $raw['name'] !== ''
+					? preg_replace( '/(\.eff)+(?:\.json)?$/i', '', $raw['name'] )
+					: preg_replace( '/(\.eff)+$/i', '', basename( $f, '.eff.json' ) ),
 				'filename' => basename( $f ),
 				'modified' => date( 'M j', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 			);
