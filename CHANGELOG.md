@@ -7,6 +7,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.3.1-beta] — 2026-03-19
+
+### Fixed
+
+- **Drag-and-drop color reorder** — `eff_save_file` calls in `eff-colors.js` used the old `filename` parameter after the versioned backup refactor changed the PHP handler to require `project_name`. All four call-sites updated; fallback paths now correctly create an `eff-temp` project and set `EFF.state.currentFile` from the server response.
+- **Column sort lost on tab switch** — Switching from Colors to Numbers and back rebuilt the DOM from state (sorted by `order` field), discarding the display-only `_catSortState`. The sort is now reapplied at the end of every `_renderAll` call.
+- **`resolve_file()` rejecting non-existent directories** — When a versioned path was stored in `last_file` but the project directory had been deleted, `realpath()` returned `false` causing a hard JSON error instead of falling through to the create-on-load path. The helper now only uses `realpath` for the traversal check when the directory actually exists; a `..` component check guards against traversal regardless.
+
+### Changed
+
+- **Version** — Bumped to 0.3.1-beta.
+
+---
+
 ## [0.3.0-beta] — 2026-03-19
 
 ### Added

@@ -1,5 +1,5 @@
 # EFF Quick Start Guide
-## Elementor Framework Forge — Beta 0.3.0
+## Elementor Framework Forge — Beta 0.3.1
 
 > **LytBox Academy Testing Edition**
 > Welcome, and thank you for being an early tester. This guide gets you from zero to your first organized variable set in about ten minutes.
@@ -35,7 +35,7 @@ git clone https://github.com/Mij-Strebor/elementor-framework-forge.git
 ### Or download a ZIP (recommended)
 
 Click **Code → Download ZIP** on this GitHub repository page.
- You can Plugins > Add Plugin > Upload Plugin > Choose file in WordPress then select and install ***elementor-framework-forge-0.3.0-Beta.zip***
+ You can Plugins > Add Plugin > Upload Plugin > Choose file in WordPress then select and install ***elementor-framework-forge-0.3.1-Beta.zip***
 
 or unzip directly into your `wp-content/plugins/elementor-framework-forge/`.
 

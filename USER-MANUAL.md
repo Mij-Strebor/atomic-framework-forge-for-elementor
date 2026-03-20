@@ -1,5 +1,5 @@
 # EFF User Manual
-## Elementor Framework Forge — Beta 0.3.0
+## Elementor Framework Forge — Beta 0.3.1
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**

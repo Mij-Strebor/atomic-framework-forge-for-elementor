@@ -1203,12 +1203,19 @@ class EFF_Ajax_Handler {
 
 		if ( strpos( $raw, '/' ) !== false ) {
 			// New subdirectory format — validate, prevent path traversal.
-			$rel  = ltrim( $raw, '/' );
-			$abs  = $dir . $rel;
-			$real = realpath( dirname( $abs ) );
-			$base = rtrim( realpath( $dir ) ?: $dir, DIRECTORY_SEPARATOR );
-			if ( ! $real || strpos( $real, $base ) !== 0 ) {
+			$rel = ltrim( $raw, '/' );
+			if ( strpos( $rel, '..' ) !== false ) {
 				wp_send_json_error( array( 'message' => __( 'Invalid path.', 'elementor-framework-forge' ) ) );
+			}
+			$abs  = $dir . $rel;
+			// Only use realpath if the directory already exists; if it doesn't,
+			// the caller's file_exists() check will handle it gracefully.
+			$real = realpath( dirname( $abs ) );
+			if ( $real ) {
+				$base = rtrim( realpath( $dir ) ?: $dir, DIRECTORY_SEPARATOR );
+				if ( strpos( $real, $base ) !== 0 ) {
+					wp_send_json_error( array( 'message' => __( 'Invalid path.', 'elementor-framework-forge' ) ) );
+				}
 			}
 			return array( 'absolute' => $abs, 'relative' => $rel );
 		}

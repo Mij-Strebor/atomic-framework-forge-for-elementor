@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      6.7
 Requires PHP:      7.4
-Stable tag:        0.3.0-beta
+Stable tag:        0.3.1-beta
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ EFF allows developers to organize, edit, and persist the three core asset types 
 
 **Requires Elementor and Elementor Pro.**
 
-=== Key Features (Beta 0.3.0) ===
+=== Key Features (Beta 0.3.1) ===
 
 * **Sync from Elementor** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
 * **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
@@ -63,6 +63,11 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
 
+= 0.3.1-beta =
+* Fixed drag-and-drop color reorder failing when no project file was loaded (`eff_save_file` API mismatch after versioned backup refactor).
+* Fixed column sort state not persisting when switching between Colors and Numbers tabs.
+* Fixed `resolve_file()` rejecting valid subdirectory paths when the project directory did not yet exist, causing auto-load to silently fail.
+
 = 0.3.0-beta =
 * Versioned backup system with timestamped snapshots and two-level project/backup picker.
 * Right panel reorganized into five named sections: Active Project, Save & Backups, Elementor Sync, Elementor V3 Import, Export / Import.
@@ -87,6 +92,9 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 * Initial release — Variables (Colors, Fonts, Numbers), Sync, Organize, Save, Commit, Dark Mode.
 
 == Upgrade Notice ==
+
+= 0.3.1-beta =
+Bug-fix release: drag-and-drop color reorder, column sort persistence across tab switches, and auto-load reliability.
 
 = 0.3.0-beta =
 Right panel reorganized; sync and commit buttons moved from top bar to right panel. Versioned backup system replaces single-file saves.

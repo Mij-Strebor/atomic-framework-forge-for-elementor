@@ -256,6 +256,17 @@
 			// Bind all interactive elements.
 			self._bindEvents(container);
 
+			// Re-apply any active column sorts. _catSortState is display-only and
+			// survives re-renders, but the DOM is rebuilt from state (unsorted order)
+			// each time, so we must reapply here.
+			var _ssKeys = Object.keys(_catSortState);
+			for (var _si = 0; _si < _ssKeys.length; _si++) {
+				var _ss = _catSortState[_ssKeys[_si]];
+				if (_ss && _ss.dir !== 'none') {
+					self._sortVarsInCategory(_ssKeys[_si], _ss.field, _ss.dir, container);
+				}
+			}
+
 			// Jump to focused category if set (from nav click).
 			if (_focusedCategoryId) {
 				self._jumpToCategory(_focusedCategoryId, container);
@@ -1527,33 +1538,25 @@
 			if (!EFF.state.currentFile) {
 				// No project file yet — save the current state to a temp file first so
 				// PHP has the full variable list when we subsequently call eff_save_color.
-				EFF.state.currentFile = 'eff-temp.eff.json';
-				if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-					EFF.PanelRight._filenameInput.value = 'eff-temp.eff.json';
-				}
 				var initData = {
 					version:   '1.0',
 					config:    EFF.state.config    || {},
 					variables: EFF.state.variables || [],
 				};
 				EFF.App.ajax('eff_save_file', {
-					filename: EFF.state.currentFile,
-					data:     JSON.stringify(initData),
+					project_name: 'eff-temp',
+					data:         JSON.stringify(initData),
 				}).then(function (initRes) {
 					if (initRes && initRes.success) {
+						EFF.state.currentFile = initRes.data.filename;
+						if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
+							EFF.PanelRight._filenameInput.value = 'eff-temp';
+						}
 						self._addVariable(catId);
 					} else {
-						EFF.state.currentFile = null;
-						if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-							EFF.PanelRight._filenameInput.value = '';
-						}
 						EFF.Modal.open({ title: 'Error', body: '<p>Could not initialize project file. Please try again.</p>' });
 					}
 				}).catch(function () {
-					EFF.state.currentFile = null;
-					if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-						EFF.PanelRight._filenameInput.value = '';
-					}
 					EFF.Modal.open({ title: 'Connection error', body: '<p>Could not create project file. Please try again.</p>' });
 				});
 				return;
@@ -2057,8 +2060,8 @@
 				var d = { version: '1.0', config: EFF.state.config,
 						  variables: EFF.state.variables || [] };
 				EFF.App.ajax('eff_save_file', {
-					filename: EFF.state.currentFile,
-					data:     JSON.stringify(d),
+					project_name: EFF.state.projectName || 'unnamed-project',
+					data:         JSON.stringify(d),
 				}).catch(function () {});
 			}
 		},
@@ -2652,33 +2655,23 @@
 			if (!EFF.state.currentFile) {
 				// No project file yet — save current state to temp file first,
 				// then retry the drop once PHP has the full variable list.
-				EFF.state.currentFile = 'eff-temp.eff.json';
-				if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-					EFF.PanelRight._filenameInput.value = 'eff-temp.eff.json';
-				}
 				var initData = {
 					version:   '1.0',
 					config:    EFF.state.config    || {},
 					variables: EFF.state.variables || [],
 				};
 				EFF.App.ajax('eff_save_file', {
-					filename: EFF.state.currentFile,
-					data:     JSON.stringify(initData),
+					project_name: 'eff-temp',
+					data:         JSON.stringify(initData),
 				}).then(function (initRes) {
 					if (initRes && initRes.success) {
-						self._dropVariable(draggedId, targetId, insertBefore, targetCatBlock);
-					} else {
-						EFF.state.currentFile = null;
+						EFF.state.currentFile = initRes.data.filename;
 						if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-							EFF.PanelRight._filenameInput.value = '';
+							EFF.PanelRight._filenameInput.value = 'eff-temp';
 						}
+						self._dropVariable(draggedId, targetId, insertBefore, targetCatBlock);
 					}
-				}).catch(function () {
-					EFF.state.currentFile = null;
-					if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-						EFF.PanelRight._filenameInput.value = '';
-					}
-				});
+				}).catch(function () {});
 				return;
 			}
 
@@ -3395,11 +3388,11 @@
 				saveBtn.textContent = 'Saving\u2026';
 
 				EFF.App.ajax('eff_save_file', {
-					filename: filename,
-					data:     JSON.stringify(saveData),
+					project_name: filename.replace(/\.eff(?:\.json)?$/i, ''),
+					data:         JSON.stringify(saveData),
 				}).then(function (res) {
 					if (res.success && res.data) {
-						EFF.state.currentFile = res.data.filename || filename;
+						EFF.state.currentFile = res.data.filename;
 						if (EFF.App && EFF.App.setDirty) { EFF.App.setDirty(false); }
 						EFF.Modal.close();
 					} else {

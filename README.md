@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Beta](https://img.shields.io/badge/status-Beta%200.3.0-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
-[![Version](https://img.shields.io/badge/version-0.3.0--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
+[![Beta](https://img.shields.io/badge/status-Beta%200.3.1-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
+[![Version](https://img.shields.io/badge/version-0.3.1--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -51,13 +51,13 @@ EFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Beta Status
 
-This is **Beta 0.3.0** — distributed exclusively to LytBox Academy members. The complete Variables workflow is fully functional and ready for systematic testing. Classes and Components management are planned for future phases.
+This is **Beta 0.3.1** — distributed exclusively to LytBox Academy members. The complete Variables workflow is fully functional and ready for systematic testing. Classes and Components management are planned for future phases.
 
 Please report issues in the LytBox Academy community. Your feedback directly shapes the next release.
 
 ---
 
-## What Works in Beta 0.3.0
+## What Works in Beta 0.3.1
 
 | Feature | Status |
 |---------|--------|
@@ -242,7 +242,8 @@ elementor-framework-forge/
 | **0.2.0** | Pickr color picker (HEX / RGB / HSL + alpha). Live palette refresh. |
 | **0.2.2** | Export / Import. Undo / Redo. |
 | **0.2.3** | Sync name normalization. Manage Project auto-select. Stacked suffix fix. |
-| **0.3.0-beta** *(this release)* | Versioned backup system. Two-level picker. Multi-project. Right panel reorganization. Sync options dialog. Commit summary dialog. V3 Global Colors import. |
+| **0.3.0-beta** | Versioned backup system. Two-level picker. Multi-project. Right panel reorganization. Sync options dialog. Commit summary dialog. V3 Global Colors import. |
+| **0.3.1-beta** *(this release)* | Bug fixes: drag-and-drop color reorder; column sort persistence across tab switches; auto-load reliability. |
 | **1.0.0** | Classes management. Components registry. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
 | **Future** | Standalone Windows / Mac desktop application. |
