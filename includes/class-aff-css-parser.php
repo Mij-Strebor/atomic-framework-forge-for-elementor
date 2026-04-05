@@ -1,6 +1,6 @@
 <?php
 /**
- * EFF CSS Parser — Elementor v4 Variable Extractor
+ * AFF CSS Parser — Elementor v4 Variable Extractor
  *
  * Locates Elementor's compiled kit CSS file and extracts the Elementor v4
  * atomic widget CSS variables from the terminal :root block.
@@ -18,14 +18,14 @@
  * Known normalization: Elementor v4 may output 'lamp()' instead of 'clamp()'
  * due to a known editor typo. This class normalizes lamp() → clamp().
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_CSS_Parser {
+class AFF_CSS_Parser {
 
 	/**
 	 * Variable name prefixes that belong to Elementor's legacy/system blocks.

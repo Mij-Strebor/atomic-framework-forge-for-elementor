@@ -1,4 +1,4 @@
-# EFF Spec — Tooltips
+# AFF Spec — Tooltips
 
 **Version:** 1.0
 **Date:** 2026-03-14
@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-EFF uses a single shared tooltip system for all interactive elements across the entire admin interface — top bar buttons, left panel, right panel, category headers, variable rows, and any dynamically created controls. Every tooltip in the application is rendered through one `#eff-tooltip` DOM element and one set of delegated event listeners.
+AFF uses a single shared tooltip system for all interactive elements across the entire admin interface — top bar buttons, left panel, right panel, category headers, variable rows, and any dynamically created controls. Every tooltip in the application is rendered through one `#aff-tooltip` DOM element and one set of delegated event listeners.
 
 There is no CSS pseudo-element tooltip system (no `:hover + ::before`). All tooltip behaviour is JavaScript-driven.
 
@@ -19,40 +19,40 @@ There is no CSS pseudo-element tooltip system (no `:hover + ::before`). All tool
 
 ### 2.1 HTML
 
-Declared once in `admin/views/page-eff-main.php`, outside the main scroll container, as a direct child of `.eff-app`:
+Declared once in `admin/views/page-aff-main.php`, outside the main scroll container, as a direct child of `.aff-app`:
 
 ```html
-<div class="eff-tooltip" id="eff-tooltip" role="tooltip" aria-hidden="true"></div>
+<div class="aff-tooltip" id="aff-tooltip" role="tooltip" aria-hidden="true"></div>
 ```
 
 | Attribute | Value | Purpose |
 |---|---|---|
-| `class` | `eff-tooltip` | CSS styling hook |
-| `id` | `eff-tooltip` | JS reference (`document.getElementById`) |
+| `class` | `aff-tooltip` | CSS styling hook |
+| `id` | `aff-tooltip` | JS reference (`document.getElementById`) |
 | `role` | `tooltip` | ARIA landmark |
 | `aria-hidden` | `true` (default) / `false` (when visible) | Accessibility state |
 
-### 2.2 CSS — `admin/css/eff-theme.css`
+### 2.2 CSS — `admin/css/aff-theme.css`
 
 ```css
-.eff-app .eff-tooltip {
+.aff-app .aff-tooltip {
     position:       fixed;          /* viewport-relative; scrollY is NOT added in JS */
     z-index:        99999;
-    background:     var(--eff-clr-primary);     /* deep brown */
+    background:     var(--aff-clr-primary);     /* deep brown */
     color:          #faf6f0;                    /* light cream */
     font-size:      var(--fs-xs);               /* 11px */
     font-weight:    var(--fw-medium);           /* 500 */
     padding:        var(--sp-1) var(--sp-2);    /* 4px 8px */
-    border-radius:  var(--eff-border-radius-sm); /* 4px */
+    border-radius:  var(--aff-border-radius-sm); /* 4px */
     pointer-events: none;           /* cursor passes through; does not block hover events */
     white-space:    nowrap;
     opacity:        0;
     transform:      translateX(-50%) translateY(4px); /* hidden: centered + 4px below final pos */
     transition:     opacity 0.12s ease, transform 0.12s ease;
-    box-shadow:     var(--eff-shadow-sm);
+    box-shadow:     var(--aff-shadow-sm);
 }
 
-.eff-app .eff-tooltip.is-visible {
+.aff-app .aff-tooltip.is-visible {
     opacity:   1;
     transform: translateX(-50%) translateY(0); /* visible: centered + final position */
 }
@@ -72,16 +72,16 @@ Any element that should trigger a tooltip carries one or both of:
 
 | Attribute | Purpose |
 |---|---|
-| `data-eff-tooltip="Short label"` | Text shown in standard tooltip mode |
-| `data-eff-tooltip-long="Full sentence."` | Text shown in Extended tooltip mode (see §6) |
+| `data-aff-tooltip="Short label"` | Text shown in standard tooltip mode |
+| `data-aff-tooltip-long="Full sentence."` | Text shown in Extended tooltip mode (see §6) |
 
-If an element has `data-eff-tooltip-long` but not `data-eff-tooltip`, it will not trigger a tooltip in standard mode.
+If an element has `data-aff-tooltip-long` but not `data-aff-tooltip`, it will not trigger a tooltip in standard mode.
 
-If an element has `data-eff-tooltip` but not `data-eff-tooltip-long`, both standard and extended mode show the same short text.
+If an element has `data-aff-tooltip` but not `data-aff-tooltip-long`, both standard and extended mode show the same short text.
 
 ---
 
-## 4. Event Binding — `EFF.PanelTop._bindTooltips()`
+## 4. Event Binding — `AFF.PanelTop._bindTooltips()`
 
 All tooltip events are bound **once**, at application init, via **document-level delegated listeners**. This covers:
 - All static elements that exist at page load (top bar, panel buttons)
@@ -94,7 +94,7 @@ _bindTooltips: function () {
 
     // Show on mouse enter — uses _tipEl to prevent re-firing on child node traversal
     document.addEventListener('mouseover', function (e) {
-        var target = e.target.closest('[data-eff-tooltip]');
+        var target = e.target.closest('[data-aff-tooltip]');
         if (target !== _tipEl) {
             if (_tipEl) { self._hideTooltip(); }
             _tipEl = target;
@@ -104,7 +104,7 @@ _bindTooltips: function () {
 
     // Hide on mouse leave (only when leaving the trigger element itself)
     document.addEventListener('mouseout', function (e) {
-        var target = e.target.closest('[data-eff-tooltip]');
+        var target = e.target.closest('[data-aff-tooltip]');
         if (target && target === _tipEl) {
             var rt = e.relatedTarget;
             if (!rt || !target.contains(rt)) {
@@ -116,14 +116,14 @@ _bindTooltips: function () {
 
     // Keyboard accessibility — show on focus
     document.addEventListener('focusin', function (e) {
-        if (e.target && e.target.getAttribute && e.target.getAttribute('data-eff-tooltip')) {
+        if (e.target && e.target.getAttribute && e.target.getAttribute('data-aff-tooltip')) {
             self._showTooltip(e.target);
         }
     });
 
     // Keyboard accessibility — hide on blur
     document.addEventListener('focusout', function (e) {
-        if (e.target && e.target.getAttribute && e.target.getAttribute('data-eff-tooltip')) {
+        if (e.target && e.target.getAttribute && e.target.getAttribute('data-aff-tooltip')) {
             self._hideTooltip();
         }
     });
@@ -132,19 +132,19 @@ _bindTooltips: function () {
 
 **`_tipEl` tracking:** `mouseover` fires repeatedly as the cursor moves over child nodes (SVG `<path>` elements, nested `<span>` tags). `_tipEl` prevents the tooltip from being hidden and re-shown on every sub-element traversal.
 
-**No other module binds tooltip events.** Any previous per-container or per-element tooltip binding in feature modules (`eff-colors.js`, etc.) is disabled. The global delegated system handles everything.
+**No other module binds tooltip events.** Any previous per-container or per-element tooltip binding in feature modules (`aff-colors.js`, etc.) is disabled. The global delegated system handles everything.
 
 ---
 
-## 5. Show Behaviour — `EFF.PanelTop._showTooltip(anchor)`
+## 5. Show Behaviour — `AFF.PanelTop._showTooltip(anchor)`
 
 ```javascript
 _showTooltip: function (anchor) {
     if (!this._showTooltips) { return; } // user preference gate
 
     var text = this._extendedTooltips
-        ? (anchor.getAttribute('data-eff-tooltip-long') || anchor.getAttribute('data-eff-tooltip'))
-        : anchor.getAttribute('data-eff-tooltip');
+        ? (anchor.getAttribute('data-aff-tooltip-long') || anchor.getAttribute('data-aff-tooltip'))
+        : anchor.getAttribute('data-aff-tooltip');
 
     if (!text || !this._tooltip) { return; }
 
@@ -203,7 +203,7 @@ The slide direction is always upward (Y: +4 → 0) regardless of whether the too
 
 ---
 
-## 6. Hide Behaviour — `EFF.PanelTop._hideTooltip()`
+## 6. Hide Behaviour — `AFF.PanelTop._hideTooltip()`
 
 ```javascript
 _hideTooltip: function () {
@@ -225,23 +225,23 @@ _hideTooltip: function () {
 
 ### 7.1 Settings Storage
 
-Two settings are persisted via `eff_save_settings` / `eff_get_settings` (WordPress options):
+Two settings are persisted via `aff_save_settings` / `aff_get_settings` (WordPress options):
 
 | Setting key | Type | Default | Description |
 |---|---|---|---|
 | `show_tooltips` | boolean | `true` | When `false`, no tooltips appear anywhere in the UI |
-| `extended_tooltips` | boolean | `false` | When `true`, `data-eff-tooltip-long` text is preferred over `data-eff-tooltip` |
+| `extended_tooltips` | boolean | `false` | When `true`, `data-aff-tooltip-long` text is preferred over `data-aff-tooltip` |
 
 ### 7.2 Runtime Properties
 
-`EFF.PanelTop` exposes two properties that reflect the persisted settings:
+`AFF.PanelTop` exposes two properties that reflect the persisted settings:
 
 ```javascript
-EFF.PanelTop._showTooltips     // boolean, default true
-EFF.PanelTop._extendedTooltips // boolean, default false
+AFF.PanelTop._showTooltips     // boolean, default true
+AFF.PanelTop._extendedTooltips // boolean, default false
 ```
 
-These are loaded from settings on `init()` via an async `eff_get_settings` AJAX call. They update silently (non-blocking) after DOM ready.
+These are loaded from settings on `init()` via an async `aff_get_settings` AJAX call. They update silently (non-blocking) after DOM ready.
 
 ### 7.3 Preferences Modal UI
 
@@ -255,8 +255,8 @@ The Preferences modal (opened via the gear icon in the top bar) contains a Toolt
 ```
 
 On change, each checkbox immediately:
-1. Updates the corresponding `EFF.PanelTop._showTooltips` / `EFF.PanelTop._extendedTooltips` property
-2. Calls `eff_save_settings` to persist the value
+1. Updates the corresponding `AFF.PanelTop._showTooltips` / `AFF.PanelTop._extendedTooltips` property
+2. Calls `aff_save_settings` to persist the value
 
 The changes take effect for all subsequent tooltip interactions without a page reload.
 
@@ -268,41 +268,41 @@ To add a tooltip to any element:
 
 ```html
 <!-- Minimum: short tooltip only -->
-<button data-eff-tooltip="Save file">…</button>
+<button data-aff-tooltip="Save file">…</button>
 
 <!-- Full: short + extended -->
 <button
-  data-eff-tooltip="Save"
-  data-eff-tooltip-long="Save the current project to the selected .eff.json file">
+  data-aff-tooltip="Save"
+  data-aff-tooltip-long="Save the current project to the selected .aff.json file">
   …
 </button>
 ```
 
-No JavaScript binding is needed. The delegated `document` listener picks up any element with `data-eff-tooltip` automatically — including elements appended to the DOM after page load.
+No JavaScript binding is needed. The delegated `document` listener picks up any element with `data-aff-tooltip` automatically — including elements appended to the DOM after page load.
 
 ---
 
 ## 9. Elements That Must Have Tooltips
 
-### 9.1 Top Bar (static, `page-eff-main.php`)
+### 9.1 Top Bar (static, `page-aff-main.php`)
 
-All icon-only buttons in the top bar carry both `data-eff-tooltip` and `data-eff-tooltip-long`.
+All icon-only buttons in the top bar carry both `data-aff-tooltip` and `data-aff-tooltip-long`.
 
 | Button | Short | Long |
 |---|---|---|
 | Preferences (gear) | `Preferences` | `Open Preferences — change theme, configure tooltips, and set file defaults` |
 | Manage Project | `Manage Project` | `Manage Project — edit the project name, color categories, and subgroup layout` |
-| Export | `Export` | `Export the current project as a .eff.json file` |
-| Import | `Import` | `Import a .eff.json file into the current project` |
+| Export | `Export` | `Export the current project as a .aff.json file` |
+| Import | `Import` | `Import a .aff.json file into the current project` |
 | Sync from Elementor | `Sync from Elementor` | `Sync variables from the active Elementor kit CSS into this project` |
 | History | `History` | `View change history` |
 | Search | `Search` | `Search variables, classes, and components` |
 | Help | `Help` | `Open help documentation` |
 | Commit to Elementor | `Commit to Elementor` | `Write pending variable changes back to the active Elementor kit CSS` |
 
-### 9.2 Variable Rows (dynamic, `eff-colors.js`)
+### 9.2 Variable Rows (dynamic, `aff-colors.js`)
 
-All action buttons on variable rows carry `data-eff-tooltip` (short) and where appropriate `data-eff-tooltip-long` (extended). Category-level action buttons use `data-eff-tooltip` via the `_catBtn()` helper.
+All action buttons on variable rows carry `data-aff-tooltip` (short) and where appropriate `data-aff-tooltip-long` (extended). Category-level action buttons use `data-aff-tooltip` via the `_catBtn()` helper.
 
 | Element | Short | Long |
 |---|---|---|
@@ -317,7 +317,7 @@ All action buttons on variable rows carry `data-eff-tooltip` (short) and where a
 
 ### 9.3 Status Dot Extended Tooltips
 
-The status dot uses `_statusLongTooltip(status)` for its `data-eff-tooltip-long` value:
+The status dot uses `_statusLongTooltip(status)` for its `data-aff-tooltip-long` value:
 
 | Status | Short | Long |
 |---|---|---|
@@ -326,16 +326,16 @@ The status dot uses `_statusLongTooltip(status)` for its `data-eff-tooltip-long`
 | `new` | `New` | `New — Variable not yet in the Elementor kit. Commit to add it.` |
 | `deleted` | `Deleted` | `Deleted — Marked for deletion. Commit to remove from Elementor.` |
 | `conflict` | `Conflict` | `Conflict — Value changed both here and in Elementor since last sync.` |
-| `orphaned` | `Orphaned` | `Orphaned — Exists in EFF but not found in Elementor kit. Commit to add it.` |
+| `orphaned` | `Orphaned` | `Orphaned — Exists in AFF but not found in Elementor kit. Commit to add it.` |
 
 ---
 
 ## 10. What Tooltips Are Not
 
-- **Not a separate system per module.** Feature modules (`eff-colors.js`, etc.) do not bind their own tooltip events. Only `EFF.PanelTop._bindTooltips()` does.
+- **Not a separate system per module.** Feature modules (`aff-colors.js`, etc.) do not bind their own tooltip events. Only `AFF.PanelTop._bindTooltips()` does.
 - **Not CSS-only.** There is no `:hover + ::before` or `::after` system. The JS system is authoritative.
 - **Not hidden by the cursor.** The tooltip is positioned above the anchor by default so the cursor (which is on the anchor element below the tooltip) does not visually overlap the tooltip text. When flipped to below (near viewport top), extra gap ensures the cursor arrow tip does not overlap the tooltip's first text line.
-- **Not an error display.** Inline field validation errors use a separate `.eff-inline-error` element with its own styling and are not part of this system.
+- **Not an error display.** Inline field validation errors use a separate `.aff-inline-error` element with its own styling and are not part of this system.
 
 ---
 
@@ -343,8 +343,8 @@ The status dot uses `_statusLongTooltip(status)` for its `data-eff-tooltip-long`
 
 When adding a new interactive element:
 
-- [ ] Add `data-eff-tooltip="short text"` to the element
-- [ ] Add `data-eff-tooltip-long="Full sentence."` if the element benefits from extended description
+- [ ] Add `data-aff-tooltip="short text"` to the element
+- [ ] Add `data-aff-tooltip-long="Full sentence."` if the element benefits from extended description
 - [ ] Do **not** add a `title` attribute — it creates a native browser tooltip that conflicts
 - [ ] Do **not** bind custom `mouseenter`/`mouseleave` listeners for tooltip purposes
 - [ ] Do **not** call `element.style.transform` on the tooltip element

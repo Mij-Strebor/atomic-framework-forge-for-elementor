@@ -1,19 +1,19 @@
 /**
- * EFF Panel Top — Top Menu Bar Buttons, Tooltips, and Modal Launchers
+ * AFF Panel Top — Top Menu Bar Buttons, Tooltips, and Modal Launchers
  *
  * Manages:
  *  - Tooltip display (CSS-driven, 300ms delay)
  *  - All top menu bar button click handlers
  *  - Modal content builders for each top-bar action
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
-/* global EFFData */
+/* global AFFData */
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF = window.AFF || {};
 
 	// ------------------------------------------------------------------
 	// FILE PICKER DIRECTORY MEMORY
@@ -26,7 +26,7 @@
 
 	function _effPickerDbOpen(cb) {
 		if (_effPickerDB) { cb(_effPickerDB); return; }
-		var req = indexedDB.open('eff-picker', 1);
+		var req = indexedDB.open('aff-picker', 1);
 		req.onupgradeneeded = function (e) { e.target.result.createObjectStore('handles'); };
 		req.onsuccess   = function (e) { _effPickerDB = e.target.result; cb(_effPickerDB); };
 		req.onerror     = function ()  { cb(null); };
@@ -48,10 +48,10 @@
 		});
 	}
 
-	EFF.PanelTop = {
+	AFF.PanelTop = {
 
 		_showTooltips:     true,  // false → all tooltips suppressed
-		_extendedTooltips: false, // true → show data-eff-tooltip-long text when available
+		_extendedTooltips: false, // true → show data-aff-tooltip-long text when available
 
 		/** @type {HTMLElement|null} */
 		_tooltip: null,
@@ -62,14 +62,14 @@
 		 * Initialize all top bar interactions.
 		 */
 		init: function () {
-			this._tooltip = document.getElementById('eff-tooltip');
+			this._tooltip = document.getElementById('aff-tooltip');
 
 			this._bindTooltips();
 			this._bindButtons();
 
 		// Load tooltip preferences from settings (async, non-blocking)
 		var _panelTop = this;
-		EFF.App.ajax('eff_get_settings', {}).then(function (res) {
+		AFF.App.ajax('aff_get_settings', {}).then(function (res) {
 			if (res.success && res.data && res.data.settings) {
 				var s = res.data.settings;
 				if (s.show_tooltips === false || s.show_tooltips === 'false') {
@@ -87,7 +87,7 @@
 		// ------------------------------------------------------------------
 
 		/**
-		 * Bind tooltip show/hide to all elements with [data-eff-tooltip].
+		 * Bind tooltip show/hide to all elements with [data-aff-tooltip].
 		 */
 		_bindTooltips: function () {
 			var self = this;
@@ -97,7 +97,7 @@
 		// moves over child nodes (SVG paths, spans, etc.) of the same trigger element.
 		var _tipEl = null;
 		document.addEventListener('mouseover', function (e) {
-			var target = e.target.closest ? e.target.closest('[data-eff-tooltip]') : null;
+			var target = e.target.closest ? e.target.closest('[data-aff-tooltip]') : null;
 			if (target !== _tipEl) {
 				if (_tipEl) { self._hideTooltip(); }
 				_tipEl = target;
@@ -105,17 +105,17 @@
 			}
 		});
 		document.addEventListener('mouseout', function (e) {
-			var target = e.target.closest ? e.target.closest('[data-eff-tooltip]') : null;
+			var target = e.target.closest ? e.target.closest('[data-aff-tooltip]') : null;
 			if (target && target === _tipEl) {
 				var rt = e.relatedTarget;
 				if (!rt || !target.contains(rt)) { _tipEl = null; self._hideTooltip(); }
 			}
 		});
 		document.addEventListener('focusin', function (e) {
-			if (e.target && e.target.getAttribute && e.target.getAttribute('data-eff-tooltip')) { self._showTooltip(e.target); }
+			if (e.target && e.target.getAttribute && e.target.getAttribute('data-aff-tooltip')) { self._showTooltip(e.target); }
 		});
 		document.addEventListener('focusout', function (e) {
-			if (e.target && e.target.getAttribute && e.target.getAttribute('data-eff-tooltip')) { self._hideTooltip(); }
+			if (e.target && e.target.getAttribute && e.target.getAttribute('data-aff-tooltip')) { self._hideTooltip(); }
 		});
 		// Empty iteration keeps the original per-element block intact but harmless
 		[].forEach(function (el) {
@@ -148,8 +148,8 @@
 			if (!this._showTooltips) { return; }
 
 		var text = this._extendedTooltips
-			? (anchor.getAttribute('data-eff-tooltip-long') || anchor.getAttribute('data-eff-tooltip'))
-			: anchor.getAttribute('data-eff-tooltip');
+			? (anchor.getAttribute('data-aff-tooltip-long') || anchor.getAttribute('data-aff-tooltip'))
+			: anchor.getAttribute('data-aff-tooltip');
 
 			if (!text || !this._tooltip) {
 				return;
@@ -211,13 +211,13 @@
 			var self = this;
 
 			var bindings = {
-				'eff-btn-preferences':    self._openPreferences.bind(self),
-				'eff-btn-manage-project': self._openManageProject.bind(self),
-				'eff-btn-export':         self._openExport.bind(self),
-				'eff-btn-import':         self._openImport.bind(self),
-				'eff-btn-history':        self._openHistory.bind(self),
-				'eff-btn-search':         self._openSearch.bind(self),
-				'eff-btn-help':           self._openHelp.bind(self),
+				'aff-btn-preferences':    self._openPreferences.bind(self),
+				'aff-btn-manage-project': self._openManageProject.bind(self),
+				'aff-btn-export':         self._openExport.bind(self),
+				'aff-btn-import':         self._openImport.bind(self),
+				'aff-btn-history':        self._openHistory.bind(self),
+				'aff-btn-search':         self._openSearch.bind(self),
+				'aff-btn-help':           self._openHelp.bind(self),
 			};
 
 			Object.keys(bindings).forEach(function (id) {
@@ -240,8 +240,8 @@
 		 */
 		_bindFunctionsBtn: function () {
 			var self     = this;
-			var btn      = document.getElementById('eff-btn-functions');
-			var dropdown = document.getElementById('eff-dropdown-functions');
+			var btn      = document.getElementById('aff-btn-functions');
+			var dropdown = document.getElementById('aff-dropdown-functions');
 
 			if (!btn || !dropdown) { return; }
 
@@ -263,7 +263,7 @@
 
 			// Item clicks.
 			dropdown.addEventListener('click', function (e) {
-				var item = e.target.closest('.eff-dropdown__item');
+				var item = e.target.closest('.aff-dropdown__item');
 				if (!item) { return; }
 				e.stopPropagation();
 				self._closeFunctionsDropdown();
@@ -281,8 +281,8 @@
 		 * @private
 		 */
 		_closeFunctionsDropdown: function () {
-			var btn      = document.getElementById('eff-btn-functions');
-			var dropdown = document.getElementById('eff-dropdown-functions');
+			var btn      = document.getElementById('aff-btn-functions');
+			var dropdown = document.getElementById('aff-dropdown-functions');
 			if (dropdown) { dropdown.classList.remove('is-open'); }
 			if (btn)      { btn.setAttribute('aria-expanded', 'false'); }
 		},
@@ -292,19 +292,19 @@
 		 * @private
 		 */
 		_openConvertV3: function () {
-			EFF.Modal.open(
+			AFF.Modal.open(
 				'Convert V3 Variables',
-				'<p style="color:var(--eff-clr-secondary);line-height:1.6">'
+				'<p style="color:var(--aff-clr-secondary);line-height:1.6">'
 				+ 'This tool will scan your variables for Elementor V3 naming patterns and '
 				+ 'offer to rename them to the V4 convention.'
 				+ '</p>'
-				+ '<p style="margin-top:12px;color:var(--eff-clr-muted);font-size:var(--fs-sm)">'
+				+ '<p style="margin-top:12px;color:var(--aff-clr-muted);font-size:var(--fs-sm)">'
 				+ 'Coming in a future release.'
 				+ '</p>',
-				'<button class="eff-btn" id="eff-modal-close-btn">Close</button>'
+				'<button class="aff-btn" id="aff-modal-close-btn">Close</button>'
 			);
-			var closeBtn = document.getElementById('eff-modal-close-btn');
-			if (closeBtn) { closeBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
+			var closeBtn = document.getElementById('aff-modal-close-btn');
+			if (closeBtn) { closeBtn.addEventListener('click', function () { AFF.Modal.close(); }); }
 		},
 
 		/**
@@ -312,19 +312,19 @@
 		 * @private
 		 */
 		_openChangeTypes: function () {
-			EFF.Modal.open(
+			AFF.Modal.open(
 				'Change Variable Types',
-				'<p style="color:var(--eff-clr-secondary);line-height:1.6">'
+				'<p style="color:var(--aff-clr-secondary);line-height:1.6">'
 				+ 'This tool will let you bulk-change the type (format) of selected variables — '
 				+ 'for example, converting a group of HEX colors to RGBA.'
 				+ '</p>'
-				+ '<p style="margin-top:12px;color:var(--eff-clr-muted);font-size:var(--fs-sm)">'
+				+ '<p style="margin-top:12px;color:var(--aff-clr-muted);font-size:var(--fs-sm)">'
 				+ 'Coming in a future release.'
 				+ '</p>',
-				'<button class="eff-btn" id="eff-modal-close-btn">Close</button>'
+				'<button class="aff-btn" id="aff-modal-close-btn">Close</button>'
 			);
-			var closeBtn = document.getElementById('eff-modal-close-btn');
-			if (closeBtn) { closeBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
+			var closeBtn = document.getElementById('aff-modal-close-btn');
+			if (closeBtn) { closeBtn.addEventListener('click', function () { AFF.Modal.close(); }); }
 		},
 
 		// ------------------------------------------------------------------
@@ -332,22 +332,22 @@
 		// ------------------------------------------------------------------
 
 		_openPreferences: function () {
-			var settings = (EFF.state && EFF.state.settings && Object.keys(EFF.state.settings).length)
-				? EFF.state.settings
+			var settings = (AFF.state && AFF.state.settings && Object.keys(AFF.state.settings).length)
+				? AFF.state.settings
 				: null;
 
 			if (settings) {
-				if (EFF.EditSpace) { EFF.EditSpace.showPreferences(settings); }
+				if (AFF.EditSpace) { AFF.EditSpace.showPreferences(settings); }
 				return;
 			}
 
 			// Settings not cached yet — fetch first, then show.
-			EFF.App.ajax('eff_get_settings', {}).then(function (res) {
+			AFF.App.ajax('aff_get_settings', {}).then(function (res) {
 				var s = (res.success && res.data && res.data.settings) ? res.data.settings : {};
-				EFF.state.settings = s;
-				if (EFF.EditSpace) { EFF.EditSpace.showPreferences(s); }
+				AFF.state.settings = s;
+				if (AFF.EditSpace) { AFF.EditSpace.showPreferences(s); }
 			}).catch(function () {
-				if (EFF.EditSpace) { EFF.EditSpace.showPreferences({}); }
+				if (AFF.EditSpace) { AFF.EditSpace.showPreferences({}); }
 			});
 		},
 
@@ -356,9 +356,9 @@
 		// ------------------------------------------------------------------
 
 		_openManageProject: function () {
-			var config  = EFF.state.config;
-			var cfg      = EFF.state.config || {};
-		var projName = EFF.state.projectName || '';
+			var config  = AFF.state.config;
+			var cfg      = AFF.state.config || {};
+		var projName = AFF.state.projectName || '';
 		function _catsToStr(arr) {
 			return (arr || []).filter(function (c) { return !c.locked && c.name !== 'Uncategorized'; })
 				.map(function (c) { return c.name; }).join(', ');
@@ -368,100 +368,100 @@
 		var numbersStr = _catsToStr(cfg.numberCategories) || 'Spacing, Gaps, Grids, Radius';
 		function _catPanel(label, id, value) {
 			return '<div style="margin-bottom:16px">'
-				+ '<p class="eff-field-label" style="margin-bottom:4px">' + label + ' Categories</p>'
-				+ '<p style="font-size:12px;color:var(--eff-clr-muted);margin-bottom:6px">'
+				+ '<p class="aff-field-label" style="margin-bottom:4px">' + label + ' Categories</p>'
+				+ '<p style="font-size:12px;color:var(--aff-clr-muted);margin-bottom:6px">'
 				+ 'Comma-separated. \u201cUncategorized\u201d is added automatically.</p>'
-				+ '<input type="text" class="eff-field-input" id="' + id + '"'
+				+ '<input type="text" class="aff-field-input" id="' + id + '"'
 				+ ' value="' + value + '" style="width:100%" autocomplete="off" spellcheck="false">'
 				+ '</div>';
 		}
-		var projNameEscaped = EFF.Utils.escHtml(projName);
+		var projNameEscaped = AFF.Utils.escHtml(projName);
 		var body = '<div style="margin-bottom:20px">'
-			+ '<label class="eff-field-label" for="eff-proj-name">Project name</label>'
-			+ '<input type="text" class="eff-field-input" id="eff-proj-name"'
+			+ '<label class="aff-field-label" for="aff-proj-name">Project name</label>'
+			+ '<input type="text" class="aff-field-input" id="aff-proj-name"'
 			+ ' placeholder="e.g., My Brand" autocomplete="off" spellcheck="false"'
 			+ ' value="' + projNameEscaped + '" style="width:100%">'
-			+ '<p style="font-size:12px;color:var(--eff-clr-muted);margin-top:4px">'
+			+ '<p style="font-size:12px;color:var(--aff-clr-muted);margin-top:4px">'
 			+ 'Used as the project file name: <em>project-name.eff.json</em></p>'
 			+ '</div>'
-			+ '<div style="border-top:1px solid var(--eff-clr-border,#d6ccc2);padding-top:16px">'
-			+ _catPanel('Colors',  'eff-proj-cat-colors',  EFF.Utils.escHtml(colorsStr))
-			+ _catPanel('Fonts',   'eff-proj-cat-fonts',   EFF.Utils.escHtml(fontsStr))
-			+ _catPanel('Numbers', 'eff-proj-cat-numbers', EFF.Utils.escHtml(numbersStr))
+			+ '<div style="border-top:1px solid var(--aff-clr-border,#d6ccc2);padding-top:16px">'
+			+ _catPanel('Colors',  'aff-proj-cat-colors',  AFF.Utils.escHtml(colorsStr))
+			+ _catPanel('Fonts',   'aff-proj-cat-fonts',   AFF.Utils.escHtml(fontsStr))
+			+ _catPanel('Numbers', 'aff-proj-cat-numbers', AFF.Utils.escHtml(numbersStr))
 			+ '</div>'
-			+ '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--eff-clr-border,#d6ccc2)">'
-			+ '<label class="eff-field-label" for="eff-proj-max-backups"'
+			+ '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--aff-clr-border,#d6ccc2)">'
+			+ '<label class="aff-field-label" for="aff-proj-max-backups"'
 			+ ' style="font-size:11px;margin-bottom:4px">Max backups per project</label>'
-			+ '<input type="number" class="eff-field-input" id="eff-proj-max-backups"'
+			+ '<input type="number" class="aff-field-input" id="aff-proj-max-backups"'
 			+ ' min="1" max="50" style="width:80px" />'
 			+ '</div>'
-			+ '<div style="border-top:1px solid var(--eff-clr-border,#d6ccc2);padding-top:16px;margin-top:16px">'
-			+ '<p class="eff-field-label">Default Format</p>'
-			+ '<p style="font-size:12px;color:var(--eff-clr-muted);margin-bottom:8px">Formatting default for variables.</p>'
+			+ '<div style="border-top:1px solid var(--aff-clr-border,#d6ccc2);padding-top:16px;margin-top:16px">'
+			+ '<p class="aff-field-label">Default Format</p>'
+			+ '<p style="font-size:12px;color:var(--aff-clr-muted);margin-bottom:8px">Formatting default for variables.</p>'
 			+ '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'
 			+ '<div>'
-			+ '<label class="eff-field-label" for="eff-proj-colors-type" style="font-size:11px;margin-bottom:4px">Colors</label>'
-			+ '<select class="eff-field-input" id="eff-proj-colors-type" style="width:100%">'
+			+ '<label class="aff-field-label" for="aff-proj-colors-type" style="font-size:11px;margin-bottom:4px">Colors</label>'
+			+ '<select class="aff-field-input" id="aff-proj-colors-type" style="width:100%">'
 			+ ['HEX','HEXA','RGB','RGBA','HSL','HSLA'].map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('')
 			+ '</select>'
 			+ '</div>'
 			+ '<div>'
-			+ '<label class="eff-field-label" for="eff-proj-fonts-type" style="font-size:11px;margin-bottom:4px">Fonts</label>'
-			+ '<select class="eff-field-input" id="eff-proj-fonts-type" style="width:100%">'
+			+ '<label class="aff-field-label" for="aff-proj-fonts-type" style="font-size:11px;margin-bottom:4px">Fonts</label>'
+			+ '<select class="aff-field-input" id="aff-proj-fonts-type" style="width:100%">'
 			+ ['System','Custom'].map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('')
 			+ '</select>'
 			+ '</div>'
 			+ '<div>'
-			+ '<label class="eff-field-label" for="eff-proj-numbers-type" style="font-size:11px;margin-bottom:4px">Numbers</label>'
-			+ '<select class="eff-field-input" id="eff-proj-numbers-type" style="width:100%">'
+			+ '<label class="aff-field-label" for="aff-proj-numbers-type" style="font-size:11px;margin-bottom:4px">Numbers</label>'
+			+ '<select class="aff-field-input" id="aff-proj-numbers-type" style="width:100%">'
 			+ ['PX','%','EM','REM','VW','VH','CH','FX'].map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('')
 			+ '</select>'
 			+ '</div>'
 			+ '</div>'
 			+ '</div>';
-		var footer = '<button class="eff-btn" id="eff-proj-cancel" style="margin-right:8px">Cancel</button>'
-			+ '<button class="eff-btn" id="eff-proj-save">Save</button>';
-		EFF.Modal.open({ title: 'Manage project', body: body, footer: footer });
+		var footer = '<button class="aff-btn" id="aff-proj-cancel" style="margin-right:8px">Cancel</button>'
+			+ '<button class="aff-btn" id="aff-proj-save">Save</button>';
+		AFF.Modal.open({ title: 'Manage project', body: body, footer: footer });
 		requestAnimationFrame(function () {
-			var cancelBtn = document.getElementById('eff-proj-cancel');
-			var saveBtn   = document.getElementById('eff-proj-save');
-			if (cancelBtn) { cancelBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
+			var cancelBtn = document.getElementById('aff-proj-cancel');
+			var saveBtn   = document.getElementById('aff-proj-save');
+			if (cancelBtn) { cancelBtn.addEventListener('click', function () { AFF.Modal.close(); }); }
 			if (saveBtn)   { saveBtn.addEventListener('click', this._saveProjectConfig.bind(this)); }
-			var projNameInput = document.getElementById('eff-proj-name');
+			var projNameInput = document.getElementById('aff-proj-name');
 			if (projNameInput) {
 				projNameInput.addEventListener('focus', function () { this.select(); });
 				projNameInput.focus();
 				projNameInput.select();
 			}
 			// Load saved default types and populate selects
-			EFF.App.ajax('eff_get_settings', {}).then(function (res) {
+			AFF.App.ajax('aff_get_settings', {}).then(function (res) {
 				var s = res.success && res.data && res.data.settings ? res.data.settings : {};
-				var selColors  = document.getElementById('eff-proj-colors-type');
-				var selFonts   = document.getElementById('eff-proj-fonts-type');
-				var selNumbers = document.getElementById('eff-proj-numbers-type');
+				var selColors  = document.getElementById('aff-proj-colors-type');
+				var selFonts   = document.getElementById('aff-proj-fonts-type');
+				var selNumbers = document.getElementById('aff-proj-numbers-type');
 				if (selColors  && s.colors_default_type)  { selColors.value  = s.colors_default_type; }
 				if (selFonts   && s.fonts_default_type)   { selFonts.value   = s.fonts_default_type; }
 				if (selNumbers && s.numbers_default_type) { selNumbers.value = s.numbers_default_type; }
-				var maxInput = document.getElementById('eff-proj-max-backups');
+				var maxInput = document.getElementById('aff-proj-max-backups');
 				if (maxInput && s.max_backups) { maxInput.value = s.max_backups; }
 			});
 			// Save default types on change
-			var colorsTypeSel  = document.getElementById('eff-proj-colors-type');
-			var fontsTypeSel   = document.getElementById('eff-proj-fonts-type');
-			var numbersTypeSel = document.getElementById('eff-proj-numbers-type');
+			var colorsTypeSel  = document.getElementById('aff-proj-colors-type');
+			var fontsTypeSel   = document.getElementById('aff-proj-fonts-type');
+			var numbersTypeSel = document.getElementById('aff-proj-numbers-type');
 			if (colorsTypeSel) {
 				colorsTypeSel.addEventListener('change', function () {
-					EFF.App.ajax('eff_save_settings', { settings: JSON.stringify({ colors_default_type: colorsTypeSel.value }) });
+					AFF.App.ajax('aff_save_settings', { settings: JSON.stringify({ colors_default_type: colorsTypeSel.value }) });
 				});
 			}
 			if (fontsTypeSel) {
 				fontsTypeSel.addEventListener('change', function () {
-					EFF.App.ajax('eff_save_settings', { settings: JSON.stringify({ fonts_default_type: fontsTypeSel.value }) });
+					AFF.App.ajax('aff_save_settings', { settings: JSON.stringify({ fonts_default_type: fontsTypeSel.value }) });
 				});
 			}
 			if (numbersTypeSel) {
 				numbersTypeSel.addEventListener('change', function () {
-					EFF.App.ajax('eff_save_settings', { settings: JSON.stringify({ numbers_default_type: numbersTypeSel.value }) });
+					AFF.App.ajax('aff_save_settings', { settings: JSON.stringify({ numbers_default_type: numbersTypeSel.value }) });
 				});
 			}
 		}.bind(this));
@@ -472,11 +472,11 @@
 		 * @private
 		 */
 		_saveProjectConfig: function () {
-			var projNameEl  = document.getElementById('eff-proj-name');
-		var colCatEl    = document.getElementById('eff-proj-cat-colors');
-		var fntCatEl    = document.getElementById('eff-proj-cat-fonts');
-		var numCatEl    = document.getElementById('eff-proj-cat-numbers');
-		var projName    = (projNameEl ? projNameEl.value.trim() : (EFF.state.projectName || '')).replace(/(?:\.eff)+(?:\.json)?$/i, '');
+			var projNameEl  = document.getElementById('aff-proj-name');
+		var colCatEl    = document.getElementById('aff-proj-cat-colors');
+		var fntCatEl    = document.getElementById('aff-proj-cat-fonts');
+		var numCatEl    = document.getElementById('aff-proj-cat-numbers');
+		var projName    = (projNameEl ? projNameEl.value.trim() : (AFF.state.projectName || '')).replace(/(?:\.eff)+(?:\.json)?$/i, '');
 
 		function _parseCsvNames(el) {
 			if (!el) { return []; }
@@ -501,7 +501,7 @@
 			return result;
 		}
 
-		var cfg         = EFF.state.config || {};
+		var cfg         = AFF.state.config || {};
 		var colNewNames = _parseCsvNames(colCatEl);
 		var fntNewNames = _parseCsvNames(fntCatEl);
 		var numNewNames = _parseCsvNames(numCatEl);
@@ -537,7 +537,7 @@
 
 		// Reassign variables from removed categories to Uncategorized.
 		var saveVarPromises = [];
-		var vars = EFF.state.variables || [];
+		var vars = AFF.state.variables || [];
 		for (var vi = 0; vi < vars.length; vi++) {
 			var v = vars[vi];
 			if (v.category_id) {
@@ -548,7 +548,7 @@
 				if (newCatId) {
 					v.category    = 'Uncategorized';
 					v.category_id = newCatId;
-					saveVarPromises.push(EFF.App.ajax('eff_save_color', { variable: JSON.stringify(v) }));
+					saveVarPromises.push(AFF.App.ajax('aff_save_color', { variable: JSON.stringify(v) }));
 				}
 			}
 		}
@@ -564,37 +564,37 @@
 			groups:           cfg.groups || {},
 		};
 
-		var maxInput = document.getElementById('eff-proj-max-backups');
+		var maxInput = document.getElementById('aff-proj-max-backups');
 		if (maxInput && maxInput.value) {
-			EFF.App.ajax('eff_save_settings', {
+			AFF.App.ajax('aff_save_settings', {
 				settings: JSON.stringify({ max_backups: parseInt(maxInput.value, 10) || 10 }),
 			});
 		}
 
 		Promise.all(saveVarPromises).then(function () {
-			return EFF.App.ajax('eff_save_config', { config: JSON.stringify(config) });
+			return AFF.App.ajax('aff_save_config', { config: JSON.stringify(config) });
 		}).then(function (res) {
 			if (res && res.success) {
-				EFF.state.config      = config;
-				EFF.state.projectName = projName;
-				if (projName && EFF.PanelRight && EFF.PanelRight._filenameInput) {
+				AFF.state.config      = config;
+				AFF.state.projectName = projName;
+				if (projName && AFF.PanelRight && AFF.PanelRight._filenameInput) {
 					var slugged = projName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-					EFF.PanelRight._filenameInput.value = projName;
-					if (!EFF.state.currentFile || EFF.state.currentFile === 'eff-temp.eff.json') {
-						EFF.state.currentFile = slugged + '.eff.json';
+					AFF.PanelRight._filenameInput.value = projName;
+					if (!AFF.state.currentFile || AFF.state.currentFile === 'aff-temp.aff.json') {
+						AFF.state.currentFile = slugged + '.eff.json';
 					}
 				}
-				EFF.PanelLeft.refresh();
-				if (EFF.Colors && EFF.Colors._rerenderView && EFF.state.currentSelection &&
-						EFF.state.currentSelection.subgroup === 'Colors') {
-					EFF.Colors._rerenderView();
+				AFF.PanelLeft.refresh();
+				if (AFF.Colors && AFF.Colors._rerenderView && AFF.state.currentSelection &&
+						AFF.state.currentSelection.subgroup === 'Colors') {
+					AFF.Colors._rerenderView();
 				}
-				EFF.Modal.close();
+				AFF.Modal.close();
 			} else {
-				EFF.Modal.open({ title: 'Save error', body: '<p>' + ((res && res.data && res.data.message) || 'Unknown error.') + '</p>' });
+				AFF.Modal.open({ title: 'Save error', body: '<p>' + ((res && res.data && res.data.message) || 'Unknown error.') + '</p>' });
 			}
 		}).catch(function () {
-			EFF.Modal.open({ title: 'Save error', body: '<p>Network error while saving config.</p>' });
+			AFF.Modal.open({ title: 'Save error', body: '<p>Network error while saving config.</p>' });
 		});
 		},
 
@@ -603,18 +603,18 @@
 		// ------------------------------------------------------------------
 
 		_openSearch: function () {
-			var body = '<input type="text" class="eff-field-input" id="eff-search-input" '
+			var body = '<input type="text" class="aff-field-input" id="aff-search-input" '
 				+ 'placeholder="Search variables, classes, components..." autocomplete="off" />'
-				+ '<div id="eff-search-results" style="margin-top:16px;min-height:40px"></div>';
+				+ '<div id="aff-search-results" style="margin-top:16px;min-height:40px"></div>';
 
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'Search',
 				body:  body,
 			});
 
 			requestAnimationFrame(function () {
-				var input   = document.getElementById('eff-search-input');
-				var results = document.getElementById('eff-search-results');
+				var input   = document.getElementById('aff-search-input');
+				var results = document.getElementById('aff-search-results');
 
 				if (!input) {
 					return;
@@ -629,25 +629,25 @@
 					}
 
 					if (query.length < 2) {
-						results.innerHTML = '<p class="eff-text-muted" style="font-size:13px">Type at least 2 characters to search.</p>';
+						results.innerHTML = '<p class="aff-text-muted" style="font-size:13px">Type at least 2 characters to search.</p>';
 						return;
 					}
 
-					var matches = EFF.state.variables.filter(function (v) {
+					var matches = AFF.state.variables.filter(function (v) {
 						return v.name.toLowerCase().includes(query)
 							|| v.value.toLowerCase().includes(query);
 					});
 
 					if (!matches.length) {
-						results.innerHTML = '<p class="eff-text-muted" style="font-size:13px">No results found.</p>';
+						results.innerHTML = '<p class="aff-text-muted" style="font-size:13px">No results found.</p>';
 						return;
 					}
 
 					var html = '<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px">';
 					matches.forEach(function (v) {
-						html += '<li style="display:flex;justify-content:space-between;padding:4px 8px;border-radius:4px;background:var(--eff-bg-panel)">'
-							+ '<code style="font-size:12px;color:var(--eff-clr-primary)">' + v.name + '</code>'
-							+ '<span style="font-size:12px;color:var(--eff-clr-muted)">' + v.value + '</span>'
+						html += '<li style="display:flex;justify-content:space-between;padding:4px 8px;border-radius:4px;background:var(--aff-bg-panel)">'
+							+ '<code style="font-size:12px;color:var(--aff-clr-primary)">' + v.name + '</code>'
+							+ '<span style="font-size:12px;color:var(--aff-clr-muted)">' + v.value + '</span>'
 							+ '</li>';
 					});
 					html += '</ul>';
@@ -662,13 +662,13 @@
 
 		_syncFromElementor: function (options) {
 			var silent = options && options.silent;
-			var btn = document.getElementById('eff-btn-sync-variables');
+			var btn = document.getElementById('aff-btn-sync-variables');
 			if (btn) {
 				btn.style.opacity = '0.5';
 				btn.disabled      = true;
 			}
 
-			EFF.App.ajax('eff_sync_from_elementor', {})
+			AFF.App.ajax('eff_sync_from_elementor', {})
 				.then(function (res) {
 					if (btn) {
 						btn.style.opacity = '';
@@ -682,16 +682,16 @@
 						var source  = res.data.source    || '';
 
 						// Merge into state (add new, preserve existing)
-						var existingNames = EFF.state.variables.map(function (v) { return v.name; });
+						var existingNames = AFF.state.variables.map(function (v) { return v.name; });
 
 						vars.forEach(function (v) {
 							if (!existingNames.includes(v.name)) {
 							var lc = (v.value || '').trim().toLowerCase();
-							var isColor = EFF.Utils.isColorValue(lc);
+							var isColor = AFF.Utils.isColorValue(lc);
 							var isFont   = !isColor && /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
 							var isNumber = !isColor && !isFont && (/^\d/.test(lc) || lc.indexOf('clamp(') === 0 || lc.indexOf('calc(') === 0 || lc.indexOf('min(') === 0 || lc.indexOf('max(') === 0 || /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc));
 							var subgroup = isColor ? 'Colors' : (isFont ? 'Fonts' : (isNumber ? 'Numbers' : ''));
-								EFF.state.variables.push({
+								AFF.state.variables.push({
 									id:         '',
 									name:       v.name.toLowerCase(),
 									value:      v.value,
@@ -708,30 +708,30 @@
 							}
 						});
 
-						EFF.App.refreshCounts();
-						if (EFF.Colors && EFF.Colors._ensureUncategorized) { EFF.Colors._ensureUncategorized(); }
-						if (EFF.Variables && EFF.Variables._sets) {
-							var _vsets = EFF.Variables._sets;
+						AFF.App.refreshCounts();
+						if (AFF.Colors && AFF.Colors._ensureUncategorized) { AFF.Colors._ensureUncategorized(); }
+						if (AFF.Variables && AFF.Variables._sets) {
+							var _vsets = AFF.Variables._sets;
 							if (_vsets['Fonts']   && _vsets['Fonts']._ensureUncategorized)   { _vsets['Fonts']._ensureUncategorized(); }
 							if (_vsets['Numbers'] && _vsets['Numbers']._ensureUncategorized) { _vsets['Numbers']._ensureUncategorized(); }
 						}
-						if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
+						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
 						if (count > 0 && !silent) {
-							EFF.App.setDirty(true);
+							AFF.App.setDirty(true);
 						}
 
 						// Scan widget usage for the synced variables (async, non-blocking)
-						EFF.App.fetchUsageCounts();
+						AFF.App.fetchUsageCounts();
 
 						if (!silent) {
-							EFF.Modal.open({
+							AFF.Modal.open({
 								title: 'Sync complete',
 								body:  '<p>' + message + '</p>'
-									+ (source ? '<p class="eff-text-muted" style="font-size:12px">Source: ' + source + '</p>' : ''),
+									+ (source ? '<p class="aff-text-muted" style="font-size:12px">Source: ' + source + '</p>' : ''),
 							});
 						}
 					} else if (!silent) {
-						EFF.PanelTop._showSyncFailedModal(res.data || {});
+						AFF.PanelTop._showSyncFailedModal(res.data || {});
 					}
 				})
 				.catch(function () {
@@ -740,7 +740,7 @@
 						btn.disabled      = false;
 					}
 					if (!silent) {
-						EFF.Modal.open({
+						AFF.Modal.open({
 							title: 'Sync error',
 							body:  '<p>Network error while syncing from Elementor.</p>',
 						});
@@ -763,33 +763,33 @@
 			var hint         = data.hint         || '';
 			var expectedFile = data.expected_file || '';
 
-			var body = '<p style="margin-bottom:8px">' + EFF.Utils.escHtml(message) + '</p>';
+			var body = '<p style="margin-bottom:8px">' + AFF.Utils.escHtml(message) + '</p>';
 			if (hint) {
-				body += '<p style="font-size:12px;color:var(--eff-clr-muted);margin-bottom:12px">'
-					+ EFF.Utils.escHtml(hint) + '</p>';
+				body += '<p style="font-size:12px;color:var(--aff-clr-muted);margin-bottom:12px">'
+					+ AFF.Utils.escHtml(hint) + '</p>';
 			}
-			body += '<div style="border-top:1px solid var(--eff-clr-border);padding-top:14px;margin-top:4px">'
-				+ '<label class="eff-field-label" for="eff-sync-css-path"'
+			body += '<div style="border-top:1px solid var(--aff-clr-border);padding-top:14px;margin-top:4px">'
+				+ '<label class="aff-field-label" for="aff-sync-css-path"'
 				+ ' style="font-size:12px;margin-bottom:4px">Try a different CSS file path</label>'
-				+ '<p style="font-size:11px;color:var(--eff-clr-muted);margin-bottom:6px">'
+				+ '<p style="font-size:11px;color:var(--aff-clr-muted);margin-bottom:6px">'
 				+ 'Must be inside <code>wp-content/uploads/elementor/css/</code></p>'
-				+ '<input type="text" class="eff-field-input" id="eff-sync-css-path"'
+				+ '<input type="text" class="aff-field-input" id="aff-sync-css-path"'
 				+ ' placeholder="...uploads/elementor/css/post-67.css"'
-				+ ' value="' + EFF.Utils.escHtml(expectedFile) + '"'
+				+ ' value="' + AFF.Utils.escHtml(expectedFile) + '"'
 				+ ' autocomplete="off" spellcheck="false" style="width:100%;margin-bottom:8px">'
-				+ '<button class="eff-btn" id="eff-sync-retry-btn">Retry with this file</button>'
+				+ '<button class="aff-btn" id="aff-sync-retry-btn">Retry with this file</button>'
 				+ '</div>';
 
-			EFF.Modal.open({ title: 'Sync failed', body: body });
+			AFF.Modal.open({ title: 'Sync failed', body: body });
 
 			requestAnimationFrame(function () {
-				var retryBtn = document.getElementById('eff-sync-retry-btn');
+				var retryBtn = document.getElementById('aff-sync-retry-btn');
 				if (retryBtn) {
 					retryBtn.addEventListener('click', function () {
-						var pathInput = document.getElementById('eff-sync-css-path');
+						var pathInput = document.getElementById('aff-sync-css-path');
 						var cssPath   = pathInput ? pathInput.value.trim() : '';
 						if (cssPath) {
-							EFF.Modal.close();
+							AFF.Modal.close();
 							self._retrySyncWithPath(cssPath);
 						}
 					});
@@ -804,24 +804,24 @@
 		 */
 		_retrySyncWithPath: function (cssPath) {
 			var self = this;
-			var btn  = document.getElementById('eff-btn-sync-variables');
+			var btn  = document.getElementById('aff-btn-sync-variables');
 			if (btn) { btn.style.opacity = '0.5'; btn.disabled = true; }
 
-			EFF.App.ajax('eff_sync_from_elementor', { css_file_path: cssPath })
+			AFF.App.ajax('eff_sync_from_elementor', { css_file_path: cssPath })
 				.then(function (res) {
 					if (btn) { btn.style.opacity = ''; btn.disabled = false; }
 					if (res.success) {
 						var data  = res.data || {};
 						var vars  = data.variables || [];
-						var existingNames = EFF.state.variables.map(function (v) { return v.name; });
+						var existingNames = AFF.state.variables.map(function (v) { return v.name; });
 						vars.forEach(function (v) {
 							if (!existingNames.includes(v.name)) {
 								var lc      = (v.value || '').trim().toLowerCase();
-								var isColor  = EFF.Utils.isColorValue(lc);
+								var isColor  = AFF.Utils.isColorValue(lc);
 								var isFont   = !isColor && /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
 								var isNumber = !isColor && !isFont && (/^\d/.test(lc) || lc.indexOf('clamp(') === 0 || lc.indexOf('calc(') === 0 || /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc));
 								var subgroup = isColor ? 'Colors' : (isFont ? 'Fonts' : (isNumber ? 'Numbers' : ''));
-								EFF.state.variables.push({
+								AFF.state.variables.push({
 									id: '', name: v.name, value: v.value, source: 'elementor-parsed',
 									type: isColor ? 'color' : (isFont ? 'font' : (isNumber ? 'number' : 'unknown')),
 									group: 'Variables', subgroup: subgroup,
@@ -831,20 +831,20 @@
 								});
 							}
 						});
-						EFF.App.refreshCounts();
-						if (EFF.Colors && EFF.Colors._ensureUncategorized) { EFF.Colors._ensureUncategorized(); }
-						if (EFF.Variables && EFF.Variables._sets) {
-							var _vs = EFF.Variables._sets;
+						AFF.App.refreshCounts();
+						if (AFF.Colors && AFF.Colors._ensureUncategorized) { AFF.Colors._ensureUncategorized(); }
+						if (AFF.Variables && AFF.Variables._sets) {
+							var _vs = AFF.Variables._sets;
 							if (_vs['Fonts']   && _vs['Fonts']._ensureUncategorized)   { _vs['Fonts']._ensureUncategorized(); }
 							if (_vs['Numbers'] && _vs['Numbers']._ensureUncategorized) { _vs['Numbers']._ensureUncategorized(); }
 						}
-						if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
-						if ((data.count || 0) > 0) { EFF.App.setDirty(true); }
-						EFF.App.fetchUsageCounts();
-						EFF.Modal.open({
+						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+						if ((data.count || 0) > 0) { AFF.App.setDirty(true); }
+						AFF.App.fetchUsageCounts();
+						AFF.Modal.open({
 							title: 'Sync complete',
 							body:  '<p>' + (data.message || '') + '</p>'
-								+ (data.source ? '<p class="eff-text-muted" style="font-size:12px">Source: '
+								+ (data.source ? '<p class="aff-text-muted" style="font-size:12px">Source: '
 									+ data.source + '</p>' : ''),
 						});
 					} else {
@@ -853,7 +853,7 @@
 				})
 				.catch(function () {
 					if (btn) { btn.style.opacity = ''; btn.disabled = false; }
-					EFF.Modal.open({ title: 'Sync error', body: '<p>Network error while syncing from Elementor.</p>' });
+					AFF.Modal.open({ title: 'Sync error', body: '<p>Network error while syncing from Elementor.</p>' });
 				});
 		},
 
@@ -862,12 +862,12 @@
 		// ------------------------------------------------------------------
 
 		_openExport: function () {
-			if (!EFF.state.currentFile && EFF.state.variables.length === 0) {
-				EFF.Modal.open({ title: 'Nothing to export', body: '<p>Load or create a project first.</p>' });
+			if (!AFF.state.currentFile && AFF.state.variables.length === 0) {
+				AFF.Modal.open({ title: 'Nothing to export', body: '<p>Load or create a project first.</p>' });
 				return;
 			}
 
-			var exportName = (EFF.state.projectName || 'eff-project')
+			var exportName = (AFF.state.projectName || 'aff-project')
 				.trim().replace(/(?:\.eff)+(?:\.json)?$/i, '');
 			var suggestedName = exportName
 				.toLowerCase()
@@ -877,10 +877,10 @@
 			var payload = {
 				version:    '1.0',
 				name:       exportName || '',
-				config:     EFF.state.config      || {},
-				variables:  EFF.state.variables   || [],
-				classes:    EFF.state.classes     || [],
-				components: EFF.state.components  || [],
+				config:     AFF.state.config      || {},
+				variables:  AFF.state.variables   || [],
+				classes:    AFF.state.classes     || [],
+				components: AFF.state.components  || [],
 				metadata:   { exported_at: new Date().toISOString() },
 			};
 			var json = JSON.stringify(payload, null, 2);
@@ -890,14 +890,14 @@
 					window.showSaveFilePicker({
 						suggestedName: suggestedName,
 						startIn:       remembered || 'desktop',
-						types: [{ description: 'EFF Project File', accept: { 'application/json': ['.json'] } }],
+						types: [{ description: 'AFF Project File', accept: { 'application/json': ['.json'] } }],
 					}).then(function (fileHandle) {
 						_effPickerSave('export', fileHandle);
 						return fileHandle.createWritable().then(function (writable) {
 							return writable.write(json).then(function () { return writable.close(); });
 						});
 					}).catch(function (err) {
-						if (err && err.name !== 'AbortError') { console.warn('EFF export error:', err); }
+						if (err && err.name !== 'AbortError') { console.warn('AFF export error:', err); }
 					});
 				});
 			} else {
@@ -919,7 +919,7 @@
 					window.showOpenFilePicker({
 						startIn:  remembered || 'desktop',
 						multiple: false,
-						types: [{ description: 'EFF Project File', accept: { 'application/json': ['.json'] } }],
+						types: [{ description: 'AFF Project File', accept: { 'application/json': ['.json'] } }],
 					}).then(function (fileHandles) {
 						var fileHandle = fileHandles[0];
 						_effPickerSave('import', fileHandle);
@@ -929,30 +929,30 @@
 							self._applyImport(text, null);
 						});
 					}).catch(function (err) {
-						if (err && err.name !== 'AbortError') { console.warn('EFF import error:', err); }
+						if (err && err.name !== 'AbortError') { console.warn('AFF import error:', err); }
 					});
 				});
 			} else {
 				// Fallback for browsers without File System Access API.
 				var body =
-					'<p style="margin-bottom:12px;color:var(--eff-clr-secondary);line-height:1.6">'
-					+ 'Select a <code>.eff.json</code> file exported from EFF.</p>'
-					+ '<input type="file" id="eff-import-file" accept=".json" '
+					'<p style="margin-bottom:12px;color:var(--aff-clr-secondary);line-height:1.6">'
+					+ 'Select a <code>.eff.json</code> file exported from AFF.</p>'
+					+ '<input type="file" id="aff-import-file" accept=".json" '
 					+ 'style="display:block;width:100%;padding:8px 0;cursor:pointer">'
-					+ '<div id="eff-import-status" style="font-size:12px;color:var(--eff-clr-muted);margin-top:8px;min-height:18px"></div>';
+					+ '<div id="aff-import-status" style="font-size:12px;color:var(--aff-clr-muted);margin-top:8px;min-height:18px"></div>';
 				var footer =
-					'<button class="eff-btn" id="eff-import-cancel" style="margin-right:8px">Cancel</button>'
-					+ '<button class="eff-btn" id="eff-import-go">Import</button>';
+					'<button class="aff-btn" id="aff-import-cancel" style="margin-right:8px">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-import-go">Import</button>';
 
-				EFF.Modal.open({ title: 'Import project', body: body, footer: footer });
+				AFF.Modal.open({ title: 'Import project', body: body, footer: footer });
 
 				requestAnimationFrame(function () {
-					var fileInput = document.getElementById('eff-import-file');
-					var statusEl  = document.getElementById('eff-import-status');
-					var cancelBtn = document.getElementById('eff-import-cancel');
-					var importBtn = document.getElementById('eff-import-go');
+					var fileInput = document.getElementById('aff-import-file');
+					var statusEl  = document.getElementById('aff-import-status');
+					var cancelBtn = document.getElementById('aff-import-cancel');
+					var importBtn = document.getElementById('aff-import-go');
 
-					if (cancelBtn) { cancelBtn.addEventListener('click', function () { EFF.Modal.close(); }); }
+					if (cancelBtn) { cancelBtn.addEventListener('click', function () { AFF.Modal.close(); }); }
 					if (fileInput) {
 						fileInput.addEventListener('change', function () {
 							if (statusEl) { statusEl.textContent = fileInput.files[0] ? fileInput.files[0].name : ''; }
@@ -983,46 +983,46 @@
 			var parsed;
 			try { parsed = JSON.parse(text); } catch (err) {
 				if (statusEl) { statusEl.textContent = 'Invalid JSON \u2014 could not parse file.'; }
-				else { EFF.Modal.open({ title: 'Import error', body: '<p>Invalid JSON \u2014 could not parse file.</p>' }); }
+				else { AFF.Modal.open({ title: 'Import error', body: '<p>Invalid JSON \u2014 could not parse file.</p>' }); }
 				return;
 			}
 			if (!parsed || typeof parsed !== 'object') {
-				if (statusEl) { statusEl.textContent = 'File does not look like an EFF project.'; }
-				else { EFF.Modal.open({ title: 'Import error', body: '<p>File does not look like an EFF project.</p>' }); }
+				if (statusEl) { statusEl.textContent = 'File does not look like an AFF project.'; }
+				else { AFF.Modal.open({ title: 'Import error', body: '<p>File does not look like an AFF project.</p>' }); }
 				return;
 			}
 
-			EFF.state.variables   = Array.isArray(parsed.variables)                          ? parsed.variables  : [];
-			EFF.state.classes     = Array.isArray(parsed.classes)                            ? parsed.classes    : [];
-			EFF.state.components  = Array.isArray(parsed.components)                         ? parsed.components : [];
-			EFF.state.config      = (parsed.config && typeof parsed.config === 'object')     ? parsed.config     : {};
+			AFF.state.variables   = Array.isArray(parsed.variables)                          ? parsed.variables  : [];
+			AFF.state.classes     = Array.isArray(parsed.classes)                            ? parsed.classes    : [];
+			AFF.state.components  = Array.isArray(parsed.components)                         ? parsed.components : [];
+			AFF.state.config      = (parsed.config && typeof parsed.config === 'object')     ? parsed.config     : {};
 			var importedName = (parsed.name || '').replace(/(?:\.eff)+(?:\.json)?$/i, '');
-			EFF.state.projectName = importedName;
+			AFF.state.projectName = importedName;
 
-			if (EFF.PanelRight && EFF.PanelRight._filenameInput) {
-				EFF.PanelRight._filenameInput.value = importedName;
+			if (AFF.PanelRight && AFF.PanelRight._filenameInput) {
+				AFF.PanelRight._filenameInput.value = importedName;
 			}
 
-			EFF.App.refreshCounts();
-			if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
-			if (EFF.state.currentSelection && EFF.EditSpace) {
-				EFF.EditSpace.loadCategory(EFF.state.currentSelection);
+			AFF.App.refreshCounts();
+			if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+			if (AFF.state.currentSelection && AFF.EditSpace) {
+				AFF.EditSpace.loadCategory(AFF.state.currentSelection);
 			}
-			EFF.App.setDirty(true);
-			EFF.App.fetchUsageCounts();
-			EFF.Modal.close();
+			AFF.App.setDirty(true);
+			AFF.App.fetchUsageCounts();
+			AFF.Modal.close();
 		},
 
 		_openHistory: function () {
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'Change history',
-				body:  '<p>Change history arrives in EFF v5.</p>',
+				body:  '<p>Change history arrives in AFF v5.</p>',
 			});
 		},
 
 		_openHelp: function () {
-			if (EFF.EditSpace && EFF.EditSpace.showInfoPanel) {
-				EFF.EditSpace.showInfoPanel();
+			if (AFF.EditSpace && AFF.EditSpace.showInfoPanel) {
+				AFF.EditSpace.showInfoPanel();
 			}
 		},
 
@@ -1047,20 +1047,20 @@
 		_buildCatsEditorHtml: function (cats) {
 			var self = this;
 			if (!cats || cats.length === 0) {
-				return '<p style="font-size:12px;color:var(--eff-clr-muted)">No categories yet. Load a file or add one below.</p>';
+				return '<p style="font-size:12px;color:var(--aff-clr-muted)">No categories yet. Load a file or add one below.</p>';
 			}
 			var html = '';
 			for (var i = 0; i < cats.length; i++) {
 				var cat    = cats[i];
 				var locked = !!(cat.locked || cat.name === 'Uncategorized');
-				html += '<div class="eff-cats-row" data-cat-id="' + EFF.Utils.escHtml(cat.id || cat.name) + '"'
+				html += '<div class="aff-cats-row" data-cat-id="' + AFF.Utils.escHtml(cat.id || cat.name) + '"'
 					+ ' style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
-					+ '<input class="eff-field-input eff-cats-name-input" value="' + EFF.Utils.escHtml(cat.name) + '"'
+					+ '<input class="aff-field-input aff-cats-name-input" value="' + AFF.Utils.escHtml(cat.name) + '"'
 					+ (locked ? ' disabled' : '')
 					+ ' style="flex:1' + (locked ? ';opacity:0.6' : '') + '">'
 					+ (locked
-						? '<span style="font-size:11px;color:var(--eff-clr-muted);min-width:52px;text-align:center">locked</span>'
-						: '<button class="eff-btn eff-btn--sm eff-cats-del-btn" style="flex-shrink:0">Delete</button>')
+						? '<span style="font-size:11px;color:var(--aff-clr-muted);min-width:52px;text-align:center">locked</span>'
+						: '<button class="aff-btn aff-btn--sm aff-cats-del-btn" style="flex-shrink:0">Delete</button>')
 					+ '</div>';
 			}
 			return html;
@@ -1071,14 +1071,14 @@
 		 * @private
 		 */
 		_bindCatsEditor: function () {
-			var list   = document.getElementById('eff-proj-cats-list');
-			var addBtn = document.getElementById('eff-proj-cats-add');
+			var list   = document.getElementById('aff-proj-cats-list');
+			var addBtn = document.getElementById('aff-proj-cats-add');
 
 			if (list) {
 				list.addEventListener('click', function (e) {
-					var btn = e.target && e.target.closest ? e.target.closest('.eff-cats-del-btn') : null;
+					var btn = e.target && e.target.closest ? e.target.closest('.aff-cats-del-btn') : null;
 					if (btn) {
-						var row = btn.closest('.eff-cats-row');
+						var row = btn.closest('.aff-cats-row');
 						if (row && row.parentNode) { row.parentNode.removeChild(row); }
 					}
 				});
@@ -1089,13 +1089,13 @@
 					if (!list) { return; }
 					var newId = 'cat-' + Date.now();
 					var row   = document.createElement('div');
-					row.className = 'eff-cats-row';
+					row.className = 'aff-cats-row';
 					row.setAttribute('data-cat-id', newId);
 					row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px';
-					row.innerHTML = '<input class="eff-field-input eff-cats-name-input" value="New Category" style="flex:1">'
-						+ '<button class="eff-btn eff-btn--sm eff-cats-del-btn" style="flex-shrink:0">Delete</button>';
+					row.innerHTML = '<input class="aff-field-input aff-cats-name-input" value="New Category" style="flex:1">'
+						+ '<button class="aff-btn aff-btn--sm aff-cats-del-btn" style="flex-shrink:0">Delete</button>';
 					list.appendChild(row);
-					var input = row.querySelector('.eff-cats-name-input');
+					var input = row.querySelector('.aff-cats-name-input');
 					if (input) { input.focus(); input.select(); }
 				});
 			}

@@ -1,18 +1,18 @@
 <?php
 /**
- * EFF Ajax Handler — AJAX Endpoint Registration & Processing
+ * AFF Ajax Handler — AJAX Endpoint Registration & Processing
  *
  * All AJAX endpoints are registered here, each protected with nonce
  * verification and capability checks before any processing occurs.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_Ajax_Handler {
+class AFF_Ajax_Handler {
 
 	/**
 	 * Register all wp_ajax_{action} hooks.
@@ -20,31 +20,31 @@ class EFF_Ajax_Handler {
 	public function register_handlers(): void {
 		$actions = array(
 			// v1.0.0 endpoints
-			'eff_save_file',
-			'eff_load_file',
-			'eff_sync_from_elementor',
-			'eff_save_user_theme',
-			'eff_get_config',
-			'eff_save_config',
-			'eff_save_settings',
-			'eff_get_settings',
-			'eff_get_usage_counts',
+			'aff_save_file',
+			'aff_load_file',
+			'aff_sync_from_elementor',
+			'aff_save_user_theme',
+			'aff_get_config',
+			'aff_save_config',
+			'aff_save_settings',
+			'aff_get_settings',
+			'aff_get_usage_counts',
 			// Project management endpoints
-			'eff_list_projects',
-			'eff_list_backups',
-			'eff_delete_project',
+			'aff_list_projects',
+			'aff_list_backups',
+			'aff_delete_project',
 			// Phase 2 — Colors endpoints
-			'eff_save_category',
-			'eff_delete_category',
-			'eff_reorder_categories',
-			'eff_save_color',
-			'eff_delete_color',
-			'eff_generate_children',
-			'eff_save_baseline',
-			'eff_get_baseline',
-			'eff_commit_to_elementor',
+			'aff_save_category',
+			'aff_delete_category',
+			'aff_reorder_categories',
+			'aff_save_color',
+			'aff_delete_color',
+			'aff_generate_children',
+			'aff_save_baseline',
+			'aff_get_baseline',
+			'aff_commit_to_elementor',
 			// Elementor V3 Import
-			'eff_sync_v3_global_colors',
+			'aff_sync_v3_global_colors',
 		);
 
 		foreach ( $actions as $action ) {
@@ -56,7 +56,7 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Save file
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_save_file(): void {
+	public function ajax_aff_save_file(): void {
 		$this->verify_request();
 
 		$project_name = $this->post_param( 'project_name' );
@@ -64,26 +64,26 @@ class EFF_Ajax_Handler {
 		$data_raw = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : '';
 
 		if ( empty( $project_name ) ) {
-			wp_send_json_error( array( 'message' => __( 'Project name is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Project name is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		$decoded = $this->safe_json_decode( $data_raw, __( 'Invalid data format.', 'elementor-framework-forge' ) );
+		$decoded = $this->safe_json_decode( $data_raw, __( 'Invalid data format.', 'atomic-framework-forge-for-elementor' ) );
 
-		$slug  = EFF_Data_Store::sanitize_project_slug( $project_name );
-		$dir   = EFF_Data_Store::get_project_dir( $slug );
-		$fname = EFF_Data_Store::generate_backup_filename( $slug );
+		$slug  = AFF_Data_Store::sanitize_project_slug( $project_name );
+		$dir   = AFF_Data_Store::get_project_dir( $slug );
+		$fname = AFF_Data_Store::generate_backup_filename( $slug );
 		$file  = $dir . $fname;
 
 		$json = wp_json_encode( $decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 		if ( false === file_put_contents( $file, $json ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not write file. Check directory permissions.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not write file. Check directory permissions.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		EFF_Data_Store::prune_backups( $dir, (int) EFF_Settings::get( 'max_backups' ) );
+		AFF_Data_Store::prune_backups( $dir, (int) AFF_Settings::get( 'max_backups' ) );
 
 		$relative = $slug . '/' . $fname;
 		wp_send_json_success( array(
-			'message'  => __( 'File saved successfully.', 'elementor-framework-forge' ),
+			'message'  => __( 'File saved successfully.', 'atomic-framework-forge-for-elementor' ),
 			'filename' => $relative,
 		) );
 	}
@@ -92,25 +92,25 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Load file
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_load_file(): void {
+	public function ajax_aff_load_file(): void {
 		$this->verify_request();
 
 		$raw = $this->post_param( 'filename' );
 
 		if ( empty( $raw ) ) {
-			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$resolved = $this->resolve_file( $raw );
 		$file     = $resolved['absolute'];
 		$filename = $resolved['relative'];
-		$dir      = EFF_Data_Store::get_wp_storage_dir();
+		$dir      = AFF_Data_Store::get_wp_storage_dir();
 
 		if ( ! file_exists( $file ) ) {
 			// Backward compat: old flat path — try newest backup in slug subdir.
 			if ( strpos( $raw, '/' ) === false ) {
-				$slug    = EFF_Data_Store::sanitize_project_slug( preg_replace( '/\.eff\.json$/i', '', $raw ) );
-				$backups = EFF_Data_Store::list_project_backups( $dir, $slug );
+				$slug    = AFF_Data_Store::sanitize_project_slug( preg_replace( '/\.aff\.json$/i', '', $raw ) );
+				$backups = AFF_Data_Store::list_project_backups( $dir, $slug );
 				if ( ! empty( $backups ) ) {
 					$resolved = $this->resolve_file( $backups[0]['filename'] );
 					$file     = $resolved['absolute'];
@@ -122,10 +122,10 @@ class EFF_Ajax_Handler {
 				// Still not found → return a fresh empty project (create-on-load).
 				$project_name = isset( $_POST['project_name'] )
 					? sanitize_text_field( wp_unslash( $_POST['project_name'] ) )
-					: preg_replace( '/\.eff(?:\.json)?$/i', '', basename( $filename ) );
-				$project_name = preg_replace( '/\.eff$/', '', $project_name );
+					: preg_replace( '/\.aff(?:\.json)?$/i', '', basename( $filename ) );
+				$project_name = preg_replace( '/\.aff$/', '', $project_name );
 
-				$store = new EFF_Data_Store();
+				$store = new AFF_Data_Store();
 				$data  = $store->new_project( $project_name );
 
 				wp_send_json_success( array(
@@ -138,9 +138,9 @@ class EFF_Ajax_Handler {
 			}
 		}
 
-		$store = new EFF_Data_Store();
+		$store = new AFF_Data_Store();
 		if ( ! $store->load_from_file( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read or parse file.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not read or parse file.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		wp_send_json_success( array(
@@ -154,10 +154,10 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Sync from Elementor CSS
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_sync_from_elementor(): void {
+	public function ajax_aff_sync_from_elementor(): void {
 		$this->verify_request();
 
-		$parser   = new EFF_CSS_Parser();
+		$parser   = new AFF_CSS_Parser();
 		$css_file = null;
 
 		// Optional manual override — user-supplied path validated against the uploads/elementor/css/ dir.
@@ -177,7 +177,7 @@ class EFF_Ajax_Handler {
 				$css_file = $candidate;
 			} else {
 				wp_send_json_error( array(
-					'message' => __( 'The supplied path is not valid. It must be an existing .css file inside wp-content/uploads/elementor/css/.', 'elementor-framework-forge' ),
+					'message' => __( 'The supplied path is not valid. It must be an existing .css file inside wp-content/uploads/elementor/css/.', 'atomic-framework-forge-for-elementor' ),
 				) );
 			}
 		}
@@ -196,11 +196,11 @@ class EFF_Ajax_Handler {
 		if ( ! $css_file ) {
 			$upload_dir  = wp_upload_dir();
 			$css_dir     = $upload_dir['basedir'] . '/elementor/css/';
-			$kit_id      = EFF_CSS_Parser::get_active_kit_id();
+			$kit_id      = AFF_CSS_Parser::get_active_kit_id();
 			$expected    = $kit_id ? $css_dir . 'post-' . $kit_id . '.css' : $css_dir . 'post-?.css';
 			wp_send_json_error( array(
-				'message'       => __( 'Elementor kit CSS file not found.', 'elementor-framework-forge' ),
-				'hint'          => __( 'EFF attempted to regenerate the CSS but Elementor was not available. Open any page in Elementor editor and click Update/Save to regenerate kit CSS.', 'elementor-framework-forge' ),
+				'message'       => __( 'Elementor kit CSS file not found.', 'atomic-framework-forge-for-elementor' ),
+				'hint'          => __( 'AFF attempted to regenerate the CSS but Elementor was not available. Open any page in Elementor editor and click Update/Save to regenerate kit CSS.', 'atomic-framework-forge-for-elementor' ),
 				'expected_file' => $expected,
 			) );
 		}
@@ -212,7 +212,7 @@ class EFF_Ajax_Handler {
 			'count'     => count( $variables ),
 			'source'    => basename( $css_file ),
 			/* translators: %d: number of variables found */
-			'message'   => sprintf( __( 'Found %d Elementor v4 variable(s).', 'elementor-framework-forge' ), count( $variables ) ),
+			'message'   => sprintf( __( 'Found %d Elementor v4 variable(s).', 'atomic-framework-forge-for-elementor' ), count( $variables ) ),
 		) );
 	}
 
@@ -220,7 +220,7 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Save user theme preference
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_save_user_theme(): void {
+	public function ajax_aff_save_user_theme(): void {
 		$this->verify_request();
 
 		$theme = $this->post_param( 'theme', 'light' );
@@ -228,7 +228,7 @@ class EFF_Ajax_Handler {
 		$theme   = in_array( $theme, array( 'light', 'dark' ), true ) ? $theme : 'light';
 		$user_id = get_current_user_id();
 
-		update_user_meta( $user_id, EFF_USER_META_THEME, $theme );
+		update_user_meta( $user_id, AFF_USER_META_THEME, $theme );
 
 		wp_send_json_success( array( 'theme' => $theme ) );
 	}
@@ -237,11 +237,11 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Get project config
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_get_config(): void {
+	public function ajax_aff_get_config(): void {
 		$this->verify_request();
 
 		// Saved config takes precedence over defaults file.
-		$saved = get_option( 'eff_project_config', array() );
+		$saved = get_option( 'aff_project_config', array() );
 
 		if ( ! empty( $saved ) ) {
 			wp_send_json_success( array( 'config' => $saved ) );
@@ -249,7 +249,7 @@ class EFF_Ajax_Handler {
 		}
 
 		// Fall back to defaults JSON.
-		$defaults_file = EFF_PLUGIN_DIR . 'data/eff-defaults.json';
+		$defaults_file = AFF_PLUGIN_DIR . 'data/aff-defaults.json';
 		$config        = array();
 
 		if ( file_exists( $defaults_file ) ) {
@@ -266,41 +266,41 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Save project config
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_save_config(): void {
+	public function ajax_aff_save_config(): void {
 		$this->verify_request();
 
 		$config_raw = isset( $_POST['config'] ) ? wp_unslash( $_POST['config'] ) : '';
-		$config     = $this->safe_json_decode( $config_raw, __( 'Invalid config format.', 'elementor-framework-forge' ) );
+		$config     = $this->safe_json_decode( $config_raw, __( 'Invalid config format.', 'atomic-framework-forge-for-elementor' ) );
 
-		update_option( 'eff_project_config', $config );
+		update_option( 'aff_project_config', $config );
 
-		wp_send_json_success( array( 'message' => __( 'Configuration saved.', 'elementor-framework-forge' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Configuration saved.', 'atomic-framework-forge-for-elementor' ) ) );
 	}
 
 	// -----------------------------------------------------------------------
 	// ENDPOINT: Save plugin settings
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_save_settings(): void {
+	public function ajax_aff_save_settings(): void {
 		$this->verify_request();
 
 		$settings_raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
-		$settings     = $this->safe_json_decode( $settings_raw, __( 'Invalid settings format.', 'elementor-framework-forge' ) );
+		$settings     = $this->safe_json_decode( $settings_raw, __( 'Invalid settings format.', 'atomic-framework-forge-for-elementor' ) );
 
-		EFF_Settings::set( $settings );
+		AFF_Settings::set( $settings );
 
-		wp_send_json_success( array( 'message' => __( 'Settings saved.', 'elementor-framework-forge' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Settings saved.', 'atomic-framework-forge-for-elementor' ) ) );
 	}
 
 	// -----------------------------------------------------------------------
 	// ENDPOINT: Get variable usage counts
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_get_usage_counts(): void {
+	public function ajax_aff_get_usage_counts(): void {
 		$this->verify_request();
 
 		$names_raw = isset( $_POST['variable_names'] ) ? wp_unslash( $_POST['variable_names'] ) : '[]';
-		$names     = $this->safe_json_decode( $names_raw, __( 'Invalid variable names format.', 'elementor-framework-forge' ) );
+		$names     = $this->safe_json_decode( $names_raw, __( 'Invalid variable names format.', 'atomic-framework-forge-for-elementor' ) );
 
 		// Sanitize: allow only valid CSS custom property names (--identifier)
 		$names = array_values( array_filter(
@@ -310,7 +310,7 @@ class EFF_Ajax_Handler {
 			}
 		) );
 
-		$counts = EFF_Usage_Scanner::scan( $names );
+		$counts = AFF_Usage_Scanner::scan( $names );
 
 		wp_send_json_success( array(
 			'counts'     => $counts,
@@ -322,20 +322,20 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Get plugin settings
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_get_settings(): void {
+	public function ajax_aff_get_settings(): void {
 		$this->verify_request();
-		wp_send_json_success( array( 'settings' => EFF_Settings::get() ) );
+		wp_send_json_success( array( 'settings' => AFF_Settings::get() ) );
 	}
 
 	// -----------------------------------------------------------------------
 	// ENDPOINT: List projects
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_list_projects(): void {
+	public function ajax_aff_list_projects(): void {
 		$this->verify_request();
 
-		$dir      = EFF_Data_Store::get_wp_storage_dir();
-		$projects = EFF_Data_Store::list_projects_v2( $dir );
+		$dir      = AFF_Data_Store::get_wp_storage_dir();
+		$projects = AFF_Data_Store::list_projects_v2( $dir );
 
 		wp_send_json_success( array( 'projects' => $projects ) );
 	}
@@ -348,13 +348,13 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: List backups for a project
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_list_backups(): void {
+	public function ajax_aff_list_backups(): void {
 		$this->verify_request();
 
 		$slug    = $this->post_param( 'project_slug' );
-		$slug    = EFF_Data_Store::sanitize_project_slug( $slug );
-		$dir     = EFF_Data_Store::get_wp_storage_dir();
-		$backups = EFF_Data_Store::list_project_backups( $dir, $slug );
+		$slug    = AFF_Data_Store::sanitize_project_slug( $slug );
+		$dir     = AFF_Data_Store::get_wp_storage_dir();
+		$backups = AFF_Data_Store::list_project_backups( $dir, $slug );
 
 		wp_send_json_success( array( 'backups' => $backups ) );
 	}
@@ -363,13 +363,13 @@ class EFF_Ajax_Handler {
 	// ENDPOINT: Delete project (single backup)
 	// -----------------------------------------------------------------------
 
-	public function ajax_eff_delete_project(): void {
+	public function ajax_aff_delete_project(): void {
 		$this->verify_request();
 
 		$raw = $this->post_param( 'filename' );
 
 		if ( empty( $raw ) ) {
-			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$resolved = $this->resolve_file( $raw );
@@ -377,23 +377,26 @@ class EFF_Ajax_Handler {
 		$filename = $resolved['relative'];
 
 		if ( ! file_exists( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'File not found.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'File not found.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		if ( ! unlink( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not delete file. Check permissions.', 'elementor-framework-forge' ) ) );
+		if ( ! wp_delete_file( $file ) || file_exists( $file ) ) {
+			wp_send_json_error( array( 'message' => __( 'Could not delete file. Check permissions.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		// Clean up stored baseline.
-		EFF_Data_Store::delete_baseline( $filename );
+		AFF_Data_Store::delete_baseline( $filename );
 
 		// Remove project subdirectory if now empty.
 		$project_dir = dirname( $file );
-		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.eff.json' ) ) ) {
-			@rmdir( $project_dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.aff.json' ) ) ) {
+			$fs = $this->get_wp_filesystem();
+			if ( $fs ) {
+				$fs->rmdir( $project_dir );
+			}
 		}
 
-		wp_send_json_success( array( 'message' => __( 'Backup deleted.', 'elementor-framework-forge' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Backup deleted.', 'atomic-framework-forge-for-elementor' ) ) );
 	}
 
 	// -----------------------------------------------------------------------
@@ -401,25 +404,25 @@ class EFF_Ajax_Handler {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Add or update a category in the .eff.json file.
+	 * Add or update a category in the .aff.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
 	 *              category (JSON: {id?, name, order?, locked?})
 	 */
-	public function ajax_eff_save_category(): void {
+	public function ajax_aff_save_category(): void {
 		$subgroup     = $this->get_subgroup_param();
 		$category_raw = isset( $_POST['category'] ) ? wp_unslash( $_POST['category'] ) : '';
-		$category     = $this->safe_json_decode( $category_raw, __( 'Invalid category data.', 'elementor-framework-forge' ) );
+		$category     = $this->safe_json_decode( $category_raw, __( 'Invalid category data.', 'atomic-framework-forge-for-elementor' ) );
 
 		$name = isset( $category['name'] ) ? sanitize_text_field( $category['name'] ) : '';
 		if ( empty( $name ) ) {
-			wp_send_json_error( array( 'message' => __( 'Category name is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Category name is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$this->with_store( function ( $store ) use ( $subgroup, $category, $name ) {
 			if ( ! empty( $category['id'] ) ) {
 				if ( ! $store->update_category_for_subgroup( $subgroup, $category['id'], array( 'name' => $name ) ) ) {
-					throw new \Exception( __( 'Category not found.', 'elementor-framework-forge' ) );
+					throw new \Exception( __( 'Category not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				}
 				$id = $category['id'];
 			} else {
@@ -430,47 +433,47 @@ class EFF_Ajax_Handler {
 				'id'         => $id,
 				'categories' => $store->get_categories_for_subgroup( $subgroup ),
 				/* translators: %s: category name */
-				'message'    => sprintf( __( 'Category "%s" saved.', 'elementor-framework-forge' ), $name ),
+				'message'    => sprintf( __( 'Category "%s" saved.', 'atomic-framework-forge-for-elementor' ), $name ),
 			);
 		} );
 	}
 
 	/**
-	 * Delete a category from the .eff.json file.
+	 * Delete a category from the .aff.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'), category_id
 	 */
-	public function ajax_eff_delete_category(): void {
+	public function ajax_aff_delete_category(): void {
 		$this->verify_request();
 		$subgroup    = $this->get_subgroup_param();
 		$category_id = $this->post_param( 'category_id' );
 
 		if ( empty( $category_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Category ID is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Category ID is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$this->with_store( function ( $store ) use ( $subgroup, $category_id ) {
 			if ( ! $store->delete_category_for_subgroup( $subgroup, $category_id ) ) {
-				throw new \Exception( __( 'Category not found or cannot be deleted.', 'elementor-framework-forge' ) );
+				throw new \Exception( __( 'Category not found or cannot be deleted.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 			return array(
 				'categories' => $store->get_categories_for_subgroup( $subgroup ),
-				'message'    => __( 'Category deleted.', 'elementor-framework-forge' ),
+				'message'    => __( 'Category deleted.', 'atomic-framework-forge-for-elementor' ),
 			);
 		} );
 	}
 
 	/**
-	 * Reorder categories in the .eff.json file.
+	 * Reorder categories in the .aff.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
 	 *              ordered_ids (JSON array of category UUIDs in desired order)
 	 */
-	public function ajax_eff_reorder_categories(): void {
+	public function ajax_aff_reorder_categories(): void {
 		$this->verify_request();
 		$subgroup    = $this->get_subgroup_param();
 		$ids_raw     = isset( $_POST['ordered_ids'] ) ? wp_unslash( $_POST['ordered_ids'] ) : '[]';
-		$ordered_ids = $this->safe_json_decode( $ids_raw, __( 'Invalid ordered IDs format.', 'elementor-framework-forge' ) );
+		$ordered_ids = $this->safe_json_decode( $ids_raw, __( 'Invalid ordered IDs format.', 'atomic-framework-forge-for-elementor' ) );
 
 		// Sanitize: each ID must be a non-empty string.
 		$ordered_ids = array_values( array_filter(
@@ -484,20 +487,20 @@ class EFF_Ajax_Handler {
 			$store->reorder_categories_for_subgroup( $subgroup, $ordered_ids );
 			return array(
 				'categories' => $store->get_categories_for_subgroup( $subgroup ),
-				'message'    => __( 'Categories reordered.', 'elementor-framework-forge' ),
+				'message'    => __( 'Categories reordered.', 'atomic-framework-forge-for-elementor' ),
 			);
 		} );
 	}
 
 	/**
-	 * Add or update a color variable in the .eff.json file.
+	 * Add or update a color variable in the .aff.json file.
 	 *
 	 * POST params: filename, variable (JSON — full variable object or partial with `id`)
 	 */
-	public function ajax_eff_save_color(): void {
+	public function ajax_aff_save_color(): void {
 		$this->verify_request();
 		$variable_raw = isset( $_POST['variable'] ) ? wp_unslash( $_POST['variable'] ) : '';
-		$variable     = $this->safe_json_decode( $variable_raw, __( 'Invalid variable data.', 'elementor-framework-forge' ) );
+		$variable     = $this->safe_json_decode( $variable_raw, __( 'Invalid variable data.', 'atomic-framework-forge-for-elementor' ) );
 
 		$this->with_store( function ( $store ) use ( $variable ) {
 			if ( ! empty( $variable['id'] ) ) {
@@ -522,14 +525,14 @@ class EFF_Ajax_Handler {
 				}
 
 				if ( ! $store->update_variable( $variable['id'], $update ) ) {
-					throw new \Exception( __( 'Variable not found.', 'elementor-framework-forge' ) );
+					throw new \Exception( __( 'Variable not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				}
 				$id = $variable['id'];
 			} else {
 				// Add new variable.
 				$name = isset( $variable['name'] ) ? sanitize_text_field( $variable['name'] ) : '';
 				if ( empty( $name ) || ! $this->is_valid_css_var( $name ) ) {
-					throw new \Exception( __( 'Valid CSS custom property name required (e.g., --my-color).', 'elementor-framework-forge' ) );
+					throw new \Exception( __( 'Valid CSS custom property name required (e.g., --my-color).', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				}
 
 				$id = $store->add_variable( array(
@@ -549,34 +552,34 @@ class EFF_Ajax_Handler {
 				'id'      => $id,
 				'data'    => $store->get_all_data(),
 				'counts'  => $store->get_counts(),
-				'message' => __( 'Color variable saved.', 'elementor-framework-forge' ),
+				'message' => __( 'Color variable saved.', 'atomic-framework-forge-for-elementor' ),
 			);
 		} );
 	}
 
 	/**
-	 * Delete a color variable from the .eff.json file.
+	 * Delete a color variable from the .aff.json file.
 	 *
 	 * POST params: filename, variable_id, delete_children (optional, '1' to delete children)
 	 */
-	public function ajax_eff_delete_color(): void {
+	public function ajax_aff_delete_color(): void {
 		$variable_id     = $this->post_param( 'variable_id' );
 		$delete_children = isset( $_POST['delete_children'] )
 			&& $_POST['delete_children'] !== '0'
 			&& $_POST['delete_children'] !== '';
 
 		if ( empty( $variable_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Variable ID is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Variable ID is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$this->with_store( function ( $store ) use ( $variable_id, $delete_children ) {
 			if ( ! $store->delete_variable( $variable_id, $delete_children ) ) {
-				throw new \Exception( __( 'Variable not found.', 'elementor-framework-forge' ) );
+				throw new \Exception( __( 'Variable not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 			return array(
 				'data'    => $store->get_all_data(),
 				'counts'  => $store->get_counts(),
-				'message' => __( 'Color variable deleted.', 'elementor-framework-forge' ),
+				'message' => __( 'Color variable deleted.', 'atomic-framework-forge-for-elementor' ),
 			);
 		} );
 	}
@@ -586,12 +589,12 @@ class EFF_Ajax_Handler {
 	 *
 	 * POST params: filename, parent_id, tints (0–10), shades (0–10), transparencies (0|1)
 	 *
-	 * Child variable naming (spec §15.7 — EFF-Spec-Colors):
+	 * Child variable naming (spec §15.7 — AFF-Spec-Colors):
 	 *   Tints:          --name-{step*10}     (e.g., --primary-10, --primary-20)
 	 *   Shades:         --name-plus-{step*10} (e.g., --primary-plus-10; '+' encoded as '-plus-')
 	 *   Transparencies: --name{step*10}       (e.g., --primary10, --primary20; 9 fixed steps)
 	 */
-	public function ajax_eff_generate_children(): void {
+	public function ajax_aff_generate_children(): void {
 		$this->verify_request();
 		$parent_id   = $this->post_param( 'parent_id' );
 		$tint_steps  = max( 0, min( 10, isset( $_POST['tints'] )   ? (int) $_POST['tints']   : 0 ) );
@@ -599,7 +602,7 @@ class EFF_Ajax_Handler {
 		$trans_on    = isset( $_POST['transparencies'] ) && $_POST['transparencies'] !== '0' && $_POST['transparencies'] !== '';
 
 		if ( empty( $parent_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Parent variable ID is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Parent variable ID is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$this->with_store( function ( $store ) use ( $parent_id, $tint_steps, $shade_steps, $trans_on ) {
@@ -612,7 +615,7 @@ class EFF_Ajax_Handler {
 				}
 			}
 			if ( ! $parent ) {
-				throw new \Exception( __( 'Parent variable not found.', 'elementor-framework-forge' ) );
+				throw new \Exception( __( 'Parent variable not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 
 			// Remove existing children of this parent (regenerate).
@@ -625,7 +628,7 @@ class EFF_Ajax_Handler {
 			// Parse parent hex to H, S, L.
 			$hex = ltrim( $parent['value'], '#' );
 			if ( strlen( $hex ) !== 6 ) {
-				throw new \Exception( __( 'Parent variable must have a 6-digit hex value to generate children.', 'elementor-framework-forge' ) );
+				throw new \Exception( __( 'Parent variable must have a 6-digit hex value to generate children.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 
 			list( $h, $s, $l ) = $this->hex_to_hsl( $hex );
@@ -697,22 +700,22 @@ class EFF_Ajax_Handler {
 				'data'    => $store->get_all_data(),
 				'counts'  => $store->get_counts(),
 				/* translators: %d: number of child variables generated */
-				'message' => sprintf( __( 'Generated %d child variables.', 'elementor-framework-forge' ), count( $new_ids ) ),
+				'message' => sprintf( __( 'Generated %d child variables.', 'atomic-framework-forge-for-elementor' ), count( $new_ids ) ),
 			);
 		} );
 	}
 
 	/**
-	 * Save the Elementor baseline snapshot for a .eff.json file.
+	 * Save the Elementor baseline snapshot for a .aff.json file.
 	 *
 	 * POST params: filename, variables (JSON array of {name, value})
 	 */
-	public function ajax_eff_save_baseline(): void {
+	public function ajax_aff_save_baseline(): void {
 		$this->verify_request();
 
 		$filename      = $this->get_filename_param();
 		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
-		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'elementor-framework-forge' ) );
+		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
 
 		// Sanitize: allow only valid CSS custom property entries.
 		$sanitized = array();
@@ -726,24 +729,24 @@ class EFF_Ajax_Handler {
 			);
 		}
 
-		EFF_Data_Store::save_baseline( $filename, $sanitized );
+		AFF_Data_Store::save_baseline( $filename, $sanitized );
 
 		wp_send_json_success( array(
 			'count'   => count( $sanitized ),
-			'message' => __( 'Baseline saved.', 'elementor-framework-forge' ),
+			'message' => __( 'Baseline saved.', 'atomic-framework-forge-for-elementor' ),
 		) );
 	}
 
 	/**
-	 * Retrieve the Elementor baseline snapshot for a .eff.json file.
+	 * Retrieve the Elementor baseline snapshot for a .aff.json file.
 	 *
 	 * POST params: filename
 	 */
-	public function ajax_eff_get_baseline(): void {
+	public function ajax_aff_get_baseline(): void {
 		$this->verify_request();
 
 		$filename  = $this->get_filename_param();
-		$variables = EFF_Data_Store::get_baseline( $filename );
+		$variables = AFF_Data_Store::get_baseline( $filename );
 
 		wp_send_json_success( array(
 			'variables' => $variables,
@@ -752,7 +755,7 @@ class EFF_Ajax_Handler {
 	}
 
 	/**
-	 * Commit EFF color variable values back to Elementor's kit CSS file.
+	 * Commit AFF color variable values back to Elementor's kit CSS file.
 	 *
 	 * Reads the Elementor kit CSS, replaces matching variable values in the
 	 * last `:root` block (the Elementor v4 atomic block), writes the file back,
@@ -760,34 +763,35 @@ class EFF_Ajax_Handler {
 	 *
 	 * POST params: filename, variables (JSON array of {name, value} to commit)
 	 */
-	// Intentional Phase 5 write-back exception — see EFF CLAUDE.md Critical Rule #1.
-	public function ajax_eff_commit_to_elementor(): void {
+	// Intentional Phase 5 write-back exception — see AFF CLAUDE.md Critical Rule #1.
+	public function ajax_aff_commit_to_elementor(): void {
 		$this->verify_request();
 
 		$filename      = $this->get_filename_param();
 		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
-		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'elementor-framework-forge' ) );
+		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
 
 		// Locate the Elementor kit CSS file.
-		$parser   = new EFF_CSS_Parser();
+		$parser   = new AFF_CSS_Parser();
 		$css_file = $parser->find_kit_css_file();
 
 		if ( ! $css_file ) {
 			wp_send_json_error( array(
-				'message' => __( 'Elementor kit CSS file not found. Regenerate CSS from Elementor → Tools → Regenerate Files.', 'elementor-framework-forge' ),
+				'message' => __( 'Elementor kit CSS file not found. Regenerate CSS from Elementor → Tools → Regenerate Files.', 'atomic-framework-forge-for-elementor' ),
 			) );
 		}
 
-		if ( ! is_writable( $css_file ) ) {
+		$fs = $this->get_wp_filesystem();
+		if ( ! $fs || ! $fs->is_writable( $css_file ) ) {
 			wp_send_json_error( array(
 				/* translators: %s: absolute file path */
-				'message' => sprintf( __( 'Kit CSS file is not writable: %s', 'elementor-framework-forge' ), esc_html( $css_file ) ),
+				'message' => sprintf( __( 'Kit CSS file is not writable: %s', 'atomic-framework-forge-for-elementor' ), esc_html( $css_file ) ),
 			) );
 		}
 
 		$css = file_get_contents( $css_file );
 		if ( false === $css ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read kit CSS file.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not read kit CSS file.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$committed = array();
@@ -838,7 +842,7 @@ class EFF_Ajax_Handler {
 						. substr( $css, $user_root_close );
 				} else {
 					// No user-variables :root block exists — append one.
-					$css .= "\n\n/* EFF user-defined variables */\n:root {" . $insert_block . "\n}\n";
+					$css .= "\n\n/* AFF user-defined variables */\n:root {" . $insert_block . "\n}\n";
 				}
 				foreach ( $newly_committed as $n ) {
 					$committed[] = $n;
@@ -849,13 +853,13 @@ class EFF_Ajax_Handler {
 
 		if ( ! empty( $committed ) ) {
 			if ( false === file_put_contents( $css_file, $css ) ) {
-				wp_send_json_error( array( 'message' => __( 'Could not write kit CSS file. Check file permissions.', 'elementor-framework-forge' ) ) );
+				wp_send_json_error( array( 'message' => __( 'Could not write kit CSS file. Check file permissions.', 'atomic-framework-forge-for-elementor' ) ) );
 			}
 		}
 
 		// NOTE: We intentionally do NOT call do_action('elementor/css-file/clear-cache') here.
 		// Doing so causes Elementor to regenerate CSS from its database, which would overwrite
-		// the variables EFF just inserted. The CSS file is the source of truth for EFF variables.
+		// the variables AFF just inserted. The CSS file is the source of truth for AFF variables.
 
 		// Update the baseline to reflect the committed values.
 		$baseline_vars = array();
@@ -872,7 +876,7 @@ class EFF_Ajax_Handler {
 		}
 		if ( ! empty( $baseline_vars ) ) {
 			// Merge into existing baseline.
-			$existing  = EFF_Data_Store::get_baseline( $filename );
+			$existing  = AFF_Data_Store::get_baseline( $filename );
 			$index     = array();
 			foreach ( $existing as $bv ) {
 				$index[ $bv['name'] ] = $bv['value'];
@@ -884,14 +888,14 @@ class EFF_Ajax_Handler {
 			foreach ( $index as $n => $val ) {
 				$merged[] = array( 'name' => $n, 'value' => $val );
 			}
-			EFF_Data_Store::save_baseline( $filename, $merged );
+			AFF_Data_Store::save_baseline( $filename, $merged );
 		}
 
 		wp_send_json_success( array(
 			'committed' => $committed,
 			'skipped'   => $skipped,
 			/* translators: %d: number of variables committed */
-			'message'   => sprintf( __( '%d variable(s) committed to Elementor.', 'elementor-framework-forge' ), count( $committed ) ),
+			'message'   => sprintf( __( '%d variable(s) committed to Elementor.', 'atomic-framework-forge-for-elementor' ), count( $committed ) ),
 		) );
 	}
 
@@ -910,7 +914,7 @@ class EFF_Ajax_Handler {
 	 * @return int|false Position of `}` in $css, or false if no suitable block found.
 	 */
 	private function find_user_root_close_pos( string $css ) {
-		$system_prefixes = EFF_CSS_Parser::SYSTEM_PREFIXES;
+		$system_prefixes = AFF_CSS_Parser::SYSTEM_PREFIXES;
 
 		// Find all :root block positions and their content.
 		$offset = 0;
@@ -969,7 +973,7 @@ class EFF_Ajax_Handler {
 		$raw = $this->post_param( 'filename' );
 
 		if ( empty( $raw ) ) {
-			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Filename is required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		$resolved = $this->resolve_file( $raw );
@@ -977,49 +981,49 @@ class EFF_Ajax_Handler {
 	}
 
 	/**
-	 * Load a .eff.json file into a new EFF_Data_Store instance.
+	 * Load a .aff.json file into a new AFF_Data_Store instance.
 	 *
 	 * Sends a JSON error and dies if the file cannot be read.
 	 *
-	 * @param string $filename Relative path (slug/file.eff.json or legacy file.eff.json).
-	 * @return EFF_Data_Store Loaded store.
+	 * @param string $filename Relative path (slug/file.aff.json or legacy file.aff.json).
+	 * @return AFF_Data_Store Loaded store.
 	 */
-	private function load_store( string $filename ): EFF_Data_Store {
-		$dir   = EFF_Data_Store::get_wp_storage_dir();
+	private function load_store( string $filename ): AFF_Data_Store {
+		$dir   = AFF_Data_Store::get_wp_storage_dir();
 		$file  = $dir . $filename;
-		$store = new EFF_Data_Store();
+		$store = new AFF_Data_Store();
 
 		if ( file_exists( $file ) && ! $store->load_from_file( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read or parse EFF file.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not read or parse AFF file.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		return $store;
 	}
 
 	/**
-	 * Save a data store to its .eff.json file.
+	 * Save a data store to its .aff.json file.
 	 *
 	 * Sends a JSON error and dies if the file cannot be written.
 	 *
-	 * @param EFF_Data_Store $store    Store to save.
-	 * @param string         $filename Relative path (slug/file.eff.json or legacy file.eff.json).
+	 * @param AFF_Data_Store $store    Store to save.
+	 * @param string         $filename Relative path (slug/file.aff.json or legacy file.aff.json).
 	 */
-	private function save_store( EFF_Data_Store $store, string $filename ): void {
-		$dir  = EFF_Data_Store::get_wp_storage_dir();
+	private function save_store( AFF_Data_Store $store, string $filename ): void {
+		$dir  = AFF_Data_Store::get_wp_storage_dir();
 		$file = $dir . $filename;
 
 		if ( ! $store->save_to_file( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not write EFF file. Check directory permissions.', 'elementor-framework-forge' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not write AFF file. Check directory permissions.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 	}
 
 	/**
 	 * Verify the request, load the store, run $callback, save, and send JSON success.
 	 *
-	 * The callback receives the EFF_Data_Store instance and must return the array
+	 * The callback receives the AFF_Data_Store instance and must return the array
 	 * to pass to wp_send_json_success(). Throw an \Exception to send an error instead.
 	 *
-	 * @param callable $callback function( EFF_Data_Store $store ): array
+	 * @param callable $callback function( AFF_Data_Store $store ): array
 	 */
 	private function with_store( callable $callback ): void {
 		$this->verify_request();
@@ -1107,6 +1111,29 @@ class EFF_Ajax_Handler {
 	}
 
 	// -----------------------------------------------------------------------
+	// PRIVATE HELPER — WordPress Filesystem
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Initialize and return the WP_Filesystem instance.
+	 *
+	 * Uses the direct filesystem method for wp-content/uploads/ operations,
+	 * which never requires credential prompts. Returns null on failure.
+	 *
+	 * @return \WP_Filesystem_Base|null
+	 */
+	private function get_wp_filesystem(): ?\WP_Filesystem_Base {
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			if ( ! WP_Filesystem() ) {
+				return null;
+			}
+		}
+		return $wp_filesystem;
+	}
+
+	// -----------------------------------------------------------------------
 	// PRIVATE HELPERS — REQUEST, DECODING & VALIDATION
 	// -----------------------------------------------------------------------
 
@@ -1157,21 +1184,21 @@ class EFF_Ajax_Handler {
 	/**
 	 * Resolve a raw filename POST param to an absolute path.
 	 *
-	 * Handles new subdirectory format (slug/slug_YYYY-MM-DD_HH-II-SS.eff.json)
-	 * and old flat format (slug.eff.json) for backward compat.
+	 * Handles new subdirectory format (slug/slug_YYYY-MM-DD_HH-II-SS.aff.json)
+	 * and old flat format (slug.aff.json) for backward compat.
 	 * Exits with JSON error on invalid input.
 	 *
 	 * @param string $raw Raw filename value from POST.
 	 * @return array { absolute: string, relative: string }
 	 */
 	private function resolve_file( string $raw ): array {
-		$dir = EFF_Data_Store::get_wp_storage_dir();
+		$dir = AFF_Data_Store::get_wp_storage_dir();
 
 		if ( strpos( $raw, '/' ) !== false ) {
 			// New subdirectory format — validate, prevent path traversal.
 			$rel = ltrim( $raw, '/' );
 			if ( strpos( $rel, '..' ) !== false ) {
-				wp_send_json_error( array( 'message' => __( 'Invalid path.', 'elementor-framework-forge' ) ) );
+				wp_send_json_error( array( 'message' => __( 'Invalid path.', 'atomic-framework-forge-for-elementor' ) ) );
 			}
 			$abs  = $dir . $rel;
 			// Only use realpath if the directory already exists; if it doesn't,
@@ -1180,14 +1207,14 @@ class EFF_Ajax_Handler {
 			if ( $real ) {
 				$base = rtrim( realpath( $dir ) ?: $dir, DIRECTORY_SEPARATOR );
 				if ( strpos( $real, $base ) !== 0 ) {
-					wp_send_json_error( array( 'message' => __( 'Invalid path.', 'elementor-framework-forge' ) ) );
+					wp_send_json_error( array( 'message' => __( 'Invalid path.', 'atomic-framework-forge-for-elementor' ) ) );
 				}
 			}
 			return array( 'absolute' => $abs, 'relative' => $rel );
 		}
 
 		// Old flat format — backward compat.
-		$filename = EFF_Data_Store::sanitize_filename( $raw );
+		$filename = AFF_Data_Store::sanitize_filename( $raw );
 		return array( 'absolute' => $dir . $filename, 'relative' => $filename );
 	}
 
@@ -1199,16 +1226,16 @@ class EFF_Ajax_Handler {
 	 * Verify nonce and capability. Sends JSON error and dies on failure.
 	 */
 	private function verify_request(): void {
-		if ( ! check_ajax_referer( EFF_NONCE_ACTION, 'nonce', false ) ) {
+		if ( ! check_ajax_referer( AFF_NONCE_ACTION, 'nonce', false ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Security check failed.', 'elementor-framework-forge' ) ),
+				array( 'message' => __( 'Security check failed.', 'atomic-framework-forge-for-elementor' ) ),
 				403
 			);
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Insufficient permissions.', 'elementor-framework-forge' ) ),
+				array( 'message' => __( 'Insufficient permissions.', 'atomic-framework-forge-for-elementor' ) ),
 				403
 			);
 		}
@@ -1231,7 +1258,7 @@ class EFF_Ajax_Handler {
 	 * @return string|null Absolute path to the kit CSS file, or null on failure.
 	 */
 	private function try_regenerate_elementor_kit_css(): ?string {
-		$kit_id = EFF_CSS_Parser::get_active_kit_id();
+		$kit_id = AFF_CSS_Parser::get_active_kit_id();
 		if ( ! $kit_id ) {
 			return null;
 		}
@@ -1249,12 +1276,14 @@ class EFF_Ajax_Handler {
 			$css_obj = new \Elementor\Core\Files\CSS\Post( $kit_id );
 			$css_obj->update();
 		} catch ( \Throwable $e ) {
-			error_log( 'EFF: Failed to regenerate Elementor kit CSS (kit ID ' . $kit_id . '): ' . $e->getMessage() );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'AFF: Failed to regenerate Elementor kit CSS (kit ID ' . $kit_id . '): ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			}
 			return null;
 		}
 
 		// Re-check for the file after regeneration.
-		$parser = new EFF_CSS_Parser();
+		$parser = new AFF_CSS_Parser();
 		return $parser->find_kit_css_file();
 	}
 
@@ -1264,26 +1293,26 @@ class EFF_Ajax_Handler {
 
 	/**
 	 * Read Elementor V3 Global Colors from the active kit post meta and return
-	 * them as an array of { name, value } objects for import into EFF.
+	 * them as an array of { name, value } objects for import into AFF.
 	 *
 	 * V3 Global Colors are stored in `_elementor_page_settings` → `system_colors`
 	 * and `custom_colors` as arrays of { _id, title, color } objects.
 	 * The CSS variable name is derived as `--e-global-color-{_id}`.
 	 */
-	public function ajax_eff_sync_v3_global_colors(): void {
+	public function ajax_aff_sync_v3_global_colors(): void {
 		$this->verify_request();
 
-		$kit_id = EFF_CSS_Parser::get_active_kit_id();
+		$kit_id = AFF_CSS_Parser::get_active_kit_id();
 		if ( ! $kit_id ) {
 			wp_send_json_error( array(
-				'message' => __( 'No active Elementor kit found.', 'elementor-framework-forge' ),
+				'message' => __( 'No active Elementor kit found.', 'atomic-framework-forge-for-elementor' ),
 			) );
 		}
 
 		$settings = get_post_meta( $kit_id, '_elementor_page_settings', true );
 		if ( ! is_array( $settings ) ) {
 			wp_send_json_error( array(
-				'message' => __( 'Could not read Elementor kit settings. Make sure the kit has been saved at least once.', 'elementor-framework-forge' ),
+				'message' => __( 'Could not read Elementor kit settings. Make sure the kit has been saved at least once.', 'atomic-framework-forge-for-elementor' ),
 			) );
 		}
 

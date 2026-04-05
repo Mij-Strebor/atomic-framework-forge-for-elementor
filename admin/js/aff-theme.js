@@ -1,20 +1,20 @@
 /**
- * EFF Theme — Light/Dark Mode Management
+ * AFF Theme — Light/Dark Mode Management
  *
- * Reads the initial theme from the data-eff-theme attribute set by PHP,
- * provides EFF.Theme.set() for toggling, and persists the preference
+ * Reads the initial theme from the data-aff-theme attribute set by PHP,
+ * provides AFF.Theme.set() for toggling, and persists the preference
  * via AJAX to WordPress usermeta.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
-/* global EFFData */
+/* global AFFData */
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF = window.AFF || {};
 
-	EFF.Theme = {
+	AFF.Theme = {
 
 		/** @type {string} Current theme: 'light' | 'dark' */
 		current: 'light',
@@ -23,9 +23,9 @@
 		 * Initialize: read theme from the root container attribute.
 		 */
 		init: function () {
-			var app = document.getElementById('eff-app');
+			var app = document.getElementById('aff-app');
 			if (app) {
-				this.current = app.getAttribute('data-eff-theme') || 'light';
+				this.current = app.getAttribute('data-aff-theme') || 'light';
 			}
 		},
 
@@ -39,13 +39,13 @@
 				return;
 			}
 
-			var app = document.getElementById('eff-app');
+			var app = document.getElementById('aff-app');
 			if (!app) {
 				return;
 			}
 
 			this.current = theme;
-			app.setAttribute('data-eff-theme', theme);
+			app.setAttribute('data-aff-theme', theme);
 			this._persist(theme);
 		},
 
@@ -63,11 +63,11 @@
 		 * @private
 		 */
 		_persist: function (theme) {
-			if (typeof EFF === 'undefined' || !EFF.App || !EFF.App.ajax) {
+			if (typeof AFF === 'undefined' || !AFF.App || !AFF.App.ajax) {
 				return;
 			}
 
-			EFF.App.ajax('eff_save_user_theme', { theme: theme }).catch(function () {
+			AFF.App.ajax('aff_save_user_theme', { theme: theme }).catch(function () {
 				// Silently fail — theme toggle is non-critical
 			});
 		},

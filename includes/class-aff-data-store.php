@@ -1,27 +1,27 @@
 <?php
 /**
- * EFF Data Store — Platform-Portable Data Management Layer
+ * AFF Data Store — Platform-Portable Data Management Layer
  *
  * Contains all business logic for variable/class/component CRUD and
  * JSON file persistence. This class has NO WordPress dependencies in
  * its core logic section — only in the clearly-marked WP adapter section
  * at the bottom.
  *
- * This separation is intentional: EFF may be ported to a standalone
+ * This separation is intentional: AFF may be ported to a standalone
  * Windows or Mac application in the future. The core logic must remain
  * portable; WordPress-specific code is isolated in adapter methods only.
  *
- * Storage format: .eff.json files in the WordPress uploads/eff/ directory
+ * Storage format: .aff.json files in the WordPress uploads/aff/ directory
  * (or a user-specified path). The JSON format is platform-agnostic.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_Data_Store {
+class AFF_Data_Store {
 
 	/**
 	 * The in-memory project data structure.
@@ -59,7 +59,7 @@ class EFF_Data_Store {
 	/**
 	 * Load project data from a JSON file.
 	 *
-	 * @param string $file_path Absolute path to .eff.json file.
+	 * @param string $file_path Absolute path to .aff.json file.
 	 * @return bool True on success.
 	 */
 	public function load_from_file( string $file_path ): bool {
@@ -116,7 +116,7 @@ class EFF_Data_Store {
 	 * New variables (by name) are added. Existing variables are NOT
 	 * overwritten, preserving any manual edits the developer has made.
 	 *
-	 * @param array $parsed_vars Array of { name, value } pairs from EFF_CSS_Parser.
+	 * @param array $parsed_vars Array of { name, value } pairs from AFF_CSS_Parser.
 	 * @return int Number of new variables imported.
 	 */
 	public function import_parsed_variables( array $parsed_vars ): int {
@@ -440,7 +440,7 @@ class EFF_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// CLASSES CRUD (v1 placeholder — Classes support arrives in EFF v3)
+	// CLASSES CRUD (v1 placeholder — Classes support arrives in AFF v3)
 	// -----------------------------------------------------------------------
 
 	/**
@@ -451,7 +451,7 @@ class EFF_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// COMPONENTS CRUD (v1 placeholder — Components support arrives in EFF v4)
+	// COMPONENTS CRUD (v1 placeholder — Components support arrives in AFF v4)
 	// -----------------------------------------------------------------------
 
 	/**
@@ -648,33 +648,33 @@ class EFF_Data_Store {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Return the absolute path to the EFF file storage directory,
+	 * Return the absolute path to the AFF file storage directory,
 	 * creating it if it does not exist.
 	 *
 	 * @return string Absolute path with trailing slash.
 	 */
 	public static function get_wp_storage_dir(): string {
 		$upload_dir = wp_upload_dir();
-		$dir        = $upload_dir['basedir'] . '/eff/';
+		$dir        = $upload_dir['basedir'] . '/aff/';
 		wp_mkdir_p( $dir );
 		return $dir;
 	}
 
 	/**
-	 * Sanitize a filename and enforce the .eff.json extension.
+	 * Sanitize a filename and enforce the .aff.json extension.
 	 *
 	 * @param string $filename Raw input filename.
-	 * @return string Safe filename with .eff.json extension.
+	 * @return string Safe filename with .aff.json extension.
 	 */
 	public static function sanitize_filename( string $filename ): string {
 		$filename = sanitize_file_name( $filename );
 
-		// Strip existing extension and enforce .eff.json.
+		// Strip existing extension and enforce .aff.json.
 		$base = pathinfo( $filename, PATHINFO_FILENAME );
-		// Handle double-extension like "my-project.eff" → "my-project".
-		$base = preg_replace( '/(\.eff)+$/', '', $base );
+		// Handle double-extension like "my-project.aff" → "my-project".
+		$base = preg_replace( '/(\.aff)+$/', '', $base );
 
-		return $base . '.eff.json';
+		return $base . '.aff.json';
 	}
 
 	// -----------------------------------------------------------------------
@@ -683,38 +683,38 @@ class EFF_Data_Store {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Retrieve the Elementor baseline snapshot for a given .eff.json file.
+	 * Retrieve the Elementor baseline snapshot for a given .aff.json file.
 	 *
 	 * The baseline is a flat array of { name, value } pairs representing
 	 * Elementor's variable values at the time of the last Sync.
 	 *
-	 * @param string $filename Sanitized .eff.json filename (e.g., 'my-project.eff.json').
+	 * @param string $filename Sanitized .aff.json filename (e.g., 'my-project.aff.json').
 	 * @return array Baseline variable array, or empty array if not yet set.
 	 */
 	public static function get_baseline( string $filename ): array {
-		$key  = 'eff_elementor_baseline_' . md5( $filename );
+		$key  = 'aff_elementor_baseline_' . md5( $filename );
 		$data = get_option( $key, array() );
 		return is_array( $data ) ? $data : array();
 	}
 
 	/**
-	 * Save the Elementor baseline snapshot for a given .eff.json file.
+	 * Save the Elementor baseline snapshot for a given .aff.json file.
 	 *
-	 * @param string  $filename  Sanitized .eff.json filename.
+	 * @param string  $filename  Sanitized .aff.json filename.
 	 * @param array   $variables Array of { name, value } pairs from Elementor.
 	 */
 	public static function save_baseline( string $filename, array $variables ): void {
-		$key = 'eff_elementor_baseline_' . md5( $filename );
+		$key = 'aff_elementor_baseline_' . md5( $filename );
 		update_option( $key, $variables, false ); // autoload=false: only needed on demand.
 	}
 
 	/**
-	 * Delete the Elementor baseline snapshot for a given .eff.json file.
+	 * Delete the Elementor baseline snapshot for a given .aff.json file.
 	 *
-	 * @param string $filename Sanitized .eff.json filename.
+	 * @param string $filename Sanitized .aff.json filename.
 	 */
 	public static function delete_baseline( string $filename ): void {
-		$key = 'eff_elementor_baseline_' . md5( $filename );
+		$key = 'aff_elementor_baseline_' . md5( $filename );
 		delete_option( $key );
 	}
 
@@ -770,10 +770,10 @@ class EFF_Data_Store {
 	 * Generate a timestamped backup filename.
 	 *
 	 * @param string $project_slug Slug.
-	 * @return string e.g. "my-demo_2026-03-18_14-30-00.eff.json"
+	 * @return string e.g. "my-demo_2026-03-18_14-30-00.aff.json"
 	 */
 	public static function generate_backup_filename( string $project_slug ): string {
-		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.eff.json';
+		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.aff.json';
 	}
 
 	/**
@@ -804,8 +804,8 @@ class EFF_Data_Store {
 		usort( $list, function ( $a, $b ) use ( $base_dir ) {
 			$fa = $base_dir . $a['slug'] . '/';
 			$fb = $base_dir . $b['slug'] . '/';
-			$ta = ( $files_a = glob( $fa . '*.eff.json' ) ) ? max( array_map( 'filemtime', $files_a ) ) : 0;
-			$tb = ( $files_b = glob( $fb . '*.eff.json' ) ) ? max( array_map( 'filemtime', $files_b ) ) : 0;
+			$ta = ( $files_a = glob( $fa . '*.aff.json' ) ) ? max( array_map( 'filemtime', $files_a ) ) : 0;
+			$tb = ( $files_b = glob( $fb . '*.aff.json' ) ) ? max( array_map( 'filemtime', $files_b ) ) : 0;
 			return $tb - $ta;
 		} );
 
@@ -817,11 +817,11 @@ class EFF_Data_Store {
 	 *
 	 * @param string $base_dir    Absolute path with trailing slash.
 	 * @param string $project_slug Slug.
-	 * @return array[] Each item: { filename (relative: slug/file.eff.json), name, modified }.
+	 * @return array[] Each item: { filename (relative: slug/file.aff.json), name, modified }.
 	 */
 	public static function list_project_backups( string $base_dir, string $project_slug ): array {
 		$dir   = $base_dir . $project_slug . '/';
-		$files = glob( $dir . '*.eff.json' ) ?: array();
+		$files = glob( $dir . '*.aff.json' ) ?: array();
 		usort( $files, function ( $a, $b ) { return filemtime( $b ) - filemtime( $a ); } );
 
 		$list = array();
@@ -829,7 +829,7 @@ class EFF_Data_Store {
 			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$list[] = array(
 				'filename' => $project_slug . '/' . basename( $f ),
-				'name'     => isset( $raw['name'] ) ? preg_replace( '/(\.eff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
+				'name'     => isset( $raw['name'] ) ? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
 				'modified' => date( 'M j, g:i a', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 			);
 		}
@@ -847,33 +847,33 @@ class EFF_Data_Store {
 		if ( $max < 1 ) {
 			return;
 		}
-		$files = glob( $project_dir . '*.eff.json' ) ?: array();
+		$files = glob( $project_dir . '*.aff.json' ) ?: array();
 		if ( count( $files ) <= $max ) {
 			return;
 		}
 		usort( $files, function ( $a, $b ) { return filemtime( $a ) - filemtime( $b ); } ); // oldest first
 		$to_delete = array_slice( $files, 0, count( $files ) - $max );
 		foreach ( $to_delete as $f ) {
-			@unlink( $f ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $f );
 		}
 	}
 
 	/**
-	 * List all .eff.json projects in a directory, sorted by most recently modified.
+	 * List all .aff.json projects in a directory, sorted by most recently modified.
 	 *
 	 * @param string $dir Absolute path with trailing slash.
 	 * @return array[] Array of { name, filename, modified } maps.
 	 */
 	public static function list_projects( string $dir ): array {
-		$files = glob( $dir . '*.eff.json' ) ?: array();
+		$files = glob( $dir . '*.aff.json' ) ?: array();
 		$list  = array();
 
 		foreach ( $files as $f ) {
 			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$list[] = array(
 				'name'     => isset( $raw['name'] ) && $raw['name'] !== ''
-					? preg_replace( '/(\.eff)+(?:\.json)?$/i', '', $raw['name'] )
-					: preg_replace( '/(\.eff)+$/i', '', basename( $f, '.eff.json' ) ),
+					? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] )
+					: preg_replace( '/(\.aff)+$/i', '', basename( $f, '.aff.json' ) ),
 				'filename' => basename( $f ),
 				'modified' => date( 'M j', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 			);

@@ -1,1 +1,0 @@
-bash: where: command not found

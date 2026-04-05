@@ -1,8 +1,7 @@
-# EFF Quick Start Guide
-## Elementor Framework Forge — Beta 0.3.3
+# AFF Quick Start Guide
+## Atomic Framework Forge for Elementor — Beta 0.3.3
 
-> **LytBox Academy Testing Edition**
-> Welcome, and thank you for being an early tester. This guide gets you from zero to your first organized variable set in about ten minutes.
+> This guide gets you from zero to your first organized variable set in about ten minutes.
 >
 > For a complete feature reference, see the **[User Manual →](USER-MANUAL.md)**
 
@@ -17,11 +16,11 @@ You will need:
 - ✅ At least one **Elementor Kit** configured with Elementor Version 4 CSS variables *A non-production website with Elementor Version 4 active and one or more pages using atomic elements*
 - ✅ A wild bunch of crazy **Version 4 Variables** on these pages
 
-> **Beta note:** EFF is read-first and non-destructive. It will never modify your Elementor kit unless you explicitly click **Commit to Elementor**. (Not yet active) Feel free to explore.
+> **Beta note:** AFF is read-first and non-destructive. It will never modify your Elementor kit unless you explicitly click **Commit to Elementor**. (Not yet active) Feel free to explore.
 
 ---
 
-## Step 1 — Install EFF
+## Step 1 — Install AFF
 
 ### Clone from GitHub
 
@@ -29,29 +28,29 @@ Open a terminal and navigate to your WordPress plugins directory:
 
 ```bash
 cd wp-content/plugins
-git clone https://github.com/Mij-Strebor/elementor-framework-forge.git
+git clone https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor.git
 ```
 
 ### Or download a ZIP (recommended)
 
 Click **Code → Download ZIP** on this GitHub repository page.
- You can Plugins > Add Plugin > Upload Plugin > Choose file in WordPress then select and install ***elementor-framework-forge-0.3.3-Beta.zip***
+ You can Plugins > Add Plugin > Upload Plugin > Choose file in WordPress then select and install ***atomic-framework-forge-for-elementor-0.3.3-Beta.zip***
 
-or unzip directly into your `wp-content/plugins/elementor-framework-forge/`.
+or unzip directly into your `wp-content/plugins/atomic-framework-forge-for-elementor/`.
 
 ### Activate
 
 1. Go to **WordPress Admin → Plugins → Installed Plugins**.
-2. Find **Elementor Framework Forge** and click **Activate**.
-3. You should see **EFF** appear in your WordPress admin sidebar.
+2. Find **Atomic Framework Forge for Elementor** and click **Activate**.
+3. You should see **AFF** appear in your WordPress admin sidebar.
 
-> If EFF shows an error about missing dependencies, make sure both Elementor and Elementor Pro are installed and active.
+> If AFF shows an error about missing dependencies, make sure both Elementor and Elementor Pro are installed and active.
 
 ---
 
-## Step 2 — Open EFF
+## Step 2 — Open AFF
 
-Click **EFF** in the WordPress admin sidebar. You will see the four-panel interface:
+Click **AFF** in the WordPress admin sidebar. You will see the four-panel interface:
 
 - **Top bar** — Preferences, Manage Project, Sync, Functions
 - **Left panel** — Variable tree: Colors / Fonts / Numbers
@@ -72,9 +71,9 @@ On first load, the edit space shows a placeholder. That is expected — nothing 
 | **Save & Backups** | Save Project (new snapshot) · Save Changes (update current) |
 | **Elementor Sync** | Pull variables from Elementor V4 Variables· Commit changes back to Elementor |
 | **Elementor V3 Import** | Import V3 Global Colors into the current project |
-| **Export / Import** | Download/upload the project as a portable `.eff.json` file |
+| **Export / Import** | Download/upload the project as a portable `.aff.json` file |
 
-> **The only automatic operation is startup auto-load.** EFF reloads your last active project when you open the plugin. Everything else requires a deliberate action from you.
+> **The only automatic operation is startup auto-load.** AFF reloads your last active project when you open the plugin. Everything else requires a deliberate action from you.
 
 ---
 
@@ -82,7 +81,7 @@ On first load, the edit space shows a placeholder. That is expected — nothing 
 
 In the right panel under **Elementor Sync**, click **↓ Variables**.
 
-EFF will:
+AFF will:
 1. Locate your active Elementor kit CSS file automatically.
 2. Read the `:root {}` block containing your V4 Variables.
 3. Classify each variable as **Color**, **Font**, or **Number** based on its value.
@@ -173,17 +172,17 @@ All preview bars update live when you change the color.
 
 In the right panel under **Save & Backups**, click **Save Project**.
 
-EFF creates a timestamped snapshot:
+AFF creates a timestamped snapshot:
 
 ```
-/wp-content/uploads/eff/my-project/my-project_2026-03-19_14-30-00.eff.json
+/wp-content/uploads/aff/my-project/my-project_2026-03-19_14-30-00.aff.json
 ```
 
 Every **Save Project** adds a new snapshot — nothing is overwritten. You can accumulate up to 10 snapshots per project (configurable in Manage Project).
 
 **Save Changes** updates the current snapshot in place — use this for quick saves between checkpoints.
 
-> EFF remembers your last active project and reloads it automatically on the next startup.
+> AFF remembers your last active project and reloads it automatically on the next startup.
 
 ---
 
@@ -209,15 +208,15 @@ When you are ready to push your edited values back to Elementor:
 4. Click **Commit** to write to Elementor's kit CSS.
 5. Open Elementor to see the updated values reflected site-wide.
 
-> **Important:** Committing modifies your Elementor kit CSS. This is reversible by restoring a backup in EFF, but it is good practice to Save Project first so you have a clean snapshot before you commit.
+> **Important:** Committing modifies your Elementor kit CSS. This is reversible by restoring a backup in AFF, but it is good practice to Save Project first so you have a clean snapshot before you commit.
 
 ---
 
 ## Export and Import
 
-**Export** — downloads the entire current project as a `.eff.json` file to your disk. Use this to share a project between WordPress sites or to keep an off-server copy.
+**Export** — downloads the entire current project as a `.aff.json` file to your disk. Use this to share a project between WordPress sites or to keep an off-server copy.
 
-**Import** — uploads a `.eff.json` file and replaces the current project with its contents. You will be warned if the current project has unsaved changes.
+**Import** — uploads a `.aff.json` file and replaces the current project with its contents. You will be warned if the current project has unsaved changes.
 
 Export and import are **complete replacements**, not merges.
 
@@ -241,7 +240,7 @@ Click the **⚙ gear icon** in the top bar to open Preferences:
 
 ## Interface Theme
 
-EFF ships with two themes built on the JimRForge brand palette:
+AFF ships with two themes built on the JimRForge brand palette:
 
 - **Light** — Deep brown on warm cream
 - **Dark** — Light cream on warm charcoal brown
@@ -270,13 +269,13 @@ Your preference is saved to your WordPress user account.
 → Go to Elementor → Site Settings → click Save Changes to regenerate the kit CSS, then sync again.
 
 **Variables appear in the wrong set (e.g., a color in Numbers)**
-→ EFF uses value patterns to classify variables. Drag the variable to the correct category manually.
+→ AFF uses value patterns to classify variables. Drag the variable to the correct category manually.
 
 **Color picker swatch shows black**
 → Try a hard refresh (Ctrl+Shift+R). Pickr loads from a CDN — a failed load causes the blank swatch.
 
 **After committing, Elementor variables look wrong**
-→ Restore a backup in EFF, then commit again. If values look corrupted, report the issue in LytBox Academy with the browser console log.
+→ Restore a backup in AFF, then commit again. If values look corrupted, report the issue on GitHub with the browser console log.
 
 **The panel looks broken or unstyled**
 → Hard refresh (Ctrl+Shift+R). If the issue persists, clear your browser cache.
@@ -285,14 +284,14 @@ Your preference is saved to your WordPress user account.
 
 ## Giving Feedback
 
-Your testing feedback directly shapes EFF's development. When reporting:
+Your testing feedback directly shapes AFF's development. When reporting:
 
 1. **What you were doing** — Which panel, which action
 2. **What you expected** — What you thought would happen
 3. **What happened** — What actually occurred (include browser console errors if possible)
-4. **Your setup** — WordPress version, Elementor version, EFF version, browser
+4. **Your setup** — WordPress version, Elementor version, AFF version, browser
 
-Report to Jim Roberts in the **LytBox Academy** community portal or (better) post in GitHub Issues.
+Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 

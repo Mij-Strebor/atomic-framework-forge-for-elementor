@@ -1,23 +1,23 @@
 /**
- * EFF Panel Right — Data Management Controls and Asset Counts
+ * AFF Panel Right — Data Management Controls and Asset Counts
  *
  * Manages:
  *  - Active Project section (name input, Save Changes indicator, Open / Switch Project)
  *  - Save section (Save Project)
  *  - Elementor 4 Sync section (Fetch Elementor Data, Write to Elementor)
- *  - Export / Import section (bound via eff-panel-top.js by element ID)
+ *  - Export / Import section (bound via aff-panel-top.js by element ID)
  *  - Live asset count display (variables, classes, components)
  *
  * @package ElementorFrameworkForge
  */
 
-/* global EFFData */
+/* global AFFData */
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF= window.AFF|| {};
 
-	EFF.PanelRight = {
+	AFF.PanelRight = {
 
 		/** @type {HTMLInputElement|null} */
 		_filenameInput: null,
@@ -38,12 +38,12 @@
 		 * Initialize the right panel.
 		 */
 		init: function () {
-			this._filenameInput       = document.getElementById('eff-filename');
-			this._loadBtn             = document.getElementById('eff-btn-load');
-			this._saveBtn             = document.getElementById('eff-btn-save');
-			this._saveChangesBtn      = document.getElementById('eff-btn-save-changes');
-			this._syncVariablesBtn    = document.getElementById('eff-btn-sync-variables');
-			this._commitVariablesBtn  = document.getElementById('eff-btn-commit-variables');
+			this._filenameInput       = document.getElementById('aff-filename');
+			this._loadBtn             = document.getElementById('aff-btn-load');
+			this._saveBtn             = document.getElementById('aff-btn-save');
+			this._saveChangesBtn      = document.getElementById('aff-btn-save-changes');
+			this._syncVariablesBtn    = document.getElementById('aff-btn-sync-variables');
+			this._commitVariablesBtn  = document.getElementById('aff-btn-commit-variables');
 
 			this._bindLoadBtn();
 			this._bindSaveBtn();
@@ -54,14 +54,14 @@
 		},
 
 		// ------------------------------------------------------------------
-		// FILENAME INPUT — keep EFF.state.projectName in sync
+		// FILENAME INPUT — keep AFF.state.projectName in sync
 		// ------------------------------------------------------------------
 
 		_bindFilenameInput: function () {
 			if (!this._filenameInput) { return; }
 			var self = this;
 			this._filenameInput.addEventListener('input', function () {
-				EFF.state.projectName = self._filenameInput.value.trim();
+				AFF.state.projectName = self._filenameInput.value.trim();
 			});
 			this._filenameInput.addEventListener('focus', function () { this.select(); });
 		},
@@ -88,40 +88,40 @@
 		_loadFile: function (path) {
 			var self = this;
 
-			EFF.App.ajax('eff_load_file', { filename: path })
+			AFF.App.ajax('aff_load_file', { filename: path })
 				.then(function (res) {
 					if (res.success) {
-						EFF.state.variables  = res.data.data.variables  || [];
-						EFF.state.classes    = res.data.data.classes    || [];
-						EFF.state.components = res.data.data.components || [];
-						var _oldGroups = EFF.state.config && EFF.state.config.groups;
-						EFF.state.config     = res.data.data.config     || {};
-						if (!EFF.state.config.groups && _oldGroups) { EFF.state.config.groups = _oldGroups; }
+						AFF.state.variables  = res.data.data.variables  || [];
+						AFF.state.classes    = res.data.data.classes    || [];
+						AFF.state.components = res.data.data.components || [];
+						var _oldGroups = AFF.state.config && AFF.state.config.groups;
+						AFF.state.config     = res.data.data.config     || {};
+						if (!AFF.state.config.groups && _oldGroups) { AFF.state.config.groups = _oldGroups; }
 					// Preserve Phase 2 category arrays from globalConfig when the file's
 					// config doesn't have them (e.g. older files saved before categories existed).
-					if (EFF.state.globalConfig) {
-						var _gc = EFF.state.globalConfig;
-						if ((!EFF.state.config.categories       || !EFF.state.config.categories.length)       && _gc.categories       && _gc.categories.length)       { EFF.state.config.categories       = _gc.categories.slice(); }
-						if ((!EFF.state.config.fontCategories   || !EFF.state.config.fontCategories.length)   && _gc.fontCategories   && _gc.fontCategories.length)   { EFF.state.config.fontCategories   = _gc.fontCategories.slice(); }
-						if ((!EFF.state.config.numberCategories || !EFF.state.config.numberCategories.length) && _gc.numberCategories && _gc.numberCategories.length) { EFF.state.config.numberCategories = _gc.numberCategories.slice(); }
+					if (AFF.state.globalConfig) {
+						var _gc = AFF.state.globalConfig;
+						if ((!AFF.state.config.categories       || !AFF.state.config.categories.length)       && _gc.categories       && _gc.categories.length)       { AFF.state.config.categories       = _gc.categories.slice(); }
+						if ((!AFF.state.config.fontCategories   || !AFF.state.config.fontCategories.length)   && _gc.fontCategories   && _gc.fontCategories.length)   { AFF.state.config.fontCategories   = _gc.fontCategories.slice(); }
+						if ((!AFF.state.config.numberCategories || !AFF.state.config.numberCategories.length) && _gc.numberCategories && _gc.numberCategories.length) { AFF.state.config.numberCategories = _gc.numberCategories.slice(); }
 					}
-						EFF.state.currentFile = res.data.filename;
+						AFF.state.currentFile = res.data.filename;
 
 						// Prefer the name stored inside the project file for round-trip accuracy.
 						// Strip any stale .eff extension to prevent -eff suffix on next save.
 					var displayName = (res.data.data.name || name).replace(/(?:\.eff)+(?:\.json)?$/i, '');
-						EFF.state.projectName = displayName;
+						AFF.state.projectName = displayName;
 						if (self._filenameInput) {
 							self._filenameInput.value = displayName;
 						}
 
-						EFF.App.refreshCounts();
-						if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
-						EFF.App.setDirty(false);
-						EFF.Modal.close();
+						AFF.App.refreshCounts();
+						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+						AFF.App.setDirty(false);
+						AFF.Modal.close();
 
 						// Persist last loaded filename so auto-load can restore it on next open.
-						EFF.App.ajax('eff_save_settings', {
+						AFF.App.ajax('aff_save_settings', {
 							settings: JSON.stringify({ last_file: res.data.filename }),
 						});
 
@@ -130,13 +130,13 @@
 						}
 
 						// Scan widget usage for loaded variables (async, non-blocking).
-						EFF.App.fetchUsageCounts();
+						AFF.App.fetchUsageCounts();
 					} else {
-						EFF.Modal.open({ title: 'Load error', body: '<p>' + (res.data.message || 'Unknown error.') + '</p>' });
+						AFF.Modal.open({ title: 'Load error', body: '<p>' + (res.data.message || 'Unknown error.') + '</p>' });
 					}
 				})
 				.catch(function () {
-					EFF.Modal.open({ title: 'Load error', body: '<p>Network error while loading.</p>' });
+					AFF.Modal.open({ title: 'Load error', body: '<p>Network error while loading.</p>' });
 				});
 		},
 
@@ -149,36 +149,36 @@
 		_autoLoadFile: function (filename) {
 			var self = this;
 
-			EFF.App.ajax('eff_load_file', { filename: filename })
+			AFF.App.ajax('aff_load_file', { filename: filename })
 				.then(function (res) {
 					if (res.success) {
-						EFF.state.variables  = res.data.data.variables  || [];
-						EFF.state.classes    = res.data.data.classes    || [];
-						EFF.state.components = res.data.data.components || [];
-						var _oldGroupsAL = EFF.state.config && EFF.state.config.groups;
-						EFF.state.config     = res.data.data.config     || {};
-						if (!EFF.state.config.groups && _oldGroupsAL) { EFF.state.config.groups = _oldGroupsAL; }
+						AFF.state.variables  = res.data.data.variables  || [];
+						AFF.state.classes    = res.data.data.classes    || [];
+						AFF.state.components = res.data.data.components || [];
+						var _oldGroupsAL = AFF.state.config && AFF.state.config.groups;
+						AFF.state.config     = res.data.data.config     || {};
+						if (!AFF.state.config.groups && _oldGroupsAL) { AFF.state.config.groups = _oldGroupsAL; }
 					// Preserve Phase 2 category arrays from globalConfig when the file's
 					// config doesn't have them (e.g. older files saved before categories existed).
-					if (EFF.state.globalConfig) {
-						var _gcAL = EFF.state.globalConfig;
-						if ((!EFF.state.config.categories       || !EFF.state.config.categories.length)       && _gcAL.categories       && _gcAL.categories.length)       { EFF.state.config.categories       = _gcAL.categories.slice(); }
-						if ((!EFF.state.config.fontCategories   || !EFF.state.config.fontCategories.length)   && _gcAL.fontCategories   && _gcAL.fontCategories.length)   { EFF.state.config.fontCategories   = _gcAL.fontCategories.slice(); }
-						if ((!EFF.state.config.numberCategories || !EFF.state.config.numberCategories.length) && _gcAL.numberCategories && _gcAL.numberCategories.length) { EFF.state.config.numberCategories = _gcAL.numberCategories.slice(); }
+					if (AFF.state.globalConfig) {
+						var _gcAL = AFF.state.globalConfig;
+						if ((!AFF.state.config.categories       || !AFF.state.config.categories.length)       && _gcAL.categories       && _gcAL.categories.length)       { AFF.state.config.categories       = _gcAL.categories.slice(); }
+						if ((!AFF.state.config.fontCategories   || !AFF.state.config.fontCategories.length)   && _gcAL.fontCategories   && _gcAL.fontCategories.length)   { AFF.state.config.fontCategories   = _gcAL.fontCategories.slice(); }
+						if ((!AFF.state.config.numberCategories || !AFF.state.config.numberCategories.length) && _gcAL.numberCategories && _gcAL.numberCategories.length) { AFF.state.config.numberCategories = _gcAL.numberCategories.slice(); }
 					}
-						EFF.state.currentFile = res.data.filename;
+						AFF.state.currentFile = res.data.filename;
 
 						var displayName = (res.data.data.name
 							|| (res.data.filename || '').replace(/(?:\.eff)+(?:\.json)?$/i, ''))
 							.replace(/(?:\.eff)+(?:\.json)?$/i, '');
-						EFF.state.projectName = displayName;
+						AFF.state.projectName = displayName;
 						if (self._filenameInput) {
 							self._filenameInput.value = displayName;
 						}
 
-						EFF.App.refreshCounts();
-						if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
-						EFF.App.fetchUsageCounts();
+						AFF.App.refreshCounts();
+						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+						AFF.App.fetchUsageCounts();
 					}
 					// Silent on failure — user will see empty state as expected.
 				})
@@ -198,7 +198,7 @@
 			this._saveBtn.addEventListener('click', function () {
 				var name = self._filenameInput ? self._filenameInput.value.trim() : '';
 				if (!name) {
-					EFF.Modal.open({ title: 'Name required', body: '<p>Please enter a project name before saving.</p>' });
+					AFF.Modal.open({ title: 'Name required', body: '<p>Please enter a project name before saving.</p>' });
 					if (self._filenameInput) { self._filenameInput.focus(); }
 					return;
 				}
@@ -218,34 +218,34 @@
 			var data = {
 				version:    '1.0',
 				name:       cleanName,
-				config:     EFF.state.config,
-				variables:  EFF.state.variables,
-				classes:    EFF.state.classes,
-				components: EFF.state.components,
+				config:     AFF.state.config,
+				variables:  AFF.state.variables,
+				classes:    AFF.state.classes,
+				components: AFF.state.components,
 			};
 
-			EFF.App.ajax('eff_save_file', {
+			AFF.App.ajax('aff_save_file', {
 				project_name: cleanName,
 				data:         JSON.stringify(data),
 			})
 				.then(function (res) {
 					if (res.success) {
-						EFF.state.currentFile = res.data.filename;
-						EFF.state.projectName = cleanName;
+						AFF.state.currentFile = res.data.filename;
+						AFF.state.projectName = cleanName;
 						if (self._filenameInput) {
 							self._filenameInput.value = cleanName;
 						}
-						EFF.App.setDirty(false);
+						AFF.App.setDirty(false);
 						// Keep last_file in sync so auto-load restores the correct project.
-						EFF.App.ajax('eff_save_settings', {
+						AFF.App.ajax('aff_save_settings', {
 							settings: JSON.stringify({ last_file: res.data.filename }),
 						});
 					} else {
-						EFF.Modal.open({ title: 'Save error', body: '<p>' + (res.data.message || 'Unknown error.') + '</p>' });
+						AFF.Modal.open({ title: 'Save error', body: '<p>' + (res.data.message || 'Unknown error.') + '</p>' });
 					}
 				})
 				.catch(function () {
-					EFF.Modal.open({ title: 'Save error', body: '<p>Network error while saving.</p>' });
+					AFF.Modal.open({ title: 'Save error', body: '<p>Network error while saving.</p>' });
 				});
 		},
 
@@ -258,9 +258,9 @@
 			var self = this;
 
 			this._saveChangesBtn.addEventListener('click', function () {
-				if (EFF.state.hasUnsavedChanges) {
+				if (AFF.state.hasUnsavedChanges) {
 					var name = (self._filenameInput ? self._filenameInput.value.trim() : '')
-						|| EFF.state.projectName || '';
+						|| AFF.state.projectName || '';
 					if (name) {
 						self._saveFile(name);
 					}
@@ -277,8 +277,8 @@
 		updateSaveChangesBtn: function () {
 			if (!this._saveChangesBtn) { return; }
 
-			var isPending = EFF.state.pendingSaveCount > 0;
-			var isDirty   = EFF.state.hasUnsavedChanges;
+			var isPending = AFF.state.pendingSaveCount > 0;
+			var isDirty   = AFF.state.hasUnsavedChanges;
 
 			if (isPending) {
 				this._saveChangesBtn.disabled         = true;
@@ -302,17 +302,17 @@
 			var self = this;
 			self._pickerCurrentSlug = null;
 
-			EFF.App.ajax('eff_list_projects', {})
+			AFF.App.ajax('aff_list_projects', {})
 				.then(function (res) {
 					if (res.success) {
-						EFF.Modal.open({ title: 'Load Project', body: '', footer: '' });
+						AFF.Modal.open({ title: 'Load Project', body: '', footer: '' });
 						self._showProjectList(res.data.projects || []);
 					} else {
-						EFF.Modal.open({ title: 'Error', body: '<p>' + (res.data.message || 'Could not load projects.') + '</p>' });
+						AFF.Modal.open({ title: 'Error', body: '<p>' + (res.data.message || 'Could not load projects.') + '</p>' });
 					}
 				})
 				.catch(function () {
-					EFF.Modal.open({ title: 'Error', body: '<p>Network error loading project list.</p>' });
+					AFF.Modal.open({ title: 'Error', body: '<p>Network error loading project list.</p>' });
 				});
 		},
 
@@ -322,18 +322,18 @@
 		 */
 		_showProjectList: function (projects) {
 			var self     = this;
-			var modalBody = document.getElementById('eff-modal-body');
+			var modalBody = document.getElementById('aff-modal-body');
 			if (!modalBody) { return; }
 
 			modalBody.innerHTML = self._buildProjectListBody(projects);
 
 			modalBody.addEventListener('click', function pickerL1(e) {
 				// Open project → Level 2
-				var openBtn = e.target.closest('.eff-picker-open-project');
+				var openBtn = e.target.closest('.aff-picker-open-project');
 				if (openBtn) {
 					var slug = openBtn.getAttribute('data-slug');
 					self._pickerCurrentSlug = slug;
-					EFF.App.ajax('eff_list_backups', { project_slug: slug })
+					AFF.App.ajax('aff_list_backups', { project_slug: slug })
 						.then(function (res) {
 							if (res.success) {
 								self._showBackupList(slug, res.data.backups || []);
@@ -344,26 +344,26 @@
 				}
 
 				// Create button — clear state, start fresh project
-				if (e.target.id === 'eff-picker-create-btn') {
-					var nameInput = document.getElementById('eff-picker-name-input');
+				if (e.target.id === 'aff-picker-create-btn') {
+					var nameInput = document.getElementById('aff-picker-name-input');
 					var newName   = nameInput ? nameInput.value.trim() : '';
 					if (!newName) {
 						if (nameInput) { nameInput.focus(); }
 						return;
 					}
-					EFF.Modal.close();
+					AFF.Modal.close();
 					modalBody.removeEventListener('click', pickerL1);
 
 					// Clear all project data for a genuinely blank new project.
-					EFF.state.variables   = [];
-					EFF.state.classes     = [];
-					EFF.state.components  = [];
-					EFF.state.config      = {};
-					EFF.state.currentFile = null;
-					EFF.state.projectName = newName;
-					EFF.App.setDirty(false);
-					EFF.App.refreshCounts();
-					if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
+					AFF.state.variables   = [];
+					AFF.state.classes     = [];
+					AFF.state.components  = [];
+					AFF.state.config      = {};
+					AFF.state.currentFile = null;
+					AFF.state.projectName = newName;
+					AFF.App.setDirty(false);
+					AFF.App.refreshCounts();
+					if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
 					if (self._filenameInput) { self._filenameInput.value = newName; }
 
 					// Save the initial (empty) backup to create the project on disk.
@@ -379,16 +379,16 @@
 		 */
 		_showBackupList: function (slug, backups) {
 			var self     = this;
-			var modalBody = document.getElementById('eff-modal-body');
+			var modalBody = document.getElementById('aff-modal-body');
 			if (!modalBody) { return; }
 
 			modalBody.innerHTML = self._buildBackupListBody(slug, backups);
 
 			modalBody.addEventListener('click', function pickerL2(e) {
 				// Back button → Level 1
-				if (e.target.closest('.eff-picker-back')) {
+				if (e.target.closest('.aff-picker-back')) {
 					modalBody.removeEventListener('click', pickerL2);
-					EFF.App.ajax('eff_list_projects', {})
+					AFF.App.ajax('aff_list_projects', {})
 						.then(function (res) {
 							if (res.success) {
 								self._showProjectList(res.data.projects || []);
@@ -398,11 +398,11 @@
 				}
 
 				// Load backup
-				var loadBtn = e.target.closest('.eff-picker-load');
+				var loadBtn = e.target.closest('.aff-picker-load');
 				if (loadBtn) {
 					var file    = loadBtn.getAttribute('data-file');
 					var rawName = (loadBtn.getAttribute('data-name') || '').replace(/(?:\.eff)+(?:\.json)?$/i, '');
-					EFF.Modal.close();
+					AFF.Modal.close();
 					if (self._filenameInput) { self._filenameInput.value = rawName; }
 					self._loadFile(file);
 					modalBody.removeEventListener('click', pickerL2);
@@ -410,27 +410,27 @@
 				}
 
 				// Delete backup
-				var delBtn = e.target.closest('.eff-picker-delete');
+				var delBtn = e.target.closest('.aff-picker-delete');
 				if (delBtn) {
 					var filename = delBtn.getAttribute('data-filename');
-					EFF.App.ajax('eff_delete_project', { filename: filename })
+					AFF.App.ajax('aff_delete_project', { filename: filename })
 						.then(function (res) {
 							if (res.success) {
 								// Refresh Level 2; if empty, go back to Level 1.
 								modalBody.removeEventListener('click', pickerL2);
-								EFF.App.ajax('eff_list_backups', { project_slug: self._pickerCurrentSlug })
+								AFF.App.ajax('aff_list_backups', { project_slug: self._pickerCurrentSlug })
 									.then(function (r) {
 										if (r.success && r.data.backups && r.data.backups.length > 0) {
 											self._showBackupList(self._pickerCurrentSlug, r.data.backups);
 										} else {
-											EFF.App.ajax('eff_list_projects', {})
+											AFF.App.ajax('aff_list_projects', {})
 												.then(function (pr) {
 													if (pr.success) { self._showProjectList(pr.data.projects || []); }
 												});
 										}
 									});
 							} else {
-								EFF.Modal.open({ title: 'Delete error', body: '<p>' + (res.data.message || 'Could not delete.') + '</p>' });
+								AFF.Modal.open({ title: 'Delete error', body: '<p>' + (res.data.message || 'Could not delete.') + '</p>' });
 							}
 						})
 						.catch(function () {});
@@ -446,34 +446,34 @@
 		 */
 		_buildProjectListBody: function (projects) {
 			var self = this;
-			var html = '<div class="eff-picker-list">';
+			var html = '<div class="aff-picker-list">';
 
 			if (projects.length > 0) {
 				for (var i = 0; i < projects.length; i++) {
 					var p = projects[i];
-					html += '<div class="eff-picker-row">'
-						+ '<span class="eff-picker-row__name">' + self._escHtml(p.name) + '</span>'
-						+ '<span class="eff-picker-row__date">' + self._escHtml(p.backup_count + ' save' + (p.backup_count !== 1 ? 's' : '') + ' \u00b7 ' + p.latest_modified) + '</span>'
-						+ '<button class="eff-btn eff-btn--xs eff-picker-open-project"'
+					html += '<div class="aff-picker-row">'
+						+ '<span class="aff-picker-row__name">' + self._escHtml(p.name) + '</span>'
+						+ '<span class="aff-picker-row__date">' + self._escHtml(p.backup_count + ' save' + (p.backup_count !== 1 ? 's' : '') + ' \u00b7 ' + p.latest_modified) + '</span>'
+						+ '<button class="aff-btn aff-btn--xs aff-picker-open-project"'
 						+ ' data-slug="' + self._escAttr(p.slug) + '">Open</button>'
 						+ '</div>';
 				}
 			} else {
-				html += '<p class="eff-text-muted" style="padding:8px 0">No saved projects found.</p>';
+				html += '<p class="aff-text-muted" style="padding:8px 0">No saved projects found.</p>';
 			}
 
-			html += '</div>'; // .eff-picker-list
+			html += '</div>'; // .aff-picker-list
 
-			html += '<div class="eff-picker-create">'
-				+ '<input type="text" class="eff-field-input" id="eff-picker-name-input"'
+			html += '<div class="aff-picker-create">'
+				+ '<input type="text" class="aff-field-input" id="aff-picker-name-input"'
 				+ ' placeholder="New project name\u2026" autocomplete="off" />'
-				+ '<button class="eff-btn" id="eff-picker-create-btn">Create</button>'
+				+ '<button class="aff-btn" id="aff-picker-create-btn">Create</button>'
 				+ '</div>';
 
-			var _storageNote = (typeof EFFData !== 'undefined' && EFFData.uploadUrl)
-				? EFFData.uploadUrl.replace(/^https?:\/\/[^/]+/, '')
+			var _storageNote = (typeof AFFData !== 'undefined' && AFFData.uploadUrl)
+				? AFFData.uploadUrl.replace(/^https?:\/\/[^/]+/, '')
 				: 'wp-content/uploads/eff/';
-			html += '<p style="font-size:11px;color:var(--eff-clr-muted);margin-top:12px;padding-top:8px;border-top:1px solid var(--eff-clr-border)">'
+			html += '<p style="font-size:11px;color:var(--aff-clr-muted);margin-top:12px;padding-top:8px;border-top:1px solid var(--aff-clr-border)">'
 				+ 'Files stored in: <code style="user-select:all">' + _storageNote + '</code></p>';
 
 			return html;
@@ -492,21 +492,21 @@
 				+ '<path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>'
 				+ '</svg>';
 
-			var html = '<div class="eff-picker-back-bar">'
-				+ '<button class="eff-icon-btn eff-picker-back" aria-label="Back to projects">\u2190</button>'
+			var html = '<div class="aff-picker-back-bar">'
+				+ '<button class="aff-icon-btn aff-picker-back" aria-label="Back to projects">\u2190</button>'
 				+ '<span>' + self._escHtml(slug) + '</span>'
 				+ '</div>'
-				+ '<div class="eff-picker-list">';
+				+ '<div class="aff-picker-list">';
 
 			if (backups.length > 0) {
 				for (var i = 0; i < backups.length; i++) {
 					var b = backups[i];
-					html += '<div class="eff-picker-row">'
-						+ '<span class="eff-picker-row__name">' + self._escHtml(b.modified) + '</span>'
-						+ '<button class="eff-btn eff-btn--xs eff-picker-load"'
+					html += '<div class="aff-picker-row">'
+						+ '<span class="aff-picker-row__name">' + self._escHtml(b.modified) + '</span>'
+						+ '<button class="aff-btn aff-btn--xs aff-picker-load"'
 						+ ' data-name="' + self._escAttr(b.name) + '"'
 						+ ' data-file="' + self._escAttr(b.filename) + '">Load</button>'
-						+ '<button class="eff-icon-btn eff-picker-delete"'
+						+ '<button class="aff-icon-btn aff-picker-delete"'
 						+ ' data-filename="' + self._escAttr(b.filename) + '"'
 						+ ' aria-label="Delete backup">'
 						+ trashSvg
@@ -514,10 +514,10 @@
 						+ '</div>';
 				}
 			} else {
-				html += '<p class="eff-text-muted" style="padding:8px 0">No backups found.</p>';
+				html += '<p class="aff-text-muted" style="padding:8px 0">No backups found.</p>';
 			}
 
-			html += '</div>'; // .eff-picker-list
+			html += '</div>'; // .aff-picker-list
 			return html;
 		},
 
@@ -543,42 +543,42 @@
 		 */
 		_openSyncOptionsDialog: function () {
 			var syncHandler;
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'Fetch Elementor Data',
-				body:  '<p style="margin-bottom:12px">Choose how EFF should handle existing variables when importing from the Elementor kit.</p>'
+				body:  '<p style="margin-bottom:12px">Choose how AFFshould handle existing variables when importing from the Elementor kit.</p>'
 					+ '<div style="display:flex;flex-direction:column;gap:10px">'
 					+ '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">'
-					+ '<input type="radio" name="eff-sync-mode" value="name" checked style="margin-top:3px;flex-shrink:0" />'
+					+ '<input type="radio" name="aff-sync-mode" value="name" checked style="margin-top:3px;flex-shrink:0" />'
 					+ '<span><strong>Sync by name</strong><br>'
-					+ '<span style="font-size:12px;color:var(--eff-clr-muted)">Add new variables; keep existing EFF values unchanged. Safe for incremental updates.</span></span>'
+					+ '<span style="font-size:12px;color:var(--aff-clr-muted)">Add new variables; keep existing AFFvalues unchanged. Safe for incremental updates.</span></span>'
 					+ '</label>'
 					+ '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">'
-					+ '<input type="radio" name="eff-sync-mode" value="clear" style="margin-top:3px;flex-shrink:0" />'
+					+ '<input type="radio" name="aff-sync-mode" value="clear" style="margin-top:3px;flex-shrink:0" />'
 					+ '<span><strong>Clear and replace</strong><br>'
-					+ '<span style="font-size:12px;color:var(--eff-clr-muted)">Remove all existing variables and import fresh from Elementor. Discards EFF edits.</span></span>'
+					+ '<span style="font-size:12px;color:var(--aff-clr-muted)">Remove all existing variables and import fresh from Elementor. Discards AFFedits.</span></span>'
 					+ '</label>'
 					+ '</div>',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="eff-btn eff-btn--secondary" id="eff-sync-cancel">Cancel</button>'
-					+ '<button class="eff-btn" id="eff-sync-confirm">Sync</button>'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-sync-cancel">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-sync-confirm">Sync</button>'
 					+ '</div>',
 				onClose: function () { document.removeEventListener('click', syncHandler); },
 			});
 
 			syncHandler = function (e) {
-				if (e.target.id === 'eff-sync-cancel') {
-					EFF.Modal.close();
+				if (e.target.id === 'aff-sync-cancel') {
+					AFF.Modal.close();
 					document.removeEventListener('click', syncHandler);
-				} else if (e.target.id === 'eff-sync-confirm') {
-					var modeInput = document.querySelector('input[name="eff-sync-mode"]:checked');
+				} else if (e.target.id === 'aff-sync-confirm') {
+					var modeInput = document.querySelector('input[name="aff-sync-mode"]:checked');
 					var clearMode = modeInput && modeInput.value === 'clear';
-					EFF.Modal.close();
+					AFF.Modal.close();
 					document.removeEventListener('click', syncHandler);
 					if (clearMode) {
-						EFF.state.variables = [];
+						AFF.state.variables = [];
 					}
-					if (EFF.PanelTop && EFF.PanelTop._syncFromElementor) {
-						EFF.PanelTop._syncFromElementor({});
+					if (AFF.PanelTop && AFF.PanelTop._syncFromElementor) {
+						AFF.PanelTop._syncFromElementor({});
 					}
 				}
 			};
@@ -610,8 +610,8 @@
 			var added    = 0;
 			var deleted  = 0;
 
-			for (var i = 0; i < EFF.state.variables.length; i++) {
-				var s = EFF.state.variables[i].status;
+			for (var i = 0; i < AFF.state.variables.length; i++) {
+				var s = AFF.state.variables[i].status;
 				if (s === 'modified') { modified++; }
 				else if (s === 'new') { added++; }
 				else if (s === 'deleted') { deleted++; }
@@ -620,7 +620,7 @@
 			var total = modified + added + deleted;
 
 			if (total === 0) {
-				EFF.Modal.open({
+				AFF.Modal.open({
 					title: 'Nothing to commit',
 					body:  '<p>All variables are already in sync with Elementor. No changes to commit.</p>',
 				});
@@ -633,26 +633,26 @@
 			if (deleted > 0)  { summaryLines.push(deleted  + ' deleted'); }
 
 			var commitHandler;
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'Write to Elementor',
 				body:  '<p style="margin-bottom:8px">The following changes will be written to the Elementor kit CSS file:</p>'
 					+ '<ul style="margin:0 0 12px 16px;list-style:disc">'
 					+ summaryLines.map(function (l) { return '<li>' + l + '</li>'; }).join('')
 					+ '</ul>'
-					+ '<p style="font-size:12px;color:var(--eff-clr-muted)"><strong>This modifies Elementor\'s files.</strong> Save a backup first if you haven\'t already.</p>',
+					+ '<p style="font-size:12px;color:var(--aff-clr-muted)"><strong>This modifies Elementor\'s files.</strong> Save a backup first if you haven\'t already.</p>',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="eff-btn eff-btn--secondary" id="eff-commit-cancel">Cancel</button>'
-					+ '<button class="eff-btn" id="eff-commit-confirm">Commit</button>'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-commit-cancel">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-commit-confirm">Commit</button>'
 					+ '</div>',
 				onClose: function () { document.removeEventListener('click', commitHandler); },
 			});
 
 			commitHandler = function (e) {
-				if (e.target.id === 'eff-commit-cancel') {
-					EFF.Modal.close();
+				if (e.target.id === 'aff-commit-cancel') {
+					AFF.Modal.close();
 					document.removeEventListener('click', commitHandler);
-				} else if (e.target.id === 'eff-commit-confirm') {
-					EFF.Modal.close();
+				} else if (e.target.id === 'aff-commit-confirm') {
+					AFF.Modal.close();
 					document.removeEventListener('click', commitHandler);
 					self._executeCommit();
 				}
@@ -667,16 +667,16 @@
 		 * variable statuses to 'synced' and clears the pending commit flag.
 		 */
 		_executeCommit: function () {
-			if (!EFF.state.currentFile) {
-				EFF.Modal.open({ title: 'No file loaded', body: '<p>Please load a file before committing.</p>' }); return;
+			if (!AFF.state.currentFile) {
+				AFF.Modal.open({ title: 'No file loaded', body: '<p>Please load a file before committing.</p>' }); return;
 			}
 
-			var variables = EFF.state.variables.map(function (v) {
+			var variables = AFF.state.variables.map(function (v) {
 				return { name: v.name, value: v.value };
 			});
 
-			EFF.App.ajax('eff_commit_to_elementor', {
-				filename:  EFF.state.currentFile,
+			AFF.App.ajax('aff_commit_to_elementor', {
+				filename:  AFF.state.currentFile,
 				variables: JSON.stringify(variables),
 			}).then(function (res) {
 				if (res.success) {
@@ -684,46 +684,46 @@
 					var skipped   = res.data.skipped || [];
 
 					// Update variable statuses to 'synced' for committed vars.
-					for (var i = 0; i < EFF.state.variables.length; i++) {
-						if (committed.indexOf(EFF.state.variables[i].name) !== -1) {
-							EFF.state.variables[i].status = 'synced';
+					for (var i = 0; i < AFF.state.variables.length; i++) {
+						if (committed.indexOf(AFF.state.variables[i].name) !== -1) {
+							AFF.state.variables[i].status = 'synced';
 						}
 					}
 
-					EFF.App.setPendingCommit(false);
+					AFF.App.setPendingCommit(false);
 
 					var msg = committed.length + ' variable(s) committed.';
 					if (skipped.length > 0) {
 						msg += ' ' + skipped.length + ' variable(s) not found in Elementor kit (check names).';
 					}
-					EFF.Modal.open({ title: 'Commit complete', body: '<p>' + msg + '</p>' });
+					AFF.Modal.open({ title: 'Commit complete', body: '<p>' + msg + '</p>' });
 
 					// Re-render current view to show updated status dots.
-					if (EFF.Colors && EFF.state.currentSelection && EFF.state.currentSelection.subgroup === 'Colors') {
-						EFF.Colors.loadColors(EFF.state.currentSelection);
+					if (AFF.Colors && AFF.state.currentSelection && AFF.state.currentSelection.subgroup === 'Colors') {
+						AFF.Colors.loadColors(AFF.state.currentSelection);
 					}
 				} else {
-					EFF.Modal.open({ title: 'Commit error', body: '<p>' + ((res.data && res.data.message) || 'Unknown error.') + '</p>' });
+					AFF.Modal.open({ title: 'Commit error', body: '<p>' + ((res.data && res.data.message) || 'Unknown error.') + '</p>' });
 				}
 			}).catch(function () {
-				EFF.Modal.open({ title: 'Commit error', body: '<p>Network error during commit.</p>' });
+				AFF.Modal.open({ title: 'Commit error', body: '<p>Network error during commit.</p>' });
 			});
 		},
 
 		/**
 		 * Toggle the accent highlight on the ↑ Variables (commit) button.
 		 *
-		 * Called from EFF.App.setPendingCommit(). Adds .eff-btn--accent when
+		 * Called from AFF.App.setPendingCommit(). Adds .aff-btn--accent when
 		 * there are pending commits so the button pulses; removes it when clear.
 		 */
 		updateCommitBtn: function () {
 			if (!this._commitVariablesBtn) { return; }
 
-			var hasPending = EFF.state.hasPendingElementorCommit;
+			var hasPending = AFF.state.hasPendingElementorCommit;
 			if (hasPending) {
-				this._commitVariablesBtn.classList.add('eff-btn--accent');
+				this._commitVariablesBtn.classList.add('aff-btn--accent');
 			} else {
-				this._commitVariablesBtn.classList.remove('eff-btn--accent');
+				this._commitVariablesBtn.classList.remove('aff-btn--accent');
 			}
 		},
 
@@ -749,22 +749,22 @@
 		_openV3ImportDialog: function () {
 			var self = this;
 
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'Import V3 Global Colors',
-				body:  '<p style="margin-bottom:8px">This will read the V3 Global Colors stored in your Elementor kit post meta and import them as EFF color variables.</p>'
-					+ '<p style="font-size:12px;color:var(--eff-clr-muted)">Existing EFF variables with the same name will not be overwritten. New colors will be added to <em>Uncategorized</em>.</p>',
+				body:  '<p style="margin-bottom:8px">This will read the V3 Global Colors stored in your Elementor kit post meta and import them as AFFcolor variables.</p>'
+					+ '<p style="font-size:12px;color:var(--aff-clr-muted)">Existing AFFvariables with the same name will not be overwritten. New colors will be added to <em>Uncategorized</em>.</p>',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="eff-btn eff-btn--secondary" id="eff-v3-cancel">Cancel</button>'
-					+ '<button class="eff-btn" id="eff-v3-confirm">Import</button>'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-v3-cancel">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-v3-confirm">Import</button>'
 					+ '</div>',
 			});
 
 			document.addEventListener('click', function v3Handler(e) {
-				if (e.target.id === 'eff-v3-cancel') {
-					EFF.Modal.close();
+				if (e.target.id === 'aff-v3-cancel') {
+					AFF.Modal.close();
 					document.removeEventListener('click', v3Handler);
-				} else if (e.target.id === 'eff-v3-confirm') {
-					EFF.Modal.close();
+				} else if (e.target.id === 'aff-v3-confirm') {
+					AFF.Modal.close();
 					document.removeEventListener('click', v3Handler);
 					self._executeV3Import();
 				}
@@ -775,15 +775,15 @@
 		 * Execute the V3 colors import AJAX call.
 		 */
 		_executeV3Import: function () {
-			EFF.App.ajax('eff_sync_v3_global_colors', {})
+			AFF.App.ajax('aff_sync_v3_global_colors', {})
 				.then(function (res) {
 					if (res.success) {
 						var imported = res.data.imported || [];
 
 						imported.forEach(function (v) {
-							var existing = EFF.state.variables.filter(function (ev) { return ev.name === v.name; });
+							var existing = AFF.state.variables.filter(function (ev) { return ev.name === v.name; });
 							if (existing.length === 0) {
-								EFF.state.variables.push({
+								AFF.state.variables.push({
 									id:          '',
 									name:        v.name,
 									value:       v.value,
@@ -801,21 +801,21 @@
 							}
 						});
 
-						EFF.App.refreshCounts();
-						if (EFF.Colors && EFF.Colors._ensureUncategorized) { EFF.Colors._ensureUncategorized(); }
-						if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
-						if (imported.length > 0) { EFF.App.setDirty(true); }
+						AFF.App.refreshCounts();
+						if (AFF.Colors && AFF.Colors._ensureUncategorized) { AFF.Colors._ensureUncategorized(); }
+						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+						if (imported.length > 0) { AFF.App.setDirty(true); }
 
 						var msg = imported.length > 0
 							? imported.length + ' V3 color' + (imported.length !== 1 ? 's' : '') + ' imported.'
 							: 'No V3 Global Colors found in the active Elementor kit.';
-						EFF.Modal.open({ title: 'V3 Import complete', body: '<p>' + msg + '</p>' });
+						AFF.Modal.open({ title: 'V3 Import complete', body: '<p>' + msg + '</p>' });
 					} else {
-						EFF.Modal.open({ title: 'V3 Import error', body: '<p>' + ((res.data && res.data.message) || 'Unknown error.') + '</p>' });
+						AFF.Modal.open({ title: 'V3 Import error', body: '<p>' + ((res.data && res.data.message) || 'Unknown error.') + '</p>' });
 					}
 				})
 				.catch(function () {
-					EFF.Modal.open({ title: 'V3 Import error', body: '<p>Network error during V3 import.</p>' });
+					AFF.Modal.open({ title: 'V3 Import error', body: '<p>Network error during V3 import.</p>' });
 				});
 		},
 
@@ -829,9 +829,9 @@
 		 * @param {{ variables: number, classes: number, components: number }} counts
 		 */
 		updateCounts: function (counts) {
-			this._setCount('eff-count-variables',  counts.variables  || 0);
-			this._setCount('eff-count-classes',    counts.classes    || 0);
-			this._setCount('eff-count-components', counts.components || 0);
+			this._setCount('aff-count-variables',  counts.variables  || 0);
+			this._setCount('aff-count-classes',    counts.classes    || 0);
+			this._setCount('aff-count-components', counts.components || 0);
 		},
 
 		/**
@@ -898,17 +898,17 @@
 		 */
 		_showToast: function (message) {
 			var toast = document.createElement('div');
-			toast.className   = 'eff-toast';
+			toast.className   = 'aff-toast';
 			toast.textContent = message;
 			document.body.appendChild(toast);
 
 			// Trigger the transition in the next frame.
 			requestAnimationFrame(function () {
-				toast.classList.add('eff-toast--visible');
+				toast.classList.add('aff-toast--visible');
 			});
 
 			setTimeout(function () {
-				toast.classList.remove('eff-toast--visible');
+				toast.classList.remove('aff-toast--visible');
 				setTimeout(function () { toast.remove(); }, 300);
 			}, 2000);
 		},

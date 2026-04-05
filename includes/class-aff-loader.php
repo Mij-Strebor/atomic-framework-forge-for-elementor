@@ -1,35 +1,35 @@
 <?php
 /**
- * EFF Loader — Hook Registration & Bootstrap
+ * AFF Loader — Hook Registration & Bootstrap
  *
  * Loads all includes and wires up the WordPress integration layer.
  * Keep WordPress-specific bootstrapping here; keep business logic
  * in the individual class files.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_Loader {
+class AFF_Loader {
 
 	/**
 	 * Require all includes and initialize all subsystems.
 	 */
 	public function init(): void {
-		require_once EFF_PLUGIN_DIR . 'includes/class-eff-settings.php';
-		require_once EFF_PLUGIN_DIR . 'includes/class-eff-data-store.php';
-		require_once EFF_PLUGIN_DIR . 'includes/class-eff-css-parser.php';
-		require_once EFF_PLUGIN_DIR . 'includes/class-eff-usage-scanner.php';
-		require_once EFF_PLUGIN_DIR . 'includes/class-eff-ajax-handler.php';
-		require_once EFF_PLUGIN_DIR . 'includes/class-eff-admin.php';
+		require_once AFF_PLUGIN_DIR . 'includes/class-aff-settings.php';
+		require_once AFF_PLUGIN_DIR . 'includes/class-aff-data-store.php';
+		require_once AFF_PLUGIN_DIR . 'includes/class-aff-css-parser.php';
+		require_once AFF_PLUGIN_DIR . 'includes/class-aff-usage-scanner.php';
+		require_once AFF_PLUGIN_DIR . 'includes/class-aff-ajax-handler.php';
+		require_once AFF_PLUGIN_DIR . 'includes/class-aff-admin.php';
 
-		$admin = new EFF_Admin();
+		$admin = new AFF_Admin();
 		$admin->register_hooks();
 
-		$ajax = new EFF_Ajax_Handler();
+		$ajax = new AFF_Ajax_Handler();
 		$ajax->register_handlers();
 	}
 }

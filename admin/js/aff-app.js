@@ -1,11 +1,11 @@
 /**
- * EFF App — Main Application Entry Point
+ * AFF App — Main Application Entry Point
  *
  * Initializes all modules in the correct order and manages global
- * application state. All modules attach themselves to window.EFF before
+ * application state. All modules attach themselves to window.AFF before
  * this file runs (enforced by enqueue dependency chain in PHP).
  *
- * Global state object: EFF.state
+ * Global state object: AFF.state
  *  - hasUnsavedChanges {boolean}  — drives Save Changes button state
  *  - currentSelection  {Object}   — { group, subgroup, category }
  *  - currentFile       {string}   — currently loaded filename
@@ -15,40 +15,40 @@
  *  - components        {Array}    — loaded component objects
  *  - config            {Object}   — project config (subgroup definitions)
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
-/* global EFFData */
+/* global AFFData */
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF = window.AFF || {};
 
 	// -----------------------------------------------------------------------
 	// GLOBAL STATE
 	// -----------------------------------------------------------------------
 
-	EFF.state = {
-		hasUnsavedChanges:        false, // EFF file has unsaved changes (drives Save Changes button).
-		hasPendingElementorCommit: false, // EFF data not yet committed to Elementor (drives Commit button).
+	AFF.state = {
+		hasUnsavedChanges:        false, // AFF file has unsaved changes (drives Save Changes button).
+		hasPendingElementorCommit: false, // AFF data not yet committed to Elementor (drives Commit button).
 		pendingSaveCount:         0,     // Number of in-flight per-variable AJAX saves (blocks file save).
 		currentSelection:         null,
 		currentFile:              null,
 		projectName:              '',   // Human-readable project name (set via Manage Project modal).
-		theme:                    (typeof EFFData !== 'undefined' ? EFFData.theme : 'light') || 'light',
+		theme:                    (typeof AFFData !== 'undefined' ? AFFData.theme : 'light') || 'light',
 		variables:                [],
 		classes:                  [],
 		components:               [],
 		config:                   {},
 		usageCounts:              {}, // { '--varname': count } — populated by fetchUsageCounts()
-		settings:                 {}, // cached from eff_get_settings on startup
+		settings:                 {}, // cached from aff_get_settings on startup
 	};
 
 	// -----------------------------------------------------------------------
 	// UTILITIES
 	// -----------------------------------------------------------------------
 
-	EFF.Utils = {
+	AFF.Utils = {
 
 		/**
 		 * Return true if the trimmed string is a recognisable CSS color value.
@@ -87,7 +87,7 @@
 	// CORE APP API
 	// -----------------------------------------------------------------------
 
-	EFF.App = {
+	AFF.App = {
 
 		/**
 		 * Set or clear the unsaved-changes flag and update the Save Changes button.
@@ -95,11 +95,11 @@
 		 * @param {boolean} isDirty
 		 */
 		setDirty: function (isDirty) {
-			EFF.state.hasUnsavedChanges = isDirty;
-			if (EFF.PanelRight) {
-				EFF.PanelRight.updateSaveChangesBtn();
+			AFF.state.hasUnsavedChanges = isDirty;
+			if (AFF.PanelRight) {
+				AFF.PanelRight.updateSaveChangesBtn();
 			}
-			var saveBtn = document.getElementById('eff-btn-save-changes');
+			var saveBtn = document.getElementById('aff-btn-save-changes');
 			if (saveBtn) { saveBtn.classList.toggle('has-changes', !!isDirty); }
 		},
 
@@ -110,9 +110,9 @@
 		 * @param {boolean} hasPending
 		 */
 		setPendingCommit: function (hasPending) {
-			EFF.state.hasPendingElementorCommit = hasPending;
-			if (EFF.PanelRight) {
-				EFF.PanelRight.updateCommitBtn();
+			AFF.state.hasPendingElementorCommit = hasPending;
+			if (AFF.PanelRight) {
+				AFF.PanelRight.updateCommitBtn();
 			}
 		},
 
@@ -121,30 +121,30 @@
 		 */
 		refreshCounts: function () {
 			var counts = {
-				variables:  EFF.state.variables.length,
-				classes:    EFF.state.classes.length,
-				components: EFF.state.components.length,
+				variables:  AFF.state.variables.length,
+				classes:    AFF.state.classes.length,
+				components: AFF.state.components.length,
 			};
-			if (EFF.PanelRight) {
-				EFF.PanelRight.updateCounts(counts);
+			if (AFF.PanelRight) {
+				AFF.PanelRight.updateCounts(counts);
 			}
 		},
 
 		/**
-		 * Perform a generic AJAX request to an EFF endpoint.
+		 * Perform a generic AJAX request to an AFF endpoint.
 		 *
 		 * @param {string} action  WordPress AJAX action name.
 		 * @param {Object} data    Additional POST data (excluding action/nonce).
 		 * @returns {Promise<Object>} Parsed JSON response.
 		 */
 		ajax: function (action, data) {
-			if (typeof EFFData === 'undefined') {
-				return Promise.reject(new Error('EFFData not available'));
+			if (typeof AFFData === 'undefined') {
+				return Promise.reject(new Error('AFFData not available'));
 			}
 
-			var body = Object.assign({ action: action, nonce: EFFData.nonce }, data || {});
+			var body = Object.assign({ action: action, nonce: AFFData.nonce }, data || {});
 
-			return fetch(EFFData.ajaxUrl, {
+			return fetch(AFFData.ajaxUrl, {
 				method:      'POST',
 				headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
 				credentials: 'same-origin',
@@ -159,25 +159,25 @@
 
 		/**
 		 * Scan all Elementor widget data for references to the current variables.
-		 * Results are stored in EFF.state.usageCounts and the current edit view
+		 * Results are stored in AFF.state.usageCounts and the current edit view
 		 * is refreshed if a category is already loaded.
 		 *
 		 * @returns {Promise}
 		 */
 		fetchUsageCounts: function () {
-			var names = EFF.state.variables.map(function (v) { return v.name; });
+			var names = AFF.state.variables.map(function (v) { return v.name; });
 			if (names.length === 0) {
 				return Promise.resolve();
 			}
 
-			return EFF.App.ajax('eff_get_usage_counts', {
+			return AFF.App.ajax('aff_get_usage_counts', {
 				variable_names: JSON.stringify(names),
 			}).then(function (res) {
 				if (res.success) {
-					EFF.state.usageCounts = res.data.counts || {};
+					AFF.state.usageCounts = res.data.counts || {};
 					// Re-render the current category view to show updated badges
-					if (EFF.state.currentSelection && EFF.EditSpace) {
-						EFF.EditSpace.loadCategory(EFF.state.currentSelection);
+					if (AFF.state.currentSelection && AFF.EditSpace) {
+						AFF.EditSpace.loadCategory(AFF.state.currentSelection);
 					}
 				}
 			}).catch(function () {
@@ -186,66 +186,66 @@
 		},
 
 		/**
-		 * Apply accessibility/UI preferences from saved settings to #eff-app.
-		 * Sets data attributes that drive CSS overrides in eff-preferences.css.
+		 * Apply accessibility/UI preferences from saved settings to #aff-app.
+		 * Sets data attributes that drive CSS overrides in aff-preferences.css.
 		 * Call on startup after settings load, and after any preference change.
 		 *
 		 * @param {Object} settings  Saved settings object.
 		 */
 		applyA11y: function (settings) {
-			var app = document.getElementById('eff-app');
+			var app = document.getElementById('aff-app');
 			if (!app || !settings) { return; }
 
 			// Font size (attribute absent = default 16px)
 			var fs = parseInt(settings.ui_font_size, 10) || 16;
 			if (fs !== 16) {
-				app.setAttribute('data-eff-font-size', String(fs));
+				app.setAttribute('data-aff-font-size', String(fs));
 			} else {
-				app.removeAttribute('data-eff-font-size');
+				app.removeAttribute('data-aff-font-size');
 			}
 
 			// Color contrast
 			if (settings.ui_contrast === 'high') {
-				app.setAttribute('data-eff-contrast', 'high');
+				app.setAttribute('data-aff-contrast', 'high');
 			} else {
-				app.removeAttribute('data-eff-contrast');
+				app.removeAttribute('data-aff-contrast');
 			}
 
 			// Button size
 			if (settings.ui_btn_size && settings.ui_btn_size !== 'normal') {
-				app.setAttribute('data-eff-btn-size', settings.ui_btn_size);
+				app.setAttribute('data-aff-btn-size', settings.ui_btn_size);
 			} else {
-				app.removeAttribute('data-eff-btn-size');
+				app.removeAttribute('data-aff-btn-size');
 			}
 
 			// Button contrast
 			if (settings.ui_btn_contrast === 'high') {
-				app.setAttribute('data-eff-btn-contrast', 'high');
+				app.setAttribute('data-aff-btn-contrast', 'high');
 			} else {
-				app.removeAttribute('data-eff-btn-contrast');
+				app.removeAttribute('data-aff-btn-contrast');
 			}
 
 			// Layout density
 			if (settings.layout_density && settings.layout_density !== 'normal') {
-				app.setAttribute('data-eff-density', settings.layout_density);
+				app.setAttribute('data-aff-density', settings.layout_density);
 			} else {
-				app.removeAttribute('data-eff-density');
+				app.removeAttribute('data-aff-density');
 			}
 
 			// Reduced motion
 			if (settings.reduced_motion) {
-				app.setAttribute('data-eff-motion', 'reduced');
+				app.setAttribute('data-aff-motion', 'reduced');
 			} else {
-				app.removeAttribute('data-eff-motion');
+				app.removeAttribute('data-aff-motion');
 			}
 
 			// Tooltip state — sync to PanelTop
-			if (EFF.PanelTop) {
+			if (AFF.PanelTop) {
 				if (typeof settings.show_tooltips !== 'undefined') {
-					EFF.PanelTop._showTooltips = !!settings.show_tooltips;
+					AFF.PanelTop._showTooltips = !!settings.show_tooltips;
 				}
 				if (typeof settings.extended_tooltips !== 'undefined') {
-					EFF.PanelTop._extendedTooltips = !!settings.extended_tooltips;
+					AFF.PanelTop._extendedTooltips = !!settings.extended_tooltips;
 				}
 			}
 		},
@@ -257,9 +257,9 @@
 		 * the Save Changes button reflects in-flight state correctly.
 		 */
 		flushPending: function () {
-			EFF.state.pendingSaveCount = Math.max(0, EFF.state.pendingSaveCount - 1);
-			if (EFF.PanelRight) {
-				EFF.PanelRight.updateSaveChangesBtn();
+			AFF.state.pendingSaveCount = Math.max(0, AFF.state.pendingSaveCount - 1);
+			if (AFF.PanelRight) {
+				AFF.PanelRight.updateSaveChangesBtn();
 			}
 		},
 
@@ -267,13 +267,13 @@
 		 * Load the project config from WordPress (defaults + saved config).
 		 */
 		loadConfig: function () {
-			return EFF.App.ajax('eff_get_config', {})
+			return AFF.App.ajax('aff_get_config', {})
 				.then(function (res) {
 					if (res.success && res.data.config) {
-						EFF.state.config = res.data.config;
-						EFF.state.globalConfig = res.data.config;
+						AFF.state.config = res.data.config;
+						AFF.state.globalConfig = res.data.config;
 						if (res.data.config.projectName) {
-							EFF.state.projectName = res.data.config.projectName;
+							AFF.state.projectName = res.data.config.projectName;
 						}
 					}
 				})
@@ -286,7 +286,7 @@
 	// -----------------------------------------------------------------------
 	// PER-SET VARIABLE CONFIGURATION (Fonts, Numbers)
 	//
-	// These objects are passed to EFF.Variables.initSet() after EFF.Variables
+	// These objects are passed to AFF.Variables.initSet() after AFF.Variables
 	// is loaded. Each object configures one variable set.
 	// -----------------------------------------------------------------------
 
@@ -302,7 +302,7 @@
 
 	/** Build a <select> for the format column. */
 	function _varFormatSelect(current, types) {
-		var html = '<select class="eff-var-format-sel" aria-label="Format">';
+		var html = '<select class="aff-var-format-sel" aria-label="Format">';
 		for (var i = 0; i < types.length; i++) {
 			html += '<option value="' + _varEsc(types[i]) + '"'
 				+ (types[i] === current ? ' selected' : '')
@@ -327,21 +327,21 @@
 		newVarDefaults:  { name: '--new-font', value: 'sans-serif', format: 'System' },
 
 		renderPreviewCell: function (v) {
-			return '<span class="eff-font-preview"'
+			return '<span class="aff-font-preview"'
 				+ ' style="font-family:' + _varEsc(v.value) + '"'
 				+ ' aria-hidden="true"'
-				+ ' data-eff-tooltip="Font preview">Aa</span>';
+				+ ' data-aff-tooltip="Font preview">Aa</span>';
 		},
 
 		renderValueCell: function (v) {
-			return '<input type="text" class="eff-var-value-input"'
+			return '<input type="text" class="aff-var-value-input"'
 				+ ' value="' + _varEsc(v.value) + '"'
 				+ ' data-original="' + _varEsc(v.value) + '"'
 				+ ' style="font-family:' + _varEsc(v.value) + '"'
 				+ ' spellcheck="false"'
 				+ ' aria-label="Font family"'
-				+ ' data-eff-tooltip="Font family \u2014 edit directly"'
-				+ ' data-eff-tooltip-long="CSS font-family value \u2014 changes the font used for this variable">'
+				+ ' data-aff-tooltip="Font family \u2014 edit directly"'
+				+ ' data-aff-tooltip-long="CSS font-family value \u2014 changes the font used for this variable">'
 				+ _varFormatSelect(v.format, this.valueTypes);
 		},
 	};
@@ -362,13 +362,13 @@
 		renderPreviewCell: null, // Numbers has no preview column.
 
 		renderValueCell: function (v) {
-			return '<input type="text" class="eff-var-value-input"'
+			return '<input type="text" class="aff-var-value-input"'
 				+ ' value="' + _varEsc(v.value) + '"'
 				+ ' data-original="' + _varEsc(v.value) + '"'
 				+ ' spellcheck="false"'
 				+ ' aria-label="Value"'
-				+ ' data-eff-tooltip="Value \u2014 edit directly"'
-				+ ' data-eff-tooltip-long="CSS value \u2014 include the unit (e.g. 1.5rem, 16px)">'
+				+ ' data-aff-tooltip="Value \u2014 edit directly"'
+				+ ' data-aff-tooltip-long="CSS value \u2014 include the unit (e.g. 1.5rem, 16px)">'
 				+ _varFormatSelect(v.format, this.valueTypes);
 		},
 	};
@@ -379,78 +379,78 @@
 
 	document.addEventListener('DOMContentLoaded', function () {
 
-		// 1. Theme (reads data-eff-theme attribute set by PHP — no AJAX needed)
-		if (EFF.Theme) {
-			EFF.Theme.init();
+		// 1. Theme (reads data-aff-theme attribute set by PHP — no AJAX needed)
+		if (AFF.Theme) {
+			AFF.Theme.init();
 		}
 
 		// 2. Modal system (must be ready before any button opens a modal)
-		if (EFF.Modal) {
-			EFF.Modal.init();
+		if (AFF.Modal) {
+			AFF.Modal.init();
 		}
 
 		// 3. Right panel (file management + counts)
-		if (EFF.PanelRight) {
-			EFF.PanelRight.init();
+		if (AFF.PanelRight) {
+			AFF.PanelRight.init();
 		}
 
 		// 4. Edit space (center content)
-		if (EFF.EditSpace) {
-			EFF.EditSpace.init();
+		if (AFF.EditSpace) {
+			AFF.EditSpace.init();
 		}
 
 		// 4b. Colors module — intercepts EditSpace for Colors subgroup.
-		if (EFF.Colors) {
-			EFF.Colors.init();
+		if (AFF.Colors) {
+			AFF.Colors.init();
 		}
 
 		// 4c. Fonts and Numbers — generic variable-set instances.
-		if (EFF.Variables) {
-			EFF.Variables.initSet(FONTS_CFG);
-			EFF.Variables.initSet(NUMBERS_CFG);
+		if (AFF.Variables) {
+			AFF.Variables.initSet(FONTS_CFG);
+			AFF.Variables.initSet(NUMBERS_CFG);
 		}
 
 		// 5. Top bar (buttons + tooltips — needs Modal to be ready)
-		if (EFF.PanelTop) {
-			EFF.PanelTop.init();
+		if (AFF.PanelTop) {
+			AFF.PanelTop.init();
 			// Auto-sync from Elementor on page load (silent — no modal, no dirty flag).
-			EFF.PanelTop._syncFromElementor({ silent: true });
+			AFF.PanelTop._syncFromElementor({ silent: true });
 		}
 
 		// 6. Load project config, then init left panel and auto-load last file.
-		EFF.App.loadConfig().then(function () {
+		AFF.App.loadConfig().then(function () {
 			// NOTE: _ensureUncategorized() is NOT called here. Calling it before a
 			// file loads would pollute the global config with a Phase 2 categories
 			// array containing only Uncategorized, causing the left panel to enter
 			// Phase 2 mode and hide the v1 group items. It is called instead inside
-			// loadColors() after the file's config is already in EFF.state.
-			if (EFF.PanelLeft) {
-				EFF.PanelLeft.init();
+			// loadColors() after the file's config is already in AFF.state.
+			if (AFF.PanelLeft) {
+				AFF.PanelLeft.init();
 			}
 
 			// Auto-load last used file and cache settings.
-			EFF.App.ajax('eff_get_settings', {}).then(function (res) {
+			AFF.App.ajax('aff_get_settings', {}).then(function (res) {
 				if (res.success && res.data && res.data.settings) {
-					EFF.state.settings = res.data.settings;
-					EFF.App.applyA11y(res.data.settings);
+					AFF.state.settings = res.data.settings;
+					AFF.App.applyA11y(res.data.settings);
 				}
 				var lf = res.success && res.data && res.data.settings && res.data.settings.last_file;
-				if (lf && EFF.PanelRight) {
-					EFF.PanelRight._autoLoadFile(lf);
+				if (lf && AFF.PanelRight) {
+					AFF.PanelRight._autoLoadFile(lf);
 				}
 			}).catch(function () {});
 		});
 
 		// 7. Initial counts (all zero until a file is loaded)
-		EFF.App.refreshCounts();
+		AFF.App.refreshCounts();
 
 		// Title fade — fades the brand name as the center edit space scrolls,
 		// keeping the top bar compact with just the action buttons visible.
-		// #eff-edit-space is the scroll container (overflow-y: auto); its child
-		// #eff-edit-content has no overflow of its own.
+		// #aff-edit-space is the scroll container (overflow-y: auto); its child
+		// #aff-edit-content has no overflow of its own.
 		(function () {
-			var brandName  = document.querySelector('.eff-brand-name');
-			var editSpace  = document.getElementById('eff-edit-space');
+			var brandName  = document.querySelector('.aff-brand-name');
+			var editSpace  = document.getElementById('aff-edit-space');
 			if (brandName && editSpace) {
 				editSpace.addEventListener('scroll', function () {
 					var y = editSpace.scrollTop;
@@ -461,7 +461,7 @@
 
 		// 8. Warn on page unload with unsaved or uncommitted changes
 		window.addEventListener('beforeunload', function (e) {
-			if (EFF.state.hasUnsavedChanges) {
+			if (AFF.state.hasUnsavedChanges) {
 				var msg = 'You have unsaved changes. Leave anyway?';
 				e.preventDefault();
 				e.returnValue = msg;

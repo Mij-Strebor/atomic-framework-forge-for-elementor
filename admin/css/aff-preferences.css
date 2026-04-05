@@ -1,30 +1,30 @@
 /**
- * EFF Preferences CSS — Panel Layout & Accessibility Overrides
+ * AFF Preferences CSS — Panel Layout & Accessibility Overrides
  *
  * Two responsibilities:
- *  1. Layout styles for the Preferences edit-region view (.eff-prefs-view).
- *  2. Data-attribute-driven accessibility overrides applied to .eff-app so
+ *  1. Layout styles for the Preferences edit-region view (.aff-prefs-view).
+ *  2. Data-attribute-driven accessibility overrides applied to .aff-app so
  *     every part of the UI responds to user preference changes at once.
  *
- * Accessibility attributes sit on #eff-app (the root .eff-app element):
- *   data-eff-font-size    — "14" | "15" | "16" | "17" | "18"  (default: 16)
- *   data-eff-contrast     — "high"                              (default: absent)
- *   data-eff-btn-size     — "large"                            (default: absent = normal)
- *   data-eff-btn-contrast — "high"                             (default: absent)
- *   data-eff-motion       — "reduced"                          (default: absent)
- *   data-eff-density      — "compact" | "comfortable"          (default: absent = normal)
+ * Accessibility attributes sit on #aff-app (the root .aff-app element):
+ *   data-aff-font-size    — "14" | "15" | "16" | "17" | "18"  (default: 16)
+ *   data-aff-contrast     — "high"                              (default: absent)
+ *   data-aff-btn-size     — "large"                            (default: absent = normal)
+ *   data-aff-btn-contrast — "high"                             (default: absent)
+ *   data-aff-motion       — "reduced"                          (default: absent)
+ *   data-aff-density      — "compact" | "comfortable"          (default: absent = normal)
  *
- * Button overrides target .eff-top-bar .eff-icon-btn ONLY.
- * Right-panel .eff-btn buttons are unaffected by button size/contrast settings.
+ * Button overrides target .aff-top-bar .aff-icon-btn ONLY.
+ * Right-panel .aff-btn buttons are unaffected by button size/contrast settings.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 /* ==========================================================================
    1. PREFERENCES VIEW LAYOUT
    ========================================================================== */
 
-.eff-prefs-view {
+.aff-prefs-view {
 	max-width:      860px;
 	margin:         0 auto;
 	padding:        var(--sp-4) var(--sp-6) var(--sp-8);
@@ -35,59 +35,59 @@
 
 /* ── Header ── */
 
-.eff-prefs-header {
+.aff-prefs-header {
 	padding-bottom: var(--sp-4);
-	border-bottom:  1px solid var(--eff-clr-border);
+	border-bottom:  1px solid var(--aff-clr-border);
 }
 
-.eff-prefs-title {
+.aff-prefs-title {
 	font-size:   var(--fs-xxxl);
 	font-weight: var(--fw-bold);
-	color:       var(--eff-clr-primary);
+	color:       var(--aff-clr-primary);
 	margin:      0 0 var(--sp-1) 0;
 	line-height: var(--fl-md);
 }
 
-.eff-prefs-subtitle {
+.aff-prefs-subtitle {
 	font-size: var(--fs-md);
-	color:     var(--eff-clr-muted);
+	color:     var(--aff-clr-muted);
 	margin:    0;
 }
 
 /* ── Section ── */
 
-.eff-prefs-section {
+.aff-prefs-section {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-4);
 }
 
-.eff-prefs-section__title {
+.aff-prefs-section__title {
 	font-size:      var(--fs-xl);
 	font-weight:    var(--fw-semibold);
-	color:          var(--eff-clr-primary);
+	color:          var(--aff-clr-primary);
 	margin:         0 0 var(--sp-2) 0;
 	padding-bottom: var(--sp-2);
-	border-bottom:  1px solid var(--eff-clr-border);
+	border-bottom:  1px solid var(--aff-clr-border);
 }
 
 /* ── Field ── */
 
-.eff-prefs-field {
+.aff-prefs-field {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-2);
 }
 
-.eff-prefs-hint {
+.aff-prefs-hint {
 	font-size: var(--fs-sm);
-	color:     var(--eff-clr-muted);
+	color:     var(--aff-clr-muted);
 	margin:    0;
 }
 
 /* ── Two-column layout (side-by-side fields) ── */
 
-.eff-prefs-columns {
+.aff-prefs-columns {
 	display:               grid;
 	grid-template-columns: 1fr 1fr;
 	gap:                   var(--sp-6);
@@ -95,94 +95,94 @@
 
 /* ── Choice button group ── */
 
-.eff-prefs-btn-group {
+.aff-prefs-btn-group {
 	display:   flex;
 	gap:       var(--sp-2);
 	flex-wrap: wrap;
 }
 
-.eff-prefs-choice-btn {
+.aff-prefs-choice-btn {
 	opacity:    0.65;
-	transition: opacity var(--eff-transition), outline var(--eff-transition);
+	transition: opacity var(--aff-transition), outline var(--aff-transition);
 }
 
-.eff-prefs-choice-btn--active {
+.aff-prefs-choice-btn--active {
 	opacity:        1;
-	outline:        2px solid var(--eff-clr-accent);
+	outline:        2px solid var(--aff-clr-accent);
 	outline-offset: 2px;
 }
 
 /* ── Range slider ── */
 
-.eff-prefs-range-wrap {
+.aff-prefs-range-wrap {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-3);
 }
 
-.eff-pref-range {
+.aff-pref-range {
 	flex:         1;
-	accent-color: var(--eff-clr-accent);
+	accent-color: var(--aff-clr-accent);
 	cursor:       pointer;
 }
 
-.eff-prefs-range-min,
-.eff-prefs-range-max {
+.aff-prefs-range-min,
+.aff-prefs-range-max {
 	font-size: var(--fs-sm);
-	color:     var(--eff-clr-muted);
+	color:     var(--aff-clr-muted);
 	min-width: 28px;
 }
 
-.eff-prefs-range-max {
+.aff-prefs-range-max {
 	text-align: right;
 }
 
 /* ── Checkbox labels ── */
 
-.eff-prefs-check-label {
+.aff-prefs-check-label {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
 	cursor:      pointer;
 	font-size:   var(--fs-md);
-	color:       var(--eff-clr-secondary);
+	color:       var(--aff-clr-secondary);
 }
 
-.eff-prefs-check-label--indented {
+.aff-prefs-check-label--indented {
 	padding-left: var(--sp-6);
 	font-size:    var(--fs-sm);
 }
 
-.eff-prefs-check-label input[type="checkbox"] {
-	accent-color: var(--eff-clr-accent);
+.aff-prefs-check-label input[type="checkbox"] {
+	accent-color: var(--aff-clr-accent);
 	width:        16px;
 	height:       16px;
 	cursor:       pointer;
 }
 
-.eff-prefs-check-label input[type="checkbox"]:disabled + span {
+.aff-prefs-check-label input[type="checkbox"]:disabled + span {
 	opacity: 0.45;
 }
 
 /* ── Live demo boxes ── */
 
-.eff-prefs-demo {
-	border:        1px solid var(--eff-clr-border);
-	border-radius: var(--eff-border-radius);
-	background:    var(--eff-bg-panel);
+.aff-prefs-demo {
+	border:        1px solid var(--aff-clr-border);
+	border-radius: var(--aff-border-radius);
+	background:    var(--aff-bg-panel);
 	padding:       var(--sp-4) var(--sp-5);
 }
 
-.eff-prefs-demo-label {
+.aff-prefs-demo-label {
 	font-size:      var(--fs-xs);
 	font-weight:    var(--fw-semibold);
-	color:          var(--eff-clr-muted);
+	color:          var(--aff-clr-muted);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	margin:         0 0 var(--sp-3) 0;
 }
 
-.eff-prefs-demo-inner {
+.aff-prefs-demo-inner {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-2);
@@ -191,36 +191,36 @@
 /* Typography demo elements — use explicit font-size tokens so the live
    preview reflects the current scale override immediately. */
 
-.eff-prefs-demo-heading {
+.aff-prefs-demo-heading {
 	font-size:   var(--fs-lg);    /* 18px at default scale — user-facing heading size */
 	font-weight: var(--fw-bold);
-	color:       var(--eff-clr-primary);
+	color:       var(--aff-clr-primary);
 	margin:      0;
 	line-height: var(--fl-md);
 }
 
-.eff-prefs-demo-body {
+.aff-prefs-demo-body {
 	font-size: var(--fs-sm);    /* 14px — matches current observed app body text */
-	color:     var(--eff-clr-secondary);
+	color:     var(--aff-clr-secondary);
 	margin:    0;
 }
 
-.eff-prefs-demo-muted {
+.aff-prefs-demo-muted {
 	font-size: var(--fs-xs);    /* 13px — secondary/supporting text in the app */
-	color:     var(--eff-clr-muted);
+	color:     var(--aff-clr-muted);
 	margin:    0;
 }
 
 /* ── Icon button demo samples (Menu Buttons section) ── */
 
-.eff-prefs-demo--btn .eff-prefs-demo-inner {
+.aff-prefs-demo--btn .aff-prefs-demo-inner {
 	flex-direction: row;
 	align-items:    flex-end;
 	gap:            var(--sp-5);
 	flex-wrap:      wrap;
 }
 
-.eff-prefs-icon-sample {
+.aff-prefs-icon-sample {
 	display:        flex;
 	flex-direction: column;
 	align-items:    center;
@@ -228,53 +228,53 @@
 }
 
 /* Sample buttons use a dedicated class so they never inherit the global
-   .eff-icon-btn override rules. They're display-only (tabindex="-1"). */
+   .aff-icon-btn override rules. They're display-only (tabindex="-1"). */
 
-.eff-prefs-icon-sample__btn {
+.aff-prefs-icon-sample__btn {
 	display:         inline-flex;
 	align-items:     center;
 	justify-content: center;
 	background:      transparent;
 	border:          1px solid transparent;
-	border-radius:   var(--eff-border-radius-md);
-	color:           var(--eff-clr-secondary);
+	border-radius:   var(--aff-border-radius-md);
+	color:           var(--aff-clr-secondary);
 	cursor:          default;
 	line-height:     1;
 }
 
-.eff-prefs-icon-sample__btn--normal {
+.aff-prefs-icon-sample__btn--normal {
 	width:     36px;
 	height:    36px;
 	font-size: 20px;
 }
 
-.eff-prefs-icon-sample__btn--large {
+.aff-prefs-icon-sample__btn--large {
 	width:     44px;
 	height:    44px;
 	font-size: 24px;
 }
 
-.eff-prefs-icon-sample__btn--high {
-	border-color: var(--eff-clr-border);
+.aff-prefs-icon-sample__btn--high {
+	border-color: var(--aff-clr-border);
 	border-width: 2px;
-	color:        var(--eff-clr-primary);
+	color:        var(--aff-clr-primary);
 }
 
-.eff-prefs-icon-sample__label {
+.aff-prefs-icon-sample__label {
 	font-size:   var(--fs-xs);
-	color:       var(--eff-clr-muted);
+	color:       var(--aff-clr-muted);
 	text-align:  center;
 	white-space: nowrap;
 }
 
 /* Active sample — gold outline when this combo is the current selection */
-.eff-prefs-icon-sample--active .eff-prefs-icon-sample__btn {
-	outline:        2px solid var(--eff-clr-accent);
+.aff-prefs-icon-sample--active .aff-prefs-icon-sample__btn {
+	outline:        2px solid var(--aff-clr-accent);
 	outline-offset: 2px;
 }
 
-.eff-prefs-icon-sample--active .eff-prefs-icon-sample__label {
-	color:       var(--eff-clr-secondary);
+.aff-prefs-icon-sample--active .aff-prefs-icon-sample__label {
+	color:       var(--aff-clr-secondary);
 	font-weight: var(--fw-semibold);
 }
 
@@ -284,7 +284,7 @@
    ========================================================================== */
 
 /* Base 14px — scale 0.875 */
-.eff-app[data-eff-font-size="14"] {
+.aff-app[data-aff-font-size="14"] {
 	--fs-sm:   12px;
 	--fs-md:   14px;
 	--fs-lg:   16px;
@@ -294,7 +294,7 @@
 }
 
 /* Base 15px — scale 0.9375 */
-.eff-app[data-eff-font-size="15"] {
+.aff-app[data-aff-font-size="15"] {
 	--fs-sm:   13px;
 	--fs-md:   15px;
 	--fs-lg:   17px;
@@ -306,7 +306,7 @@
 /* Base 16px — no override (default) */
 
 /* Base 17px — scale 1.0625 */
-.eff-app[data-eff-font-size="17"] {
+.aff-app[data-aff-font-size="17"] {
 	--fs-sm:   15px;
 	--fs-md:   17px;
 	--fs-lg:   19px;
@@ -316,7 +316,7 @@
 }
 
 /* Base 18px — scale 1.125 */
-.eff-app[data-eff-font-size="18"] {
+.aff-app[data-aff-font-size="18"] {
 	--fs-sm:   16px;
 	--fs-md:   18px;
 	--fs-lg:   20px;
@@ -330,32 +330,32 @@
    ========================================================================== */
 
 /* Light mode + high contrast — push all text to near-black */
-.eff-app[data-eff-theme="light"][data-eff-contrast="high"] {
-	--eff-clr-primary:   #000000;
-	--eff-clr-secondary: #0d0d0d;
-	--eff-clr-muted:     #1e1e1e;
-	--eff-clr-border:    #333333;
+.aff-app[data-aff-theme="light"][data-aff-contrast="high"] {
+	--aff-clr-primary:   #000000;
+	--aff-clr-secondary: #0d0d0d;
+	--aff-clr-muted:     #1e1e1e;
+	--aff-clr-border:    #333333;
 }
 
 /* Dark mode + high contrast — push all text to near-white */
-.eff-app[data-eff-theme="dark"][data-eff-contrast="high"] {
-	--eff-clr-primary:   #ffffff;
-	--eff-clr-secondary: #f5f5f5;
-	--eff-clr-muted:     #cccccc;
-	--eff-clr-border:    #888888;
+.aff-app[data-aff-theme="dark"][data-aff-contrast="high"] {
+	--aff-clr-primary:   #ffffff;
+	--aff-clr-secondary: #f5f5f5;
+	--aff-clr-muted:     #cccccc;
+	--aff-clr-border:    #888888;
 }
 
 /* ==========================================================================
    4. TOP BAR ICON BUTTON SIZE OVERRIDES
-   Only .eff-top-bar .eff-icon-btn is targeted — right-panel .eff-btn unchanged.
+   Only .aff-top-bar .aff-icon-btn is targeted — right-panel .aff-btn unchanged.
    ========================================================================== */
 
-.eff-app[data-eff-btn-size="large"] .eff-top-bar .eff-icon-btn {
+.aff-app[data-aff-btn-size="large"] .aff-top-bar .aff-icon-btn {
 	width:  44px;
 	height: 44px;
 }
 
-.eff-app[data-eff-btn-size="large"] .eff-top-bar .eff-icon-btn svg {
+.aff-app[data-aff-btn-size="large"] .aff-top-bar .aff-icon-btn svg {
 	width:  24px;
 	height: 24px;
 }
@@ -364,20 +364,20 @@
    5. TOP BAR ICON BUTTON HIGH-CONTRAST OVERRIDES
    ========================================================================== */
 
-.eff-app[data-eff-btn-contrast="high"] .eff-top-bar .eff-icon-btn {
-	border:        2px solid var(--eff-clr-border);
-	color:         var(--eff-clr-primary);
-	border-radius: var(--eff-border-radius-md);
+.aff-app[data-aff-btn-contrast="high"] .aff-top-bar .aff-icon-btn {
+	border:        2px solid var(--aff-clr-border);
+	color:         var(--aff-clr-primary);
+	border-radius: var(--aff-border-radius-md);
 }
 
 /* Light + high btn contrast */
-.eff-app[data-eff-theme="light"][data-eff-btn-contrast="high"] .eff-top-bar .eff-icon-btn {
+.aff-app[data-aff-theme="light"][data-aff-btn-contrast="high"] .aff-top-bar .aff-icon-btn {
 	border-color: #333333;
 	color:        #000000;
 }
 
 /* Dark + high btn contrast */
-.eff-app[data-eff-theme="dark"][data-eff-btn-contrast="high"] .eff-top-bar .eff-icon-btn {
+.aff-app[data-aff-theme="dark"][data-aff-btn-contrast="high"] .aff-top-bar .aff-icon-btn {
 	border-color: #888888;
 	color:        #ffffff;
 }
@@ -386,8 +386,8 @@
    6. REDUCED MOTION
    ========================================================================== */
 
-.eff-app[data-eff-motion="reduced"],
-.eff-app[data-eff-motion="reduced"] * {
+.aff-app[data-aff-motion="reduced"],
+.aff-app[data-aff-motion="reduced"] * {
 	transition: none !important;
 	animation:  none !important;
 }
@@ -397,7 +397,7 @@
    ========================================================================== */
 
 /* Compact — tighter spacing throughout */
-.eff-app[data-eff-density="compact"] {
+.aff-app[data-aff-density="compact"] {
 	--sp-1:  2px;
 	--sp-2:  4px;
 	--sp-3:  8px;
@@ -409,7 +409,7 @@
 }
 
 /* Comfortable — more breathing room */
-.eff-app[data-eff-density="comfortable"] {
+.aff-app[data-aff-density="comfortable"] {
 	--sp-1:  6px;
 	--sp-2: 10px;
 	--sp-3: 16px;

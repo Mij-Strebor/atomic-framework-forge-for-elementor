@@ -1,20 +1,20 @@
 <?php
 /**
- * EFF Admin — WordPress Admin Page Registration & Asset Enqueueing
+ * AFF Admin — WordPress Admin Page Registration & Asset Enqueueing
  *
  * Handles all WordPress admin layer concerns: menu registration,
  * asset enqueueing, page rendering, and user theme preference.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_Admin {
+class AFF_Admin {
 
-	const MENU_SLUG = 'elementor-framework-forge';
+	const MENU_SLUG = 'atomic-framework-forge';
 
 	/**
 	 * Register all WordPress hooks.
@@ -25,12 +25,12 @@ class EFF_Admin {
 	}
 
 	/**
-	 * Register the top-level EFF admin menu page.
+	 * Register the top-level AFF admin menu page.
 	 */
 	public function register_admin_menu(): void {
 		add_menu_page(
-			__( 'Elementor Framework Forge', 'elementor-framework-forge' ),
-			__( 'EFF', 'elementor-framework-forge' ),
+			__( 'Atomic Framework Forge', 'atomic-framework-forge-for-elementor' ),
+			__( 'AFF', 'atomic-framework-forge-for-elementor' ),
 			'manage_options',
 			self::MENU_SLUG,
 			array( $this, 'render_admin_page' ),
@@ -40,7 +40,7 @@ class EFF_Admin {
 	}
 
 	/**
-	 * Enqueue CSS and JS — only on the EFF admin page.
+	 * Enqueue CSS and JS — only on the AFF admin page.
 	 *
 	 * @param string $hook Current admin page hook suffix.
 	 */
@@ -51,54 +51,54 @@ class EFF_Admin {
 
 		// Theme CSS: font-face, custom properties, light/dark mode, base styles.
 		wp_enqueue_style(
-			'eff-theme',
-			EFF_PLUGIN_URL . 'admin/css/eff-theme.css',
+			'aff-theme',
+			AFF_PLUGIN_URL . 'admin/css/aff-theme.css',
 			array(),
-			$this->asset_version( 'admin/css/eff-theme.css' )
+			$this->asset_version( 'admin/css/aff-theme.css' )
 		);
 
 		// Layout CSS: four-panel structure, panel sizing, collapse states.
 		wp_enqueue_style(
-			'eff-layout',
-			EFF_PLUGIN_URL . 'admin/css/eff-layout.css',
-			array( 'eff-theme' ),
-			$this->asset_version( 'admin/css/eff-layout.css' )
+			'aff-layout',
+			AFF_PLUGIN_URL . 'admin/css/aff-layout.css',
+			array( 'aff-theme' ),
+			$this->asset_version( 'admin/css/aff-layout.css' )
 		);
 
 		// Colors CSS: Phase 2 — category blocks, color rows, expand panel.
 		wp_enqueue_style(
-			'eff-colors',
-			EFF_PLUGIN_URL . 'admin/css/eff-colors.css',
-			array( 'eff-layout' ),
-			$this->asset_version( 'admin/css/eff-colors.css' )
+			'aff-colors',
+			AFF_PLUGIN_URL . 'admin/css/aff-colors.css',
+			array( 'aff-layout' ),
+			$this->asset_version( 'admin/css/aff-colors.css' )
 		);
 
 		// Variables CSS: Phase 3 — Fonts and Numbers variable rows, font preview cell.
 		wp_enqueue_style(
-			'eff-variables',
-			EFF_PLUGIN_URL . 'admin/css/eff-variables.css',
-			array( 'eff-colors' ),
-			$this->asset_version( 'admin/css/eff-variables.css' )
+			'aff-variables',
+			AFF_PLUGIN_URL . 'admin/css/aff-variables.css',
+			array( 'aff-colors' ),
+			$this->asset_version( 'admin/css/aff-variables.css' )
 		);
 
 		// Preferences CSS: accessibility overrides and preferences panel layout.
 		wp_enqueue_style(
-			'eff-preferences',
-			EFF_PLUGIN_URL . 'admin/css/eff-preferences.css',
-			array( 'eff-variables' ),
-			$this->asset_version( 'admin/css/eff-preferences.css' )
+			'aff-preferences',
+			AFF_PLUGIN_URL . 'admin/css/aff-preferences.css',
+			array( 'aff-variables' ),
+			$this->asset_version( 'admin/css/aff-preferences.css' )
 		);
 
 		// Pickr color picker — local vendor copy (no CDN dependency).
 		wp_enqueue_style(
 			'pickr-classic',
-			EFF_PLUGIN_URL . 'assets/vendor/pickr/classic.min.css',
-			array( 'eff-colors' ),
+			AFF_PLUGIN_URL . 'assets/vendor/pickr/classic.min.css',
+			array( 'aff-colors' ),
 			'1.9.0'
 		);
 		wp_enqueue_script(
 			'pickr',
-			EFF_PLUGIN_URL . 'assets/vendor/pickr/pickr.min.js',
+			AFF_PLUGIN_URL . 'assets/vendor/pickr/pickr.min.js',
 			array(),
 			'1.9.0',
 			true
@@ -106,26 +106,26 @@ class EFF_Admin {
 
 		// JavaScript modules — loaded in dependency order, all in footer.
 		$js_modules = array(
-			'eff-theme'       => 'admin/js/eff-theme.js',
-			'eff-modal'       => 'admin/js/eff-modal.js',
-			'eff-panel-left'  => 'admin/js/eff-panel-left.js',
-			'eff-panel-right' => 'admin/js/eff-panel-right.js',
-			'eff-panel-top'   => 'admin/js/eff-panel-top.js',
-			'eff-edit-space'  => 'admin/js/eff-edit-space.js',
-			'eff-colors'      => 'admin/js/eff-colors.js',     // Phase 2 — must load before eff-app.
-			'eff-variables'   => 'admin/js/eff-variables.js',  // Phase 3 — must load before eff-app.
-			'eff-app'         => 'admin/js/eff-app.js',
+			'aff-theme'       => 'admin/js/aff-theme.js',
+			'aff-modal'       => 'admin/js/aff-modal.js',
+			'aff-panel-left'  => 'admin/js/aff-panel-left.js',
+			'aff-panel-right' => 'admin/js/aff-panel-right.js',
+			'aff-panel-top'   => 'admin/js/aff-panel-top.js',
+			'aff-edit-space'  => 'admin/js/aff-edit-space.js',
+			'aff-colors'      => 'admin/js/aff-colors.js',     // Phase 2 — must load before aff-app.
+			'aff-variables'   => 'admin/js/aff-variables.js',  // Phase 3 — must load before aff-app.
+			'aff-app'         => 'admin/js/aff-app.js',
 		);
 
 		$deps = array();
 		foreach ( $js_modules as $handle => $file ) {
 			$module_deps = $deps;
-			if ( 'eff-colors' === $handle ) {
+			if ( 'aff-colors' === $handle ) {
 				$module_deps[] = 'pickr';
 			}
 			wp_enqueue_script(
 				$handle,
-				EFF_PLUGIN_URL . $file,
+				AFF_PLUGIN_URL . $file,
 				$module_deps,
 				$this->asset_version( $file ),
 				true // Load in footer.
@@ -135,68 +135,68 @@ class EFF_Admin {
 
 		// Pass PHP data to JS.
 		wp_localize_script(
-			'eff-app',
-			'EFFData',
+			'aff-app',
+			'AFFData',
 			array(
 				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-				'nonce'     => wp_create_nonce( EFF_NONCE_ACTION ),
+				'nonce'     => wp_create_nonce( AFF_NONCE_ACTION ),
 				'theme'     => $this->get_user_theme(),
-				'version'   => EFF_VERSION,
-				'uploadUrl' => $this->get_eff_upload_dir_url(),
-				'pluginUrl' => EFF_PLUGIN_URL,
+				'version'   => AFF_VERSION,
+				'uploadUrl' => $this->get_aff_upload_dir_url(),
+				'pluginUrl' => AFF_PLUGIN_URL,
 			)
 		);
 	}
 
 	/**
-	 * Render the EFF admin page.
+	 * Render the AFF admin page.
 	 */
 	public function render_admin_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'elementor-framework-forge' ) );
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'atomic-framework-forge-for-elementor' ) );
 		}
 
 		$theme = $this->get_user_theme();
-		require_once EFF_PLUGIN_DIR . 'admin/views/page-eff-main.php';
+		require_once AFF_PLUGIN_DIR . 'admin/views/page-aff-main.php';
 	}
 
 	/**
-	 * Get the current user's EFF theme preference.
+	 * Get the current user's AFF theme preference.
 	 *
 	 * @return string 'light' or 'dark'.
 	 */
 	public function get_user_theme(): string {
 		$user_id = get_current_user_id();
-		$theme   = get_user_meta( $user_id, EFF_USER_META_THEME, true );
+		$theme   = get_user_meta( $user_id, AFF_USER_META_THEME, true );
 		return in_array( $theme, array( 'light', 'dark' ), true ) ? $theme : 'light';
 	}
 
 	/**
-	 * Get the EFF uploads directory URL.
+	 * Get the AFF uploads directory URL.
 	 *
 	 * @return string URL with trailing slash.
 	 */
-	private function get_eff_upload_dir_url(): string {
+	private function get_aff_upload_dir_url(): string {
 		$upload_dir = wp_upload_dir();
-		return $upload_dir['baseurl'] . '/eff/';
+		return $upload_dir['baseurl'] . '/aff/';
 	}
 
 	/**
 	 * Return the version string for a plugin asset.
 	 *
 	 * Uses filemtime() when WP_DEBUG is enabled so any file change busts the
-	 * browser cache automatically during development. Falls back to EFF_VERSION
+	 * browser cache automatically during development. Falls back to AFF_VERSION
 	 * in production for stable, long-lived cache headers.
 	 *
-	 * @param string $relative_path Path relative to EFF_PLUGIN_DIR (e.g. 'admin/css/eff-layout.css').
+	 * @param string $relative_path Path relative to AFF_PLUGIN_DIR (e.g. 'admin/css/aff-layout.css').
 	 * @return string Version string.
 	 */
 	private function asset_version( string $relative_path ): string {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$abs = EFF_PLUGIN_DIR . $relative_path;
-			return file_exists( $abs ) ? (string) filemtime( $abs ) : EFF_VERSION;
+			$abs = AFF_PLUGIN_DIR . $relative_path;
+			return file_exists( $abs ) ? (string) filemtime( $abs ) : AFF_VERSION;
 		}
-		return EFF_VERSION;
+		return AFF_VERSION;
 	}
 
 	/**
@@ -206,7 +206,7 @@ class EFF_Admin {
 	 * @return string SVG markup or empty string if file not found.
 	 */
 	public static function get_icon( string $name ): string {
-		$file = EFF_PLUGIN_DIR . 'assets/icons/' . $name . '.svg';
+		$file = AFF_PLUGIN_DIR . 'assets/icons/' . $name . '.svg';
 		if ( file_exists( $file ) ) {
 			return file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		}

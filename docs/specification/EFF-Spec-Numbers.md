@@ -1,16 +1,16 @@
-# EFF — Numbers Workpage Specification
+# AFF — Numbers Workpage Specification
 
-**Document:** EFF-Spec-Numbers.md
+**Document:** AFF-Spec-Numbers.md
 **Version:** 1.0
 **Date:** 2026-03-14
-**Scope:** The Numbers edit-space — everything rendered inside `#eff-edit-content` when a Numbers subgroup or category is selected in the left nav.
-**Related:** EFF-Spec-Colors.md (template), EFF-Spec-Fonts.md, EFF-Spec-Variables.md §2–5
+**Scope:** The Numbers edit-space — everything rendered inside `#aff-edit-content` when a Numbers subgroup or category is selected in the left nav.
+**Related:** AFF-Spec-Colors.md (template), AFF-Spec-Fonts.md, AFF-Spec-Variables.md §2–5
 
 ---
 
 ## 1. Overview
 
-The Numbers workpage is a full editing environment for CSS custom property numeric variables — sizes, spacings, radii, grid values, and any other dimension or unit-based property. It is one of three variable-set workpages (Colors, Fonts, Numbers) that share a common module factory (`EFF.Variables`, `admin/js/eff-variables.js`). The Numbers instance is initialized with `EFF.Variables.initSet(NUMBERS_CFG)`.
+The Numbers workpage is a full editing environment for CSS custom property numeric variables — sizes, spacings, radii, grid values, and any other dimension or unit-based property. It is one of three variable-set workpages (Colors, Fonts, Numbers) that share a common module factory (`AFF.Variables`, `admin/js/aff-variables.js`). The Numbers instance is initialized with `AFF.Variables.initSet(NUMBERS_CFG)`.
 
 **Differs from Colors in four ways:**
 
@@ -27,10 +27,10 @@ Everything else — filter bar, category blocks, drag-and-drop, undo/redo, sort,
 
 ## 2. Module Architecture
 
-**File:** `admin/js/eff-variables.js` (shared factory)
-**Initialization** (in `eff-app.js`):
+**File:** `admin/js/aff-variables.js` (shared factory)
+**Initialization** (in `aff-app.js`):
 ```javascript
-EFF.Variables.initSet(NUMBERS_CFG);
+AFF.Variables.initSet(NUMBERS_CFG);
 ```
 
 **Per-set configuration object:**
@@ -43,13 +43,13 @@ var NUMBERS_CFG = {
     catKey:            'numberCategories',
     renderPreviewCell: null,  // no preview column for Numbers
     renderValueCell: function (v) {
-        return '<input class="eff-var-value-input" value="' + esc(v.value) + '">'
+        return '<input class="aff-var-value-input" value="' + esc(v.value) + '">'
              + formatSelect(v.format, this.valueTypes);
     },
 };
 ```
 
-**Routing:** `initSet()` patches `EFF.EditSpace.loadCategory` to intercept calls where `selection.subgroup === 'Numbers'` and delegate to the shared prototype's `loadVars(selection)`.
+**Routing:** `initSet()` patches `AFF.EditSpace.loadCategory` to intercept calls where `selection.subgroup === 'Numbers'` and delegate to the shared prototype's `loadVars(selection)`.
 
 ---
 
@@ -57,7 +57,7 @@ var NUMBERS_CFG = {
 
 ### 3.1 Variable Object
 
-All Numbers variables have `subgroup === 'Numbers'` and `type === 'number'`. Fields identical to Colors (see EFF-Spec-Colors.md §3.1) except:
+All Numbers variables have `subgroup === 'Numbers'` and `type === 'number'`. Fields identical to Colors (see AFF-Spec-Colors.md §3.1) except:
 
 | Field | Numbers value |
 |-------|--------------|
@@ -84,7 +84,7 @@ The format selector allows the user to indicate which unit a variable is intende
 
 ### 3.2 Category Object
 
-Identical structure to Colors categories. Stored in `EFF.state.config.numberCategories`.
+Identical structure to Colors categories. Stored in `AFF.state.config.numberCategories`.
 
 **Default categories:**
 ```
@@ -101,7 +101,7 @@ Uncategorized (order: 6, locked: true)
 
 ## 4. Status Dot
 
-Identical to Colors (EFF-Spec-Colors.md §4). Same four statuses, same colors, same tooltip text. The status dot occupies column 2 (8px circle) of every variable row.
+Identical to Colors (AFF-Spec-Colors.md §4). Same four statuses, same colors, same tooltip text. The status dot occupies column 2 (8px circle) of every variable row.
 
 | Status | Color | Short tooltip | Long tooltip |
 |--------|-------|---------------|--------------|
@@ -137,21 +137,21 @@ column-gap: 16px;
 
 | Col | Width | Element | Class |
 |-----|-------|---------|-------|
-| 1 | 24px | Drag handle | `.eff-drag-handle` |
-| 2 | 8px | Status dot | `.eff-status-dot` |
-| 3 | 1fr | Variable name | `.eff-var-name-input` |
-| 4 | 28% | Numeric value | `.eff-var-value-input` |
-| 5 | 12% | Format selector | `.eff-var-format-sel` |
-| 6 | 28px | Delete button | `.eff-var-delete-btn` |
+| 1 | 24px | Drag handle | `.aff-drag-handle` |
+| 2 | 8px | Status dot | `.aff-status-dot` |
+| 3 | 1fr | Variable name | `.aff-var-name-input` |
+| 4 | 28% | Numeric value | `.aff-var-value-input` |
+| 5 | 12% | Format selector | `.aff-var-format-sel` |
+| 6 | 28px | Delete button | `.aff-var-delete-btn` |
 
 No preview column. No expand button. The name column (col 3) is wider than in Colors and Fonts because the 15% preview column is not present.
 
 ### 5.4 Numeric Value Input (Column 4)
 
 ```html
-<input class="eff-var-value-input"
+<input class="aff-var-value-input"
        value="{v.value}"
-       data-eff-tooltip="Numeric value — edit directly"
+       data-aff-tooltip="Numeric value — edit directly"
        spellcheck="false">
 ```
 
@@ -161,7 +161,7 @@ Rendered in monospace (same as Colors name/value inputs). The value is stored as
 
 ### 5.5 Tooltip Attributes on Variable Row Elements
 
-| Element | `data-eff-tooltip` | `data-eff-tooltip-long` |
+| Element | `data-aff-tooltip` | `data-aff-tooltip-long` |
 |---------|-------------------|------------------------|
 | Drag handle | "Drag to reorder" | — |
 | Status dot | Status name (e.g. "Synced") | Status-specific long text (see §4) |
@@ -176,27 +176,27 @@ Rendered in monospace (same as Colors name/value inputs). The value is stored as
 
 ### 6.1 Variable Name
 
-Identical to Colors and Fonts. `<input type="text" readonly>` — single click removes `readonly`. Enforces `--` prefix on `input` events. Saved via `eff_save_color` AJAX (with `subgroup: 'Numbers'`) on `change` / Enter. Invalid name → revert + field error.
+Identical to Colors and Fonts. `<input type="text" readonly>` — single click removes `readonly`. Enforces `--` prefix on `input` events. Saved via `aff_save_color` AJAX (with `subgroup: 'Numbers'`) on `change` / Enter. Invalid name → revert + field error.
 
 ### 6.2 Numeric Value
 
 - `<input type="text">` — always editable, monospace
 - **Save:** `change` event (blur) or Enter key → `_saveVarValue(varId, value, input)`
 - **Validation:** value must be non-empty after `trim()`; empty → revert to `data-original` + field error. No unit syntax validation is applied at the JS layer — CSS dimension syntax is validated by the browser when the value is applied to Elementor
-- **On save:** AJAX `eff_save_color` with `{id, value, status: 'modified', subgroup: 'Numbers'}`; updates the DOM input `data-original` on success
+- **On save:** AJAX `aff_save_color` with `{id, value, status: 'modified', subgroup: 'Numbers'}`; updates the DOM input `data-original` on success
 
 No live preview cell to update (no col 3 for Numbers).
 
 ### 6.3 Format Selector
 
 - `<select>` with options: `PX`, `%`, `EM`, `REM`, `VW`, `VH`, `CH`, `FX`
-- **On change:** saves immediately via `eff_save_color` with `{id, format: newFormat}`
+- **On change:** saves immediately via `aff_save_color` with `{id, format: newFormat}`
 - No value conversion is performed. The format is informational metadata only
 - UI hint: the selected format can serve as a reminder to the user of the intended unit, even if the stored value string includes a different unit
 
 ### 6.4 Category Name
 
-Identical to Colors and Fonts. `contenteditable` span, single-click to activate, Enter/blur to save, Escape to revert. Saved via `eff_save_category` (with `subgroup: 'Numbers'`).
+Identical to Colors and Fonts. `contenteditable` span, single-click to activate, Enter/blur to save, Escape to revert. Saved via `aff_save_category` (with `subgroup: 'Numbers'`).
 
 ---
 
@@ -210,7 +210,7 @@ The `NUMBERS_CFG.showExpandPanel = false` flag in the module configuration suppr
 
 ## 8. Drag-and-Drop Reordering
 
-Identical to Colors. Drag handle in col 1. Ghost element and drop indicator follow the same implementation. Variables can be dragged within a category or dropped onto a collapsed category (which expands to accept the drop). Saves `order`, `category`, and `category_id` via `eff_save_color`.
+Identical to Colors. Drag handle in col 1. Ghost element and drop indicator follow the same implementation. Variables can be dragged within a category or dropped onto a collapsed category (which expands to accept the drop). Saves `order`, `category`, and `category_id` via `aff_save_color`.
 
 ---
 
@@ -226,7 +226,7 @@ Identical to Colors. All six operations (add, rename, delete, duplicate, move-up
 
 ### 10.1 Add Variable
 
-Add button (circle on bottom-left edge of category block) → AJAX `eff_save_color` with defaults from `NUMBERS_CFG.newVarDefaults`:
+Add button (circle on bottom-left edge of category block) → AJAX `aff_save_color` with defaults from `NUMBERS_CFG.newVarDefaults`:
 
 ```javascript
 {
@@ -243,7 +243,7 @@ Add button (circle on bottom-left edge of category block) → AJAX `eff_save_col
 
 ### 10.2 Delete Variable
 
-Delete button (col 6, opacity 0 until row hover) → confirmation modal → AJAX `eff_delete_color` with `{variable_id}`. Numbers variables do not have child variables; the `delete_children` parameter is always `false` and the confirmation modal does not mention children.
+Delete button (col 6, opacity 0 until row hover) → confirmation modal → AJAX `aff_delete_color` with `{variable_id}`. Numbers variables do not have child variables; the `delete_children` parameter is always `false` and the confirmation modal does not mention children.
 
 ### 10.3 Move to Category
 
@@ -279,7 +279,7 @@ Numeric value sorting (small→large, large→small) is a planned future enhance
 
 ## 13. Search / Filter
 
-Identical to Colors. `#eff-numbers-search` input filters rows where `name` or `value` matches the query. Category blocks with all rows hidden are also hidden.
+Identical to Colors. `#aff-numbers-search` input filters rows where `name` or `value` matches the query. Category blocks with all rows hidden are also hidden.
 
 ---
 
@@ -291,7 +291,7 @@ Identical to Colors. Per-category toggle, collapse-all / expand-all, nav-click s
 
 ## 15. Commit to Elementor
 
-Identical to Colors. Number variables are committed to the Elementor kit CSS via `eff_commit_to_elementor`. The commit payload is `{name, value}` pairs for all non-deleted Numbers variables. PHP replaces `--name: value;` in the kit CSS `:root` block or appends new variables.
+Identical to Colors. Number variables are committed to the Elementor kit CSS via `aff_commit_to_elementor`. The commit payload is `{name, value}` pairs for all non-deleted Numbers variables. PHP replaces `--name: value;` in the kit CSS `:root` block or appends new variables.
 
 After a successful commit, all committed variables have their `status` set to `'synced'` and the status dots update accordingly.
 
@@ -299,16 +299,16 @@ After a successful commit, all committed variables have their `status` set to `'
 
 ## 16. AJAX Endpoints
 
-All endpoints require the `eff_admin_nonce` nonce and `manage_options` capability. Numbers variables use the same endpoints as Colors and Fonts, distinguished by the `subgroup` field in the variable payload.
+All endpoints require the `aff_admin_nonce` nonce and `manage_options` capability. Numbers variables use the same endpoints as Colors and Fonts, distinguished by the `subgroup` field in the variable payload.
 
 | Action | POST params | Description |
 |--------|-------------|-------------|
-| `eff_save_color` | `filename`, `variable` (JSON with `subgroup:'Numbers'`) | Add or update a number variable |
-| `eff_delete_color` | `filename`, `variable_id` | Delete a number variable |
-| `eff_save_category` | `filename`, `category` (JSON), `subgroup:'Numbers'` | Add or rename a Numbers category |
-| `eff_delete_category` | `filename`, `category_id`, `subgroup:'Numbers'` | Delete a Numbers category |
-| `eff_reorder_categories` | `filename`, `ordered_ids` (JSON), `subgroup:'Numbers'` | Reorder Numbers categories |
-| `eff_commit_to_elementor` | `filename`, `variables` (JSON) | Write Numbers variables to Elementor kit CSS |
+| `aff_save_color` | `filename`, `variable` (JSON with `subgroup:'Numbers'`) | Add or update a number variable |
+| `aff_delete_color` | `filename`, `variable_id` | Delete a number variable |
+| `aff_save_category` | `filename`, `category` (JSON), `subgroup:'Numbers'` | Add or rename a Numbers category |
+| `aff_delete_category` | `filename`, `category_id`, `subgroup:'Numbers'` | Delete a Numbers category |
+| `aff_reorder_categories` | `filename`, `ordered_ids` (JSON), `subgroup:'Numbers'` | Reorder Numbers categories |
+| `aff_commit_to_elementor` | `filename`, `variables` (JSON) | Write Numbers variables to Elementor kit CSS |
 
 **Category routing:** All category endpoints accept `subgroup` to route to `numberCategories` in the data store.
 
@@ -322,32 +322,32 @@ Numbers uses the same shared class namespace as Fonts. The 6-column grid is uniq
 
 | Class | Element | Description |
 |-------|---------|-------------|
-| `.eff-numbers-view` | Container div | Flex column |
-| `.eff-numbers-filter-bar` | Filter bar | Sticky top |
-| `.eff-numbers-search` | Search input | Flex-grow |
-| `.eff-numbers-add-cat-btn` | Add category button | Icon button |
-| `.eff-var-name-input` | Name field | Shared class; monospace, readonly by default |
-| `.eff-var-value-input` | Value field | Shared class; monospace, always editable |
-| `.eff-var-format-sel` | Format dropdown | Shared class; 8 unit options for Numbers |
-| `.eff-var-delete-btn` | Delete button | Shared class; hidden until row hover |
-| `.eff-status-dot` | Status indicator | Shared class; 8px circle |
-| `.eff-drag-handle` | Drag trigger | Shared class |
-| `.eff-category-block` | One category | Shared class |
-| `.eff-category-inner` | Inner clip wrapper | Shared class |
-| `.eff-category-header` | Header container | Shared class |
-| `.eff-category-name-input` | Category name span | Shared class |
-| `.eff-category-count` | Count badge | Shared class |
-| `.eff-category-actions` | Action button group | Shared class |
-| `.eff-cat-add-btn-wrap` | Add-var button wrapper | Shared class |
-| `.eff-color-list` | Variable rows container | Shared class |
-| `.eff-color-row` | One variable row | Shared class; **6-col grid** for Numbers |
-| `.eff-drop-indicator` | Drop target bar | Shared class |
-| `.eff-inline-error` | Field error tooltip | Shared class |
+| `.aff-numbers-view` | Container div | Flex column |
+| `.aff-numbers-filter-bar` | Filter bar | Sticky top |
+| `.aff-numbers-search` | Search input | Flex-grow |
+| `.aff-numbers-add-cat-btn` | Add category button | Icon button |
+| `.aff-var-name-input` | Name field | Shared class; monospace, readonly by default |
+| `.aff-var-value-input` | Value field | Shared class; monospace, always editable |
+| `.aff-var-format-sel` | Format dropdown | Shared class; 8 unit options for Numbers |
+| `.aff-var-delete-btn` | Delete button | Shared class; hidden until row hover |
+| `.aff-status-dot` | Status indicator | Shared class; 8px circle |
+| `.aff-drag-handle` | Drag trigger | Shared class |
+| `.aff-category-block` | One category | Shared class |
+| `.aff-category-inner` | Inner clip wrapper | Shared class |
+| `.aff-category-header` | Header container | Shared class |
+| `.aff-category-name-input` | Category name span | Shared class |
+| `.aff-category-count` | Count badge | Shared class |
+| `.aff-category-actions` | Action button group | Shared class |
+| `.aff-cat-add-btn-wrap` | Add-var button wrapper | Shared class |
+| `.aff-color-list` | Variable rows container | Shared class |
+| `.aff-color-row` | One variable row | Shared class; **6-col grid** for Numbers |
+| `.aff-drop-indicator` | Drop target bar | Shared class |
+| `.aff-inline-error` | Field error tooltip | Shared class |
 
 **Grid override for Numbers:**
 ```css
-.eff-numbers-view .eff-color-list-header,
-.eff-numbers-view .eff-color-row {
+.aff-numbers-view .aff-color-list-header,
+.aff-numbers-view .aff-color-row {
     grid-template-columns: 24px 8px 1fr 28% 12% 28px;
 }
 ```
@@ -360,8 +360,8 @@ At `max-width: 600px`, the format selector column (col 5) collapses to `0` and t
 
 ```css
 @media (max-width: 600px) {
-    .eff-numbers-view .eff-color-list-header,
-    .eff-numbers-view .eff-color-row {
+    .aff-numbers-view .aff-color-list-header,
+    .aff-numbers-view .aff-color-row {
         grid-template-columns: 24px 8px 1fr 28% 0 28px;
         column-gap: 6px;
     }
@@ -372,11 +372,11 @@ At `max-width: 600px`, the format selector column (col 5) collapses to `0` and t
 
 ## 19. State Integration
 
-Identical to Colors and Fonts. Reads/writes `EFF.state.variables` (filtered to `subgroup === 'Numbers'`), `EFF.state.config.numberCategories`, `EFF.state.currentFile`. Calls `EFF.App.setDirty()`, `EFF.App.setPendingCommit()`, `EFF.App.refreshCounts()`, `EFF.PanelLeft.refresh()` on the same triggers as Colors.
+Identical to Colors and Fonts. Reads/writes `AFF.state.variables` (filtered to `subgroup === 'Numbers'`), `AFF.state.config.numberCategories`, `AFF.state.currentFile`. Calls `AFF.App.setDirty()`, `AFF.App.setPendingCommit()`, `AFF.App.refreshCounts()`, `AFF.PanelLeft.refresh()` on the same triggers as Colors.
 
 **`_getVarsForSet()`:**
 ```javascript
-return EFF.state.variables.filter(function (v) { return v.subgroup === 'Numbers'; });
+return AFF.state.variables.filter(function (v) { return v.subgroup === 'Numbers'; });
 ```
 
 ---

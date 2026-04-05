@@ -1,6 +1,6 @@
 <?php
 /**
- * EFF Usage Scanner — Widget-level Variable Reference Counter
+ * AFF Usage Scanner — Widget-level Variable Reference Counter
  *
  * Scans all Elementor post data (stored in _elementor_data post meta) for
  * references to CSS custom properties using the var(--name) pattern.
@@ -13,14 +13,14 @@
  *  - Capped at MAX_POSTS to avoid memory issues on very large sites.
  *  - no_found_rows => true skips the SQL COUNT(*) pagination query.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_Usage_Scanner {
+class AFF_Usage_Scanner {
 
 	/**
 	 * Maximum number of Elementor posts to scan.

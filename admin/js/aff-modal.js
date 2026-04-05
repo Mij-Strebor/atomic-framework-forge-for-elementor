@@ -1,8 +1,8 @@
 /**
- * EFF Modal — Single-Instance Modal Dialog System
+ * AFF Modal — Single-Instance Modal Dialog System
  *
- * All modals in EFF use one shared overlay + modal container.
- * Content is injected via EFF.Modal.open({ title, body, footer }).
+ * All modals in AFF use one shared overlay + modal container.
+ * Content is injected via AFF.Modal.open({ title, body, footer }).
  *
  * Accessibility:
  *  - Focus is trapped while the modal is open
@@ -10,15 +10,15 @@
  *  - Clicking the overlay closes the modal
  *  - aria-hidden is toggled on the overlay
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF = window.AFF || {};
 
-	EFF.Modal = {
+	AFF.Modal = {
 
 		/** @type {HTMLElement|null} */
 		_overlay: null,
@@ -43,12 +43,12 @@
 		 * Initialize modal DOM references and bind events.
 		 */
 		init: function () {
-			this._overlay  = document.getElementById('eff-modal-overlay');
-			this._modal    = document.getElementById('eff-modal');
-			this._title    = document.getElementById('eff-modal-title');
-			this._body     = document.getElementById('eff-modal-body');
-			this._footer   = document.getElementById('eff-modal-footer');
-			this._closeBtn = document.getElementById('eff-modal-close');
+			this._overlay  = document.getElementById('aff-modal-overlay');
+			this._modal    = document.getElementById('aff-modal');
+			this._title    = document.getElementById('aff-modal-title');
+			this._body     = document.getElementById('aff-modal-body');
+			this._footer   = document.getElementById('aff-modal-footer');
+			this._closeBtn = document.getElementById('aff-modal-close');
 
 			if (!this._overlay) {
 				return;

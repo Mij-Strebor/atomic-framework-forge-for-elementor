@@ -1,20 +1,20 @@
 /**
- * EFF Variables CSS — Fonts & Numbers Variable Set Styles
+ * AFF Variables CSS — Fonts & Numbers Variable Set Styles
  *
  * Styles for the Fonts and Numbers edit-space workpages rendered by
- * EFF.Variables (admin/js/eff-variables.js). Depends on eff-colors.css
+ * AFF.Variables (admin/js/aff-variables.js). Depends on aff-colors.css
  * for shared components: filter bar, category blocks, drag handle, status
  * dot, drop indicator, collapse state, sort buttons, and icon buttons.
  *
  * This file adds:
  *   1. Grid column overrides per set (Fonts: 7 cols, Numbers: 6 cols)
- *   2. Shared .eff-var-* input/select styles (name, value, format, delete)
- *   3. Font preview cell (.eff-font-preview) — Fonts only
+ *   2. Shared .aff-var-* input/select styles (name, value, format, delete)
+ *   3. Font preview cell (.aff-font-preview) — Fonts only
  *   4. Responsive breakpoints for both sets
  *
- * Selector strategy: scope grid overrides inside .eff-fonts-view and
- * .eff-numbers-view so they do not affect the Colors rows which share
- * the same .eff-color-row class.
+ * Selector strategy: scope grid overrides inside .aff-fonts-view and
+ * .aff-numbers-view so they do not affect the Colors rows which share
+ * the same .aff-color-row class.
  *
  * @package ElementorFrameworkForge
  * @version 1.0.0
@@ -26,7 +26,7 @@
    format (12%) | delete (28px)
    ========================================================================== */
 
-.eff-fonts-view .eff-color-row {
+.aff-fonts-view .aff-color-row {
 	grid-template-columns: 24px 8px 15% 1fr 28% 12% 28px;
 	column-gap: 16px;
 }
@@ -37,7 +37,7 @@
    format (12%) | delete (28px)
    ========================================================================== */
 
-.eff-numbers-view .eff-color-row {
+.aff-numbers-view .aff-color-row {
 	grid-template-columns: 24px 8px 1fr 28% 12% 28px;
 	column-gap: 16px;
 }
@@ -48,13 +48,13 @@
    The font-family is set as an inline style by the JS renderer.
    ========================================================================== */
 
-.eff-font-preview {
+.aff-font-preview {
 	display:         flex;
 	align-items:     center;
 	justify-content: center;
 	height:          32px;
 	font-size:       18px;
-	color:           var(--eff-clr-secondary);
+	color:           var(--aff-clr-secondary);
 	user-select:     none;
 	pointer-events:  none;   /* read-only — no click action */
 	overflow:        hidden;
@@ -63,24 +63,24 @@
 }
 
 /* ==========================================================================
-   4. SHARED VARIABLE INPUTS — .eff-var-name-input, .eff-var-value-input
-   Mirror the Colors equivalents (.eff-color-name-input, .eff-color-value-input)
+   4. SHARED VARIABLE INPUTS — .aff-var-name-input, .aff-var-value-input
+   Mirror the Colors equivalents (.aff-color-name-input, .aff-color-value-input)
    so that Fonts and Numbers rows look identical to Colors rows.
    ========================================================================== */
 
 /* Variable name — monospace, read-only by default, single-click to edit */
-.eff-var-name-input {
+.aff-var-name-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
-	background:    var(--eff-bg-card);
+	background:    var(--aff-bg-card);
 	border:        none;
 	font-size:     var(--fs-xs);
-	color:         var(--eff-clr-secondary);
+	color:         var(--aff-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
 	cursor:        default;
 	outline:       none;
-	border-radius: var(--eff-border-radius-sm);
+	border-radius: var(--aff-border-radius-sm);
 	box-shadow:
 		inset 0 3px 6px rgba(100, 100, 100, 0.22),
 		inset 0 1px 3px rgba(100, 100, 100, 0.14),
@@ -88,12 +88,12 @@
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.eff-var-name-input:not([readonly]) {
+.aff-var-name-input:not([readonly]) {
 	cursor:      text;
 	user-select: auto;
 }
 
-.eff-var-name-input:focus {
+.aff-var-name-input:focus {
 	outline: none;
 }
 
@@ -102,17 +102,17 @@
  * For Fonts: font-family is applied as an inline style (live preview).
  * For Numbers: inherits the default (monospace) font.
  */
-.eff-var-value-input {
+.aff-var-value-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
-	background:    var(--eff-bg-card);
+	background:    var(--aff-bg-card);
 	border:        none;
 	font-size:     var(--fs-xs);
-	color:         var(--eff-clr-secondary);
+	color:         var(--aff-clr-secondary);
 	font-family:   monospace, monospace;  /* overridden by inline style for Fonts */
 	min-width:     0;
 	outline:       none;
-	border-radius: var(--eff-border-radius-sm);
+	border-radius: var(--aff-border-radius-sm);
 	box-shadow:
 		inset 0 3px 6px rgba(100, 100, 100, 0.22),
 		inset 0 1px 3px rgba(100, 100, 100, 0.14),
@@ -120,29 +120,29 @@
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.eff-var-value-input:focus {
+.aff-var-value-input:focus {
 	outline: none;
 }
 
 /* ==========================================================================
-   5. FORMAT SELECTOR — .eff-var-format-sel
-   Mirrors .eff-color-format-sel.
+   5. FORMAT SELECTOR — .aff-var-format-sel
+   Mirrors .aff-color-format-sel.
    ========================================================================== */
 
-.eff-var-format-sel {
+.aff-var-format-sel {
 	width:               100%;
 	padding:             2px 20px 2px var(--sp-1);
-	background-color:    var(--eff-bg-card);
+	background-color:    var(--aff-bg-card);
 	background-image:    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
 	background-repeat:   no-repeat;
 	background-position: right 6px center;
 	background-size:     10px 6px;
 	border:              1px solid rgba(100, 100, 100, 0.28);
 	font-size:           var(--fs-xs);
-	color:               var(--eff-clr-muted);
+	color:               var(--aff-clr-muted);
 	cursor:              pointer;
 	outline:             none;
-	border-radius:       var(--eff-border-radius-sm);
+	border-radius:       var(--aff-border-radius-sm);
 	-webkit-appearance:  none;
 	appearance:          none;
 	box-shadow:
@@ -152,29 +152,29 @@
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.eff-var-format-sel:focus {
+.aff-var-format-sel:focus {
 	outline: none;
 }
 
 /* ==========================================================================
-   6. DELETE VARIABLE BUTTON — .eff-var-delete-btn
-   Hidden until the row is hovered. Mirrors .eff-color-delete-btn.
+   6. DELETE VARIABLE BUTTON — .aff-var-delete-btn
+   Hidden until the row is hovered. Mirrors .aff-color-delete-btn.
    ========================================================================== */
 
-.eff-var-delete-btn {
+.aff-var-delete-btn {
 	width:   28px;
 	height:  28px;
 	padding: 0;
 	opacity: 0;
-	transition: opacity var(--eff-transition);
+	transition: opacity var(--aff-transition);
 }
 
-.eff-color-row:hover .eff-var-delete-btn {
+.aff-color-row:hover .aff-var-delete-btn {
 	opacity: 1;
 }
 
 /* ==========================================================================
-   7. INLINE ERROR (shared with Colors — .eff-inline-error is in eff-colors.css)
+   7. INLINE ERROR (shared with Colors — .aff-inline-error is in aff-colors.css)
    No additional rules needed here; the shared class covers both sets.
    ========================================================================== */
 
@@ -184,23 +184,23 @@
    Fonts: collapse format column (col 6) to 0; narrow preview (col 3) to 10%.
    Numbers: collapse format column (col 5) to 0; tighten column gap.
 
-   This matches EFF-Spec-Fonts.md §18 and keeps rows usable on mobile.
+   This matches AFF-Spec-Fonts.md §18 and keeps rows usable on mobile.
    ========================================================================== */
 
 @media (max-width: 600px) {
-	.eff-fonts-view .eff-color-row {
+	.aff-fonts-view .aff-color-row {
 		grid-template-columns: 24px 8px 10% 1fr 24% 0 28px;
 		column-gap: 6px;
 	}
 
-	.eff-numbers-view .eff-color-row {
+	.aff-numbers-view .aff-color-row {
 		grid-template-columns: 24px 8px 1fr 24% 0 28px;
 		column-gap: 6px;
 	}
 
 	/* Hide format selector when its column collapses to 0 */
-	.eff-fonts-view .eff-color-row .eff-var-format-sel,
-	.eff-numbers-view .eff-color-row .eff-var-format-sel {
+	.aff-fonts-view .aff-color-row .aff-var-format-sel,
+	.aff-numbers-view .aff-color-row .aff-var-format-sel {
 		visibility: hidden;
 		overflow:   hidden;
 	}

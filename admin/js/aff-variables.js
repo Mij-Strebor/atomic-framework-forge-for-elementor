@@ -1,15 +1,15 @@
 /**
- * EFF Variables — Generic Variable Set Factory (Fonts & Numbers)
+ * AFF Variables — Generic Variable Set Factory (Fonts & Numbers)
  *
  * A prototype-based factory that creates isolated instances for each
  * variable set (Fonts, Numbers). Each instance intercepts
- * EFF.EditSpace.loadCategory() for its own subgroup and renders a full
+ * AFF.EditSpace.loadCategory() for its own subgroup and renders a full
  * editing workspace: filter bar, category blocks, variable rows,
  * drag-and-drop, undo/redo, sort, search/filter, and collapse/expand.
  *
  * Architecture:
- *   EFF.Variables.initSet(cfg) — create and wire one set instance.
- *   EFF.Variables._proto       — shared prototype with all behaviour.
+ *   AFF.Variables.initSet(cfg) — create and wire one set instance.
+ *   AFF.Variables._proto       — shared prototype with all behaviour.
  *
  * Per-set configuration (cfg):
  *   setName          {string}    'Fonts' | 'Numbers'
@@ -20,10 +20,10 @@
  *   renderPreviewCell {Function} (v) → HTML string, or null if no preview col
  *   renderValueCell   {Function} (v) → HTML string (value input + format sel)
  *
- * Differs from Colors (eff-colors.js):
+ * Differs from Colors (aff-colors.js):
  *   — No expand panel
  *   — Grid omits the preview column for Numbers (6 cols vs 7 for Fonts)
- *   — Category state stored in EFF.state.config[catKey] not config.categories
+ *   — Category state stored in AFF.state.config[catKey] not config.categories
  *   — Category AJAX endpoints receive a subgroup param
  *   — Value cell rendering delegated to cfg.renderValueCell(v)
  *
@@ -35,13 +35,13 @@
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF= window.AFF|| {};
 
 	// -----------------------------------------------------------------------
 	// FACTORY
 	// -----------------------------------------------------------------------
 
-	EFF.Variables = {
+	AFF.Variables = {
 
 		/** Registry of live instances keyed by setName. */
 		_sets: {},
@@ -49,13 +49,13 @@
 		/**
 		 * Create and wire one variable-set instance.
 		 *
-		 * Patches EFF.EditSpace.loadCategory to intercept calls for this
+		 * Patches AFF.EditSpace.loadCategory to intercept calls for this
 		 * subgroup, and binds the undo/redo keyboard handler.
 		 *
 		 * @param {Object} cfg Per-set configuration object (see file header).
 		 */
 		initSet: function (cfg) {
-			var inst = Object.create(EFF.Variables._proto);
+			var inst = Object.create(AFF.Variables._proto);
 			inst._cfg          = cfg;
 			inst._undoStack    = [];
 			inst._redoStack    = [];
@@ -68,11 +68,11 @@
 				_dropTargetId: null, _dropAbove: null,
 			};
 
-			EFF.Variables._sets[cfg.setName] = inst;
+			AFF.Variables._sets[cfg.setName] = inst;
 
-			// Intercept EFF.EditSpace.loadCategory for this subgroup.
-			var _prevLoad = EFF.EditSpace.loadCategory.bind(EFF.EditSpace);
-			EFF.EditSpace.loadCategory = function (selection) {
+			// Intercept AFF.EditSpace.loadCategory for this subgroup.
+			var _prevLoad = AFF.EditSpace.loadCategory.bind(AFF.EditSpace);
+			AFF.EditSpace.loadCategory = function (selection) {
 				if (selection && selection.subgroup === cfg.setName) {
 					inst.loadVars(selection);
 				} else {
@@ -83,7 +83,7 @@
 			// Keyboard undo/redo — active only when this set is current.
 			document.addEventListener('keydown', function (e) {
 				if (!e.ctrlKey && !e.metaKey) { return; }
-				var sel = EFF.state.currentSelection;
+				var sel = AFF.state.currentSelection;
 				if (!sel || sel.subgroup !== cfg.setName) { return; }
 				if (e.key === 'z' || e.key === 'Z') {
 					e.preventDefault();
@@ -100,22 +100,22 @@
 	// SHARED PROTOTYPE
 	// -----------------------------------------------------------------------
 
-	EFF.Variables._proto = {
+	AFF.Variables._proto = {
 
 		// -------------------------------------------------------------------
 		// ENTRY POINT
 		// -------------------------------------------------------------------
 
 		/**
-		 * Called by the overridden EFF.EditSpace.loadCategory.
+		 * Called by the overridden AFF.EditSpace.loadCategory.
 		 *
 		 * @param {{ group:string, subgroup:string, category:string, categoryId:string }} selection
 		 */
 		loadVars: function (selection) {
 			var self        = this;
-			var placeholder = document.getElementById('eff-placeholder');
-			var content     = document.getElementById('eff-edit-content');
-			var workspace   = document.getElementById('eff-workspace');
+			var placeholder = document.getElementById('aff-placeholder');
+			var content     = document.getElementById('aff-edit-content');
+			var workspace   = document.getElementById('aff-workspace');
 			if (!content) { return; }
 
 			// Determine focused category from the nav click.
@@ -184,35 +184,35 @@
 			var _toggleSVG   = _anyExpanded ? self._collapseAllSVG() : self._expandAllSVG();
 			var _toggleTitle = _anyExpanded ? 'Collapse all categories' : 'Expand all categories';
 
-			var html = '<div class="eff-' + setLower + '-view">';
+			var html = '<div class="aff-' + setLower + '-view">';
 
 			// ---- Filter bar ----
-			html += '<div class="eff-colors-filter-bar eff-' + setLower + '-filter-bar">'
-				+ '<div class="eff-filter-bar-top">'
-				+ '<span class="eff-filter-bar-set-name">' + self._esc(cfg.setName) + '</span>'
+			html += '<div class="aff-colors-filter-bar aff-' + setLower + '-filter-bar">'
+				+ '<div class="aff-filter-bar-top">'
+				+ '<span class="aff-filter-bar-set-name">' + self._esc(cfg.setName) + '</span>'
 				+ '<span style="flex:1"></span>'
-				+ '<input type="text" class="eff-colors-search eff-' + setLower + '-search"'
-				+ ' id="eff-' + setLower + '-search"'
+				+ '<input type="text" class="aff-colors-search aff-' + setLower + '-search"'
+				+ ' id="aff-' + setLower + '-search"'
 				+ ' placeholder="Search\u2026"'
 				+ ' aria-label="Search ' + setLower + ' variables">'
-				+ '<button class="eff-icon-btn eff-colors-back-btn"'
-				+ ' id="eff-' + setLower + '-back"'
-				+ ' data-eff-tooltip="Close ' + cfg.setName + ' view"'
+				+ '<button class="aff-icon-btn aff-colors-back-btn"'
+				+ ' id="aff-' + setLower + '-back"'
+				+ ' data-aff-tooltip="Close ' + cfg.setName + ' view"'
 				+ ' aria-label="Close ' + cfg.setName + ' view">'
 				+ self._closeSVG()
 				+ '</button>'
-				+ '<button class="eff-icon-btn"'
-				+ ' id="eff-' + setLower + '-collapse-toggle"'
+				+ '<button class="aff-icon-btn"'
+				+ ' id="aff-' + setLower + '-collapse-toggle"'
 				+ ' title="' + _toggleTitle + '" aria-label="' + _toggleTitle + '"'
 				+ ' data-toggle-state="' + _toggleState + '"'
-				+ ' data-eff-tooltip="' + _toggleTitle + '">'
+				+ ' data-aff-tooltip="' + _toggleTitle + '">'
 				+ _toggleSVG
 				+ '</button>'
 				+ '</div>'
-				+ '<div class="eff-filter-bar-add-cat-wrap">'
-				+ '<button class="eff-icon-btn eff-' + setLower + '-add-cat-btn"'
-				+ ' id="eff-' + setLower + '-add-category"'
-				+ ' data-eff-tooltip="Add category"'
+				+ '<div class="aff-filter-bar-add-cat-wrap">'
+				+ '<button class="aff-icon-btn aff-' + setLower + '-add-cat-btn"'
+				+ ' id="aff-' + setLower + '-add-category"'
+				+ ' data-aff-tooltip="Add category"'
 				+ ' aria-label="Add category">'
 				+ self._plusCircleSVG()
 				+ '</button>'
@@ -221,14 +221,14 @@
 
 			// ---- Category blocks ----
 			if (categories.length === 0) {
-				html += '<p class="eff-colors-empty">No categories found. Click + to add one.</p>';
+				html += '<p class="aff-colors-empty">No categories found. Click + to add one.</p>';
 			} else {
 				for (var i = 0; i < categories.length; i++) {
 					html += self._buildCategoryBlock(categories[i], i, categories.length);
 				}
 			}
 
-			html += '</div>'; // .eff-{set}-view
+			html += '</div>'; // .aff-{set}-view
 
 			container.innerHTML = html;
 			self._bindEvents(container);
@@ -260,20 +260,20 @@
 				isCollapsed = (count === 0);
 			}
 
-			var html = '<div class="eff-category-block"'
+			var html = '<div class="aff-category-block"'
 				+ ' data-category-id="' + self._esc(cat.id) + '"'
 				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '">'
-				+ '<div class="eff-category-inner">';
+				+ '<div class="aff-category-inner">';
 
 			// Category header
-			html += '<div class="eff-category-header">'
-				+ '<div class="eff-cat-header-top">'
-				+ '<div class="eff-cat-header-left">'
-				+ '<span class="eff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
-				+ ' data-eff-tooltip="Drag to reorder">'
+			html += '<div class="aff-category-header">'
+				+ '<div class="aff-cat-header-top">'
+				+ '<div class="aff-cat-header-left">'
+				+ '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
+				+ ' data-aff-tooltip="Drag to reorder">'
 				+ self._sixDotSVG()
 				+ '</span>'
-				+ '<span class="eff-category-name-input"'
+				+ '<span class="aff-category-name-input"'
 				+ ' data-cat-id="' + self._esc(cat.id) + '"'
 				+ ' data-original="' + self._esc(cat.name) + '"'
 				+ ' aria-label="Category name"'
@@ -281,21 +281,21 @@
 				+ (cat.locked ? ' data-locked="true"' : '') + '>'
 				+ self._esc(cat.name)
 				+ '</span>'
-				+ '<span class="eff-category-count">' + count + '</span>'
-				+ '</div>' // .eff-cat-header-left
-				+ '<div class="eff-category-actions" role="toolbar" aria-label="Category actions">'
+				+ '<span class="aff-category-count">' + count + '</span>'
+				+ '</div>' // .aff-cat-header-left
+				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
 				+ self._catBtn('duplicate', 'Duplicate category', self._duplicateSVG(), '')
-				+ (cat.locked ? '' : self._catBtn('delete', 'Delete category', self._trashSVG(), 'eff-icon-btn--danger'))
-				+ self._catBtn('collapse', 'Collapse/expand category', self._chevronSVG(), 'eff-category-collapse-btn')
-				+ '</div>' // .eff-category-actions
-				+ '</div>' // .eff-cat-header-top
-				+ '</div>'; // .eff-category-header
+				+ (cat.locked ? '' : self._catBtn('delete', 'Delete category', self._trashSVG(), 'aff-icon-btn--danger'))
+				+ self._catBtn('collapse', 'Collapse/expand category', self._chevronSVG(), 'aff-category-collapse-btn')
+				+ '</div>' // .aff-category-actions
+				+ '</div>' // .aff-cat-header-top
+				+ '</div>'; // .aff-category-header
 
 			// Column sort header — same grid as variable rows.
 			// Fonts has preview col (col3), Numbers does not; adjust empty spans accordingly.
 			var _ns = (self._catSortState[cat.id] && self._catSortState[cat.id].field === 'name')  ? self._catSortState[cat.id].dir : 'none';
 			var _vs = (self._catSortState[cat.id] && self._catSortState[cat.id].field === 'value') ? self._catSortState[cat.id].dir : 'none';
-			html += '<div class="eff-color-list-header" data-cat-id="' + self._esc(cat.id) + '">'
+			html += '<div class="aff-color-list-header" data-cat-id="' + self._esc(cat.id) + '">'
 				+ '<span></span>'  // col1: drag
 				+ '<span></span>'; // col2: status dot
 			if (self._cfg.renderPreviewCell) {
@@ -303,50 +303,50 @@
 				html += '<span></span>'; // col3: preview
 			}
 			// Name sort (col4 for Fonts, col3 for Numbers)
-			html += '<span class="eff-col-sort-wrap">'
-				+ '<button class="eff-col-sort-btn" data-sort-col="name" data-cat-id="' + self._esc(cat.id) + '" data-sort-dir="' + _ns + '"'
+			html += '<span class="aff-col-sort-wrap">'
+				+ '<button class="aff-col-sort-btn" data-sort-col="name" data-cat-id="' + self._esc(cat.id) + '" data-sort-dir="' + _ns + '"'
 				+ ' title="Sort by name" aria-label="Sort by name"'
-				+ ' data-eff-tooltip="Sort by name">'
+				+ ' data-aff-tooltip="Sort by name">'
 				+ self._sortBtnSVG(_ns)
 				+ '</button>'
 				+ '</span>';
 			// Value sort (col5 for Fonts, col4 for Numbers)
-			html += '<span class="eff-col-sort-wrap">'
-				+ '<button class="eff-col-sort-btn" data-sort-col="value" data-cat-id="' + self._esc(cat.id) + '" data-sort-dir="' + _vs + '"'
+			html += '<span class="aff-col-sort-wrap">'
+				+ '<button class="aff-col-sort-btn" data-sort-col="value" data-cat-id="' + self._esc(cat.id) + '" data-sort-dir="' + _vs + '"'
 				+ ' title="Sort by value" aria-label="Sort by value"'
-				+ ' data-eff-tooltip="Sort by value">'
+				+ ' data-aff-tooltip="Sort by value">'
 				+ self._sortBtnSVG(_vs)
 				+ '</button>'
 				+ '</span>'
-				+ '</div>'; // .eff-color-list-header
+				+ '</div>'; // .aff-color-list-header
 
 			// Variable rows
-			html += '<div class="eff-color-list">';
+			html += '<div class="aff-color-list">';
 			if (count === 0) {
-				html += '<p class="eff-colors-empty">No variables in this category.</p>';
+				html += '<p class="aff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var i = 0; i < vars.length; i++) {
 					html += self._buildVariableRow(vars[i]);
 				}
 			}
-			html += '</div>'; // .eff-color-list
+			html += '</div>'; // .aff-color-list
 
-			html += '</div>'; // .eff-category-inner
+			html += '</div>'; // .aff-category-inner
 
 			// Add-variable button: circle on bottom-left edge of category block.
 			var addLabel = 'Add variable to ' + cat.name;
-			html += '<div class="eff-cat-add-btn-wrap">'
-				+ '<button class="eff-icon-btn eff-add-var-btn" data-action="add-var"'
+			html += '<div class="aff-cat-add-btn-wrap">'
+				+ '<button class="aff-icon-btn aff-add-var-btn" data-action="add-var"'
 				+ ' data-cat-id="' + self._esc(cat.id) + '"'
 				+ ' aria-label="' + self._esc(addLabel) + '"'
-				+ ' data-eff-tooltip="Add ' + self._esc(self._cfg.setName) + '"'
-				+ ' data-eff-tooltip-long="Add a new ' + self._esc(self._cfg.setName.toLowerCase())
+				+ ' data-aff-tooltip="Add ' + self._esc(self._cfg.setName) + '"'
+				+ ' data-aff-tooltip-long="Add a new ' + self._esc(self._cfg.setName.toLowerCase())
 				+ ' variable to this category">'
 				+ self._plusSVG()
 				+ '</button>'
 				+ '</div>';
 
-			html += '</div>'; // .eff-category-block
+			html += '</div>'; // .aff-category-block
 			return html;
 		},
 
@@ -366,19 +366,19 @@
 			var status = v.status || 'synced';
 			var rowKey = self._rowKey(v);
 
-			var html = '<div class="eff-color-row" data-var-id="' + self._esc(rowKey) + '">'
+			var html = '<div class="aff-color-row" data-var-id="' + self._esc(rowKey) + '">'
 
 				// Col 1: drag handle (24px)
-				+ '<div class="eff-drag-handle" data-action="drag-handle" draggable="false"'
-				+ ' aria-label="Drag to reorder" data-eff-tooltip="Drag to reorder">'
+				+ '<div class="aff-drag-handle" data-action="drag-handle" draggable="false"'
+				+ ' aria-label="Drag to reorder" data-aff-tooltip="Drag to reorder">'
 				+ self._sixDotSVG()
 				+ '</div>'
 
 				// Col 2: status dot (8px circle)
-				+ '<span class="eff-status-dot"'
+				+ '<span class="aff-status-dot"'
 				+ ' style="background:' + self._statusColor(status) + '"'
-				+ ' data-eff-tooltip="' + self._esc(status.charAt(0).toUpperCase() + status.slice(1)) + '"'
-				+ ' data-eff-tooltip-long="' + self._esc(self._statusLongTooltip(status)) + '"'
+				+ ' data-aff-tooltip="' + self._esc(status.charAt(0).toUpperCase() + status.slice(1)) + '"'
+				+ ' data-aff-tooltip-long="' + self._esc(self._statusLongTooltip(status)) + '"'
 				+ ' aria-label="Status: ' + self._esc(status) + '">'
 				+ '</span>';
 
@@ -388,25 +388,25 @@
 			}
 
 			// Name input (read-only by default; single-click activates).
-			html += '<input type="text" class="eff-var-name-input"'
+			html += '<input type="text" class="aff-var-name-input"'
 				+ ' value="' + self._esc(v.name) + '"'
 				+ ' data-original="' + self._esc(v.name) + '"'
 				+ ' readonly'
 				+ ' aria-label="Variable name"'
-				+ ' data-eff-tooltip="Variable name \u2014 click to edit"'
+				+ ' data-aff-tooltip="Variable name \u2014 click to edit"'
 				+ ' spellcheck="false">';
 
 			// Value input + format selector — delegated to per-set config.
 			html += cfg.renderValueCell.call(cfg, v);
 
 			// Delete button (last column, 28px, hidden until row hover).
-			html += '<button class="eff-icon-btn eff-var-delete-btn" data-action="delete-var"'
+			html += '<button class="aff-icon-btn aff-var-delete-btn" data-action="delete-var"'
 				+ ' data-var-id="' + self._esc(rowKey) + '"'
 				+ ' aria-label="Delete variable"'
-				+ ' data-eff-tooltip="Delete variable"'
-				+ ' data-eff-tooltip-long="Remove this variable from the project">&#x1F5D1;</button>';
+				+ ' data-aff-tooltip="Delete variable"'
+				+ ' data-aff-tooltip-long="Remove this variable from the project">&#x1F5D1;</button>';
 
-			html += '</div>'; // .eff-color-row
+			html += '</div>'; // .aff-color-row
 			return html;
 		},
 
@@ -432,7 +432,7 @@
 			var setLower = self._cfg.setName.toLowerCase();
 
 			// Back / close
-			var backBtn = container.querySelector('#eff-' + setLower + '-back');
+			var backBtn = container.querySelector('#aff-' + setLower + '-back');
 			if (backBtn) {
 				backBtn.addEventListener('click', function () {
 					self._closeView();
@@ -440,7 +440,7 @@
 			}
 
 			// Collapse / expand all
-			var toggleBtn = container.querySelector('#eff-' + setLower + '-collapse-toggle');
+			var toggleBtn = container.querySelector('#aff-' + setLower + '-collapse-toggle');
 			if (toggleBtn) {
 				toggleBtn.addEventListener('click', function () {
 					var state    = toggleBtn.getAttribute('data-toggle-state');
@@ -450,7 +450,7 @@
 			}
 
 			// Add category
-			var addCatBtn = container.querySelector('#eff-' + setLower + '-add-category');
+			var addCatBtn = container.querySelector('#aff-' + setLower + '-add-category');
 			if (addCatBtn) {
 				addCatBtn.addEventListener('click', function () {
 					self._addCategory();
@@ -458,7 +458,7 @@
 			}
 
 			// Search / filter
-			var searchInput = container.querySelector('#eff-' + setLower + '-search');
+			var searchInput = container.querySelector('#aff-' + setLower + '-search');
 			if (searchInput) {
 				searchInput.addEventListener('input', function () {
 					self._filterRows(container, searchInput.value.trim().toLowerCase());
@@ -477,7 +477,7 @@
 				var btn    = e.target.closest('[data-action]');
 				if (!btn) { return; }
 				var action = btn.getAttribute('data-action');
-				var block  = btn.closest('.eff-category-block');
+				var block  = btn.closest('.aff-category-block');
 				var catId  = block ? block.getAttribute('data-category-id') : null;
 
 				switch (action) {
@@ -503,9 +503,9 @@
 				}
 			});
 
-			// ---- Column sort buttons (in .eff-color-list-header) ----
+			// ---- Column sort buttons (in .aff-color-list-header) ----
 			container.addEventListener('click', function (e) {
-				var sortBtn = e.target.closest('.eff-col-sort-btn');
+				var sortBtn = e.target.closest('.aff-col-sort-btn');
 				if (!sortBtn) { return; }
 				var sCatId  = sortBtn.getAttribute('data-cat-id');
 				var sCol    = sortBtn.getAttribute('data-sort-col');
@@ -517,11 +517,11 @@
 
 			// ---- Single-click to activate editing ----
 			container.addEventListener('mousedown', function (e) {
-				var input = e.target.closest('.eff-var-name-input, .eff-category-name-input');
+				var input = e.target.closest('.aff-var-name-input, .aff-category-name-input');
 				if (!input) { return; }
 				if (input.getAttribute('data-locked') === 'true') { return; }
 
-				var isCat     = input.classList.contains('eff-category-name-input');
+				var isCat     = input.classList.contains('aff-category-name-input');
 				var isEditing = isCat
 					? (input.getAttribute('contenteditable') === 'true')
 					: !input.hasAttribute('readonly');
@@ -545,10 +545,10 @@
 
 			// ---- Restore readonly / contenteditable on focusout ----
 			container.addEventListener('focusout', function (e) {
-				var nameInput = e.target.closest('.eff-var-name-input');
+				var nameInput = e.target.closest('.aff-var-name-input');
 				if (nameInput) { nameInput.setAttribute('readonly', ''); return; }
 
-				var catInput = e.target.closest('.eff-category-name-input');
+				var catInput = e.target.closest('.aff-category-name-input');
 				if (catInput && catInput.getAttribute('data-locked') !== 'true') {
 					self._saveCategoryName(catInput);
 					catInput.setAttribute('contenteditable', 'false');
@@ -557,7 +557,7 @@
 
 			// ---- Category name: Enter / Escape ----
 			container.addEventListener('keydown', function (e) {
-				var catInput = e.target.closest('.eff-category-name-input');
+				var catInput = e.target.closest('.aff-category-name-input');
 				if (!catInput) { return; }
 				if (e.key === 'Enter') {
 					e.preventDefault();
@@ -571,7 +571,7 @@
 
 			// ---- Variable name: live '--' prefix guard ----
 			container.addEventListener('input', function (e) {
-				var nameInput = e.target.closest('.eff-var-name-input');
+				var nameInput = e.target.closest('.aff-var-name-input');
 				if (!nameInput) { return; }
 				var val = nameInput.value;
 				if (val.slice(0, 2) !== '--') {
@@ -581,36 +581,36 @@
 
 			// ---- Variable name: save on change / Enter ----
 			container.addEventListener('change', function (e) {
-				var nameInput = e.target.closest('.eff-var-name-input');
+				var nameInput = e.target.closest('.aff-var-name-input');
 				if (!nameInput) { return; }
-				var row   = nameInput.closest('.eff-color-row');
+				var row   = nameInput.closest('.aff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
 				if (varId !== null) { self._saveVarName(varId, nameInput); }
 			});
 			container.addEventListener('keydown', function (e) {
 				if (e.key !== 'Enter') { return; }
-				var nameInput = e.target.closest('.eff-var-name-input');
+				var nameInput = e.target.closest('.aff-var-name-input');
 				if (!nameInput) { return; }
 				nameInput.blur();
 			});
 
 			// ---- Value input: live preview for Fonts ----
 			container.addEventListener('input', function (e) {
-				var valInput = e.target.closest('.eff-var-value-input');
+				var valInput = e.target.closest('.aff-var-value-input');
 				if (!valInput) { return; }
 				if (self._cfg.setName === 'Fonts') {
 					valInput.style.fontFamily = valInput.value;
-					var row     = valInput.closest('.eff-color-row');
-					var preview = row ? row.querySelector('.eff-font-preview') : null;
+					var row     = valInput.closest('.aff-color-row');
+					var preview = row ? row.querySelector('.aff-font-preview') : null;
 					if (preview) { preview.style.fontFamily = valInput.value; }
 				}
 			});
 
 			// ---- Value input: save on change / Enter ----
 			container.addEventListener('change', function (e) {
-				var valInput = e.target.closest('.eff-var-value-input');
+				var valInput = e.target.closest('.aff-var-value-input');
 				if (!valInput) { return; }
-				var row   = valInput.closest('.eff-color-row');
+				var row   = valInput.closest('.aff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
 				if (varId === null) { return; }
 				var newVal = valInput.value.trim();
@@ -624,16 +624,16 @@
 			});
 			container.addEventListener('keydown', function (e) {
 				if (e.key !== 'Enter') { return; }
-				var valInput = e.target.closest('.eff-var-value-input');
+				var valInput = e.target.closest('.aff-var-value-input');
 				if (!valInput) { return; }
 				valInput.blur();
 			});
 
 			// ---- Format selector: save on change ----
 			container.addEventListener('change', function (e) {
-				var fmtSel = e.target.closest('.eff-var-format-sel');
+				var fmtSel = e.target.closest('.aff-var-format-sel');
 				if (!fmtSel) { return; }
-				var row   = fmtSel.closest('.eff-color-row');
+				var row   = fmtSel.closest('.aff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
 				if (varId !== null) { self._saveVarFormat(varId, fmtSel.value); }
 			});
@@ -652,10 +652,10 @@
 		 */
 		_filterRows: function (container, query) {
 			var self   = this;
-			var blocks = container.querySelectorAll('.eff-category-block');
+			var blocks = container.querySelectorAll('.aff-category-block');
 			for (var bi = 0; bi < blocks.length; bi++) {
 				var block      = blocks[bi];
-				var rows       = block.querySelectorAll('.eff-color-row');
+				var rows       = block.querySelectorAll('.aff-color-row');
 				var anyVisible = false;
 				for (var ri = 0; ri < rows.length; ri++) {
 					var row   = rows[ri];
@@ -685,7 +685,7 @@
 		 */
 		_setAllCollapsed: function (container, collapse) {
 			var self   = this;
-			var blocks = container.querySelectorAll('.eff-category-block');
+			var blocks = container.querySelectorAll('.aff-category-block');
 			for (var i = 0; i < blocks.length; i++) {
 				var block = blocks[i];
 				var catId = block.getAttribute('data-category-id');
@@ -706,7 +706,7 @@
 		 * @param {HTMLElement} container
 		 */
 		_jumpToCategory: function (catId, container) {
-			var block = container.querySelector('.eff-category-block[data-category-id="' + catId + '"]');
+			var block = container.querySelector('.aff-category-block[data-category-id="' + catId + '"]');
 			if (!block) { return; }
 			block.setAttribute('data-collapsed', 'false');
 			this._collapsedIds[catId] = false;
@@ -719,12 +719,12 @@
 
 		/** Close this set's view and restore the placeholder state. */
 		_closeView: function () {
-			if (EFF.PanelLeft && EFF.PanelLeft.clearSelection) {
-				EFF.PanelLeft.clearSelection();
+			if (AFF.PanelLeft && AFF.PanelLeft.clearSelection) {
+				AFF.PanelLeft.clearSelection();
 			}
-			var content     = document.getElementById('eff-edit-content');
-			var placeholder = document.getElementById('eff-placeholder');
-			var workspace   = document.getElementById('eff-workspace');
+			var content     = document.getElementById('aff-edit-content');
+			var placeholder = document.getElementById('aff-placeholder');
+			var workspace   = document.getElementById('aff-workspace');
 			if (content) {
 				content.setAttribute('hidden', '');
 				content.style.display = '';
@@ -732,7 +732,7 @@
 			}
 			if (placeholder) { placeholder.style.display = ''; }
 			if (workspace)   { workspace.removeAttribute('data-active'); }
-			EFF.state.currentSelection = null;
+			AFF.state.currentSelection = null;
 			this._focusedCatId = null;
 		},
 
@@ -774,13 +774,13 @@
 			if (op.type === 'name-change') {
 				v.name = value;
 				self._ajaxSaveVar({ id: v.id, name: value }, function () {
-					if (EFF.App) { EFF.App.setDirty(true); }
+					if (AFF.App) { AFF.App.setDirty(true); }
 					self._rerenderView();
 				});
 			} else if (op.type === 'value-change') {
 				v.value = value;
 				self._ajaxSaveVar({ id: v.id, value: value }, function () {
-					if (EFF.App) { EFF.App.setDirty(true); }
+					if (AFF.App) { AFF.App.setDirty(true); }
 					self._rerenderView();
 				});
 			}
@@ -823,7 +823,7 @@
 				status:              'modified',
 			}, function () {
 				nameInput.setAttribute('data-original', newName);
-				if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+				if (AFF.App) { AFF.App.setDirty(true); AFF.App.setPendingCommit(true); }
 			});
 		},
 
@@ -847,13 +847,13 @@
 
 			// For Fonts: update the preview cell and value input's inline style.
 			if (self._cfg.setName === 'Fonts') {
-				var content = document.getElementById('eff-edit-content');
+				var content = document.getElementById('aff-edit-content');
 				if (content) {
-					var listRow = content.querySelector('.eff-color-row[data-var-id="' + self._esc(varId) + '"]');
+					var listRow = content.querySelector('.aff-color-row[data-var-id="' + self._esc(varId) + '"]');
 					if (listRow) {
-						var preview = listRow.querySelector('.eff-font-preview');
+						var preview = listRow.querySelector('.aff-font-preview');
 						if (preview) { preview.style.fontFamily = newValue; }
-						var valInp  = listRow.querySelector('.eff-var-value-input');
+						var valInp  = listRow.querySelector('.aff-var-value-input');
 						if (valInp)  { valInp.style.fontFamily  = newValue; }
 					}
 				}
@@ -863,7 +863,7 @@
 
 			self._ajaxSaveVar({ id: v.id, value: newValue, status: 'modified' }, function () {
 				if (input) { input.setAttribute('data-original', newValue); }
-				if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+				if (AFF.App) { AFF.App.setDirty(true); AFF.App.setPendingCommit(true); }
 			});
 		},
 
@@ -880,7 +880,7 @@
 			v.format = newFormat;
 			v.status = 'modified';
 			self._ajaxSaveVar({ id: v.id, format: newFormat, status: 'modified' }, function () {
-				if (EFF.App) { EFF.App.setDirty(true); EFF.App.setPendingCommit(true); }
+				if (AFF.App) { AFF.App.setDirty(true); AFF.App.setPendingCommit(true); }
 			});
 		},
 
@@ -902,7 +902,7 @@
 				if (cats[i].id === catId) { cat = cats[i]; break; }
 			}
 
-			if (!EFF.state.currentFile) {
+			if (!AFF.state.currentFile) {
 				self._noFileModal();
 				return;
 			}
@@ -918,29 +918,29 @@
 				subgroup:    cfg.setName,
 				category:    cat ? cat.name : '',
 				category_id: catId,
-				format:      (EFF.state.settings && EFF.state.settings[cfg.setName.toLowerCase() + '_default_type']) || defaults.format || '',
+				format:      (AFF.state.settings && AFF.state.settings[cfg.setName.toLowerCase() + '_default_type']) || defaults.format || '',
 				status:      'new',
 			};
 
-			EFF.App.ajax('eff_save_color', {
-				filename: EFF.state.currentFile,
+			AFF.App.ajax('aff_save_color', {
+				filename: AFF.state.currentFile,
 				variable: JSON.stringify(newVar),
 			}).then(function (res) {
 				if (res.success && res.data && res.data.data) {
-					EFF.state.variables = res.data.data.variables || EFF.state.variables;
-					if (EFF.App) {
-						EFF.App.setDirty(true);
-						EFF.App.setPendingCommit(true);
-						EFF.App.refreshCounts();
+					AFF.state.variables = res.data.data.variables || AFF.state.variables;
+					if (AFF.App) {
+						AFF.App.setDirty(true);
+						AFF.App.setPendingCommit(true);
+						AFF.App.refreshCounts();
 					}
 					self._collapsedIds[catId] = false;
 					self._rerenderView();
 				} else if (!res.success) {
 					var msg = (res.data && res.data.message) ? res.data.message : 'Could not add variable.';
-					EFF.Modal.open({ title: 'Error', body: '<p>' + msg + '</p>' });
+					AFF.Modal.open({ title: 'Error', body: '<p>' + msg + '</p>' });
 				}
 			}).catch(function () {
-				EFF.Modal.open({ title: 'Connection error', body: '<p>Could not add variable. Please try again.</p>' });
+				AFF.Modal.open({ title: 'Connection error', body: '<p>Could not add variable. Please try again.</p>' });
 			});
 		},
 
@@ -954,39 +954,39 @@
 		_deleteVariable: function (varId) {
 			var self     = this;
 			var variable = null;
-			for (var i = 0; i < EFF.state.variables.length; i++) {
-				if (EFF.state.variables[i].id === varId) { variable = EFF.state.variables[i]; break; }
+			for (var i = 0; i < AFF.state.variables.length; i++) {
+				if (AFF.state.variables[i].id === varId) { variable = AFF.state.variables[i]; break; }
 			}
 			if (!variable) { return; }
 
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'Delete variable',
 				body:  '<p>Delete <strong>' + self._esc(variable.name || varId) + '</strong>?</p>'
 					+ '<p>This cannot be undone.</p>',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="eff-btn eff-btn--secondary" id="eff-del-var-cancel">Cancel</button>'
-					+ '<button class="eff-btn eff-btn--danger" id="eff-del-var-confirm">Delete</button>'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-del-var-cancel">Cancel</button>'
+					+ '<button class="aff-btn aff-btn--danger" id="aff-del-var-confirm">Delete</button>'
 					+ '</div>',
 			});
 
 			function handleClick(e) {
-				if (e.target.id === 'eff-del-var-cancel') {
-					EFF.Modal.close();
+				if (e.target.id === 'aff-del-var-cancel') {
+					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
-				} else if (e.target.id === 'eff-del-var-confirm') {
-					EFF.Modal.close();
+				} else if (e.target.id === 'aff-del-var-confirm') {
+					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
-					EFF.App.ajax('eff_delete_color', {
-						filename:    EFF.state.currentFile,
+					AFF.App.ajax('aff_delete_color', {
+						filename:    AFF.state.currentFile,
 						variable_id: varId,
 					}).then(function (res) {
 						if (res.success && res.data && res.data.data) {
-							EFF.state.variables = res.data.data.variables;
-							if (EFF.App) { EFF.App.setDirty(true); EFF.App.refreshCounts(); }
+							AFF.state.variables = res.data.data.variables;
+							if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
 							self._rerenderView();
 						}
 					}).catch(function () {
-						EFF.Modal.open({ title: 'Connection error', body: '<p>Delete failed. Please try again.</p>' });
+						AFF.Modal.open({ title: 'Connection error', body: '<p>Delete failed. Please try again.</p>' });
 					});
 				}
 			}
@@ -1000,41 +1000,41 @@
 		/** Open the add-category modal. */
 		_addCategory: function () {
 			var self = this;
-			if (!EFF.state.currentFile) { self._noFileModal(); return; }
+			if (!AFF.state.currentFile) { self._noFileModal(); return; }
 
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'New Category',
 				body:  '<p style="margin-bottom:10px">Enter a name for the new category.</p>'
-					+ '<input type="text" class="eff-field-input" id="eff-modal-cat-name"'
+					+ '<input type="text" class="aff-field-input" id="aff-modal-cat-name"'
 					+ ' placeholder="e.g., Heading fonts" autocomplete="off" style="width:100%">',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="eff-btn eff-btn--secondary" id="eff-modal-cat-cancel">Cancel</button>'
-					+ '<button class="eff-btn" id="eff-modal-cat-ok">Add Category</button>'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-cat-cancel">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-modal-cat-ok">Add Category</button>'
 					+ '</div>',
 			});
 			setTimeout(function () {
-				var inp = document.getElementById('eff-modal-cat-name');
+				var inp = document.getElementById('aff-modal-cat-name');
 				if (inp) { inp.focus(); }
 			}, 50);
 
 			function handleClick(e) {
-				if (e.target.id === 'eff-modal-cat-cancel') {
-					EFF.Modal.close();
+				if (e.target.id === 'aff-modal-cat-cancel') {
+					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
-				} else if (e.target.id === 'eff-modal-cat-ok') {
-					var inp  = document.getElementById('eff-modal-cat-name');
+				} else if (e.target.id === 'aff-modal-cat-ok') {
+					var inp  = document.getElementById('aff-modal-cat-name');
 					var name = inp ? inp.value.trim() : '';
-					EFF.Modal.close();
+					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
 					if (!name) { return; }
 
-					EFF.App.ajax('eff_save_category', {
-						filename: EFF.state.currentFile,
+					AFF.App.ajax('aff_save_category', {
+						filename: AFF.state.currentFile,
 						subgroup: self._cfg.setName,
 						category: JSON.stringify({ name: name }),
 					}).then(function (res) {
 						if (res.success && res.data) {
-							if (!EFF.state.config) { EFF.state.config = {}; }
+							if (!AFF.state.config) { AFF.state.config = {}; }
 							// Merge: append new category to local state instead of
 							// replacing — preserves globalConfig-sourced categories
 							// that aren't written to the file yet.
@@ -1044,14 +1044,14 @@
 								if (_serverCats[_ki].id === res.data.id) { _newCat = _serverCats[_ki]; break; }
 							}
 							if (_newCat) {
-								if (!Array.isArray(EFF.state.config[self._cfg.catKey])) { EFF.state.config[self._cfg.catKey] = []; }
-								EFF.state.config[self._cfg.catKey].push(_newCat);
+								if (!Array.isArray(AFF.state.config[self._cfg.catKey])) { AFF.state.config[self._cfg.catKey] = []; }
+								AFF.state.config[self._cfg.catKey].push(_newCat);
 							} else {
-								EFF.state.config[self._cfg.catKey] = _serverCats;
+								AFF.state.config[self._cfg.catKey] = _serverCats;
 							}
-							if (EFF.App) { EFF.App.setDirty(true); }
+							if (AFF.App) { AFF.App.setDirty(true); }
 							self._rerenderView();
-							if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
+							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
 						}
 					}).catch(function () {});
 				}
@@ -1062,7 +1062,7 @@
 		/**
 		 * Save the category name from the contenteditable span.
 		 *
-		 * @param {HTMLElement} input The .eff-category-name-input element.
+		 * @param {HTMLElement} input The .aff-category-name-input element.
 		 */
 		_saveCategoryName: function (input) {
 			var self    = this;
@@ -1074,32 +1074,32 @@
 				input.textContent = oldName;
 				return;
 			}
-			if (!EFF.state.currentFile) {
+			if (!AFF.state.currentFile) {
 				input.textContent = oldName;
 				self._noFileModal();
 				return;
 			}
 
-			EFF.App.ajax('eff_save_category', {
-				filename: EFF.state.currentFile,
+			AFF.App.ajax('aff_save_category', {
+				filename: AFF.state.currentFile,
 				subgroup: self._cfg.setName,
 				category: JSON.stringify({ id: catId, name: newName }),
 			}).then(function (res) {
 				if (res.success && res.data) {
-					if (!EFF.state.config) { EFF.state.config = {}; }
+					if (!AFF.state.config) { AFF.state.config = {}; }
 					// Merge: update the renamed category in local state by ID.
-					var _localCats = EFF.state.config[self._cfg.catKey];
+					var _localCats = AFF.state.config[self._cfg.catKey];
 					if (Array.isArray(_localCats)) {
 						for (var _ri = 0; _ri < _localCats.length; _ri++) {
 							if (_localCats[_ri].id === catId) { _localCats[_ri].name = newName; break; }
 						}
 					} else {
-						EFF.state.config[self._cfg.catKey] = res.data.categories || [];
+						AFF.state.config[self._cfg.catKey] = res.data.categories || [];
 					}
 					input.setAttribute('data-original', newName);
-					if (EFF.App) { EFF.App.setDirty(true); }
+					if (AFF.App) { AFF.App.setDirty(true); }
 					self._rerenderView();
-					if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
+					if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
 				} else {
 					input.textContent = oldName;
 				}
@@ -1114,46 +1114,46 @@
 		_deleteCategory: function (catId) {
 			var self = this;
 			var vars = self._getVarsForCategoryId(catId);
-			if (!EFF.state.currentFile) { self._noFileModal(); return; }
+			if (!AFF.state.currentFile) { self._noFileModal(); return; }
 
 			var bodyText = vars.length > 0
 				? '<p>' + vars.length + ' variable(s) are in this category. Variables will be moved to Uncategorized.</p>'
 				  + '<p style="margin-top:8px">Delete the category anyway?</p>'
 				: '<p>Delete this category?</p>';
 
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title:  'Delete Category',
 				body:   bodyText,
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="eff-btn eff-btn--secondary" id="eff-modal-del-cancel">Cancel</button>'
-					+ '<button class="eff-btn eff-btn--danger" id="eff-modal-del-ok">Delete Category</button>'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-del-cancel">Cancel</button>'
+					+ '<button class="aff-btn aff-btn--danger" id="aff-modal-del-ok">Delete Category</button>'
 					+ '</div>',
 			});
 
 			function handleClick(e) {
-				if (e.target.id === 'eff-modal-del-cancel') {
-					EFF.Modal.close();
+				if (e.target.id === 'aff-modal-del-cancel') {
+					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
-				} else if (e.target.id === 'eff-modal-del-ok') {
-					EFF.Modal.close();
+				} else if (e.target.id === 'aff-modal-del-ok') {
+					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
-					var _preDelCats = (EFF.state.config && Array.isArray(EFF.state.config[self._cfg.catKey])) ? EFF.state.config[self._cfg.catKey].slice() : null;
-				EFF.App.ajax('eff_delete_category', {
-						filename:    EFF.state.currentFile,
+					var _preDelCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey])) ? AFF.state.config[self._cfg.catKey].slice() : null;
+				AFF.App.ajax('aff_delete_category', {
+						filename:    AFF.state.currentFile,
 						subgroup:    self._cfg.setName,
 						category_id: catId,
 					}).then(function (res) {
 						if (res.success && res.data) {
-							if (!EFF.state.config) { EFF.state.config = {}; }
-							EFF.state.config[self._cfg.catKey] = res.data.categories;
+							if (!AFF.state.config) { AFF.state.config = {}; }
+							AFF.state.config[self._cfg.catKey] = res.data.categories;
 							// Merge: use pre-captured local list, filtered by deleted ID.
 						if (_preDelCats !== null) {
-							EFF.state.config[self._cfg.catKey] = _preDelCats.filter(function (c) { return c.id !== catId; });
+							AFF.state.config[self._cfg.catKey] = _preDelCats.filter(function (c) { return c.id !== catId; });
 						}
 						delete self._collapsedIds[catId];
-							if (EFF.App) { EFF.App.setDirty(true); }
+							if (AFF.App) { AFF.App.setDirty(true); }
 							self._rerenderView();
-							if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
+							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
 						}
 					}).catch(function () {});
 				}
@@ -1200,7 +1200,7 @@
 		 */
 		_duplicateCategory: function (catId) {
 			var self = this;
-			if (!EFF.state.currentFile) { self._noFileModal(); return; }
+			if (!AFF.state.currentFile) { self._noFileModal(); return; }
 
 			var cats = self._getCatsForSet();
 			var cat  = null;
@@ -1209,13 +1209,13 @@
 			}
 			if (!cat) { return; }
 
-			EFF.App.ajax('eff_save_category', {
-				filename: EFF.state.currentFile,
+			AFF.App.ajax('aff_save_category', {
+				filename: AFF.state.currentFile,
 				subgroup: self._cfg.setName,
 				category: JSON.stringify({ name: cat.name + ' (copy)' }),
 			}).then(function (res) {
 				if (!res.success || !res.data) { return; }
-				if (!EFF.state.config) { EFF.state.config = {}; }
+				if (!AFF.state.config) { AFF.state.config = {}; }
 				// Merge: append new duplicate category to local state by ID.
 				var _dupCat = null;
 				var _dupServerCats = res.data.categories || [];
@@ -1223,10 +1223,10 @@
 					if (_dupServerCats[_di].id === res.data.id) { _dupCat = _dupServerCats[_di]; break; }
 				}
 				if (_dupCat) {
-					if (!Array.isArray(EFF.state.config[self._cfg.catKey])) { EFF.state.config[self._cfg.catKey] = []; }
-					EFF.state.config[self._cfg.catKey].push(_dupCat);
+					if (!Array.isArray(AFF.state.config[self._cfg.catKey])) { AFF.state.config[self._cfg.catKey] = []; }
+					AFF.state.config[self._cfg.catKey].push(_dupCat);
 				} else {
-					EFF.state.config[self._cfg.catKey] = _dupServerCats;
+					AFF.state.config[self._cfg.catKey] = _dupServerCats;
 				}
 				var newCatId = res.data.id;
 				var vars     = self._getVarsForCategory(cat);
@@ -1241,21 +1241,21 @@
 					};
 					(function (dv) {
 						chain = chain.then(function () {
-							return EFF.App.ajax('eff_save_color', {
-								filename: EFF.state.currentFile,
+							return AFF.App.ajax('aff_save_color', {
+								filename: AFF.state.currentFile,
 								variable: JSON.stringify(dv),
 							}).then(function (r) {
 								if (r.success && r.data && r.data.data) {
-									EFF.state.variables = r.data.data.variables;
+									AFF.state.variables = r.data.data.variables;
 								}
 							});
 						});
 					}(dupVar));
 				});
 				chain.then(function () {
-					if (EFF.App) { EFF.App.setDirty(true); EFF.App.refreshCounts(); }
+					if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
 					self._rerenderView();
-					if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
+					if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
 				}).catch(function () {});
 			}).catch(function () {});
 		},
@@ -1270,8 +1270,8 @@
 			var catKey = self._cfg.catKey;
 
 			// Apply locally so the re-render shows the new order instantly.
-			if (EFF.state.config && EFF.state.config[catKey]) {
-				var cats = EFF.state.config[catKey];
+			if (AFF.state.config && AFF.state.config[catKey]) {
+				var cats = AFF.state.config[catKey];
 				for (var i = 0; i < orderedIds.length; i++) {
 					for (var j = 0; j < cats.length; j++) {
 						if (cats[j].id === orderedIds[i]) { cats[j].order = i; break; }
@@ -1280,11 +1280,11 @@
 			}
 			self._rerenderView();
 
-			if (!EFF.state.currentFile) { return; }
-			if (EFF.App) { EFF.App.setDirty(true); }
+			if (!AFF.state.currentFile) { return; }
+			if (AFF.App) { AFF.App.setDirty(true); }
 
-			EFF.App.ajax('eff_reorder_categories', {
-				filename:    EFF.state.currentFile,
+			AFF.App.ajax('aff_reorder_categories', {
+				filename:    AFF.state.currentFile,
 				subgroup:    self._cfg.setName,
 				ordered_ids: JSON.stringify(orderedIds),
 			}).then(function (res) {
@@ -1301,11 +1301,11 @@
 		 */
 		_ensureUncategorized: function () {
 			var catKey = this._cfg.catKey;
-			if (!EFF.state.config) { EFF.state.config = {}; }
-			if (!Array.isArray(EFF.state.config[catKey])) {
-				EFF.state.config[catKey] = [];
+			if (!AFF.state.config) { AFF.state.config = {}; }
+			if (!Array.isArray(AFF.state.config[catKey])) {
+				AFF.state.config[catKey] = [];
 			}
-			var cats     = EFF.state.config[catKey];
+			var cats     = AFF.state.config[catKey];
 			var hasUncat = false;
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].name === 'Uncategorized') { hasUncat = true; break; }
@@ -1348,19 +1348,19 @@
 			sorted.forEach(function (v) {
 				(function (variable) {
 					chain = chain.then(function () {
-						return EFF.App.ajax('eff_save_color', {
-							filename: EFF.state.currentFile,
+						return AFF.App.ajax('aff_save_color', {
+							filename: AFF.state.currentFile,
 							variable: JSON.stringify({ id: variable.id, order: variable.order }),
 						}).then(function (r) {
 							if (r.success && r.data && r.data.data) {
-								EFF.state.variables = r.data.data.variables;
+								AFF.state.variables = r.data.data.variables;
 							}
 						});
 					});
 				}(v));
 			});
 			chain.then(function () {
-				if (EFF.App) { EFF.App.setDirty(true); }
+				if (AFF.App) { AFF.App.setDirty(true); }
 				self._rerenderView();
 			}).catch(function () {});
 		},
@@ -1373,10 +1373,10 @@
 		_sortCategories: function (ascending) {
 			var self   = this;
 			var catKey = self._cfg.catKey;
-			if (!EFF.state.config || !Array.isArray(EFF.state.config[catKey])) { return; }
+			if (!AFF.state.config || !Array.isArray(AFF.state.config[catKey])) { return; }
 
-			var locked   = EFF.state.config[catKey].filter(function (c) { return c.locked; });
-			var unlocked = EFF.state.config[catKey].filter(function (c) { return !c.locked; });
+			var locked   = AFF.state.config[catKey].filter(function (c) { return c.locked; });
+			var unlocked = AFF.state.config[catKey].filter(function (c) { return !c.locked; });
 			unlocked.sort(function (a, b) {
 				var na = (a.name || '').toLowerCase();
 				var nb = (b.name || '').toLowerCase();
@@ -1385,19 +1385,19 @@
 			});
 			var combined = unlocked.concat(locked);
 			combined.forEach(function (c, i) { c.order = i + 1; });
-			EFF.state.config[catKey] = combined;
+			AFF.state.config[catKey] = combined;
 
-			EFF.App.ajax('eff_reorder_categories', {
-				filename:    EFF.state.currentFile,
+			AFF.App.ajax('aff_reorder_categories', {
+				filename:    AFF.state.currentFile,
 				subgroup:    self._cfg.setName,
 				ordered_ids: JSON.stringify(combined.map(function (c) { return c.id; })),
 			}).then(function (r) {
 				if (r.success && r.data && r.data.categories) {
-					EFF.state.config[catKey] = r.data.categories;
+					AFF.state.config[catKey] = r.data.categories;
 				}
-				if (EFF.App) { EFF.App.setDirty(true); }
+				if (AFF.App) { AFF.App.setDirty(true); }
 				self._rerenderView();
-				if (EFF.PanelLeft && EFF.PanelLeft.refresh) { EFF.PanelLeft.refresh(); }
+				if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
 			}).catch(function () {});
 		},
 
@@ -1406,27 +1406,27 @@
 		// -------------------------------------------------------------------
 
 		/**
-		 * Send eff_save_color AJAX and update EFF.state.variables on success.
+		 * Send eff_save_color AJAX and update AFF.state.variables on success.
 		 * Increments/decrements pendingSaveCount so the Save button shows correct state.
 		 *
 		 * @param {Object}   variableData Partial variable with at least { id }.
 		 * @param {Function} onSuccess    Called on AJAX success.
 		 */
 		_ajaxSaveVar: function (variableData, onSuccess) {
-			if (!EFF.state.currentFile) { return; }
-			EFF.state.pendingSaveCount = (EFF.state.pendingSaveCount || 0) + 1;
+			if (!AFF.state.currentFile) { return; }
+			AFF.state.pendingSaveCount = (AFF.state.pendingSaveCount || 0) + 1;
 
-			EFF.App.ajax('eff_save_color', {
-				filename: EFF.state.currentFile,
+			AFF.App.ajax('aff_save_color', {
+				filename: AFF.state.currentFile,
 				variable: JSON.stringify(variableData),
 			}).then(function (res) {
 				if (res.success && res.data && res.data.data && res.data.data.variables) {
-					EFF.state.variables = res.data.data.variables;
+					AFF.state.variables = res.data.data.variables;
 				}
 				if (onSuccess) { onSuccess(res.data); }
-				if (EFF.App) { EFF.App.flushPending(); }
+				if (AFF.App) { AFF.App.flushPending(); }
 			}).catch(function () {
-				if (EFF.App) { EFF.App.flushPending(); }
+				if (AFF.App) { AFF.App.flushPending(); }
 			});
 		},
 
@@ -1436,9 +1436,9 @@
 
 		/** Re-render the current view using the existing currentSelection. */
 		_rerenderView: function () {
-			var content = document.getElementById('eff-edit-content');
+			var content = document.getElementById('aff-edit-content');
 			if (content) {
-				this._renderAll(EFF.state.currentSelection || {}, content);
+				this._renderAll(AFF.state.currentSelection || {}, content);
 			}
 		},
 
@@ -1476,8 +1476,8 @@
 		_sortVarsInCategory: function (catId, field, dir, container) {
 			var self   = this;
 			var catKey = self._cfg.catKey;
-			var cats   = (EFF.state.config && Array.isArray(EFF.state.config[catKey]))
-				? EFF.state.config[catKey] : [];
+			var cats   = (AFF.state.config && Array.isArray(AFF.state.config[catKey]))
+				? AFF.state.config[catKey] : [];
 			var cat = null;
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].id === catId) { cat = cats[i]; break; }
@@ -1495,14 +1495,14 @@
 				});
 			}
 
-			var block = container.querySelector('.eff-category-block[data-category-id="' + catId + '"]');
+			var block = container.querySelector('.aff-category-block[data-category-id="' + catId + '"]');
 			if (!block) { return; }
-			var list = block.querySelector('.eff-color-list');
+			var list = block.querySelector('.aff-color-list');
 			if (!list) { return; }
 
 			var html = '';
 			if (vars.length === 0) {
-				html = '<p class="eff-colors-empty">No variables in this category.</p>';
+				html = '<p class="aff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var j = 0; j < vars.length; j++) {
 					html += self._buildVariableRow(vars[j]);
@@ -1510,7 +1510,7 @@
 			}
 			list.innerHTML = html;
 
-			var sortBtns = block.querySelectorAll('.eff-col-sort-btn');
+			var sortBtns = block.querySelectorAll('.aff-col-sort-btn');
 			for (var k = 0; k < sortBtns.length; k++) {
 				var btn    = sortBtns[k];
 				var btnCol = btn.getAttribute('data-sort-col');
@@ -1534,11 +1534,11 @@
 			var d    = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
 
 			container.addEventListener('mousedown', function (e) {
-				var handle = e.target.closest('.eff-cat-drag-handle');
+				var handle = e.target.closest('.aff-cat-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
 
-				var block = handle.closest('.eff-category-block');
+				var block = handle.closest('.aff-category-block');
 				if (!block) { return; }
 
 				d.catId = block.getAttribute('data-category-id');
@@ -1553,16 +1553,16 @@
 					+ 'width:' + block.offsetWidth + 'px;'
 					+ 'top:' + blockRect.top + 'px;left:' + blockRect.left + 'px;'
 					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:12px;';
-				ghost.className += ' eff-drag-ghost';
+				ghost.className += ' aff-drag-ghost';
 				document.body.appendChild(ghost);
 				d.ghost = ghost;
 
 				var indicator = document.createElement('div');
-				indicator.className = 'eff-drop-indicator';
+				indicator.className = 'aff-drop-indicator';
 				indicator.style.display = 'none';
 				indicator.style.pointerEvents = 'none';
-				var _appEl  = document.getElementById('eff-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--eff-clr-accent').trim() : '';
+				var _appEl  = document.getElementById('aff-app');
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
 				if (!_accent) { _accent = '#f4c542'; }
 				indicator.style.background = 'linear-gradient(to right, transparent, '
 					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
@@ -1581,7 +1581,7 @@
 				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
 				d.ghost.style.display = '';
 
-				var targetBlock = elBelow ? elBelow.closest('.eff-category-block') : null;
+				var targetBlock = elBelow ? elBelow.closest('.aff-category-block') : null;
 				if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
 					var tbRect = targetBlock.getBoundingClientRect();
 					var above  = e.clientY < tbRect.top + tbRect.height / 2;
@@ -1607,7 +1607,7 @@
 				d.ghost     = null;
 				d.indicator = null;
 
-				var draggingBlock = container.querySelector('.eff-category-block[data-category-id="' + d.catId + '"]');
+				var draggingBlock = container.querySelector('.aff-category-block[data-category-id="' + d.catId + '"]');
 				if (draggingBlock) { draggingBlock.style.opacity = ''; }
 
 				if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
@@ -1643,17 +1643,17 @@
 
 			var ordered_ids = cats.map(function (c) { return c.id; });
 			var catKey = self._cfg.catKey;
-			EFF.state.config[catKey] = cats;
+			AFF.state.config[catKey] = cats;
 
-			EFF.App.ajax('eff_reorder_categories', {
+			AFF.App.ajax('aff_reorder_categories', {
 				subgroup:    self._cfg.setName,
 				ordered_ids: JSON.stringify(ordered_ids),
 			}).then(function (res) {
 				if (res.success) {
 					// Order already applied locally; no state overwrite needed.
 				}
-				if (EFF.App) { EFF.App.setDirty(true); }
-				if (EFF.PanelLeft) { EFF.PanelLeft.refresh(); }
+				if (AFF.App) { AFF.App.setDirty(true); }
+				if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
 				self._rerenderView();
 			}).catch(function () {
 				self._rerenderView();
@@ -1670,11 +1670,11 @@
 			var d    = self._drag;
 
 			container.addEventListener('mousedown', function (e) {
-				var handle = e.target.closest('.eff-drag-handle');
+				var handle = e.target.closest('.aff-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
 
-				var row = handle.closest('.eff-color-row');
+				var row = handle.closest('.aff-color-row');
 				if (!row) { return; }
 
 				d.varId = row.getAttribute('data-var-id');
@@ -1690,24 +1690,24 @@
 					+ 'width:' + row.offsetWidth + 'px;height:' + row.offsetHeight + 'px;'
 					+ 'top:' + rowRect.top + 'px;left:' + rowRect.left + 'px;'
 					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:4px;';
-				ghost.className += ' eff-drag-ghost';
+				ghost.className += ' aff-drag-ghost';
 				document.body.appendChild(ghost);
 				d.ghost = ghost;
 
 				// Drop indicator: accent-colour horizontal bar.
 				var indicator          = document.createElement('div');
-				indicator.className   = 'eff-drop-indicator';
+				indicator.className   = 'aff-drop-indicator';
 				indicator.style.display      = 'none';
 				indicator.style.pointerEvents = 'none';
-				var _appEl  = document.getElementById('eff-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--eff-clr-accent').trim() : '';
+				var _appEl  = document.getElementById('aff-app');
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
 				if (!_accent) { _accent = '#f4c542'; }
 				indicator.style.background = 'linear-gradient(to right, transparent, '
 					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
 				document.body.appendChild(indicator);
 				d.indicator = indicator;
 
-				row.classList.add('eff-row-dragging');
+				row.classList.add('aff-row-dragging');
 			});
 
 			document.addEventListener('mousemove', function (e) {
@@ -1720,7 +1720,7 @@
 				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
 				d.ghost.style.display = '';
 
-				var targetRow = elBelow ? elBelow.closest('.eff-color-row') : null;
+				var targetRow = elBelow ? elBelow.closest('.aff-color-row') : null;
 				if (targetRow && targetRow.getAttribute('data-var-id') !== d.varId) {
 					var trRect  = targetRow.getBoundingClientRect();
 					var above   = e.clientY < trRect.top + trRect.height / 2;
@@ -1746,8 +1746,8 @@
 				d.ghost     = null;
 				d.indicator = null;
 
-				var draggingRow = container.querySelector('.eff-color-row.eff-row-dragging');
-				if (draggingRow) { draggingRow.classList.remove('eff-row-dragging'); }
+				var draggingRow = container.querySelector('.aff-color-row.aff-row-dragging');
+				if (draggingRow) { draggingRow.classList.remove('aff-row-dragging'); }
 
 				if (d._dropTargetId && d.varId && d._dropTargetId !== d.varId) {
 					self._onDropVar(d.varId, d._dropTargetId, d._dropAbove, container);
@@ -1799,8 +1799,8 @@
 			withoutSrc.forEach(function (v) {
 				(function (variable) {
 					chain = chain.then(function () {
-						return EFF.App.ajax('eff_save_color', {
-							filename: EFF.state.currentFile,
+						return AFF.App.ajax('aff_save_color', {
+							filename: AFF.state.currentFile,
 							variable: JSON.stringify({
 								id:          variable.id,
 								order:       variable.order,
@@ -1809,14 +1809,14 @@
 							}),
 						}).then(function (r) {
 							if (r.success && r.data && r.data.data) {
-								EFF.state.variables = r.data.data.variables;
+								AFF.state.variables = r.data.data.variables;
 							}
 						});
 					});
 				}(v));
 			});
 			chain.then(function () {
-				if (EFF.App) { EFF.App.setDirty(true); }
+				if (AFF.App) { AFF.App.setDirty(true); }
 				self._rerenderView();
 			}).catch(function () {});
 		},
@@ -1831,7 +1831,7 @@
 		 */
 		_getVarsForSet: function () {
 			var sub = this._cfg.setName;
-			return EFF.state.variables.filter(function (v) { return v.subgroup === sub; });
+			return AFF.state.variables.filter(function (v) { return v.subgroup === sub; });
 		},
 
 		/**
@@ -1866,7 +1866,7 @@
 		 */
 		_getCatsForSet: function () {
 			var catKey = this._cfg.catKey;
-			var arr    = (EFF.state.config && EFF.state.config[catKey]) || [];
+			var arr    = (AFF.state.config && AFF.state.config[catKey]) || [];
 			return arr.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 		},
 
@@ -1876,8 +1876,8 @@
 		 * @returns {Object|null}
 		 */
 		_findVarByKey: function (id) {
-			for (var i = 0; i < EFF.state.variables.length; i++) {
-				if (EFF.state.variables[i].id === id) { return EFF.state.variables[i]; }
+			for (var i = 0; i < AFF.state.variables.length; i++) {
+				if (AFF.state.variables[i].id === id) { return AFF.state.variables[i]; }
 			}
 			return null;
 		},
@@ -1898,10 +1898,10 @@
 		 * @param {string} status
 		 */
 		_updateStatusDotInDOM: function (varId, status) {
-			var content = document.getElementById('eff-edit-content');
+			var content = document.getElementById('aff-edit-content');
 			if (!content) { return; }
-			var row = content.querySelector('.eff-color-row[data-var-id="' + this._esc(varId) + '"]');
-			var dot = row ? row.querySelector('.eff-status-dot') : null;
+			var row = content.querySelector('.aff-color-row[data-var-id="' + this._esc(varId) + '"]');
+			var dot = row ? row.querySelector('.aff-status-dot') : null;
 			if (dot) { dot.style.background = this._statusColor(status); }
 		},
 
@@ -1913,7 +1913,7 @@
 		_showFieldError: function (field, message) {
 			this._clearFieldError(field);
 			var tip = document.createElement('div');
-			tip.className   = 'eff-inline-error';
+			tip.className   = 'aff-inline-error';
 			tip.textContent = message;
 			document.body.appendChild(tip);
 			var rect        = field.getBoundingClientRect();
@@ -1935,9 +1935,9 @@
 
 		/** Open a "no project file" error modal. */
 		_noFileModal: function () {
-			EFF.Modal.open({
+			AFF.Modal.open({
 				title: 'No file loaded',
-				body:  '<p>Please load or create an EFF project file before making changes.</p>',
+				body:  '<p>Please load or create an AFFproject file before making changes.</p>',
 			});
 		},
 
@@ -1974,7 +1974,7 @@
 				new:      'New \u2014 Variable not yet in the Elementor kit. Commit to add it.',
 				deleted:  'Deleted \u2014 Marked for deletion. Commit to remove from Elementor.',
 				conflict: 'Conflict \u2014 Value changed both here and in Elementor since last sync.',
-				orphaned: 'Orphaned \u2014 Exists in EFF but not found in Elementor kit. Commit to add it.',
+				orphaned: 'Orphaned \u2014 Exists in AFFbut not found in Elementor kit. Commit to add it.',
 			};
 			return map[status] || ('Status: ' + status);
 		},
@@ -2003,10 +2003,10 @@
 		 * @returns {string}
 		 */
 		_catBtn: function (action, label, icon, extraClass, disabled) {
-			return '<button class="eff-icon-btn ' + (extraClass || '') + '"'
+			return '<button class="aff-icon-btn ' + (extraClass || '') + '"'
 				+ ' data-action="' + action + '"'
 				+ ' aria-label="' + this._esc(label) + '"'
-				+ ' data-eff-tooltip="' + this._esc(label) + '"'
+				+ ' data-aff-tooltip="' + this._esc(label) + '"'
 				+ (disabled ? ' disabled' : '')
 				+ '>'
 				+ icon

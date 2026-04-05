@@ -1,15 +1,15 @@
-<img src="https://raw.githubusercontent.com/Mij-Strebor/elementor-framework-forge/master/assets/images/eff-git-banner.png" alt="Elementor Framework Forge" width="100%" />
+<img src="https://raw.githubusercontent.com/Mij-Strebor/atomic-framework-forge-for-elementor/master/assets/images/aff-git-banner.png" alt="Atomic Framework Forge for Elementor" width="100%" />
 
-# Elementor V4 Framework Forge
+# Atomic Framework Forge for Elementor
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Beta](https://img.shields.io/badge/status-Beta%200.3.3-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
-[![Version](https://img.shields.io/badge/version-0.3.3--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/elementor-framework-forge/releases)
+[![Beta](https://img.shields.io/badge/status-Beta%200.3.3-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-0.3.3--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
-[![License](https://img.shields.io/badge/license-Proprietary-3d2f1f?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--2.0--or--later-3d2f1f?style=flat-square)](LICENSE)
 
 ---
 
@@ -17,43 +17,43 @@
 
 | | |
 |---|---|
-| **New to EFF?** | **[Quick Start Guide →](QUICK-START.md)** — from zero to an organized project in about ten minutes |
+| **New to AFF?** | **[Quick Start Guide →](QUICK-START.md)** — from zero to an organized project in about ten minutes |
 | **Looking up a feature?** | **[User Manual →](USER-MANUAL.md)** — complete reference for every panel and workflow |
 
-> **LytBox Academy testers:** Start with the Quick Start Guide. It covers installation through your first saved project and explains every part of the interface.
+> Start with the Quick Start Guide — it covers installation through your first saved project and explains every part of the interface.
 
 ---
 
-## What is EFF?
+## What is AFF?
 
-Elementor Framework Forge (EFF) is a WordPress developer tool that gives you a purpose-built management interface for the CSS custom properties introduced by **Elementor Version 4** (the new atomic widget architecture).
+Atomic Framework Forge for Elementor (AFF) is a WordPress developer tool that gives you a purpose-built management interface for the CSS custom properties introduced by **Elementor Version 4** (the new atomic widget architecture).
 
-Instead of hunting through Elementor's generated CSS by hand, EFF reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
+Instead of hunting through Elementor's generated CSS by hand, AFF reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
 
-**EFF is a read-first, non-destructive tool.** It never modifies Elementor's CSS unless you explicitly commit changes back.
+**AFF is a read-first, non-destructive tool.** It never modifies Elementor's CSS unless you explicitly commit changes back.
 
 ---
 
 ## Data Management Model
 
-EFF manages Elementor V4 assets through four distinct, user-controlled data channels. All controls live in the **right panel**.
+AFF manages Elementor V4 assets through four distinct, user-controlled data channels. All controls live in the **right panel**.
 
-| Channel | Into EFF | Out of EFF |
+| Channel | Into AFF | Out of AFF |
 |---------|----------|------------|
-| **Elementor V4 Sync** | Pull variables from Elementor kit | Commit EFF variables back to Elementor kit |
+| **Elementor V4 Sync** | Pull variables from Elementor kit | Commit AFF variables back to Elementor kit |
 | **Elementor V3 Import** | Import V3 Global Colors into current project | Not supported — V3 is read-only |
 | **Backup / Restore** | Restore a saved project snapshot | Save Project — creates a timestamped backup |
-| **External File** | Import an `.eff.json` from disk | Export current project to `.eff.json` |
+| **External File** | Import an `.aff.json` from disk | Export current project to `.aff.json` |
 
-**The only automatic operation is startup auto-load** — EFF reloads the last active project when you open the plugin. Everything else is user-initiated.
+**The only automatic operation is startup auto-load** — AFF reloads the last active project when you open the plugin. Everything else is user-initiated.
 
 ---
 
 ## Beta Status
 
-This is **Beta 0.3.3** — distributed exclusively to LytBox Academy members. The complete Variables workflow is fully functional and ready for systematic testing. Classes and Components management are planned for future phases.
+This is **Beta 0.3.3**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
 
-Please report issues in the LytBox Academy community. Your feedback directly shapes the next release.
+Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 
@@ -81,8 +81,8 @@ Please report issues in the LytBox Academy community. Your feedback directly sha
 | Save Project — creates timestamped backup snapshot | ✅ Working |
 | Restore from backup — two-level project / backup picker | ✅ Working |
 | Auto-prune — oldest backups removed at configurable limit | ✅ Working |
-| Export project to `.eff.json` | ✅ Working |
-| Import project from `.eff.json` | ✅ Working |
+| Export project to `.aff.json` | ✅ Working |
+| Import project from `.aff.json` | ✅ Working |
 | Classes management | 🔜 Phase 3 |
 | Components registry | 🔜 Phase 4 |
 | Sync options dialog (Sync by name / Clear and replace) | ✅ Working |
@@ -93,7 +93,7 @@ Please report issues in the LytBox Academy community. Your feedback directly sha
 
 ## Interface
 
-![EFF Numbers](docs/images/numbers.png)
+![AFF Numbers](docs/images/numbers.png)
 
 **Four panels:**
 - **Top bar** — Preferences, Manage Project, Functions, History, Search, Help
@@ -112,7 +112,7 @@ Please report issues in the LytBox Academy community. Your feedback directly sha
 | Elementor (free) | Latest recommended |
 | Elementor Pro | Latest recommended |
 
-> Both **Elementor** and **Elementor Pro** must be installed and active. EFF shows an admin notice and refuses to load if either is missing.
+> Both **Elementor** and **Elementor Pro** must be installed and active. AFF shows an admin notice and refuses to load if either is missing.
 
 ---
 
@@ -122,15 +122,15 @@ Please report issues in the LytBox Academy community. Your feedback directly sha
 
 ```bash
 cd wp-content/plugins
-git clone https://github.com/Mij-Strebor/elementor-framework-forge.git
+git clone https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor.git
 ```
 
-Activate **Elementor Framework Forge** in **WordPress → Plugins → Installed Plugins**.
+Activate **Atomic Framework Forge for Elementor** in **WordPress → Plugins → Installed Plugins**.
 
 ### Option B — Download ZIP
 
 1. Click **Code → Download ZIP** on this page.
-2. Unzip into `wp-content/plugins/elementor-framework-forge/`.
+2. Unzip into `wp-content/plugins/atomic-framework-forge-for-elementor/`.
 3. Activate in WordPress.
 
 ### Option C — Development Symlink (Windows)
@@ -138,12 +138,12 @@ Activate **Elementor Framework Forge** in **WordPress → Plugins → Installed 
 From an **elevated** Command Prompt:
 
 ```cmd
-mklink /D "C:\path\to\wp\wp-content\plugins\elementor-framework-forge" "E:\path\to\your\eff"
+mklink /D "C:\path\to\wp\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\path\to\your\eff"
 ```
 
 macOS / Linux:
 ```bash
-ln -s /path/to/eff /path/to/wp/wp-content/plugins/elementor-framework-forge
+ln -s /path/to/eff /path/to/wp/wp-content/plugins/atomic-framework-forge-for-elementor
 ```
 
 ---
@@ -156,7 +156,7 @@ ln -s /path/to/eff /path/to/wp/wp-content/plugins/elementor-framework-forge
 
 The short version:
 
-1. Activate the plugin and open **EFF** in the WordPress admin sidebar.
+1. Activate the plugin and open **AFF** in the WordPress admin sidebar.
 2. In the right panel under **Elementor Sync**, click **↓ Variables** to pull your variables from Elementor.
 3. Variables appear under **Colors**, **Fonts**, and **Numbers** in the left panel.
 4. Click any category to open it in the edit space. Edit values inline; click a swatch to open the color picker.
@@ -166,15 +166,15 @@ The short version:
 
 ## Project File Format
 
-EFF stores projects in `uploads/eff/{project-slug}/` as timestamped `.eff.json` snapshots:
+AFF stores projects in `uploads/aff/{project-slug}/` as timestamped `.aff.json` snapshots:
 
 ```
-uploads/eff/
+uploads/aff/
   my-brand/
-    my-brand_2026-03-19_14-30-00.eff.json
-    my-brand_2026-03-19_16-45-12.eff.json
+    my-brand_2026-03-19_14-30-00.aff.json
+    my-brand_2026-03-19_16-45-12.aff.json
   client-theme/
-    client-theme_2026-03-18_09-00-00.eff.json
+    client-theme_2026-03-18_09-00-00.aff.json
 ```
 
 The format is plain JSON — portable between installations and designed to support a future desktop application.
@@ -186,48 +186,48 @@ The format is plain JSON — portable between installations and designed to supp
 ### File Structure
 
 ```
-elementor-framework-forge/
-├── elementor-framework-forge.php        # Plugin entry, headers, bootstrap
+atomic-framework-forge-for-elementor/
+├── atomic-framework-forge-for-elementor.php        # Plugin entry, headers, bootstrap
 ├── includes/
-│   ├── class-eff-admin.php              # Admin page, asset enqueueing
-│   ├── class-eff-ajax-handler.php       # All AJAX endpoints
-│   ├── class-eff-css-parser.php         # Elementor kit CSS parser (read-only)
-│   ├── class-eff-data-store.php         # Platform-portable data layer
-│   ├── class-eff-loader.php             # Hook registration
-│   ├── class-eff-settings.php           # Plugin preferences
-│   └── class-eff-usage-scanner.php      # Widget var() reference scanner
+│   ├── class-aff-admin.php              # Admin page, asset enqueueing
+│   ├── class-aff-ajax-handler.php       # All AJAX endpoints
+│   ├── class-aff-css-parser.php         # Elementor kit CSS parser (read-only)
+│   ├── class-aff-data-store.php         # Platform-portable data layer
+│   ├── class-aff-loader.php             # Hook registration
+│   ├── class-aff-settings.php           # Plugin preferences
+│   └── class-aff-usage-scanner.php      # Widget var() reference scanner
 ├── admin/
-│   ├── views/page-eff-main.php          # Four-panel HTML template
+│   ├── views/page-aff-main.php          # Four-panel HTML template
 │   ├── css/
-│   │   ├── eff-theme.css                # Design tokens, light/dark palettes
-│   │   ├── eff-layout.css               # Panel structure, nav, badges
-│   │   ├── eff-colors.css               # Colors edit space + Pickr styles
-│   │   └── eff-variables.css            # Fonts / Numbers edit space styles
+│   │   ├── aff-theme.css                # Design tokens, light/dark palettes
+│   │   ├── aff-layout.css               # Panel structure, nav, badges
+│   │   ├── aff-colors.css               # Colors edit space + Pickr styles
+│   │   └── aff-variables.css            # Fonts / Numbers edit space styles
 │   └── js/
-│       ├── eff-app.js                   # Global state, AJAX wrapper, init
-│       ├── eff-colors.js                # Colors variable set module + Pickr
-│       ├── eff-variables.js             # Generic variable set factory (Fonts, Numbers)
-│       ├── eff-edit-space.js            # Edit space router
-│       ├── eff-modal.js                 # Modal system with focus trap
-│       ├── eff-panel-left.js            # Left nav tree
-│       ├── eff-panel-right.js           # Data management panel
-│       ├── eff-panel-top.js             # Top bar, tooltips, sync, preferences
-│       └── eff-theme.js                 # Light/dark toggle & persistence
+│       ├── aff-app.js                   # Global state, AJAX wrapper, init
+│       ├── aff-colors.js                # Colors variable set module + Pickr
+│       ├── aff-variables.js             # Generic variable set factory (Fonts, Numbers)
+│       ├── aff-edit-space.js            # Edit space router
+│       ├── aff-modal.js                 # Modal system with focus trap
+│       ├── aff-panel-left.js            # Left nav tree
+│       ├── aff-panel-right.js           # Data management panel
+│       ├── aff-panel-top.js             # Top bar, tooltips, sync, preferences
+│       └── aff-theme.js                 # Light/dark toggle & persistence
 ├── assets/
 │   ├── fonts/                           # Inter WOFF2 (400/500/600/700, Latin)
 │   ├── icons/                           # SVG icon set
 │   └── images/                          # Banners
 └── data/
-    └── eff-defaults.json                # Default category lists per variable set
+    └── aff-defaults.json                # Default category lists per variable set
 ```
 
 ### Design Principles
 
-**Non-destructive by default.** EFF reads Elementor's CSS and never modifies it unless you click **Commit to Elementor**. Your Elementor configuration is always the source of truth until you deliberately push changes back.
+**Non-destructive by default.** AFF reads Elementor's CSS and never modifies it unless you click **Commit to Elementor**. Your Elementor configuration is always the source of truth until you deliberately push changes back.
 
 **User-controlled data flow.** Every sync, commit, export, import, save, and restore is an explicit user action. The only automatic operation is reloading the last active project on startup.
 
-**Platform-portable data layer.** `EFF_Data_Store` contains zero WordPress dependencies in its core methods. The data layer is designed to be ported to a standalone desktop application in a future phase.
+**Platform-portable data layer.** `AFF_Data_Store` contains zero WordPress dependencies in its core methods. The data layer is designed to be ported to a standalone desktop application in a future phase.
 
 **No build step.** All JavaScript is ES5 IIFE — no webpack, no transpiler, no `npm install`. The plugin works by dropping files into WordPress.
 
@@ -253,34 +253,34 @@ elementor-framework-forge/
 
 ## AJAX Endpoints
 
-All endpoints require `manage_options` capability and a valid `eff_admin_nonce`.
+All endpoints require `manage_options` capability and a valid `aff_admin_nonce`.
 
 | Action | Description |
 |--------|-------------|
-| `eff_save_file` | Save full project state to a new timestamped backup |
-| `eff_load_file` | Load a backup into the working store |
-| `eff_list_projects` | List all projects (Level 1 picker) |
-| `eff_list_backups` | List all backups for a project (Level 2 picker) |
-| `eff_delete_project` | Delete one backup; remove project dir if empty |
-| `eff_sync_from_elementor` | Parse Elementor V4 kit CSS; return variables |
-| `eff_sync_v3_global_colors` | Read V3 Global Colors from kit post meta; return color list |
-| `eff_save_color` | Save one variable (add or update) |
-| `eff_delete_color` | Delete a variable by ID |
-| `eff_add_category` / `eff_delete_category` / `eff_rename_category` | Category management |
-| `eff_reorder_categories` / `eff_duplicate_category` | Category ordering |
-| `eff_commit_to_elementor` | Write EFF variable values to Elementor kit CSS |
-| `eff_get_usage_counts` | Scan widget data for `var()` references |
-| `eff_save_user_theme` | Persist light/dark preference to usermeta |
-| `eff_get_config` / `eff_save_config` | Read/write subgroup configuration |
-| `eff_get_settings` / `eff_save_settings` | Read/write plugin preferences |
+| `aff_save_file` | Save full project state to a new timestamped backup |
+| `aff_load_file` | Load a backup into the working store |
+| `aff_list_projects` | List all projects (Level 1 picker) |
+| `aff_list_backups` | List all backups for a project (Level 2 picker) |
+| `aff_delete_project` | Delete one backup; remove project dir if empty |
+| `aff_sync_from_elementor` | Parse Elementor V4 kit CSS; return variables |
+| `aff_sync_v3_global_colors` | Read V3 Global Colors from kit post meta; return color list |
+| `aff_save_color` | Save one variable (add or update) |
+| `aff_delete_color` | Delete a variable by ID |
+| `aff_add_category` / `aff_delete_category` / `aff_rename_category` | Category management |
+| `aff_reorder_categories` / `aff_duplicate_category` | Category ordering |
+| `aff_commit_to_elementor` | Write AFF variable values to Elementor kit CSS |
+| `aff_get_usage_counts` | Scan widget data for `var()` references |
+| `aff_save_user_theme` | Persist light/dark preference to usermeta |
+| `aff_get_config` / `aff_save_config` | Read/write subgroup configuration |
+| `aff_get_settings` / `aff_save_settings` | Read/write plugin preferences |
 
 ---
 
 ## Technology
 
 - **PHP** — WordPress hooks, AJAX handlers, CSS parsing, post meta scanning
-- **Vanilla JavaScript (ES5)** — No jQuery for EFF UI logic; `fetch()` for all AJAX; no build step
-- **CSS Custom Properties** — Full design token system; light/dark mode via `[data-eff-theme]`
+- **Vanilla JavaScript (ES5)** — No jQuery for AFF UI logic; `fetch()` for all AJAX; no build step
+- **CSS Custom Properties** — Full design token system; light/dark mode via `[data-aff-theme]`
 - **Pickr v1.9.0** — Visual color picker (CDN); classic theme; HEX / RGB / HSL + alpha
 - **Inter** — Loaded locally from `assets/fonts/` (WOFF2, Latin subset, no CDN)
 - **SVG icons** — `stroke="currentColor"`, no icon font
@@ -289,17 +289,14 @@ All endpoints require `manage_options` capability and a valid `eff_admin_nonce`.
 
 ## License
 
-This software is distributed under a **proprietary source-available license** for LytBox Academy testing purposes. You may install and test it; you may not redistribute or use it in production without a separate commercial license.
+This plugin is free software released under the **GNU General Public License v2.0 or later**.
 
 See [LICENSE](LICENSE) for the full terms.
-
-Commercial inquiries: contact@jimrforge.com
 
 ---
 
 ## Credits
 
 Developed by **Jim Roberts** / [JimRForge](https://jimrforge.com)
-Distributed through **[LytBox Academy](https://lytbox.com)**
 
 Built with [Claude Code](https://claude.ai/claude-code) — Anthropic

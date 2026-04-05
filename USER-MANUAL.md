@@ -1,4 +1,4 @@
-# EFF User Manual
+# AFF User Manual
 ## Elementor Framework Forge — Beta 0.3.3
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
@@ -32,7 +32,7 @@
 
 ## 1. Interface Overview
 
-EFF uses a four-panel layout that fills the WordPress admin content area.
+AFF uses a four-panel layout that fills the WordPress admin content area.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -53,13 +53,13 @@ EFF uses a four-panel layout that fills the WordPress admin content area.
 | **Center edit space** | Main working area — category blocks, variable rows, inline editing |
 | **Right panel** | All data management — active project, save & backups, Elementor sync, V3 import, export/import; plus asset counts |
 
-EFF requires a minimum screen width of 1024px. On narrower screens a restriction overlay is displayed.
+AFF requires a minimum screen width of 1024px. On narrower screens a restriction overlay is displayed.
 
 ---
 
 ## 2. Top Bar
 
-The top bar runs the full width of the EFF panel. All buttons are icon-only; hover any icon to see a tooltip.
+The top bar runs the full width of the AFF panel. All buttons are icon-only; hover any icon to see a tooltip.
 
 ### Left side
 
@@ -100,8 +100,8 @@ The top bar runs the full width of the EFF panel. All buttons are icon-only; hov
         • Font Size
         • Spacing
         • Uncategorized
-▶ Classes           ← placeholder (EFF 1.0.0)
-▶ Components        ← placeholder (EFF 2.0.0)
+▶ Classes           ← placeholder (AFF 1.0.0)
+▶ Components        ← placeholder (AFF 2.0.0)
 ```
 
 ### Behavior
@@ -136,20 +136,20 @@ All data management controls live in the right panel. There are no hidden menus.
 | Button | Action |
 |--------|--------|
 | **↓ Variables** | Pull variables from the active Elementor V4 kit. Shows a sync options dialog first (see [Section 11](#11-sync-from-elementor)) |
-| **↑ Variables** | Write EFF variable values back to the active Elementor kit CSS. Shows a commit summary dialog first (see [Section 13](#13-commit-to-elementor)). Highlights gold when uncommitted changes exist. |
+| **↑ Variables** | Write AFF variable values back to the active Elementor kit CSS. Shows a commit summary dialog first (see [Section 13](#13-commit-to-elementor)). Highlights gold when uncommitted changes exist. |
 
 ### Section 4 — Elementor V3 Import
 
 | Button | Action |
 |--------|--------|
-| **↓ V3 Colors** | Import V3 Global Colors from the Elementor kit post meta as EFF color variables (see [Section 12](#12-elementor-v3-import)) |
+| **↓ V3 Colors** | Import V3 Global Colors from the Elementor kit post meta as AFF color variables (see [Section 12](#12-elementor-v3-import)) |
 
 ### Section 5 — Export / Import
 
 | Button | Action |
 |--------|--------|
-| **Export** | Download the entire current project as a portable `.eff.json` file |
-| **Import** | Upload a `.eff.json` file; replaces the current project with its contents |
+| **Export** | Download the entire current project as a portable `.aff.json` file |
+| **Import** | Upload a `.aff.json` file; replaces the current project with its contents |
 
 ### Asset counts
 
@@ -201,7 +201,7 @@ Each row in a category block shows:
 |-------|---------|
 | Green | Synced from Elementor — value matches the kit CSS |
 | Orange | Modified — value differs from the synced source |
-| Blue | New — added manually or created in EFF, not from a sync |
+| Blue | New — added manually or created in AFF, not from a sync |
 | Gray | Unknown / no sync source |
 
 ---
@@ -214,7 +214,7 @@ Click the variable **name** in the row. The field becomes editable. Type the new
 
 ### Edit a variable value
 
-Click the **value** field in the row. Type the new value and press **Enter** or click away. EFF validates and normalizes the value on blur:
+Click the **value** field in the row. Type the new value and press **Enter** or click away. AFF validates and normalizes the value on blur:
 
 - **Colors:** Must be a valid HEX (`#RRGGBB` or `#RRGGBBAA`), `rgb()`, `rgba()`, `hsl()`, or `hsla()` value.
 - **Numbers:** Any numeric value with a unit (px, rem, %, etc.) or a `clamp()` / `calc()` expression.
@@ -246,7 +246,7 @@ Open the variable's **expand panel** (Colors: click **›**; other sets: use dra
 
 ## 7. The Color Picker
 
-EFF uses the [Pickr](https://github.com/Simonwep/pickr) visual color picker (v1.9.0, classic theme).
+AFF uses the [Pickr](https://github.com/Simonwep/pickr) visual color picker (v1.9.0, classic theme).
 
 ### Opening the picker
 
@@ -270,8 +270,8 @@ Click the **colored swatch** button on any color variable row. The Pickr panel a
 The picker shows the color in the variable's current format (HEX, RGB, or HSL). Switch the variable's format selector in the row before opening the picker if you want a different representation.
 
 **Alpha handling:**
-- If opacity = 1 (fully opaque), EFF outputs the value without alpha: `#FF5733`, `rgb(255, 87, 51)`, `hsl(14, 100%, 60%)`
-- If opacity < 1 (semi-transparent), EFF automatically outputs the alpha variant: `#FF573380`, `rgba(255, 87, 51, 0.5)`, `hsla(14, 100%, 60%, 0.5)`
+- If opacity = 1 (fully opaque), AFF outputs the value without alpha: `#FF5733`, `rgb(255, 87, 51)`, `hsl(14, 100%, 60%)`
+- If opacity < 1 (semi-transparent), AFF automatically outputs the alpha variant: `#FF573380`, `rgba(255, 87, 51, 0.5)`, `hsla(14, 100%, 60%, 0.5)`
 
 ### HEX shorthand input
 
@@ -303,7 +303,7 @@ Click the category name text in the category header. It becomes an editable fiel
 
 ### Delete a category
 
-Click the **🗑** trash icon in the category header action buttons. EFF moves all variables in that category to **Uncategorized** before deleting.
+Click the **🗑** trash icon in the category header action buttons. AFF moves all variables in that category to **Uncategorized** before deleting.
 
 ### Duplicate a category
 
@@ -382,13 +382,13 @@ After configuring tints, shades, and transparencies, the generated child variabl
 
 Click **Save Project** in the **Save & Backups** section of the right panel.
 
-EFF creates a timestamped snapshot under a per-project subdirectory:
+AFF creates a timestamped snapshot under a per-project subdirectory:
 
 ```
-wp-content/uploads/eff/
+wp-content/uploads/aff/
   my-brand/
-    my-brand_2026-03-19_14-30-00.eff.json   ← first save
-    my-brand_2026-03-19_16-45-12.eff.json   ← second save
+    my-brand_2026-03-19_14-30-00.aff.json   ← first save
+    my-brand_2026-03-19_16-45-12.aff.json   ← second save
 ```
 
 Each Save Project call adds a new file. Nothing is overwritten.
@@ -414,15 +414,15 @@ Click **Open / Switch Project** in the **Active Project** section. The picker ha
 
 ### Auto-load on startup
 
-EFF remembers the last backup you loaded or saved. On the next page load, it silently reloads that backup in the background. If the backup file no longer exists, the startup load fails silently and the edit space starts empty.
+AFF remembers the last backup you loaded or saved. On the next page load, it silently reloads that backup in the background. If the backup file no longer exists, the startup load fails silently and the edit space starts empty.
 
 ### Create a new project
 
-In Level 1 of the picker, type a name in the "New project name" input and click **Create**. EFF clears all state and saves an empty project under the new name.
+In Level 1 of the picker, type a name in the "New project name" input and click **Create**. AFF clears all state and saves an empty project under the new name.
 
 ### Project file format
 
-`.eff.json` files are plain JSON:
+`.aff.json` files are plain JSON:
 
 ```json
 {
@@ -457,8 +457,8 @@ Click **↓ Variables** in the **Elementor Sync** section of the right panel. A 
 
 | Option | Behavior |
 |--------|----------|
-| **Sync by name** *(default)* | Add new variables from Elementor; existing EFF variables are left unchanged. Safe for incremental updates. |
-| **Clear and replace** | Remove all current EFF variables, then import everything fresh from Elementor. Discards any EFF-side edits. |
+| **Sync by name** *(default)* | Add new variables from Elementor; existing AFF variables are left unchanged. Safe for incremental updates. |
+| **Clear and replace** | Remove all current AFF variables, then import everything fresh from Elementor. Discards any AFF-side edits. |
 
 Click **Sync** to proceed or **Cancel** to abort.
 
@@ -475,11 +475,11 @@ A result modal shows the count of variables imported and the CSS file path used.
 
 ### Manual CSS path fallback
 
-If EFF cannot locate your kit CSS file automatically, a **manual path** input appears in the error modal. Enter the full server path to the kit CSS file (e.g., `/var/www/html/wp-content/uploads/elementor/css/post-67.css`) and retry.
+If AFF cannot locate your kit CSS file automatically, a **manual path** input appears in the error modal. Enter the full server path to the kit CSS file (e.g., `/var/www/html/wp-content/uploads/elementor/css/post-67.css`) and retry.
 
 ### Sync does not delete variables (Sync by name mode)
 
-In "Sync by name" mode, variables already in your project are never removed. If a variable was deleted from the Elementor kit, it remains in EFF until you manually delete it.
+In "Sync by name" mode, variables already in your project are never removed. If a variable was deleted from the Elementor kit, it remains in AFF until you manually delete it.
 
 ---
 
@@ -487,12 +487,12 @@ In "Sync by name" mode, variables already in your project are never removed. If 
 
 ### What V3 Import does
 
-Elementor's legacy V3 "Global Colors" are stored as post meta on the active kit post — not in the kit CSS file. Click **↓ V3 Colors** in the **Elementor V3 Import** section of the right panel to read them and import them as EFF color variables.
+Elementor's legacy V3 "Global Colors" are stored as post meta on the active kit post — not in the kit CSS file. Click **↓ V3 Colors** in the **Elementor V3 Import** section of the right panel to read them and import them as AFF color variables.
 
 The import dialog confirms before proceeding. After import:
 - Each V3 color becomes a color variable named `--e-global-color-{id}` (e.g., `--e-global-color-primary`).
 - New variables are placed in **Uncategorized**. Rename and move them as needed.
-- Variables whose name already exists in EFF are skipped — existing values are not overwritten.
+- Variables whose name already exists in AFF are skipped — existing values are not overwritten.
 - A result modal reports how many colors were imported.
 
 ### When to use V3 Import
@@ -511,9 +511,9 @@ Click **↑ Variables** in the **Elementor Sync** section of the right panel.
 
 ### Commit summary dialog
 
-Before writing anything, EFF shows a summary of pending changes:
+Before writing anything, AFF shows a summary of pending changes:
 - **N modified** — variables whose value differs from the last synced value
-- **M new** — variables added in EFF that do not yet exist in the Elementor kit
+- **M new** — variables added in AFF that do not yet exist in the Elementor kit
 - **K deleted** — variables marked for deletion
 
 If there are no pending changes, the dialog shows "Nothing to commit." Click **Commit** to proceed or **Cancel** to abort.
@@ -523,13 +523,13 @@ The **↑ Variables** button highlights gold when uncommitted changes exist.
 ### What commit does
 
 1. Writes the current values of modified/new/deleted variables to the Elementor kit CSS file
-2. Only the variables managed by EFF are changed — the rest of the kit CSS is untouched
+2. Only the variables managed by AFF are changed — the rest of the kit CSS is untouched
 3. After a successful commit, modified variables revert to green (synced) status
 4. Elementor will serve the updated values on the next page load
 
 ### Safety notes
 
-- **Commit is not reversible** through EFF. If you commit incorrect values, restore your Elementor kit from a backup or manually correct the CSS.
+- **Commit is not reversible** through AFF. If you commit incorrect values, restore your Elementor kit from a backup or manually correct the CSS.
 - Save a project backup (Save Project) before committing so you have a clean snapshot of the values you pushed.
 
 ---
@@ -542,7 +542,7 @@ Click the **⚙ gear icon** in the top-left to open the Preferences modal.
 
 | Setting | Options | Description |
 |---------|---------|-------------|
-| **Interface Theme** | Light / Dark | Sets the EFF color theme; saved to your WordPress user account |
+| **Interface Theme** | Light / Dark | Sets the AFF color theme; saved to your WordPress user account |
 | **Show Tooltips** | On / Off | Show or hide hover tooltips on all icon buttons |
 | **Extended Tooltips** | On / Off | Show longer explanatory text in tooltips |
 
@@ -550,7 +550,7 @@ Click the **⚙ gear icon** in the top-left to open the Preferences modal.
 
 | Setting | Description |
 |---------|-------------|
-| **Default Storage File** | Filename to pre-fill in the right panel on startup. If set, EFF also uses this as the auto-load target. |
+| **Default Storage File** | Filename to pre-fill in the right panel on startup. If set, AFF also uses this as the auto-load target. |
 
 ### Variable Sets — Default Types
 
@@ -595,7 +595,7 @@ Manage Project lets you edit the **subgroup category lists** for each variable s
 
 ### Max backups per project
 
-The **Max backups** input (default 10, range 1–50) controls how many timestamped snapshots EFF keeps per project. When the limit is exceeded, the oldest backup is silently deleted on the next Save Project.
+The **Max backups** input (default 10, range 1–50) controls how many timestamped snapshots AFF keeps per project. When the limit is exceeded, the oldest backup is silently deleted on the next Save Project.
 
 Changes in Manage Project take effect immediately and are saved with your project.
 
@@ -612,11 +612,11 @@ Each variable row shows a small badge on the right side indicating how many Elem
 
 Usage data is collected when:
 - You sync from Elementor (auto-triggered after sync)
-- EFF loads your project file (auto-triggered after load)
+- AFF loads your project file (auto-triggered after load)
 
 Usage scanning reads up to 500 posts' Elementor data. On large sites, the count may be incomplete.
 
-> Usage badges are informational only. EFF does not prevent you from editing or deleting variables that are in use.
+> Usage badges are informational only. AFF does not prevent you from editing or deleting variables that are in use.
 
 ---
 
@@ -631,10 +631,10 @@ Usage scanning reads up to 500 posts' Elementor data. On large sites, the count 
 | **Tab** | Modal | Move focus through modal controls |
 | **Ctrl+Z** | Text input | Undo text changes within that input (browser native) |
 
-EFF meets WCAG 2.1 AA contrast standards:
+AFF meets WCAG 2.1 AA contrast standards:
 - All icon buttons have `aria-label` attributes
 - Modal dialogs trap focus while open
-- Focus states use a 2px gold outline (`--eff-clr-accent`)
+- Focus states use a 2px gold outline (`--aff-clr-accent`)
 
 ---
 
@@ -647,7 +647,7 @@ EFF meets WCAG 2.1 AA contrast standards:
 → Enter a project name in the right panel input and click Save Project to create the initial backup.
 
 **Variables appear in the wrong set (color in Numbers, etc.)**
-→ EFF classifies variables by value pattern. Drag misclassified variables to the correct category manually. This is a known limitation of pattern-based classification.
+→ AFF classifies variables by value pattern. Drag misclassified variables to the correct category manually. This is a known limitation of pattern-based classification.
 
 **Color picker swatch shows black or wrong color**
 → Hard refresh the page (Ctrl+Shift+R). The Pickr library loads from a CDN — check your browser's Network tab for load failures if the issue persists.
@@ -658,7 +658,7 @@ EFF meets WCAG 2.1 AA contrast standards:
 **After committing, Elementor values look wrong**
 → Go to Elementor → Site Settings → Save Changes to regenerate the CSS. If the kit CSS is corrupted, restore from a WordPress backup and report the issue.
 
-**The EFF panel looks unstyled or broken**
+**The AFF panel looks unstyled or broken**
 → Hard refresh (Ctrl+Shift+R). If the issue persists, deactivate and reactivate the plugin, then refresh.
 
 **Drag-and-drop is not working**
@@ -683,4 +683,4 @@ EFF meets WCAG 2.1 AA contrast standards:
 
 ---
 
-*© Jim Roberts / [JimRForge](https://jimrforge.com) — Distributed through [LytBox Academy](https://lytbox.com)*
+*© Jim Roberts / [JimRForge](https://jimrforge.com)*

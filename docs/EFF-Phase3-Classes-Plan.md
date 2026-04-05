@@ -1,9 +1,9 @@
-# EFF Phase 3 — Classes Support: Implementation Plan
+# AFF Phase 3 — Classes Support: Implementation Plan
 
 **Document version:** 1.0  
 **Date:** 2026-04-03  
 **Author:** Research + planning document for Jim Roberts / JimRForge  
-**EFF version target:** v0.4.0-beta  
+**AFF version target:** v0.4.0-beta  
 **Status:** Pre-implementation — awaiting Jim sign-off before coding begins
 
 ---
@@ -15,12 +15,12 @@
 3. [Data Sources and Storage Locations](#3-data-sources-and-storage-locations)
 4. [CSS Output — What Goes in What File](#4-css-output--what-goes-in-what-file)
 5. [Two Distinct Class Types](#5-two-distinct-class-types)
-6. [PHP API Approach — EFF_Classes_Reader](#6-php-api-approach--eff_classes_reader)
-7. [EFF Class Data Model — JSON Schema](#7-eff-class-data-model--json-schema)
+6. [PHP API Approach — AFF_Classes_Reader](#6-php-api-approach--aff_classes_reader)
+7. [AFF Class Data Model — JSON Schema](#7-aff-class-data-model--json-schema)
 8. [Left Panel Integration](#8-left-panel-integration)
 9. [Edit Space UI Approach](#9-edit-space-ui-approach)
 10. [AJAX Endpoints](#10-ajax-endpoints)
-11. [EFF_Data_Store Extensions](#11-eff_data_store-extensions)
+11. [AFF_Data_Store Extensions](#11-aff_data_store-extensions)
 12. [Limitations and Unknowns](#12-limitations-and-unknowns)
 13. [Recommended Implementation Sequence](#13-recommended-implementation-sequence)
 14. [Open Questions Before Coding Starts](#14-open-questions-before-coding-starts)
@@ -33,14 +33,14 @@
 Elementor V4 (full release April 2026) has a first-class, production-ready **Global Classes** system. Unlike Variables — which are CSS custom properties written into the terminal `:root` block of the kit CSS file — Global Classes are an entirely different data system:
 
 - Stored in the **WordPress database**, accessed via a **REST endpoint** (`wp-json/elementor/v1/global-classes`)
-- **Not present** in the kit CSS file (`post-{id}.css`) that EFF's current CSS parser reads
+- **Not present** in the kit CSS file (`post-{id}.css`) that AFF's current CSS parser reads
 - Managed in the Elementor editor's **Class Manager** panel
 - Rendered to the frontend via Elementor's own CSS generation pipeline (separate from kit variables CSS)
 - **No PHP read API currently exposed** to third-party plugins — developer documentation for V4 is explicitly deferred until after the 4.0 full release
 
-This has a material impact on EFF Phase 3. The EFF CLAUDE.md note — *"Elementor v4 not yet exposing these"* — was accurate at time of writing and remains partially true: Elementor now stores and exposes class data via its own internal REST API, but there is no documented, stable PHP hook or filter for third-party plugins to read Global Class definitions programmatically.
+This has a material impact on AFF Phase 3. The AFF CLAUDE.md note — *"Elementor v4 not yet exposing these"* — was accurate at time of writing and remains partially true: Elementor now stores and exposes class data via its own internal REST API, but there is no documented, stable PHP hook or filter for third-party plugins to read Global Class definitions programmatically.
 
-**Phase 3 is implementable**, but EFF must use a direct database/REST read strategy rather than a clean PHP API. The plan below describes the safest approach: reading Elementor's class data from `wp_postmeta` on the active kit post, with a REST-based fallback.
+**Phase 3 is implementable**, but AFF must use a direct database/REST read strategy rather than a clean PHP API. The plan below describes the safest approach: reading Elementor's class data from `wp_postmeta` on the active kit post, with a REST-based fallback.
 
 ---
 
@@ -56,7 +56,7 @@ Elementor V4 introduces a CSS-first, class-driven design system. The core concep
 
 Every Atomic Element (heading, image, paragraph, button, etc.) receives:
 1. A **Local Class** — auto-generated, unique per element, highest specificity, displayed in pink in the editor. Not reusable. Closest equivalent to V3's inline styles.
-2. One or more optional **Global Classes** — user-defined, reusable, displayed in green. Managed via the Class Manager. The subject of EFF Phase 3.
+2. One or more optional **Global Classes** — user-defined, reusable, displayed in green. Managed via the Class Manager. The subject of AFF Phase 3.
 
 ### 2.2 Class Manager (Elementor-side)
 
@@ -81,7 +81,7 @@ The Class Manager panel in the Elementor V4 editor allows:
 
 ### 2.4 CSS Naming Convention
 
-In earlier Alpha builds, Elementor auto-generated opaque identifiers as class names in the DOM. This was fixed in 3.30: **all Global Classes now render with their user-defined names in the HTML DOM**. A class named `primary-btn` appears as `class="primary-btn"` on the element. This matters for EFF's display: the class name stored in the database is the same class name in the markup.
+In earlier Alpha builds, Elementor auto-generated opaque identifiers as class names in the DOM. This was fixed in 3.30: **all Global Classes now render with their user-defined names in the HTML DOM**. A class named `primary-btn` appears as `class="primary-btn"` on the element. This matters for AFF's display: the class name stored in the database is the same class name in the markup.
 
 The legacy `--e-global-color-[hash]` and `--e-global-typography-[hash]` CSS variable naming (from kit CSS `:root`) is a separate, older system (V3 globals) and should not be confused with V4 Global Classes.
 
@@ -91,7 +91,7 @@ The legacy `--e-global-color-[hash]` and `--e-global-typography-[hash]` CSS vari
 
 ### 3.1 Primary Storage: `wp_postmeta` on the Active Kit Post
 
-Elementor stores its kit-level data (global colors, typography, settings, and in V4 global classes) as post meta on the **active kit post**. The active kit ID is available from `get_option('elementor_active_kit')`, which EFF already uses in `EFF_CSS_Parser::get_active_kit_id()`.
+Elementor stores its kit-level data (global colors, typography, settings, and in V4 global classes) as post meta on the **active kit post**. The active kit ID is available from `get_option('elementor_active_kit')`, which AFF already uses in `AFF_CSS_Parser::get_active_kit_id()`.
 
 The relevant post meta key for V4 global classes is not yet publicly documented by Elementor. Based on available evidence:
 
@@ -144,26 +144,26 @@ PUT  wp-json/elementor/v1/global-classes
 - **`variants`** is an array of per-state/per-breakpoint style objects. Empty array means the class has no styles defined yet. The internal structure of each variant object is not yet captured — see Open Question 14.5.
 - **`meta.order`** is an array of class IDs defining the user-defined display order in the Class Manager.
 
-#### Mapping to EFF data model
+#### Mapping to AFF data model
 
-| Elementor field | EFF field | Notes |
+| Elementor field | AFF field | Notes |
 |-----------------|-----------|-------|
 | `id` (e.g. `g-19ae5e7`) | `elementor_id` | Stored verbatim — not converted |
-| `label` | `name` AND `label` | Serves both roles; EFF `label` starts as a copy and can be overridden |
-| `type` | (discarded) | Always "class"; EFF infers from context |
+| `label` | `name` AND `label` | Serves both roles; AFF `label` starts as a copy and can be overridden |
+| `type` | (discarded) | Always "class"; AFF infers from context |
 | `variants` | (phase 3.4+) | Style data — not parsed in Phase 3.1/3.2 |
 | `meta.order` index | `order` | Used to set initial sort order |
 
-**EFF will use the GET endpoint as the primary read source.** This is safer than raw `wp_postmeta` queries because:
+**AFF will use the GET endpoint as the primary read source.** This is safer than raw `wp_postmeta` queries because:
 - It goes through Elementor's own access control
 - It returns a normalized JSON response
 - It is less likely to break between Elementor versions than meta key names
 
-**Authentication:** The REST endpoint uses WordPress nonce authentication. EFF will use `wp_create_nonce('wp_rest')` on the server side and pass it in `X-WP-Nonce` headers from JS, or call it server-side from a PHP AJAX handler using `wp_remote_get()`.
+**Authentication:** The REST endpoint uses WordPress nonce authentication. AFF will use `wp_create_nonce('wp_rest')` on the server side and pass it in `X-WP-Nonce` headers from JS, or call it server-side from a PHP AJAX handler using `wp_remote_get()`.
 
 ### 3.3 Export/Import JSON (Supplementary Source)
 
-When a user exports Classes and Variables from Elementor (via Elementor > Tools > Export), they receive a JSON file. EFF could parse an exported file as a manual import path if the REST approach fails. This is a fallback, not the primary path.
+When a user exports Classes and Variables from Elementor (via Elementor > Tools > Export), they receive a JSON file. AFF could parse an exported file as a manual import path if the REST approach fails. This is a fallback, not the primary path.
 
 ### 3.4 Summary of Data Source Hierarchy
 
@@ -171,19 +171,19 @@ When a user exports Classes and Variables from Elementor (via Elementor > Tools 
 |----------|--------|--------|-------|
 | 1 (preferred) | Elementor REST API `wp-json/elementor/v1/global-classes` | PHP `wp_remote_get()` or server-side | Authenticated, normalized, version-resilient |
 | 2 (fallback) | `wp_postmeta` direct read on kit post | `get_post_meta($kit_id, '_elementor_global_classes', true)` | Faster, no HTTP, but meta key must be verified |
-| 3 (manual) | User-uploaded Elementor export JSON | File parse in EFF | For offline/exported sites |
+| 3 (manual) | User-uploaded Elementor export JSON | File parse in AFF | For offline/exported sites |
 
 ---
 
 ## 4. CSS Output — What Goes in What File
 
-This section is critical because it defines the boundary between EFF's existing CSS parser and the new classes reader.
+This section is critical because it defines the boundary between AFF's existing CSS parser and the new classes reader.
 
 ### 4.1 Kit CSS File (`post-{id}.css`) — Variables Only
 
-The kit CSS file that EFF currently parses contains:
+The kit CSS file that AFF currently parses contains:
 - **Block 1:** Legacy `--e-global-*` variables (V3 global colors, typography as CSS custom properties)
-- **Block 2 (terminal `:root`):** V4 user-defined atomic variables — the ones EFF reads
+- **Block 2 (terminal `:root`):** V4 user-defined atomic variables — the ones AFF reads
 
 **Global Class CSS definitions are NOT in this file.** The kit CSS file does not contain `.my-class { ... }` blocks.
 
@@ -211,21 +211,21 @@ The exact mechanism is not yet confirmed by official documentation. The CSS woul
 }
 ```
 
-**EFF Phase 3 does not need to parse this CSS output.** EFF reads the class definitions (names, metadata, applied elements) from the REST API/database, not from the generated stylesheet. The stylesheet is read-only output from Elementor; EFF manages the definition layer.
+**AFF Phase 3 does not need to parse this CSS output.** AFF reads the class definitions (names, metadata, applied elements) from the REST API/database, not from the generated stylesheet. The stylesheet is read-only output from Elementor; AFF manages the definition layer.
 
 ---
 
 ## 5. Two Distinct Class Types
 
-Understanding the distinction is important for EFF's data model and UI.
+Understanding the distinction is important for AFF's data model and UI.
 
 ### 5.1 Local Class
 
 - Auto-generated per element (e.g., `e-7a3bc1` style identifier internally, but unique per instance)
 - Highest specificity — always wins
 - Cannot be shared or reused
-- Not relevant to EFF Phase 3 (these are per-page, per-element; too granular)
-- **EFF Phase 3 scope: EXCLUDE Local Classes**
+- Not relevant to AFF Phase 3 (these are per-page, per-element; too granular)
+- **AFF Phase 3 scope: EXCLUDE Local Classes**
 
 ### 5.2 Global Class
 
@@ -235,26 +235,26 @@ Understanding the distinction is important for EFF's data model and UI.
 - Has states (hover, active, focus) and breakpoint variants
 - Has a usage count
 - Can be marked unused, empty, or page-specific
-- **EFF Phase 3 scope: Global Classes only**
+- **AFF Phase 3 scope: Global Classes only**
 
 ---
 
-## 6. PHP API Approach — `EFF_Classes_Reader`
+## 6. PHP API Approach — `AFF_Classes_Reader`
 
-Create a new file: `E:/projects/plugins/eff/includes/class-eff-classes-reader.php`
+Create a new file: `E:/projects/plugins/eff/includes/class-aff-classes-reader.php`
 
-This is a **read-only** class (parallel to `EFF_CSS_Parser`, which is also read-only). It does not extend `EFF_CSS_Parser` — it is a sibling class for a different data source.
+This is a **read-only** class (parallel to `AFF_CSS_Parser`, which is also read-only). It does not extend `AFF_CSS_Parser` — it is a sibling class for a different data source.
 
 ### 6.1 Class Signature
 
 ```php
-class EFF_Classes_Reader {
+class AFF_Classes_Reader {
 
     /**
      * Fetch all Global Classes from Elementor's REST endpoint.
      * Returns normalized array or empty array on failure.
      *
-     * @return array[] Array of EFF class objects (see data model section).
+     * @return array[] Array of AFF class objects (see data model section).
      */
     public function fetch_from_rest(): array { ... }
 
@@ -276,16 +276,16 @@ class EFF_Classes_Reader {
     public function parse_export_file( string $file_path ): array { ... }
 
     /**
-     * Normalize raw Elementor class data into EFF class objects.
+     * Normalize raw Elementor class data into AFF class objects.
      *
      * Accepts the full REST response array (with 'data' and 'meta' keys)
-     * and returns a flat array of EFF-normalized class objects.
+     * and returns a flat array of AFF-normalized class objects.
      *
      * Confirmed response shape (2026-04-03):
      *   { data: { [id]: { id, type, label, variants } }, meta: { order: [...] } }
      *
      * @param array $raw Full REST response array.
-     * @return array[] Flat array of EFF class objects.
+     * @return array[] Flat array of AFF class objects.
      */
     public function normalize( array $raw ): array {
         $data  = $raw['data'] ?? [];
@@ -314,10 +314,10 @@ class EFF_Classes_Reader {
             }
 
             $classes[] = [
-                'id'             => '',        // EFF UUID assigned by EFF_Data_Store::add_class()
+                'id'             => '',        // AFF UUID assigned by AFF_Data_Store::add_class()
                 'elementor_id'   => $elementor_id,
                 'name'           => $label,    // CSS class name — same as label in Elementor's model
-                'label'          => $label,    // EFF display label; user may override
+                'label'          => $label,    // AFF display label; user may override
                 'type'           => 'global',
                 'source'         => 'elementor-fetched',
                 'status'         => 'synced',
@@ -379,13 +379,13 @@ public function fetch_from_rest(): array {
 }
 ```
 
-**Important:** `wp_remote_get()` makes an HTTP request from the server to itself. On some local environments (Local by Flywheel, WAMP) this can fail if the loopback URL is not reachable. EFF must handle this gracefully and fall through to the `read_from_postmeta()` method.
+**Important:** `wp_remote_get()` makes an HTTP request from the server to itself. On some local environments (Local by Flywheel, WAMP) this can fail if the loopback URL is not reachable. AFF must handle this gracefully and fall through to the `read_from_postmeta()` method.
 
 ### 6.3 `read_from_postmeta()` Implementation Notes
 
 ```php
 public function read_from_postmeta(): array {
-    $kit_id = EFF_CSS_Parser::get_active_kit_id();
+    $kit_id = AFF_CSS_Parser::get_active_kit_id();
     if ( ! $kit_id ) {
         return [];
     }
@@ -393,7 +393,7 @@ public function read_from_postmeta(): array {
     // NOTE: Meta key name must be verified against a live V4 site.
     // Likely candidates: '_elementor_global_classes', '_e_global_classes'
     // See Open Questions section 14.1.
-    $meta_key = apply_filters( 'eff_global_classes_meta_key', '_elementor_global_classes' );
+    $meta_key = apply_filters( 'aff_global_classes_meta_key', '_elementor_global_classes' );
     $raw      = get_post_meta( $kit_id, $meta_key, true );
 
     if ( empty( $raw ) || ! is_array( $raw ) ) {
@@ -411,20 +411,20 @@ public function read_from_postmeta(): array {
 }
 ```
 
-### 6.4 Critical Rules for `EFF_Classes_Reader`
+### 6.4 Critical Rules for `AFF_Classes_Reader`
 
-- **Read-only.** It never writes to Elementor's data. Same rule as `EFF_CSS_Parser`.
+- **Read-only.** It never writes to Elementor's data. Same rule as `AFF_CSS_Parser`.
 - **No WordPress dependencies in normalize().** The normalize method must be platform-portable.
 - The class must have `if ( ! defined( 'ABSPATH' ) ) { exit; }` at the top.
-- Prefix: `EFF_Classes_Reader` — follows `EFF_` naming rule.
+- Prefix: `AFF_Classes_Reader` — follows `AFF_` naming rule.
 
 ---
 
-## 7. EFF Class Data Model — JSON Schema
+## 7. AFF Class Data Model — JSON Schema
 
-### 7.1 The EFF Class Object
+### 7.1 The AFF Class Object
 
-Global Classes are stored in the `classes` array of the `.eff.json` project file. Each class object:
+Global Classes are stored in the `classes` array of the `.aff.json` project file. Each class object:
 
 ```json
 {
@@ -456,13 +456,13 @@ Global Classes are stored in the `classes` array of the `.eff.json` project file
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string (UUID v4) | EFF-generated internal identifier |
+| `id` | string (UUID v4) | AFF-generated internal identifier |
 | `elementor_id` | string\|null | Elementor's internal class identifier (if exposed by REST response) |
 | `name` | string | The CSS class name as it appears in HTML (`primary-btn`) |
 | `label` | string | Human-readable display label; defaults to `name` if not set |
 | `type` | enum: `"global"` | Phase 3 scope: Global only. Local classes excluded. |
 | `source` | enum | `"elementor-fetched"` \| `"user-defined"` \| `"elementor-import"` |
-| `status` | enum | `"synced"` \| `"modified"` \| `"eff-only"` \| `"orphaned"` |
+| `status` | enum | `"synced"` \| `"modified"` \| `"aff-only"` \| `"orphaned"` |
 | `group` | string | Always `"Classes"` (top-level menu group) |
 | `category` | string | User-defined category name (e.g., "Buttons", "Typography") |
 | `category_id` | string | UUID of category in `config.classCategories` |
@@ -472,22 +472,22 @@ Global Classes are stored in the `classes` array of the `.eff.json` project file
 | `has_responsive` | boolean | Whether this class has any per-breakpoint overrides |
 | `states` | string[] | Which states are defined: `["hover", "active", "focus"]` |
 | `breakpoints` | string[] | Which breakpoints have overrides: `["desktop", "tablet", "mobile"]` |
-| `notes` | string | Developer notes (EFF-only, not synced to Elementor) |
-| `tags` | string[] | User-defined tags for filtering (EFF-only) |
-| `created_at` | ISO 8601 | When EFF first recorded this class |
-| `updated_at` | ISO 8601 | Last EFF modification |
+| `notes` | string | Developer notes (AFF-only, not synced to Elementor) |
+| `tags` | string[] | User-defined tags for filtering (AFF-only) |
+| `created_at` | ISO 8601 | When AFF first recorded this class |
+| `updated_at` | ISO 8601 | Last AFF modification |
 | `last_synced_at` | ISO 8601 | Last successful Elementor sync |
 
 ### 7.3 Status Enum Values
 
 | Status | Meaning |
 |--------|---------|
-| `synced` | Class exists in Elementor and in EFF file, data matches last sync |
-| `modified` | Class has EFF-side edits (notes, tags, category) not yet auto-persisted |
-| `eff-only` | Class exists in EFF file but not found in Elementor (deleted from editor?) |
-| `orphaned` | Class exists in Elementor but not in EFF file (appeared since last sync) |
+| `synced` | Class exists in Elementor and in AFF file, data matches last sync |
+| `modified` | Class has AFF-side edits (notes, tags, category) not yet auto-persisted |
+| `aff-only` | Class exists in AFF file but not found in Elementor (deleted from editor?) |
+| `orphaned` | Class exists in Elementor but not in AFF file (appeared since last sync) |
 
-### 7.4 `.eff.json` Storage Structure
+### 7.4 `.aff.json` Storage Structure
 
 Classes are stored under the top-level `classes` key:
 
@@ -511,7 +511,7 @@ Classes are stored under the top-level `classes` key:
 }
 ```
 
-The `config.classCategories` array follows the same pattern as `config.categories` (used for variable color categories). It uses EFF_Data_Store's existing `subgroup_to_cat_key()` pattern — a new entry `'Classes' => 'classCategories'` is added to the map.
+The `config.classCategories` array follows the same pattern as `config.categories` (used for variable color categories). It uses AFF_Data_Store's existing `subgroup_to_cat_key()` pattern — a new entry `'Classes' => 'classCategories'` is added to the map.
 
 ### 7.5 Comparison with Variable Data Model
 
@@ -520,7 +520,7 @@ The Class model is intentionally parallel to the Variable model to keep the data
 | Variable field | Class equivalent | Notes |
 |----------------|-----------------|-------|
 | `name` (CSS var name) | `name` (CSS class name) | Both are the actual CSS identifier |
-| `value` | *(no direct equivalent)* | Class styles live in Elementor; EFF doesn't store individual CSS properties |
+| `value` | *(no direct equivalent)* | Class styles live in Elementor; AFF doesn't store individual CSS properties |
 | `subgroup` | *(not used)* | Classes have no subgroup level; top-level only |
 | `category` | `category` | Both have user-definable categories |
 | `source` | `source` | Same enum pattern |
@@ -556,15 +556,15 @@ Rules:
 
 ### 8.3 Left Panel JS Changes
 
-File: `admin/js/eff-panel-left.js`
+File: `admin/js/aff-panel-left.js`
 
 Add a `renderClassesTree(categories, classCounts)` function following the same pattern as the existing variable tree renderer. The Classes branch should:
 - Show category names with a count badge (number of classes in that category)
 - Support collapse/expand of the top-level Classes node
 - Support arrow-key navigation, Enter to select, Space to expand
-- Highlight active category with `--eff-clr-accent`
+- Highlight active category with `--aff-clr-accent`
 
-No jQuery. Follow the existing vanilla JS patterns in `eff-panel-left.js`.
+No jQuery. Follow the existing vanilla JS patterns in `aff-panel-left.js`.
 
 ---
 
@@ -585,24 +585,24 @@ When a category is selected from the left panel, the center Edit Space shows a l
 Columns:
 - **Class name** (as it appears in CSS/HTML) — monospace font
 - **Category** — badge or plain text
-- **Status indicator** — icon + color-coded: synced (green), modified (gold), eff-only (muted), orphaned (red)
+- **Status indicator** — icon + color-coded: synced (green), modified (gold), aff-only (muted), orphaned (red)
 - **Usage count** — from last Elementor fetch
-- **Actions menu [⋮]** — Edit notes, Move to category, Remove from EFF
+- **Actions menu [⋮]** — Edit notes, Move to category, Remove from AFF
 
 ### 9.2 No Inline Editing of CSS Properties
 
-EFF Phase 3 **does not** allow editing the CSS properties of a class (colors, typography, spacing). That is Elementor's job, done in the Elementor editor. EFF is a **management and documentation layer**, not a style editor for classes. This mirrors EFF's approach to variables: EFF organizes and annotates, Elementor owns the authoritative values.
+AFF Phase 3 **does not** allow editing the CSS properties of a class (colors, typography, spacing). That is Elementor's job, done in the Elementor editor. AFF is a **management and documentation layer**, not a style editor for classes. This mirrors AFF's approach to variables: AFF organizes and annotates, Elementor owns the authoritative values.
 
-What EFF CAN edit on a class:
-- `label` — human-readable display name (EFF-only metadata)
-- `category` — which EFF category this class belongs to
+What AFF CAN edit on a class:
+- `label` — human-readable display name (AFF-only metadata)
+- `category` — which AFF category this class belongs to
 - `notes` — developer notes
 - `tags` — for filtering
 - `order` — drag-to-reorder within a category
 
-### 9.3 Detail/Expand Modal (`.eff-class-detail-modal`)
+### 9.3 Detail/Expand Modal (`.aff-class-detail-modal`)
 
-Clicking a class opens a detail view in the existing EFF modal system (`EFF.Modal.open()`):
+Clicking a class opens a detail view in the existing AFF modal system (`AFF.Modal.open()`):
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -629,17 +629,17 @@ Clicking a class opens a detail view in the existing EFF modal system (`EFF.Moda
 └──────────────────────────────────────────────────────┘
 ```
 
-The "Edit in Elementor" link opens the Elementor editor (deep link to the kit/Class Manager if possible; otherwise just to the editor). This is a link only — EFF does not open Elementor programmatically.
+The "Edit in Elementor" link opens the Elementor editor (deep link to the kit/Class Manager if possible; otherwise just to the editor). This is a link only — AFF does not open Elementor programmatically.
 
 ### 9.4 Sync Button
 
-In the top bar or right panel, a "Sync Classes" button triggers `eff_sync_classes` AJAX action. This:
-1. Calls `EFF_Classes_Reader::fetch_from_rest()` (or postmeta fallback)
-2. Merges new/updated classes with the existing EFF store
+In the top bar or right panel, a "Sync Classes" button triggers `aff_sync_classes` AJAX action. This:
+1. Calls `AFF_Classes_Reader::fetch_from_rest()` (or postmeta fallback)
+2. Merges new/updated classes with the existing AFF store
 3. Marks disappeared classes as `orphaned`
 4. Returns updated counts and status to the UI
 
-The sync is **non-destructive**: EFF-only metadata (labels, notes, tags, categories) is preserved.
+The sync is **non-destructive**: AFF-only metadata (labels, notes, tags, categories) is preserved.
 
 ### 9.5 Empty State
 
@@ -658,25 +658,25 @@ then sync to import them here.
 
 ## 10. AJAX Endpoints
 
-All endpoints follow EFF conventions: `wp_ajax_{action}`, nonce via `check_ajax_referer()`, `manage_options` capability check, response via `wp_send_json_success()` / `wp_send_json_error()`.
+All endpoints follow AFF conventions: `wp_ajax_{action}`, nonce via `check_ajax_referer()`, `manage_options` capability check, response via `wp_send_json_success()` / `wp_send_json_error()`.
 
 | Action | Handler Method | Description |
 |--------|---------------|-------------|
-| `eff_sync_classes` | `ajax_eff_sync_classes()` | Fetch from Elementor, merge into store, return updated class list |
-| `eff_get_classes` | `ajax_eff_get_classes()` | Return stored classes (no Elementor fetch) |
-| `eff_update_class_meta` | `ajax_eff_update_class_meta()` | Update EFF-only fields: label, notes, tags, category, order |
-| `eff_move_class_category` | `ajax_eff_move_class_category()` | Move class to a different category |
-| `eff_get_class_categories` | `ajax_eff_get_class_categories()` | Return class category list |
-| `eff_add_class_category` | `ajax_eff_add_class_category()` | Add a new class category |
-| `eff_rename_class_category` | `ajax_eff_rename_class_category()` | Rename a class category |
-| `eff_delete_class_category` | `ajax_eff_delete_class_category()` | Delete a class category (reassign classes to Uncategorized) |
-| `eff_reorder_class_categories` | `ajax_eff_reorder_class_categories()` | Reorder class categories |
+| `aff_sync_classes` | `ajax_aff_sync_classes()` | Fetch from Elementor, merge into store, return updated class list |
+| `aff_get_classes` | `ajax_aff_get_classes()` | Return stored classes (no Elementor fetch) |
+| `aff_update_class_meta` | `ajax_aff_update_class_meta()` | Update AFF-only fields: label, notes, tags, category, order |
+| `aff_move_class_category` | `ajax_aff_move_class_category()` | Move class to a different category |
+| `aff_get_class_categories` | `ajax_aff_get_class_categories()` | Return class category list |
+| `aff_add_class_category` | `ajax_aff_add_class_category()` | Add a new class category |
+| `aff_rename_class_category` | `ajax_aff_rename_class_category()` | Rename a class category |
+| `aff_delete_class_category` | `ajax_aff_delete_class_category()` | Delete a class category (reassign classes to Uncategorized) |
+| `aff_reorder_class_categories` | `ajax_aff_reorder_class_categories()` | Reorder class categories |
 
-These are added to the existing `class-eff-ajax-handler.php`. No new PHP files are needed for the AJAX layer.
+These are added to the existing `class-aff-ajax-handler.php`. No new PHP files are needed for the AJAX layer.
 
 ---
 
-## 11. `EFF_Data_Store` Extensions
+## 11. `AFF_Data_Store` Extensions
 
 ### 11.1 `subgroup_to_cat_key()` — Add Classes Entry
 
@@ -741,7 +741,7 @@ private function class_defaults(): array {
 
 ### 11.4 `migrate_data()` Extension
 
-Add a classes migration block (analogous to the existing variables migration block) to handle future schema additions without breaking older `.eff.json` files.
+Add a classes migration block (analogous to the existing variables migration block) to handle future schema additions without breaking older `.aff.json` files.
 
 ---
 
@@ -749,7 +749,7 @@ Add a classes migration block (analogous to the existing variables migration blo
 
 ### 12.1 No Official PHP API for Third-Party Plugins
 
-**The most significant limitation.** Elementor has not published any PHP hooks, filters, or service classes for reading Global Class data in third-party plugins. The developer documentation explicitly says it will arrive "after 4.0 release." This means EFF must use:
+**The most significant limitation.** Elementor has not published any PHP hooks, filters, or service classes for reading Global Class data in third-party plugins. The developer documentation explicitly says it will arrive "after 4.0 release." This means AFF must use:
 - The internal REST endpoint (undocumented, could change)
 - Direct `wp_postmeta` read (brittle if meta key changes)
 
@@ -758,7 +758,7 @@ Both approaches carry upgrade risk. The REST endpoint is the more stable of the 
 ### 12.2 Meta Key Name Unknown Without Direct DB Inspection
 
 The exact `wp_postmeta` key name for Global Classes on the kit post is not in any public documentation. It must be confirmed by:
-1. Installing Elementor on the EFF test site (`elementor-v40-test`)
+1. Installing Elementor on the AFF test site (`elementor-v40-test`)
 2. Creating a Global Class in the Class Manager
 3. Querying the database: `SELECT meta_key, meta_value FROM wp_postmeta WHERE post_id = [kit_id]`
 4. Identifying the key that holds the class data
@@ -771,27 +771,27 @@ Confirmed 2026-04-03. Structure: `{ data: { [g-XXXXXXX]: { id, type, label, vari
 
 ### 12.4 Local Class Data Not Accessible
 
-Local Classes (per-element, unique) are stored inside the `_elementor_data` JSON of each individual page/post. They are not surfaced by the global-classes REST endpoint. EFF Phase 3 explicitly excludes Local Classes as out of scope.
+Local Classes (per-element, unique) are stored inside the `_elementor_data` JSON of each individual page/post. They are not surfaced by the global-classes REST endpoint. AFF Phase 3 explicitly excludes Local Classes as out of scope.
 
 ### 12.5 50-Class Limit
 
-Elementor currently limits Global Classes to 50 per site (community complaint, GitHub discussion #32277). This is an Elementor-side constraint, not EFF's. EFF should document this in the UI but cannot lift the limit.
+Elementor currently limits Global Classes to 50 per site (community complaint, GitHub discussion #32277). This is an Elementor-side constraint, not AFF's. AFF should document this in the UI but cannot lift the limit.
 
 ### 12.6 wp_remote_get() Loopback Issues on Local Environments
 
-On Local by Flywheel (Jim's development environment), `wp_remote_get()` making a loopback HTTP call can fail due to the local server not accepting loopback connections. EFF must:
+On Local by Flywheel (Jim's development environment), `wp_remote_get()` making a loopback HTTP call can fail due to the local server not accepting loopback connections. AFF must:
 - Detect failure and fall through to the postmeta method silently
 - Surface an informative message in the UI if both methods fail
 
-### 12.7 CSS Properties Not Stored in EFF
+### 12.7 CSS Properties Not Stored in AFF
 
-EFF stores class metadata only — not the actual CSS property values (colors, font-size, etc.) assigned to each class. This is intentional: those values live in Elementor and would require parsing Elementor's internal style schema (a complex, nested, per-breakpoint/state structure). Phase 3 is a management layer, not a CSS editor.
+AFF stores class metadata only — not the actual CSS property values (colors, font-size, etc.) assigned to each class. This is intentional: those values live in Elementor and would require parsing Elementor's internal style schema (a complex, nested, per-breakpoint/state structure). Phase 3 is a management layer, not a CSS editor.
 
-If Jim later wants EFF to display the actual CSS properties of a class, this would be a Phase 3.x extension requiring significant additional research into Elementor's internal style data format.
+If Jim later wants AFF to display the actual CSS properties of a class, this would be a Phase 3.x extension requiring significant additional research into Elementor's internal style data format.
 
 ### 12.8 Responsive Classes Are a Feature Request, Not Yet Implemented
 
-GitHub discussion #34972 ("Responsive CSS Classes") shows that class assignments per breakpoint (applying/removing a class on tablet vs desktop) is an open feature request in Elementor, not yet implemented. EFF's `has_responsive` and `breakpoints` fields track per-class style breakpoints, which IS implemented in Elementor. These are different concepts.
+GitHub discussion #34972 ("Responsive CSS Classes") shows that class assignments per breakpoint (applying/removing a class on tablet vs desktop) is an open feature request in Elementor, not yet implemented. AFF's `has_responsive` and `breakpoints` fields track per-class style breakpoints, which IS implemented in Elementor. These are different concepts.
 
 ---
 
@@ -816,34 +816,34 @@ Phase 3.1 coding can begin now using the REST endpoint exclusively. Postmeta fal
 ### Phase 3.1 — Data Layer
 
 Files to create/modify:
-- **Create** `includes/class-eff-classes-reader.php` — read-only fetcher + normalizer
-- **Modify** `includes/class-eff-data-store.php` — add `classCategories` to map, add Classes CRUD
-- **Modify** `includes/class-eff-ajax-handler.php` — add all `eff_sync_classes`, `eff_get_classes`, class meta AJAX endpoints
-- **Modify** `includes/class-eff-loader.php` — register `class-eff-classes-reader.php`
+- **Create** `includes/class-aff-classes-reader.php` — read-only fetcher + normalizer
+- **Modify** `includes/class-aff-data-store.php` — add `classCategories` to map, add Classes CRUD
+- **Modify** `includes/class-aff-ajax-handler.php` — add all `aff_sync_classes`, `aff_get_classes`, class meta AJAX endpoints
+- **Modify** `includes/class-aff-loader.php` — register `class-aff-classes-reader.php`
 
-Deliverable: `eff_sync_classes` AJAX action returns a normalized class list from Elementor.
+Deliverable: `aff_sync_classes` AJAX action returns a normalized class list from Elementor.
 
 ### Phase 3.2 — Left Panel
 
 Files to modify:
-- **Modify** `admin/js/eff-panel-left.js` — add `renderClassesTree()`, expand `▶ Classes` node
-- **Modify** `admin/css/eff-layout.css` — any layout adjustments for class category items (likely minimal; reuses variable category styles)
+- **Modify** `admin/js/aff-panel-left.js` — add `renderClassesTree()`, expand `▶ Classes` node
+- **Modify** `admin/css/aff-layout.css` — any layout adjustments for class category items (likely minimal; reuses variable category styles)
 
 Deliverable: Clicking `▶ Classes` in the left panel expands to show categories. Clicking a category dispatches a `classCategory:selected` event.
 
 ### Phase 3.3 — Edit Space List View
 
 Files to modify/create:
-- **Modify** `admin/js/eff-edit-space.js` — add `renderClassesList(category, classes)` handler
-- **Create** or extend `admin/css/eff-theme.css` if class-specific color/badge tokens are needed
+- **Modify** `admin/js/aff-edit-space.js` — add `renderClassesList(category, classes)` handler
+- **Create** or extend `admin/css/aff-theme.css` if class-specific color/badge tokens are needed
 
 Deliverable: Selecting a class category shows the list of Global Classes with status badges and usage counts.
 
 ### Phase 3.4 — Detail Modal
 
 Files to modify:
-- **Modify** `admin/js/eff-edit-space.js` or create `admin/js/eff-classes.js` — class detail modal builder
-- Modal uses the existing `EFF.Modal.open()` — no new modal infrastructure needed
+- **Modify** `admin/js/aff-edit-space.js` or create `admin/js/aff-classes.js` — class detail modal builder
+- Modal uses the existing `AFF.Modal.open()` — no new modal infrastructure needed
 
 Deliverable: Clicking a class row opens the detail modal with editable label/notes/tags/category and a read-only info section.
 
@@ -884,15 +884,15 @@ ORDER BY meta_key;
 
 ### 14.3 Does the REST endpoint require a specific Elementor-issued nonce, or does the standard `wp_rest` nonce work?
 
-**How to answer:** Inspect the `X-WP-Nonce` header value used by the Elementor editor's own requests. If it matches `wp_create_nonce('wp_rest')`, the standard approach works. If Elementor uses its own nonce action, EFF must replicate it.
+**How to answer:** Inspect the `X-WP-Nonce` header value used by the Elementor editor's own requests. If it matches `wp_create_nonce('wp_rest')`, the standard approach works. If Elementor uses its own nonce action, AFF must replicate it.
 
 ### 14.4 Is the 50-class limit enforced client-side only (JS) or server-side (REST validation)?
 
-**Impact on EFF:** If it's only client-side, EFF's read path is unaffected. If server-side, the REST endpoint may only return ≤50 classes regardless.
+**Impact on AFF:** If it's only client-side, AFF's read path is unaffected. If server-side, the REST endpoint may only return ≤50 classes regardless.
 
 ### 14.5 Are class styles (CSS property values) present in the REST response?
 
-**Partially answered 2026-04-03.** The REST response includes a `variants` array on each class. Classes with no styles defined have `variants: []`. Classes with styles have a non-empty `variants` array. **The internal structure of each variant object is still unknown** — a follow-up capture is needed by expanding one of the non-empty variant arrays in the browser DevTools while the Elementor editor is open. This is **not blocking for Phase 3.1–3.3** (EFF ignores variant data until Phase 3.4). The `has_states` field is conservatively set to `!empty(variants)` until the structure is confirmed.
+**Partially answered 2026-04-03.** The REST response includes a `variants` array on each class. Classes with no styles defined have `variants: []`. Classes with styles have a non-empty `variants` array. **The internal structure of each variant object is still unknown** — a follow-up capture is needed by expanding one of the non-empty variant arrays in the browser DevTools while the Elementor editor is open. This is **not blocking for Phase 3.1–3.3** (AFF ignores variant data until Phase 3.4). The `has_states` field is conservatively set to `!empty(variants)` until the structure is confirmed.
 
 ### 14.6 Does the `elementor-v40-test` site have Global Classes created? If not, create some test classes first.
 

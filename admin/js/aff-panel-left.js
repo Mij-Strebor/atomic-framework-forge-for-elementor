@@ -1,5 +1,5 @@
 /**
- * EFF Panel Left — Navigation Tree, Accordion, Collapse, and Category Loading
+ * AFF Panel Left — Navigation Tree, Accordion, Collapse, and Category Loading
  *
  * Manages:
  *  - Expand/collapse of top-level group headers
@@ -15,15 +15,15 @@
  *  - Arrow Up/Down: move between nav items
  *  - Enter / Space: select item or toggle group
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 (function () {
 	'use strict';
 
-	window.EFF = window.EFF || {};
+	window.AFF = window.AFF || {};
 
-	EFF.PanelLeft = {
+	AFF.PanelLeft = {
 
 		/** @type {HTMLElement|null} */
 		_panel: null,
@@ -34,8 +34,8 @@
 		 * Initialize the left panel.
 		 */
 		init: function () {
-			this._panel      = document.getElementById('eff-panel-left');
-			this._collapseBtn = document.getElementById('eff-btn-collapse-left');
+			this._panel      = document.getElementById('aff-panel-left');
+			this._collapseBtn = document.getElementById('aff-btn-collapse-left');
 
 			if (!this._panel) {
 				return;
@@ -55,7 +55,7 @@
 		 * Bind click and keyboard handlers to all top-level group headers.
 		 */
 		_bindGroupHeaders: function () {
-			var headers = this._panel.querySelectorAll('.eff-nav-group__header');
+			var headers = this._panel.querySelectorAll('.aff-nav-group__header');
 
 			headers.forEach(function (header) {
 				header.addEventListener('click', function () {
@@ -99,7 +99,7 @@
 		 * Bind click handlers to all subgroup headers.
 		 */
 		_bindSubgroupHeaders: function () {
-			var headers = this._panel.querySelectorAll('.eff-nav-subgroup__header');
+			var headers = this._panel.querySelectorAll('.aff-nav-subgroup__header');
 
 			headers.forEach(function (header) {
 				header.addEventListener('click', function () {
@@ -169,7 +169,7 @@
 		// ------------------------------------------------------------------
 
 		/**
-		 * Load nav leaf items from the project config stored in EFF.state.
+		 * Load nav leaf items from the project config stored in AFF.state.
 		 *
 		 * Phase 2: For Colors, uses config.categories (Phase 2) if present,
 		 * otherwise falls back to config.groups.Variables.Colors (v1).
@@ -177,7 +177,7 @@
 		 * Called on init and whenever the project config changes.
 		 */
 		_loadNavItems: function () {
-			var config = EFF.state.config;
+			var config = AFF.state.config;
 
 			if (!config) {
 				this._loadDefaultItems();
@@ -189,13 +189,13 @@
 				var sortedCats = config.categories.slice().sort(function (a, b) {
 					return (a.order || 0) - (b.order || 0);
 				});
-				this._populateList('eff-nav-colors', sortedCats);
+				this._populateList('aff-nav-colors', sortedCats);
 			} else if (config.groups && config.groups.Variables) {
 				var colorItems = (config.groups.Variables.Colors || []).slice();
 			if (colorItems.indexOf('Uncategorized') === -1) { colorItems.push('Uncategorized'); }
-			this._populateList('eff-nav-colors', colorItems);
+			this._populateList('aff-nav-colors', colorItems);
 			} else {
-				this._populateList('eff-nav-colors', ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
+				this._populateList('aff-nav-colors', ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
 			}
 
 			// Phase 2: Fonts use config.fontCategories when available.
@@ -204,10 +204,10 @@
 			var sortedFontCats = config.fontCategories.slice().sort(function (a, b) {
 				return (a.order || 0) - (b.order || 0);
 			});
-			this._populateList('eff-nav-fonts', sortedFontCats);
+			this._populateList('aff-nav-fonts', sortedFontCats);
 		} else {
-			var globalVarsF = (EFF.state.globalConfig && EFF.state.globalConfig.groups && EFF.state.globalConfig.groups.Variables) ? EFF.state.globalConfig.groups.Variables : {};
-			this._populateList('eff-nav-fonts', (vars.Fonts && vars.Fonts.length > 0) ? vars.Fonts : (globalVarsF.Fonts || []));
+			var globalVarsF = (AFF.state.globalConfig && AFF.state.globalConfig.groups && AFF.state.globalConfig.groups.Variables) ? AFF.state.globalConfig.groups.Variables : {};
+			this._populateList('aff-nav-fonts', (vars.Fonts && vars.Fonts.length > 0) ? vars.Fonts : (globalVarsF.Fonts || []));
 		}
 
 		// Phase 2: Numbers use config.numberCategories when available.
@@ -215,11 +215,11 @@
 			var sortedNumCats = config.numberCategories.slice().sort(function (a, b) {
 				return (a.order || 0) - (b.order || 0);
 			});
-			this._populateList('eff-nav-numbers', sortedNumCats);
+			this._populateList('aff-nav-numbers', sortedNumCats);
 		} else {
-			var globalVarsN = (EFF.state.globalConfig && EFF.state.globalConfig.groups && EFF.state.globalConfig.groups.Variables) ? EFF.state.globalConfig.groups.Variables : {};
+			var globalVarsN = (AFF.state.globalConfig && AFF.state.globalConfig.groups && AFF.state.globalConfig.groups.Variables) ? AFF.state.globalConfig.groups.Variables : {};
 			var numList = (vars.Numbers && vars.Numbers.length > 0) ? vars.Numbers : ((globalVarsN.Numbers && globalVarsN.Numbers.length > 0) ? globalVarsN.Numbers : ['Spacing', 'Gaps', 'Grids', 'Radius']);
-			this._populateList('eff-nav-numbers', numList);
+			this._populateList('aff-nav-numbers', numList);
 		}
 		},
 
@@ -227,9 +227,9 @@
 		 * Load the hard-coded default subgroup items (used before config loads).
 		 */
 		_loadDefaultItems: function () {
-			this._populateList('eff-nav-colors',  ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
-			this._populateList('eff-nav-fonts',   []);
-			this._populateList('eff-nav-numbers', ['Spacing', 'Gaps', 'Grids', 'Radius']);
+			this._populateList('aff-nav-colors',  ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
+			this._populateList('aff-nav-fonts',   []);
+			this._populateList('aff-nav-numbers', ['Spacing', 'Gaps', 'Grids', 'Radius']);
 		},
 
 		/**
@@ -257,7 +257,7 @@
 				var li  = document.createElement('li');
 				var btn = document.createElement('button');
 
-				btn.className   = 'eff-nav-item';
+				btn.className   = 'aff-nav-item';
 				btn.textContent = name;
 				btn.setAttribute('type', 'button');
 				btn.setAttribute('data-category', name);
@@ -284,7 +284,7 @@
 		 */
 		selectItem: function (btn, listId, category, categoryId) {
 			// Remove active class from all items
-			var allItems = this._panel.querySelectorAll('.eff-nav-item');
+			var allItems = this._panel.querySelectorAll('.aff-nav-item');
 			for (var i = 0; i < allItems.length; i++) {
 				allItems[i].classList.remove('is-active');
 				allItems[i].removeAttribute('aria-current');
@@ -296,14 +296,14 @@
 
 			// Determine subgroup from listId
 			var subgroupMap = {
-				'eff-nav-colors':  'Colors',
-				'eff-nav-fonts':   'Fonts',
-				'eff-nav-numbers': 'Numbers',
+				'aff-nav-colors':  'Colors',
+				'aff-nav-fonts':   'Fonts',
+				'aff-nav-numbers': 'Numbers',
 			};
 			var subgroup = subgroupMap[listId] || listId;
 
 			// Update global selection state
-			EFF.state.currentSelection = {
+			AFF.state.currentSelection = {
 				group:      'Variables',
 				subgroup:   subgroup,
 				category:   category,
@@ -311,8 +311,8 @@
 			};
 
 			// Notify edit space
-			if (EFF.EditSpace) {
-				EFF.EditSpace.loadCategory(EFF.state.currentSelection);
+			if (AFF.EditSpace) {
+				AFF.EditSpace.loadCategory(AFF.state.currentSelection);
 			}
 		},
 
@@ -322,12 +322,12 @@
 		 * Called when the user closes the Colors view via the back/close button.
 		 */
 		clearSelection: function () {
-			var allItems = this._panel.querySelectorAll('.eff-nav-item');
+			var allItems = this._panel.querySelectorAll('.aff-nav-item');
 			for (var i = 0; i < allItems.length; i++) {
 				allItems[i].classList.remove('is-active');
 				allItems[i].removeAttribute('aria-current');
 			}
-			EFF.state.currentSelection = null;
+			AFF.state.currentSelection = null;
 		},
 
 		/**

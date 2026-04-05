@@ -1,21 +1,21 @@
 <?php
 /**
- * EFF Settings — Plugin Preferences Storage
+ * AFF Settings — Plugin Preferences Storage
  *
  * Thin WordPress adapter for plugin-level preferences.
  * Scoped to developer preferences (default file path, sync options).
- * User-level preferences (theme) are stored in usermeta via EFF_Admin.
+ * User-level preferences (theme) are stored in usermeta via AFF_Admin.
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class EFF_Settings {
+class AFF_Settings {
 
-	const OPTION_KEY = 'eff_settings';
+	const OPTION_KEY = 'aff_settings';
 
 	/**
 	 * @var array Default setting values.
