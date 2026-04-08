@@ -1,0 +1,20 @@
+{
+    "name": "mij-strebor/atomic-framework-forge-for-elementor",
+    "description": "Atomic Framework Forge for Elementor — development tooling",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.10",
+        "wp-coding-standards/wpcs": "^3.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "lint": "phpcs",
+        "lint-file": "phpcs"
+    }
+}
