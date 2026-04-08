@@ -1952,14 +1952,14 @@
 		 */
 		_statusColor: function (status) {
 			var map = {
-				synced:   '#059669',
-				modified: '#f4c542',
-				new:      '#3b82f6',
-				deleted:  '#dc2626',
-				conflict: '#8b5cf6',
-				orphaned: '#f97316',
+				synced:   'var(--aff-status-synced)',
+				modified: 'var(--aff-status-modified)',
+				new:      'var(--aff-status-new)',
+				deleted:  'var(--aff-status-deleted)',
+				conflict: 'var(--aff-status-conflict)',
+				orphaned: 'var(--aff-status-orphaned)',
 			};
-			return map[status] || '#6b7280';
+			return map[status] || 'var(--aff-status-synced)';
 		},
 
 		/**

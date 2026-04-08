@@ -69,6 +69,17 @@ class AFF_Ajax_Handler {
 
 		$decoded = $this->safe_json_decode( $data_raw, __( 'Invalid data format.', 'atomic-framework-forge-for-elementor' ) );
 
+		// Assign UUIDs to any variables that arrived with an empty id (e.g., synced
+		// Elementor variables that were never explicitly saved via aff_save_color).
+		if ( ! empty( $decoded['variables'] ) && is_array( $decoded['variables'] ) ) {
+			foreach ( $decoded['variables'] as &$var ) {
+				if ( empty( $var['id'] ) ) {
+					$var['id'] = wp_generate_uuid4();
+				}
+			}
+			unset( $var );
+		}
+
 		$slug  = AFF_Data_Store::sanitize_project_slug( $project_name );
 		$dir   = AFF_Data_Store::get_project_dir( $slug );
 		$fname = AFF_Data_Store::generate_backup_filename( $slug );
@@ -83,8 +94,9 @@ class AFF_Ajax_Handler {
 
 		$relative = $slug . '/' . $fname;
 		wp_send_json_success( array(
-			'message'  => __( 'File saved successfully.', 'atomic-framework-forge-for-elementor' ),
-			'filename' => $relative,
+			'message'   => __( 'File saved successfully.', 'atomic-framework-forge-for-elementor' ),
+			'filename'  => $relative,
+			'variables' => $decoded['variables'] ?? array(),
 		) );
 	}
 
@@ -550,6 +562,12 @@ class AFF_Ajax_Handler {
 				if ( empty( $name ) || ! $this->is_valid_css_var( $name ) ) {
 					throw new \Exception( __( 'Valid CSS custom property name required (e.g., --my-color).', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				}
+
+				// Remove any existing placeholder copy that arrived with an empty id
+				// (e.g., a synced Elementor variable saved via aff_save_file before
+				// it was assigned a UUID). Without this, add_variable would create a
+				// duplicate alongside the empty-id entry already on disk.
+				$store->delete_variable_by_name_if_empty_id( $name );
 
 				$id = $store->add_variable( array(
 					'name'        => $name,

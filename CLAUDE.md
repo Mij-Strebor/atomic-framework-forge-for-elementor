@@ -1,15 +1,19 @@
 # CLAUDE.md — Atomic Framework Forge for Elementor (AFF)
 
-> This file is **in addition to** `E:/projects/CLAUDE.md`. Read the root CLAUDE.md first for git workflow, backup protocol, CSS debugging protocol, and project-wide standards. This file covers AFF-specific rules only.
+> Read parent CLAUDE.md files first — in order:
+> 1. `E:/projects/CLAUDE.md` — global conventions, git workflow, backups, CSS debugging
+> 2. `E:/projects/plugins/CLAUDE.md` — WordPress plugin architecture, PHP/JS debugging, release workflow
+>
+> This file covers AFF-specific rules only.
 
 ---
 
 ## Project Identity
 
 - **Plugin name:** Atomic Framework Forge for Elementor
-- **Acronym / folder:** `aff` (source lives at `E:/projects/plugins/eff` during rename transition)
-- **Path:** `E:/projects/plugins/eff`
-- **Version:** v0.3.3-beta
+- **Acronym / folder:** `aff`
+- **Path:** `E:/projects/plugins/aff`
+- **Version:** v0.3.4-beta
 - **GitHub:** https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor
 - **Branding:** Always "Jim R Forge" — never "JimRWeb"
 - **Author URI:** https://jimrforge.com
@@ -34,10 +38,10 @@ AFF is a WordPress admin plugin that provides a management interface for **Eleme
 - **WP site:** `elementor-v40-test` (Local by Flywheel)
 - **WP root:** `C:/Users/Owner/Local Sites/elementor-v40-test/app/public`
 - **Plugins dir:** `C:/Users/Owner/Local Sites/elementor-v40-test/app/public/wp-content/plugins`
-- **Symlink target:** `E:/projects/plugins/eff`
+- **Symlink target:** `E:/projects/plugins/aff`
 - **Symlink creation** requires Administrator CMD:
   ```cmd
-  mklink /D "C:\Users\Owner\Local Sites\elementor-v40-test\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\eff"
+  mklink /D "C:\Users\Owner\Local Sites\elementor-v40-test\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\aff"
   ```
 - **Active Elementor kit CSS:** `wp-content/uploads/elementor/css/post-67.css` (kit ID: 67)
 - **WP Admin:** `http://elementor-v40-test.local/wp-admin/`

@@ -107,9 +107,9 @@
 					}
 						AFF.state.currentFile = res.data.filename;
 
-						// Prefer the name stored inside the project file for round-trip accuracy.
-						// Strip any stale .eff extension to prevent -eff suffix on next save.
-					var displayName = (res.data.data.name || name).replace(/(?:\.eff)+(?:\.json)?$/i, '');
+						// Prefer the name stored in the project's config, then fall back to filename.
+					var displayName = (res.data.data.config && res.data.data.config.projectName)
+						|| (res.data.filename || path || '').replace(/(?:\.aff|\.eff)+(?:\.json)?$/i, '');
 						AFF.state.projectName = displayName;
 						if (self._filenameInput) {
 							self._filenameInput.value = displayName;
@@ -168,9 +168,8 @@
 					}
 						AFF.state.currentFile = res.data.filename;
 
-						var displayName = (res.data.data.name
-							|| (res.data.filename || '').replace(/(?:\.eff)+(?:\.json)?$/i, ''))
-							.replace(/(?:\.eff)+(?:\.json)?$/i, '');
+						var displayName = (res.data.data.config && res.data.data.config.projectName)
+							|| (res.data.filename || '').replace(/(?:\.aff|\.eff)+(?:\.json)?$/i, '');
 						AFF.state.projectName = displayName;
 						if (self._filenameInput) {
 							self._filenameInput.value = displayName;
@@ -232,6 +231,11 @@
 					if (res.success) {
 						AFF.state.currentFile = res.data.filename;
 						AFF.state.projectName = cleanName;
+						// Sync variables back so any empty-id placeholders are replaced
+						// with the UUID-assigned copies that php wrote to disk.
+						if (res.data.variables) {
+							AFF.state.variables = res.data.variables;
+						}
 						if (self._filenameInput) {
 							self._filenameInput.value = cleanName;
 						}

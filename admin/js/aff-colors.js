@@ -1253,9 +1253,10 @@
 				self._pickrInstance = pickr;
 			}
 
-			// Tints number — live preview.
+			// Tints number — select all on focus; live preview on input.
 			var tintsNum = modal.querySelector('.aff-gen-tints-num');
 			if (tintsNum) {
+				tintsNum.addEventListener('focus', function () { tintsNum.select(); });
 				tintsNum.addEventListener('input', function () {
 					var steps = parseInt(tintsNum.value, 10) || 0;
 					if (steps < 0) { steps = 0; }
@@ -1270,9 +1271,10 @@
 				});
 			}
 
-			// Shades number — live preview.
+			// Shades number — select all on focus; live preview on input.
 			var shadesNum = modal.querySelector('.aff-gen-shades-num');
 			if (shadesNum) {
+				shadesNum.addEventListener('focus', function () { shadesNum.select(); });
 				shadesNum.addEventListener('input', function () {
 					var steps = parseInt(shadesNum.value, 10) || 0;
 					if (steps < 0) { steps = 0; }
@@ -2756,10 +2758,30 @@
 			}
 
 			// Variable must have a server-assigned UUID.
+			// If not (e.g. just synced from Elementor), auto-save it to get one.
 			if (!v || !v.id) {
-				AFF.Modal.open({
-					title: 'Variable not saved',
-					body:  '<p>Save the project file first so this variable gets an ID, then try generating again.</p>',
+				if (!v) { return; }
+				AFF.App.ajax('aff_save_color', {
+					filename: AFF.state.currentFile,
+					variable: JSON.stringify(v),
+				}).then(function (res) {
+					if (res.success && res.data && res.data.id) {
+						v.id = res.data.id;
+						if (res.data.data && res.data.data.variables) {
+							AFF.state.variables = res.data.data.variables;
+						}
+						self._generateChildren(v.id, panel);
+					} else {
+						AFF.Modal.open({
+							title: 'Variable Not Saved',
+							body: '<p>Could not auto-save this variable. Save the project file first, then try again.</p>',
+						});
+					}
+				}).catch(function () {
+					AFF.Modal.open({
+						title: 'Variable Not Saved',
+						body: '<p>Network error while auto-saving. Save the project file first, then try again.</p>',
+					});
 				});
 				return;
 			}
