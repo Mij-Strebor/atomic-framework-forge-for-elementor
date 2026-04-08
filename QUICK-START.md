@@ -1,5 +1,5 @@
 # AFF Quick Start Guide
-## Atomic Framework Forge for Elementor — Beta 0.3.3
+## Atomic Framework Forge for Elementor — Beta 0.3.4
 
 > This guide gets you from zero to your first organized variable set in about ten minutes.
 >
@@ -34,7 +34,7 @@ git clone https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor.gi
 ### Or download a ZIP (recommended)
 
 Click **Code → Download ZIP** on this GitHub repository page.
- You can Plugins > Add Plugin > Upload Plugin > Choose file in WordPress then select and install ***atomic-framework-forge-for-elementor-0.3.3-Beta.zip***
+ You can Plugins > Add Plugin > Upload Plugin > Choose file in WordPress then select and install ***atomic-framework-forge-for-elementor-0.3.4-Beta.zip***
 
 or unzip directly into your `wp-content/plugins/atomic-framework-forge-for-elementor/`.
 

@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Beta](https://img.shields.io/badge/status-Beta%200.3.3-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-0.3.3--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Beta](https://img.shields.io/badge/status-Beta%200.3.4-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-0.3.4--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -51,13 +51,13 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Beta Status
 
-This is **Beta 0.3.3**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
+This is **Beta 0.3.4**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 
-## What Works in Beta 0.3.3
+## What Works in Beta 0.3.4
 
 | Feature | Status |
 |---------|--------|
@@ -244,7 +244,8 @@ atomic-framework-forge-for-elementor/
 | **0.2.3** | Sync name normalization. Manage Project auto-select. Stacked suffix fix. |
 | **0.3.0-beta** | Versioned backup system. Two-level picker. Multi-project. Right panel reorganization. Sync options dialog. Commit summary dialog. V3 Global Colors import. |
 | **0.3.2-beta** | Bug fixes: drag-and-drop color reorder; column sort persistence across tab switches; auto-load reliability. |
-| **0.3.3-beta** *(this release)* | Auto-regenerate Elementor kit CSS when file is missing, preventing 0-variable sync on first load. |
+| **0.3.3-beta** | Auto-regenerate Elementor kit CSS when file is missing, preventing 0-variable sync on first load. |
+| **0.3.4-beta** *(this release)* | Renamed EFF → AFF for WordPress.org compatibility. Sync reads Elementor kit meta directly. Category defaults and AJAX action name fixes. |
 | **1.0.0** | Classes management. Components registry. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
 | **Future** | Standalone Windows / Mac desktop application. |

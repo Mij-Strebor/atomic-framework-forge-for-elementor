@@ -7,6 +7,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.3.4-beta] — 2026-04-08
+
+### Changed
+
+- **Plugin renamed EFF → AFF** — Renamed from *Elementor Framework Forge* to *Atomic Framework Forge for Elementor* for WordPress.org compatibility (WordPress.org prohibits plugin names starting with "Elementor"). Main plugin file renamed to `atomic-framework-forge-for-elementor.php`; all internal prefixes updated: `eff_` → `aff_`, `EFF_` → `AFF_`, `eff-` → `aff-`, `EFF.` → `AFF.`.
+- **Sync reads Elementor kit meta directly** — `AFF_CSS_Parser::read_from_kit_meta()` now reads `_elementor_global_variables` post meta directly instead of requiring a parsed CSS file. `ajax_aff_sync_from_elementor()` uses this as the primary sync path; CSS file parsing is retained as a fallback.
+- **Version** — Bumped to 0.3.4-beta.
+
+### Fixed
+
+- **Font and Number category defaults on first load** — `loadConfig()` now normalises `groups.Variables.*` string arrays from the defaults file into the `fontCategories` / `numberCategories` object arrays expected by the edit space, preventing empty category panels on fresh installs.
+- **AJAX action names after rename** — Two call sites in `aff-panel-top.js` were still sending `eff_sync_from_elementor`; corrected to `aff_sync_from_elementor`.
+
+---
+
 ## [0.3.3-beta] — 2026-04-03
 
 ### Added

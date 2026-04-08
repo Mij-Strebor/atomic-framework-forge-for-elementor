@@ -1,5 +1,5 @@
 # AFF User Manual
-## Elementor Framework Forge — Beta 0.3.3
+## Atomic Framework Forge for Elementor — Beta 0.3.4
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**

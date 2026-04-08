@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      6.9
 Requires PHP:      7.4
-Stable tag:        0.3.3-beta
+Stable tag:        0.3.4-beta
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ AFF allows developers to organize, edit, and persist the three core asset types 
 
 **Requires Elementor and Elementor Pro.**
 
-=== Key Features (Beta 0.3.3) ===
+=== Key Features (Beta 0.3.4) ===
 
 * **Sync from Elementor** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
 * **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
@@ -63,6 +63,12 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
 
+= 0.3.4-beta =
+* Plugin renamed from Elementor Framework Forge (EFF) to Atomic Framework Forge for Elementor (AFF) for WordPress.org compatibility. All internal prefixes updated.
+* Sync now reads Elementor kit meta directly via read_from_kit_meta(); CSS file parsing retained as fallback.
+* Fixed font and number category defaults not loading correctly on fresh installs.
+* Fixed two AJAX action name call sites still using eff_sync_from_elementor after rename.
+
 = 0.3.3-beta =
 * Auto-regenerate Elementor kit CSS via Elementor's CSS API when the file is missing, preventing 0-variable sync on fresh installs or after cache clears.
 
@@ -95,6 +101,9 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 * Initial release — Variables (Colors, Fonts, Numbers), Sync, Organize, Save, Commit, Dark Mode.
 
 == Upgrade Notice ==
+
+= 0.3.4-beta =
+Plugin renamed EFF → AFF for WordPress.org compatibility. Sync improved: reads Elementor kit meta directly. Bug fixes for category defaults and AJAX action names.
 
 = 0.3.3-beta =
 Auto-regenerates missing Elementor kit CSS on sync — prevents 0-variable result on fresh installs or after Elementor cache clears.
