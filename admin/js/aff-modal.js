@@ -88,6 +88,12 @@
 
 			options = options || {};
 
+			// Apply optional extra CSS class (e.g. aff-modal--wide); reset between calls.
+			this._modal.className = 'aff-modal';
+			if (options.className) {
+				this._modal.classList.add(options.className);
+			}
+
 			// Inject content
 			this._title.textContent = options.title || '';
 

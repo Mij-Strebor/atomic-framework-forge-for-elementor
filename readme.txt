@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      6.9
 Requires PHP:      7.4
-Stable tag:        0.3.4-beta
+Stable tag:        0.3.5-beta
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,14 @@ In your WordPress uploads directory under `/uploads/aff/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 0.3.5-beta =
+* Load Project modal: project list now shows folder structure with save count, last-saved date, and inline rename. Copy and delete project actions added.
+* Fixed cross-module event contamination between Colors and Variables/Numbers views (drag, click, and focusout handlers now guarded per-view).
+* Fixed drag snap-back and cross-module drag switch in Numbers view.
+* Write to Elementor: auto-regenerates missing kit CSS file instead of erroring.
+* Prevented duplicate variable names (JS and PHP validation).
+* Removed forced `--` prefix while typing variable names.
 
 = 0.3.4-beta =
 * Plugin renamed from Elementor Framework Forge (EFF) to Atomic Framework Forge for Elementor (AFF) for WordPress.org compatibility. All internal prefixes updated.

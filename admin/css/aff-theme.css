@@ -582,6 +582,10 @@
 	transform: scale(1) translateY(0);
 }
 
+.aff-app .aff-modal.aff-modal--wide {
+	width: min(780px, 90vw);
+}
+
 .aff-app .aff-modal__header {
 	display:         flex;
 	align-items:     center;

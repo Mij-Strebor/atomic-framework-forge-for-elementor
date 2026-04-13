@@ -777,6 +777,8 @@
 			var self = this;
 
 			container.addEventListener('click', function (e) {
+				// Bail if the Colors view is not currently active in this container.
+				if (!container.querySelector('.aff-colors-view')) { return; }
 				// Route sort buttons first (more specific target).
 				var sortBtn = e.target.closest('.aff-col-sort-btn');
 				if (sortBtn) {
@@ -799,8 +801,6 @@
 				switch (action) {
 
 					case 'duplicate': if (catId) { self._duplicateCategory(catId); } break;
-					case 'move-up':   if (catId) { self._moveCategoryUp(catId); } break;
-					case 'move-down': if (catId) { self._moveCategoryDown(catId); } break;
 					case 'add-var':   if (catId) { self._addVariable(catId); } break;
 					case 'delete':    if (catId) { self._deleteCategory(catId); } break;
 
@@ -816,6 +816,8 @@
 							var newCollapsed = !isCollapsed;
 							block.setAttribute('data-collapsed', String(newCollapsed));
 							if (catId) { _collapsedCategoryIds[catId] = newCollapsed; }
+							// Close any open expand panel when the user collapses a category.
+							if (newCollapsed) { self._closeExpandPanel(container, true); }
 						}
 						break;
 
@@ -869,6 +871,7 @@
 
 			// Restore readonly/contenteditable on focusout and save pending changes.
 			container.addEventListener('focusout', function (e) {
+				if (!container.querySelector('.aff-colors-view')) { return; }
 				var nameInput = e.target.closest('.aff-color-name-input');
 				if (nameInput) { nameInput.setAttribute('readonly', ''); return; }
 				var catInput = e.target.closest('.aff-category-name-input');
@@ -890,16 +893,6 @@
 					catInput.textContent = oldName;
 					catInput.setAttribute('contenteditable', 'false');
 					catInput.blur();
-				}
-			});
-
-			// Name input: enforce '--' prefix while typing.
-			container.addEventListener('input', function (e) {
-				var nameInput = e.target.closest('.aff-color-name-input');
-				if (!nameInput) { return; }
-				var val = nameInput.value;
-				if (val.slice(0, 2) !== '--') {
-					nameInput.value = '--' + val.replace(/^-*/, '');
 				}
 			});
 
@@ -1132,15 +1125,9 @@
 				});
 			}
 
-			// Name input — save on blur / Enter; protect leading '--' prefix.
+			// Name input — save on blur / Enter.
 			var nameInput = modal.querySelector('.aff-color-name-input');
 			if (nameInput) {
-				nameInput.addEventListener('input', function () {
-					var val = nameInput.value;
-					if (val.slice(0, 2) !== '--') {
-						nameInput.value = '--' + val.replace(/^-*/, '');
-					}
-				});
 				nameInput.addEventListener('change', function () {
 					self._saveVarName(varId, nameInput);
 				});
@@ -1207,50 +1194,58 @@
 			}
 
 			// Pickr — visual color picker for all formats.
+			// Wrapped in try-catch: non-standard values (oklch, var(), etc.) can
+			// cause Pickr.create() to throw, which must not crash the modal.
 			var pickrBtn = modal.querySelector('.aff-pickr-btn');
 			if (pickrBtn && typeof Pickr !== 'undefined') {
-				// Normalise legacy alpha-suffix formats.
-				var pickerFmt = (v.format || 'HEX').replace(/A$/, '');
-				var pickr = Pickr.create({
-					el:          pickrBtn,
-					theme:       'classic',
-					useAsButton: true,
-					default: v.value || '#000000',
-					components: {
-						preview: true,
-						opacity: true,
-						hue:     true,
-						interaction: {
-							hex:   pickerFmt === 'HEX',
-							rgba:  pickerFmt === 'RGB',
-							hsla:  pickerFmt === 'HSL',
-							input: true,
-							save:  true,
+				try {
+					// Normalise legacy alpha-suffix formats.
+					var pickerFmt = (v.format || 'HEX').replace(/A$/, '');
+					var pickr = Pickr.create({
+						el:          pickrBtn,
+						theme:       'classic',
+						useAsButton: true,
+						default: v.value || '#000000',
+						components: {
+							preview: true,
+							opacity: true,
+							hue:     true,
+							interaction: {
+								hex:   pickerFmt === 'HEX',
+								rgba:  pickerFmt === 'RGB',
+								hsla:  pickerFmt === 'HSL',
+								input: true,
+								save:  true,
+							},
 						},
-					},
-				});
+					});
 
-				pickr.on('change', function (color) {
-					var preview = self._pickrColorToString(color, pickerFmt);
-					if (preview && pickrBtn) { pickrBtn.style.background = preview; }
-				});
+					pickr.on('change', function (color) {
+						var preview = self._pickrColorToString(color, pickerFmt);
+						if (preview && pickrBtn) { pickrBtn.style.background = preview; }
+					});
 
-				pickr.on('save', function (color) {
-					if (!color) { return; }
-					var raw = self._pickrColorToString(color, pickerFmt);
-					var res = self._normalizeColorValue(raw, pickerFmt);
-					if (res.error) { return; }
-					if (valueInput) {
-						valueInput.value = res.value;
-						valueInput.setAttribute('data-original', res.value);
-					}
-					if (pickrBtn) { pickrBtn.style.background = res.value; }
-					self._saveVarValue(varId, res.value, valueInput);
-					self._refreshModalPalettes(modal, varId);
-					pickr.hide();
-				});
+					pickr.on('save', function (color) {
+						if (!color) { return; }
+						var raw = self._pickrColorToString(color, pickerFmt);
+						var res = self._normalizeColorValue(raw, pickerFmt);
+						if (res.error) { return; }
+						if (valueInput) {
+							valueInput.value = res.value;
+							valueInput.setAttribute('data-original', res.value);
+						}
+						if (pickrBtn) { pickrBtn.style.background = res.value; }
+						self._saveVarValue(varId, res.value, valueInput);
+						self._refreshModalPalettes(modal, varId);
+						pickr.hide();
+					});
 
-				self._pickrInstance = pickr;
+					self._pickrInstance = pickr;
+				} catch (e) {
+					// Pickr could not parse the color value — picker unavailable
+					// for this variable, but the rest of the modal works normally.
+					console.warn('[AFF] Pickr init failed for value "' + v.value + '":', e.message);
+				}
 			}
 
 			// Tints number — select all on focus; live preview on input.
@@ -1366,9 +1361,18 @@
 
 			if (newName === oldName) { return; }
 
-			if (!/^--[\w-]+$/.test(newName)) {
+			if (!/^[A-Za-z0-9_-]+$/.test(newName)) {
 				nameInput.value = oldName; // Revert.
-				self._showFieldError(nameInput, 'Name must start with -- and contain only letters, numbers, dashes, and underscores. Example: --my-color');
+				self._showFieldError(nameInput, 'Name may only contain letters, digits, hyphens, and underscores.');
+				return;
+			}
+
+			var duplicate = AFF.state.variables.some(function (v) {
+				return v.name.toLowerCase() === newName.toLowerCase() && String(v.id) !== String(varId);
+			});
+			if (duplicate) {
+				nameInput.value = oldName;
+				self._showFieldError(nameInput, 'A variable with that name already exists.');
 				return;
 			}
 
@@ -1563,8 +1567,17 @@
 			}
 			var catName = cat ? cat.name : '';
 
+			var _baseName  = 'new-color';
+			var _newName   = _baseName;
+			var _nameIdx   = 1;
+			var _existing  = (AFF.state.variables || []).map(function (v) { return (v.name || '').toLowerCase(); });
+			while (_existing.indexOf(_newName.toLowerCase()) !== -1) {
+				_newName = _baseName + '-' + _nameIdx;
+				_nameIdx++;
+			}
+
 			var newVar = {
-				name:        '--new-color',
+				name:        _newName,
 				value:       '#000000',
 				type:        'color',
 				subgroup:    'Colors',
@@ -1797,52 +1810,6 @@
 		},
 
 		/**
-		 * Move a category up in display order.
-		 *
-		 * @param {string} catId Category ID to move up.
-		 */
-		_moveCategoryUp: function (catId) {
-			var self = this;
-			var cats = self._getSortedCategories();
-
-			var idx = -1;
-			for (var i = 0; i < cats.length; i++) {
-				if (cats[i].id === catId) { idx = i; break; }
-			}
-			if (idx <= 0) { return; }
-
-			var tmp     = cats[idx - 1];
-			cats[idx - 1] = cats[idx];
-			cats[idx]     = tmp;
-
-			var orderedIds = cats.map(function (c) { return c.id; });
-			self._ajaxReorderCategories(orderedIds);
-		},
-
-		/**
-		 * Move a category down in display order.
-		 *
-		 * @param {string} catId Category ID to move down.
-		 */
-		_moveCategoryDown: function (catId) {
-			var self = this;
-			var cats = self._getSortedCategories();
-
-			var idx = -1;
-			for (var i = 0; i < cats.length; i++) {
-				if (cats[i].id === catId) { idx = i; break; }
-			}
-			if (idx < 0 || idx >= cats.length - 1) { return; }
-
-			var tmp     = cats[idx + 1];
-			cats[idx + 1] = cats[idx];
-			cats[idx]     = tmp;
-
-			var orderedIds = cats.map(function (c) { return c.id; });
-			self._ajaxReorderCategories(orderedIds);
-		},
-
-		/**
 		 * Duplicate a category and all its variables.
 		 *
 		 * @param {string} catId Source category ID.
@@ -2013,45 +1980,16 @@
 		},
 
 		/**
-		 * Sort non-locked categories alphabetically (locked always last).
-		 * @param {boolean} ascending  true = A→Z, false = Z→A
-		 */
-		_sortCategories: function (ascending) {
-			var self = this;
-			if (!AFF.state.config || !Array.isArray(AFF.state.config.categories)) { return; }
-			var locked   = AFF.state.config.categories.filter(function (c) { return c.locked; });
-			var unlocked = AFF.state.config.categories.filter(function (c) { return !c.locked; });
-			unlocked.sort(function (a, b) {
-				var na = (a.name || '').toLowerCase();
-				var nb = (b.name || '').toLowerCase();
-				return ascending ? (na < nb ? -1 : na > nb ? 1 : 0)
-								 : (na > nb ? -1 : na < nb ? 1 : 0);
-			});
-			var combined = unlocked.concat(locked);
-			combined.forEach(function (c, i) { c.order = i + 1; });
-			AFF.state.config.categories = combined;
-			AFF.App.ajax('aff_reorder_categories', {
-				filename:    AFF.state.currentFile,
-				ordered_ids: JSON.stringify(combined.map(function (c) { return c.id; })),
-			}).then(function (r) {
-				if (r.success && r.data && r.data.categories) {
-					AFF.state.config.categories = r.data.categories;
-				}
-				AFF.App.setDirty(true);
-				self._rerenderView();
-				if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
-			}).catch(function () { console.warn('[AFF] AJAX error: save format'); });
-		},
-
-		/**
 		 * Delete a color variable (and optionally its children).
 		 *
 		 * @param {string} varId  Variable ID to delete.
 		 */
 		_deleteVariable: function (varId) {
 			var self     = this;
-			var variable = AFF.state.variables.find(function (v) { return v.id === varId; });
+			var variable = self._findVarByKey(varId);
 			if (!variable) { return; }
+			// Use the resolved UUID for API calls; varId may be a stale __n_ key.
+			varId = variable.id || varId;
 
 			var children = AFF.state.variables.filter(function (v) { return v.parent_id === varId; });
 			var hasChildren = children.length > 0;
@@ -2250,6 +2188,7 @@
 		var d    = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
 
 		container.addEventListener('mousedown', function (e) {
+			if (!container.querySelector('.aff-colors-view')) { return; }
 			var handle = e.target.closest('.aff-cat-drag-handle');
 			if (!handle) { return; }
 			e.preventDefault();
@@ -2384,6 +2323,8 @@
 			var self = this;
 
 			container.addEventListener('mousedown', function (e) {
+				// Bail if the Colors view is not currently active in this container.
+				if (!container.querySelector('.aff-colors-view')) { return; }
 				var handle = e.target.closest('.aff-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
@@ -2699,19 +2640,39 @@
 			v.category    = newCat.name;
 			v.status      = 'modified';
 
+			// Move children (tints/shades/transparencies) together with the parent.
+			var children = v.id ? self._getChildVars(v.id) : [];
+			children.forEach(function (child) {
+				child.category_id = newCatId;
+				child.category    = newCat.name;
+				child.status      = 'modified';
+			});
+
 			self._rerenderView();
 
 			if (!AFF.state.currentFile) { return; }
 			if (AFF.App) { AFF.App.setDirty(true); }
 
+			// Save parent.
 			AFF.App.ajax('aff_save_color', {
 				filename: AFF.state.currentFile,
 				variable: JSON.stringify({ id: v.id, category_id: newCatId, category: newCat.name, status: 'modified' }),
 			}).then(function (res) {
 				if (res.success && res.data && res.data.data) {
 					AFF.state.variables = res.data.data.variables;
+					// Re-render so children appear in the new category (server state may differ).
+					self._rerenderView();
 				}
 			}).catch(function () { console.warn('[AFF] AJAX error: refresh variables'); });
+
+			// Save each child's new category.
+			children.forEach(function (child) {
+				if (!child.id) { return; }
+				AFF.App.ajax('aff_save_color', {
+					filename: AFF.state.currentFile,
+					variable: JSON.stringify({ id: child.id, category_id: newCatId, category: newCat.name, status: 'modified' }),
+				}).catch(function () {});
+			});
 		},
 
 		// -----------------------------------------------------------------------
@@ -3065,6 +3026,15 @@
 			var vars = AFF.state.variables || [];
 			for (var i = 0; i < vars.length; i++) {
 				if (self._rowKey(vars[i]) === key) { return vars[i]; }
+			}
+			// Fallback: __n_name keys become stale once the server assigns a UUID
+			// (ajaxSaveColor updates state but does not re-render the DOM). Search
+			// by name so expand/edit/delete still work without a full re-render.
+			if (key.indexOf('__n_') === 0) {
+				var name = key.slice(4);
+				for (var j = 0; j < vars.length; j++) {
+					if (vars[j].name === name) { return vars[j]; }
+				}
 			}
 			return null;
 		},

@@ -108,6 +108,7 @@ class AFF_Admin {
 		$js_modules = array(
 			'aff-theme'       => 'admin/js/aff-theme.js',
 			'aff-modal'       => 'admin/js/aff-modal.js',
+			'aff-merge'       => 'admin/js/aff-merge.js',      // Conflict resolution — must load before panel scripts.
 			'aff-panel-left'  => 'admin/js/aff-panel-left.js',
 			'aff-panel-right' => 'admin/js/aff-panel-right.js',
 			'aff-panel-top'   => 'admin/js/aff-panel-top.js',

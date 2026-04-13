@@ -349,7 +349,7 @@
 		catKey:          'fontCategories',
 		showExpandPanel: false,
 		valueTypes:      ['System', 'Custom'],
-		newVarDefaults:  { name: '--new-font', value: 'sans-serif', format: 'System' },
+		newVarDefaults:  { name: 'new-font', value: 'sans-serif', format: 'System' },
 
 		renderPreviewCell: function (v) {
 			return '<span class="aff-font-preview"'
@@ -382,7 +382,7 @@
 		catKey:          'numberCategories',
 		showExpandPanel: false,
 		valueTypes:      ['PX', '%', 'EM', 'REM', 'VW', 'VH', 'CH', 'FX'],
-		newVarDefaults:  { name: '--new-number', value: '1rem', format: 'REM' },
+		newVarDefaults:  { name: 'new-number', value: '1rem', format: 'REM' },
 
 		renderPreviewCell: null, // Numbers has no preview column.
 

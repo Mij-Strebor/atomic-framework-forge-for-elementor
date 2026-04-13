@@ -33,6 +33,9 @@ class AFF_Ajax_Handler {
 			'aff_list_projects',
 			'aff_list_backups',
 			'aff_delete_project',
+			'aff_rename_project',
+			'aff_copy_project',
+			'aff_delete_project_folder',
 			// Phase 2 — Colors endpoints
 			'aff_save_category',
 			'aff_delete_category',
@@ -86,8 +89,36 @@ class AFF_Ajax_Handler {
 		$file  = $dir . $fname;
 
 		$json = wp_json_encode( $decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+		if ( false === $json ) {
+			wp_send_json_error( array(
+				'message' => sprintf(
+					/* translators: %s: JSON encoding error message */
+					__( 'Could not encode data as JSON. Error: %s', 'atomic-framework-forge-for-elementor' ),
+					json_last_error_msg()
+				),
+			) );
+		}
+
+		if ( ! is_writable( $dir ) ) {
+			wp_send_json_error( array(
+				'message' => sprintf(
+					/* translators: %s: directory path */
+					__( 'Directory is not writable: %s', 'atomic-framework-forge-for-elementor' ),
+					esc_html( $dir )
+				),
+			) );
+		}
+
 		if ( false === file_put_contents( $file, $json ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not write file. Check directory permissions.', 'atomic-framework-forge-for-elementor' ) ) );
+			$last_error = error_get_last();
+			wp_send_json_error( array(
+				'message' => sprintf(
+					/* translators: 1: file path, 2: PHP error message */
+					__( 'Could not write file: %1$s — %2$s', 'atomic-framework-forge-for-elementor' ),
+					esc_html( $file ),
+					esc_html( $last_error['message'] ?? 'unknown error' )
+				),
+			) );
 		}
 
 		AFF_Data_Store::prune_backups( $dir, (int) AFF_Settings::get( 'max_backups' ) );
@@ -369,10 +400,6 @@ class AFF_Ajax_Handler {
 	}
 
 	// -----------------------------------------------------------------------
-	// ENDPOINT: Delete project
-	// -----------------------------------------------------------------------
-
-	// -----------------------------------------------------------------------
 	// ENDPOINT: List backups for a project
 	// -----------------------------------------------------------------------
 
@@ -428,6 +455,138 @@ class AFF_Ajax_Handler {
 	}
 
 	// -----------------------------------------------------------------------
+	// ENDPOINT: Rename a project (display name + folder slug)
+	// -----------------------------------------------------------------------
+
+	public function ajax_aff_rename_project(): void {
+		$this->verify_request();
+
+		$old_slug = AFF_Data_Store::sanitize_project_slug( $this->post_param( 'old_slug' ) );
+		$new_name = sanitize_text_field( $this->post_param( 'new_name' ) );
+		$new_slug = AFF_Data_Store::sanitize_project_slug( $new_name );
+
+		if ( empty( $old_slug ) || empty( $new_name ) || empty( $new_slug ) ) {
+			wp_send_json_error( array( 'message' => __( 'Project slug and new name are required.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$base_dir = AFF_Data_Store::get_wp_storage_dir();
+		$old_dir  = $base_dir . $old_slug . '/';
+		$new_dir  = $base_dir . $new_slug . '/';
+
+		if ( ! is_dir( $old_dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'Project not found.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		if ( $old_slug !== $new_slug && is_dir( $new_dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'A project with that name already exists.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		// Update name in every backup file.
+		foreach ( glob( $old_dir . '*.aff.json' ) ?: array() as $file ) {
+			$raw = json_decode( file_get_contents( $file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			if ( is_array( $raw ) ) {
+				$raw['name'] = $new_name;
+				if ( isset( $raw['config'] ) && is_array( $raw['config'] ) ) {
+					$raw['config']['projectName'] = $new_name;
+				}
+				file_put_contents( $file, wp_json_encode( $raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			}
+		}
+
+		// Rename directory if slug changed.
+		if ( $old_slug !== $new_slug ) {
+			rename( $old_dir, $new_dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+		}
+
+		wp_send_json_success( array(
+			'new_slug' => $new_slug,
+			'new_name' => $new_name,
+		) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Copy a project to a new project name
+	// -----------------------------------------------------------------------
+
+	public function ajax_aff_copy_project(): void {
+		$this->verify_request();
+
+		$src_slug = AFF_Data_Store::sanitize_project_slug( $this->post_param( 'source_slug' ) );
+		$new_name = sanitize_text_field( $this->post_param( 'new_name' ) );
+		$new_slug = AFF_Data_Store::sanitize_project_slug( $new_name );
+
+		if ( empty( $src_slug ) || empty( $new_name ) || empty( $new_slug ) ) {
+			wp_send_json_error( array( 'message' => __( 'Source slug and new name are required.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$base_dir = AFF_Data_Store::get_wp_storage_dir();
+		$src_dir  = $base_dir . $src_slug . '/';
+		$new_dir  = $base_dir . $new_slug . '/';
+
+		if ( ! is_dir( $src_dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'Source project not found.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+		if ( is_dir( $new_dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'A project with that name already exists.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		if ( ! wp_mkdir_p( $new_dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'Could not create project directory.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		// Copy each backup file, updating the name fields and generating a new timestamped filename.
+		foreach ( glob( $src_dir . '*.aff.json' ) ?: array() as $src_file ) {
+			$raw = json_decode( file_get_contents( $src_file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			if ( ! is_array( $raw ) ) {
+				continue;
+			}
+			$raw['name'] = $new_name;
+			if ( isset( $raw['config'] ) && is_array( $raw['config'] ) ) {
+				$raw['config']['projectName'] = $new_name;
+			}
+			$dest = $new_dir . AFF_Data_Store::generate_backup_filename( $new_slug );
+			// Avoid filename collisions when multiple files are copied in the same second.
+			$attempt = 0;
+			while ( file_exists( $dest ) && $attempt < 10 ) {
+				sleep( 1 );
+				$dest = $new_dir . AFF_Data_Store::generate_backup_filename( $new_slug );
+				$attempt++;
+			}
+			file_put_contents( $dest, wp_json_encode( $raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		}
+
+		wp_send_json_success( array( 'new_slug' => $new_slug, 'new_name' => $new_name ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Delete an entire project folder (all backups)
+	// -----------------------------------------------------------------------
+
+	public function ajax_aff_delete_project_folder(): void {
+		$this->verify_request();
+
+		$slug     = AFF_Data_Store::sanitize_project_slug( $this->post_param( 'project_slug' ) );
+		$base_dir = AFF_Data_Store::get_wp_storage_dir();
+		$dir      = $base_dir . $slug . '/';
+
+		if ( empty( $slug ) || ! is_dir( $dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'Project not found.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		foreach ( glob( $dir . '*.aff.json' ) ?: array() as $file ) {
+			AFF_Data_Store::delete_baseline( $slug . '/' . basename( $file ) );
+			wp_delete_file( $file );
+		}
+
+		$fs = $this->get_wp_filesystem();
+		if ( $fs ) {
+			$fs->rmdir( $dir );
+		}
+
+		wp_send_json_success( array( 'message' => __( 'Project deleted.', 'atomic-framework-forge-for-elementor' ) ) );
+	}
+
+	// -----------------------------------------------------------------------
 	// PHASE 2 ENDPOINTS — Colors category and variable management
 	// -----------------------------------------------------------------------
 
@@ -438,6 +597,7 @@ class AFF_Ajax_Handler {
 	 *              category (JSON: {id?, name, order?, locked?})
 	 */
 	public function ajax_aff_save_category(): void {
+		$this->verify_request();
 		$subgroup     = $this->get_subgroup_param();
 		$category_raw = isset( $_POST['category'] ) ? wp_unslash( $_POST['category'] ) : '';
 		$category     = $this->safe_json_decode( $category_raw, __( 'Invalid category data.', 'atomic-framework-forge-for-elementor' ) );
@@ -552,6 +712,13 @@ class AFF_Ajax_Handler {
 						: sanitize_text_field( $variable['pending_rename_from'] );
 				}
 
+				// Reject rename if the new name collides with another variable.
+				if ( ! empty( $update['name'] ) && ! empty( $variable['pending_rename_from'] ) ) {
+					if ( $this->variable_name_exists( $store->get_variables(), $update['name'], (string) $variable['id'] ) ) {
+						throw new \Exception( __( 'A variable with that name already exists.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+					}
+				}
+
 				if ( ! $store->update_variable( $variable['id'], $update ) ) {
 					throw new \Exception( __( 'Variable not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				}
@@ -560,7 +727,21 @@ class AFF_Ajax_Handler {
 				// Add new variable.
 				$name = isset( $variable['name'] ) ? sanitize_text_field( $variable['name'] ) : '';
 				if ( empty( $name ) || ! $this->is_valid_css_var( $name ) ) {
-					throw new \Exception( __( 'Valid CSS custom property name required (e.g., --my-color).', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+					throw new \Exception( __( 'Variable name is required and may only contain letters, digits, hyphens, and underscores.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				}
+
+				if ( $this->variable_name_exists( $store->get_variables(), $name ) ) {
+					throw new \Exception( __( 'A variable with that name already exists.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				}
+
+				// Validate category_id if provided — reject orphaned references.
+				$new_category_id = isset( $variable['category_id'] ) ? sanitize_text_field( $variable['category_id'] ) : '';
+				if ( ! empty( $new_category_id ) ) {
+					$subgroup_for_cats = isset( $variable['subgroup'] ) ? sanitize_text_field( $variable['subgroup'] ) : 'Colors';
+					$existing_cat_ids  = array_column( $store->get_categories_for_subgroup( $subgroup_for_cats ), 'id' );
+					if ( ! in_array( $new_category_id, $existing_cat_ids, true ) ) {
+						throw new \Exception( __( 'Category not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+					}
 				}
 
 				// Remove any existing placeholder copy that arrived with an empty id
@@ -597,6 +778,7 @@ class AFF_Ajax_Handler {
 	 * POST params: filename, variable_id, delete_children (optional, '1' to delete children)
 	 */
 	public function ajax_aff_delete_color(): void {
+		$this->verify_request();
 		$variable_id     = $this->post_param( 'variable_id' );
 		$delete_children = isset( $_POST['delete_children'] )
 			&& $_POST['delete_children'] !== '0'
@@ -805,9 +987,13 @@ class AFF_Ajax_Handler {
 		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
 		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
 
-		// Locate the Elementor kit CSS file.
+		// Locate the Elementor kit CSS file; attempt regeneration if missing.
 		$parser   = new AFF_CSS_Parser();
 		$css_file = $parser->find_kit_css_file();
+
+		if ( ! $css_file ) {
+			$css_file = $this->try_regenerate_elementor_kit_css();
+		}
 
 		if ( ! $css_file ) {
 			wp_send_json_error( array(
@@ -1171,7 +1357,7 @@ class AFF_Ajax_Handler {
 	// PRIVATE HELPERS — REQUEST, DECODING & VALIDATION
 	// -----------------------------------------------------------------------
 
-	private const CSS_VAR_PATTERN = '/^--[\w-]+$/';
+	private const CSS_VAR_PATTERN = '/^[A-Za-z0-9_-]+$/';
 
 	/**
 	 * Decode a JSON string and send an error response if decoding fails.
@@ -1273,6 +1459,30 @@ class AFF_Ajax_Handler {
 				403
 			);
 		}
+	}
+
+	// -----------------------------------------------------------------------
+	// PRIVATE HELPER — duplicate variable name check
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Return true if a variable with $name already exists in $variables,
+	 * optionally ignoring the variable identified by $exclude_id (used on
+	 * rename so the variable does not conflict with itself).
+	 *
+	 * @param array       $variables   Full variables array from the data store.
+	 * @param string      $name        Name to check (case-insensitive).
+	 * @param string|null $exclude_id  Variable id to skip, or null to skip none.
+	 */
+	private function variable_name_exists( array $variables, string $name, ?string $exclude_id = null ): bool {
+		foreach ( $variables as $v ) {
+			if ( strtolower( $v['name'] ) === strtolower( $name ) ) {
+				if ( $exclude_id === null || (string) $v['id'] !== (string) $exclude_id ) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	// -----------------------------------------------------------------------

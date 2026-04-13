@@ -381,8 +381,11 @@
 			+ '<input type="text" class="aff-field-input" id="aff-proj-name"'
 			+ ' placeholder="e.g., My Brand" autocomplete="off" spellcheck="false"'
 			+ ' value="' + projNameEscaped + '" style="width:100%">'
-			+ '<p style="font-size:12px;color:var(--aff-clr-muted);margin-top:4px">'
-			+ 'Used as the project file name: <em>project-name.eff.json</em></p>'
+			+ '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">'
+			+ '<p style="font-size:12px;color:var(--aff-clr-muted);margin:0">'
+			+ 'Used as the project folder name: <em>project-name/</em></p>'
+			+ '<button type="button" id="aff-proj-switch" class="aff-btn aff-btn--xs">Switch project</button>'
+			+ '</div>'
 			+ '</div>'
 			+ '<div style="border-top:1px solid var(--aff-clr-border,#d6ccc2);padding-top:16px">'
 			+ _catPanel('Colors',  'aff-proj-cat-colors',  AFF.Utils.escHtml(colorsStr))
@@ -427,6 +430,13 @@
 			var saveBtn   = document.getElementById('aff-proj-save');
 			if (cancelBtn) { cancelBtn.addEventListener('click', function () { AFF.Modal.close(); }); }
 			if (saveBtn)   { saveBtn.addEventListener('click', this._saveProjectConfig.bind(this)); }
+			var switchBtn = document.getElementById('aff-proj-switch');
+			if (switchBtn) {
+				switchBtn.addEventListener('click', function () {
+					AFF.Modal.close();
+					AFF.PanelRight._openProjectPicker();
+				});
+			}
 			var projNameInput = document.getElementById('aff-proj-name');
 			if (projNameInput) {
 				projNameInput.addEventListener('focus', function () { this.select(); });
@@ -661,8 +671,9 @@
 		// ------------------------------------------------------------------
 
 		_syncFromElementor: function (options) {
+			var self   = this;
 			var silent = options && options.silent;
-			var btn = document.getElementById('aff-btn-sync-variables');
+			var btn    = document.getElementById('aff-btn-sync-variables');
 			if (btn) {
 				btn.style.opacity = '0.5';
 				btn.disabled      = true;
@@ -677,59 +688,65 @@
 
 					if (res.success) {
 						var vars    = res.data.variables || [];
-						var count   = res.data.count     || 0;
-						var message = res.data.message   || '';
 						var source  = res.data.source    || '';
 
-						// Merge into state (add new, preserve existing)
-						var existingNames = AFF.state.variables.map(function (v) { return v.name; });
+						// Partition Elementor vars into: new / conflict / match.
+						var partition = AFF.Merge.buildConflictList(vars, AFF.state.variables);
 
-						vars.forEach(function (v) {
-							if (!existingNames.includes(v.name)) {
-							var lc = (v.value || '').trim().toLowerCase();
-							var isColor = AFF.Utils.isColorValue(lc);
-							var isFont   = !isColor && /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
-							var isNumber = !isColor && !isFont && (/^\d/.test(lc) || lc.indexOf('clamp(') === 0 || lc.indexOf('calc(') === 0 || lc.indexOf('min(') === 0 || lc.indexOf('max(') === 0 || /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc));
-							var subgroup = isColor ? 'Colors' : (isFont ? 'Fonts' : (isNumber ? 'Numbers' : ''));
-								AFF.state.variables.push({
-									id:         '',
-									name:       v.name.toLowerCase(),
-									value:      v.value,
-									source:     'elementor-parsed',
-									type:        isColor ? 'color' : (isFont ? 'font' : (isNumber ? 'number' : 'unknown')),
-									group:      'Variables',
-									subgroup:    subgroup,
-									category:    subgroup ? 'Uncategorized' : '',
-								category_id: '',
-									modified:   false,
-									created_at: new Date().toISOString(),
-									updated_at: new Date().toISOString(),
-								});
+						// Add new variables to state immediately (no conflict risk).
+						self._applyNewVars(partition.newVars);
+
+						if (partition.conflictVars.length > 0 && !silent) {
+							// Open the merge dialog; apply resolutions on confirm.
+							AFF.Merge.openMergeDialog(
+								partition.conflictVars,
+								'fetch',
+								function (resolved) {
+									// Apply "Use Elementor" wins to AFF state.
+									var elWins = 0;
+									resolved.forEach(function (r) {
+										if (r.winner === 'el') {
+											for (var i = 0; i < AFF.state.variables.length; i++) {
+												if (AFF.state.variables[i].name.toLowerCase() === r.name) {
+													// Find the Elementor value for this name.
+													for (var j = 0; j < vars.length; j++) {
+														if ((vars[j].name || '').toLowerCase() === r.name) {
+															AFF.state.variables[i].value      = vars[j].value;
+															AFF.state.variables[i].updated_at = new Date().toISOString();
+															elWins++;
+															break;
+														}
+													}
+													break;
+												}
+											}
+										}
+									});
+
+									if (partition.newVars.length > 0 || elWins > 0) {
+										AFF.App.setDirty(true);
+									}
+									self._postSyncRefresh(source, partition.newVars.length, partition.conflictVars.length);
+								},
+								function () {
+									// User cancelled — new vars already added; no further action.
+									if (partition.newVars.length > 0) {
+										AFF.App.setDirty(true);
+										self._postSyncRefresh(source, partition.newVars.length, 0);
+									}
+								}
+							);
+						} else {
+							// No conflicts — proceed as before.
+							if (partition.newVars.length > 0 && !silent) {
+								AFF.App.setDirty(true);
 							}
-						});
-
-						AFF.App.refreshCounts();
-						if (AFF.Colors && AFF.Colors._ensureUncategorized) { AFF.Colors._ensureUncategorized(); }
-						if (AFF.Variables && AFF.Variables._sets) {
-							var _vsets = AFF.Variables._sets;
-							if (_vsets['Fonts']   && _vsets['Fonts']._ensureUncategorized)   { _vsets['Fonts']._ensureUncategorized(); }
-							if (_vsets['Numbers'] && _vsets['Numbers']._ensureUncategorized) { _vsets['Numbers']._ensureUncategorized(); }
-						}
-						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
-						if (count > 0 && !silent) {
-							AFF.App.setDirty(true);
+							AFF.App.fetchUsageCounts();
+							if (!silent) {
+								self._postSyncRefresh(source, partition.newVars.length, 0);
+							}
 						}
 
-						// Scan widget usage for the synced variables (async, non-blocking)
-						AFF.App.fetchUsageCounts();
-
-						if (!silent) {
-							AFF.Modal.open({
-								title: 'Sync complete',
-								body:  '<p>' + message + '</p>'
-									+ (source ? '<p class="aff-text-muted" style="font-size:12px">Source: ' + source + '</p>' : ''),
-							});
-						}
 					} else if (!silent) {
 						AFF.PanelTop._showSyncFailedModal(res.data || {});
 					}
@@ -746,6 +763,103 @@
 						});
 					}
 				});
+		},
+
+		/**
+		 * Add freshly-fetched Elementor variables (no name collision) to AFF state.
+		 * Shared between the conflict and no-conflict sync paths.
+		 *
+		 * @param {Array} newVars  [{name, value}, ...] from buildConflictList().newVars
+		 */
+		_applyNewVars: function (newVars) {
+			newVars.forEach(function (v) {
+				var lc       = (v.value || '').trim().toLowerCase();
+				var isColor  = AFF.Utils.isColorValue(lc);
+				var isFont   = !isColor && /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
+				var isNumber = !isColor && !isFont && (
+					/^\d/.test(lc)
+					|| lc.indexOf('clamp(') === 0 || lc.indexOf('calc(') === 0
+					|| lc.indexOf('min(')   === 0 || lc.indexOf('max(')  === 0
+					|| /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc)
+				);
+				var subgroup = isColor ? 'Colors' : (isFont ? 'Fonts' : (isNumber ? 'Numbers' : ''));
+
+				// Determine the Numbers format (unit selector value).
+				// Priority: Elementor-supplied unit (el_unit) > value-based inference.
+				var format = '';
+				if (isNumber) {
+					var elUnit = (v.el_unit || '').toLowerCase();
+					if (elUnit) {
+						// Map Elementor unit to AFF format label.
+						var unitMap = { px: 'PX', '%': '%', em: 'EM', rem: 'REM',
+						                vw: 'VW', vh: 'VH', ch: 'CH' };
+						format = unitMap[elUnit] || elUnit.toUpperCase();
+					} else {
+						// Infer from value string (CSS file path or string-type vars).
+						if (/^(clamp|calc|min|max)\s*\(/.test(lc))  { format = 'FX'; }
+						else if (/\d+rem\b/.test(lc))               { format = 'REM'; }
+						else if (/\d+em\b/.test(lc))                { format = 'EM'; }
+						else if (/\d+px\b/.test(lc))                { format = 'PX'; }
+						else if (/\d+%/.test(lc))                   { format = '%'; }
+						else if (/\d+vw\b/.test(lc))                { format = 'VW'; }
+						else if (/\d+vh\b/.test(lc))                { format = 'VH'; }
+						else if (/\d+ch\b/.test(lc))                { format = 'CH'; }
+						else                                         { format = 'REM'; }
+					}
+				} else if (isColor) {
+					format = 'HEX';
+				}
+
+				AFF.state.variables.push({
+					id:          '',
+					name:        v.name.toLowerCase(),
+					value:       v.value,
+					format:      format,
+					source:      'elementor-parsed',
+					type:        isColor ? 'color' : (isFont ? 'font' : (isNumber ? 'number' : 'unknown')),
+					group:       'Variables',
+					subgroup:    subgroup,
+					category:    subgroup ? 'Uncategorized' : '',
+					category_id: '',
+					modified:    false,
+					created_at:  new Date().toISOString(),
+					updated_at:  new Date().toISOString(),
+				});
+			});
+		},
+
+		/**
+		 * Refresh panels, counts, and show a sync-complete toast.
+		 *
+		 * @param {string} source        AJAX source label (e.g. 'elementor_kit_meta')
+		 * @param {number} addedCount    Number of new variables added
+		 * @param {number} resolvedCount Number of conflicts shown to the user
+		 */
+		_postSyncRefresh: function (source, addedCount, resolvedCount) {
+			AFF.App.refreshCounts();
+			if (AFF.Colors && AFF.Colors._ensureUncategorized) { AFF.Colors._ensureUncategorized(); }
+			if (AFF.Variables && AFF.Variables._sets) {
+				var _vsets = AFF.Variables._sets;
+				if (_vsets['Fonts']   && _vsets['Fonts']._ensureUncategorized)   { _vsets['Fonts']._ensureUncategorized(); }
+				if (_vsets['Numbers'] && _vsets['Numbers']._ensureUncategorized) { _vsets['Numbers']._ensureUncategorized(); }
+			}
+			if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+			AFF.App.fetchUsageCounts();
+
+			var parts = [];
+			if (addedCount > 0) {
+				parts.push(addedCount + ' variable' + (addedCount !== 1 ? 's' : '') + ' added');
+			}
+			if (resolvedCount > 0) {
+				parts.push(resolvedCount + ' conflict' + (resolvedCount !== 1 ? 's' : '') + ' resolved');
+			}
+			var msg = parts.length > 0 ? parts.join(', ') + '.' : 'Already up to date.';
+
+			AFF.Modal.open({
+				title: 'Fetch complete',
+				body:  '<p>' + msg + '</p>'
+					+ (source ? '<p class="aff-text-muted" style="font-size:12px">Source: ' + source + '</p>' : ''),
+			});
 		},
 
 		// ------------------------------------------------------------------
@@ -811,42 +925,49 @@
 				.then(function (res) {
 					if (btn) { btn.style.opacity = ''; btn.disabled = false; }
 					if (res.success) {
-						var data  = res.data || {};
-						var vars  = data.variables || [];
-						var existingNames = AFF.state.variables.map(function (v) { return v.name; });
-						vars.forEach(function (v) {
-							if (!existingNames.includes(v.name)) {
-								var lc      = (v.value || '').trim().toLowerCase();
-								var isColor  = AFF.Utils.isColorValue(lc);
-								var isFont   = !isColor && /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
-								var isNumber = !isColor && !isFont && (/^\d/.test(lc) || lc.indexOf('clamp(') === 0 || lc.indexOf('calc(') === 0 || /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc));
-								var subgroup = isColor ? 'Colors' : (isFont ? 'Fonts' : (isNumber ? 'Numbers' : ''));
-								AFF.state.variables.push({
-									id: '', name: v.name, value: v.value, source: 'elementor-parsed',
-									type: isColor ? 'color' : (isFont ? 'font' : (isNumber ? 'number' : 'unknown')),
-									group: 'Variables', subgroup: subgroup,
-									category: subgroup ? 'Uncategorized' : '', category_id: '',
-									modified: false,
-									created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-								});
-							}
-						});
-						AFF.App.refreshCounts();
-						if (AFF.Colors && AFF.Colors._ensureUncategorized) { AFF.Colors._ensureUncategorized(); }
-						if (AFF.Variables && AFF.Variables._sets) {
-							var _vs = AFF.Variables._sets;
-							if (_vs['Fonts']   && _vs['Fonts']._ensureUncategorized)   { _vs['Fonts']._ensureUncategorized(); }
-							if (_vs['Numbers'] && _vs['Numbers']._ensureUncategorized) { _vs['Numbers']._ensureUncategorized(); }
+						var data      = res.data || {};
+						var vars      = data.variables || [];
+						var partition = AFF.Merge.buildConflictList(vars, AFF.state.variables);
+
+						self._applyNewVars(partition.newVars);
+
+						if (partition.conflictVars.length > 0) {
+							AFF.Merge.openMergeDialog(
+								partition.conflictVars,
+								'fetch',
+								function (resolved) {
+									var elWins = 0;
+									resolved.forEach(function (r) {
+										if (r.winner === 'el') {
+											for (var i = 0; i < AFF.state.variables.length; i++) {
+												if (AFF.state.variables[i].name.toLowerCase() === r.name) {
+													for (var j = 0; j < vars.length; j++) {
+														if ((vars[j].name || '').toLowerCase() === r.name) {
+															AFF.state.variables[i].value      = vars[j].value;
+															AFF.state.variables[i].updated_at = new Date().toISOString();
+															elWins++;
+															break;
+														}
+													}
+													break;
+												}
+											}
+										}
+									});
+									if (partition.newVars.length > 0 || elWins > 0) { AFF.App.setDirty(true); }
+									self._postSyncRefresh(data.source || '', partition.newVars.length, partition.conflictVars.length);
+								},
+								function () {
+									if (partition.newVars.length > 0) {
+										AFF.App.setDirty(true);
+										self._postSyncRefresh(data.source || '', partition.newVars.length, 0);
+									}
+								}
+							);
+						} else {
+							if (partition.newVars.length > 0) { AFF.App.setDirty(true); }
+							self._postSyncRefresh(data.source || '', partition.newVars.length, 0);
 						}
-						if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
-						if ((data.count || 0) > 0) { AFF.App.setDirty(true); }
-						AFF.App.fetchUsageCounts();
-						AFF.Modal.open({
-							title: 'Sync complete',
-							body:  '<p>' + (data.message || '') + '</p>'
-								+ (data.source ? '<p class="aff-text-muted" style="font-size:12px">Source: '
-									+ data.source + '</p>' : ''),
-						});
 					} else {
 						self._showSyncFailedModal(res.data || {});
 					}

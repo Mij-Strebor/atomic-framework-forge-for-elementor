@@ -848,9 +848,10 @@ class AFF_Data_Store {
 		foreach ( $files as $f ) {
 			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$list[] = array(
-				'filename' => $project_slug . '/' . basename( $f ),
-				'name'     => isset( $raw['name'] ) ? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
-				'modified' => date( 'M j, g:i a', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+				'filename'       => $project_slug . '/' . basename( $f ),
+				'name'           => isset( $raw['name'] ) ? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
+				'modified'       => date( 'M j, g:i a', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+				'variable_count' => isset( $raw['variables'] ) && is_array( $raw['variables'] ) ? count( $raw['variables'] ) : 0,
 			);
 		}
 

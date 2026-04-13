@@ -307,14 +307,29 @@ class AFF_CSS_Parser {
 				continue;
 			}
 
-			$value = $this->extract_meta_value( $variable['value'] ?? '' );
+			$raw_value = $variable['value'] ?? '';
+			$value     = $this->extract_meta_value( $raw_value );
 			if ( '' === $value ) {
 				continue;
 			}
 
+			// Extract Elementor's $$type and, for size variables, the unit.
+			// $$type: 'color' | 'size' | 'string'
+			// size unit: 'px' | 'rem' | 'em' | '%' | 'vw' | 'vh' | 'ch' | etc.
+			$el_type = '';
+			$el_unit = '';
+			if ( is_array( $raw_value ) ) {
+				$el_type = $raw_value['$$type'] ?? '';
+				if ( 'size' === $el_type && is_array( $raw_value['value'] ?? null ) ) {
+					$el_unit = $raw_value['value']['unit'] ?? '';
+				}
+			}
+
 			$variables[] = array(
-				'name'  => '--' . $label,
-				'value' => $this->normalize_value( $value ),
+				'name'    => '--' . $label,
+				'value'   => $this->normalize_value( $value ),
+				'el_type' => $el_type,  // Elementor type hint ('color'|'size'|'string')
+				'el_unit' => $el_unit,  // Elementor size unit when el_type === 'size'
 			);
 		}
 

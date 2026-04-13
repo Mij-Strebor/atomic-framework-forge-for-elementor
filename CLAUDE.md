@@ -35,16 +35,17 @@ AFF is a WordPress admin plugin that provides a management interface for **Eleme
 
 ## Test Environment
 
-- **WP site:** `elementor-v40-test` (Local by Flywheel)
-- **WP root:** `C:/Users/Owner/Local Sites/elementor-v40-test/app/public`
-- **Plugins dir:** `C:/Users/Owner/Local Sites/elementor-v40-test/app/public/wp-content/plugins`
+- **WP site:** `site` (Local by Flywheel — main dev site)
+- **WP root:** `C:/Users/Owner/Local Sites/site/app/public`
+- **Plugins dir:** `C:/Users/Owner/Local Sites/site/app/public/wp-content/plugins`
+- **Uploads/AFF data:** `C:/Users/Owner/Local Sites/site/app/public/wp-content/uploads/aff/`
 - **Symlink target:** `E:/projects/plugins/aff`
 - **Symlink creation** requires Administrator CMD:
   ```cmd
-  mklink /D "C:\Users\Owner\Local Sites\elementor-v40-test\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\aff"
+  mklink /D "C:\Users\Owner\Local Sites\site\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\aff"
   ```
 - **Active Elementor kit CSS:** `wp-content/uploads/elementor/css/post-67.css` (kit ID: 67)
-- **WP Admin:** `http://elementor-v40-test.local/wp-admin/`
+- **WP Admin:** `http://site.local/wp-admin/`
 
 ---
 
@@ -304,6 +305,27 @@ Do not add v2+ functionality unless Jim explicitly requests it. The center edit 
 ## Pending Roadmap Item (confirmed)
 
 **Pickr color picker** (`Simonwep/pickr`, classic theme) on `.aff-color-value-input` in the expand modal. Formats: HEXA, RGBA, HSLA only. Load as zero-dependency `<script>` — no build step. Do not integrate until Jim initiates this work.
+
+---
+
+## Version Number Locations
+
+When bumping the version, update **all seven** of these locations:
+
+| File | Field |
+|------|-------|
+| `atomic-framework-forge-for-elementor.php` | `* Version:` header |
+| `atomic-framework-forge-for-elementor.php` | `define( 'AFF_VERSION', ... )` constant |
+| `readme.txt` | `Stable tag:` field |
+| `readme.txt` | `=== Key Features (Beta x.x.x) ===` heading |
+| `readme.txt` | New entry in `== Changelog ==` section |
+| `readme.txt` | New entry in `== Upgrade Notice ==` section |
+| `CHANGELOG.md` | New entry at top (full detail) |
+| `README.md` | Two badge URLs + "Beta x.x.x" references + roadmap table row |
+| `QUICK-START.md` | Header line + any zip filename references |
+| `USER-MANUAL.md` | Header line |
+
+After all edits, search for the old version string — it should appear zero times outside of changelog/history sections.
 
 ---
 

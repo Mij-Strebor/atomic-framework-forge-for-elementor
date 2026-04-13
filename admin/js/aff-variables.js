@@ -474,6 +474,8 @@
 
 			// ---- Click delegation ----
 			container.addEventListener('click', function (e) {
+				// Bail if this module's view is not currently active in this container.
+				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
 				var btn    = e.target.closest('[data-action]');
 				if (!btn) { return; }
 				var action = btn.getAttribute('data-action');
@@ -482,8 +484,6 @@
 
 				switch (action) {
 					case 'duplicate': if (catId) { self._duplicateCategory(catId); } break;
-					case 'move-up':   if (catId) { self._moveCategoryUp(catId); }   break;
-					case 'move-down': if (catId) { self._moveCategoryDown(catId); } break;
 					case 'add-var':   if (catId) { self._addVariable(catId); }      break;
 					case 'delete':    if (catId) { self._deleteCategory(catId); }   break;
 
@@ -566,16 +566,6 @@
 					catInput.textContent = catInput.getAttribute('data-original') || '';
 					catInput.setAttribute('contenteditable', 'false');
 					catInput.blur();
-				}
-			});
-
-			// ---- Variable name: live '--' prefix guard ----
-			container.addEventListener('input', function (e) {
-				var nameInput = e.target.closest('.aff-var-name-input');
-				if (!nameInput) { return; }
-				var val = nameInput.value;
-				if (val.slice(0, 2) !== '--') {
-					nameInput.value = '--' + val.replace(/^-*/, '');
 				}
 			});
 
@@ -802,10 +792,19 @@
 			var oldName = nameInput.getAttribute('data-original') || '';
 			if (newName === oldName) { return; }
 
-			if (!/^--[\w-]+$/.test(newName)) {
+			if (!/^[A-Za-z0-9_-]+$/.test(newName)) {
 				nameInput.value = oldName;
 				self._showFieldError(nameInput,
-					'Name must start with -- and contain only letters, numbers, dashes, and underscores.');
+					'Name may only contain letters, digits, hyphens, and underscores.');
+				return;
+			}
+
+			var duplicate = AFF.state.variables.some(function (v) {
+				return v.name.toLowerCase() === newName.toLowerCase() && String(v.id) !== String(varId);
+			});
+			if (duplicate) {
+				nameInput.value = oldName;
+				self._showFieldError(nameInput, 'A variable with that name already exists.');
 				return;
 			}
 
@@ -911,8 +910,18 @@
 			// Derive type from setName: 'Fonts' → 'font', 'Numbers' → 'number'
 			var varType  = cfg.setName.toLowerCase().replace(/s$/, '');
 
+			// Generate a unique default name if the base name is already taken.
+			var _baseName = defaults.name || 'new-var';
+			var _newName  = _baseName;
+			var _nameIdx  = 1;
+			var _existing = (AFF.state.variables || []).map(function (v) { return (v.name || '').toLowerCase(); });
+			while (_existing.indexOf(_newName.toLowerCase()) !== -1) {
+				_newName = _baseName + '-' + _nameIdx;
+				_nameIdx++;
+			}
+
 			var newVar = {
-				name:        defaults.name   || '--new-var',
+				name:        _newName,
 				value:       defaults.value  || '',
 				type:        varType,
 				subgroup:    cfg.setName,
@@ -953,11 +962,10 @@
 		 */
 		_deleteVariable: function (varId) {
 			var self     = this;
-			var variable = null;
-			for (var i = 0; i < AFF.state.variables.length; i++) {
-				if (AFF.state.variables[i].id === varId) { variable = AFF.state.variables[i]; break; }
-			}
+			var variable = self._findVarByKey(varId);
 			if (!variable) { return; }
+			// Use the resolved UUID for the AJAX call; varId may be a stale __n_ key.
+			var resolvedId = variable.id || varId;
 
 			AFF.Modal.open({
 				title: 'Delete variable',
@@ -978,7 +986,7 @@
 					document.removeEventListener('click', handleClick);
 					AFF.App.ajax('aff_delete_color', {
 						filename:    AFF.state.currentFile,
-						variable_id: varId,
+						variable_id: resolvedId,
 					}).then(function (res) {
 						if (res.success && res.data && res.data.data) {
 							AFF.state.variables = res.data.data.variables;
@@ -1235,7 +1243,9 @@
 					var dupVar = {
 						name:        v.name + '-copy',
 						value:       v.value,
+						format:      v.format || '',
 						subgroup:    self._cfg.setName,
+						category:    _dupCat.name,
 						category_id: newCatId,
 						order:       (v.order || 0),
 					};
@@ -1327,79 +1337,6 @@
 		// -------------------------------------------------------------------
 		// SORT
 		// -------------------------------------------------------------------
-
-		/**
-		 * Sort all variables in this set alphabetically by name.
-		 *
-		 * @param {boolean} ascending True = A→Z, false = Z→A.
-		 */
-		_sortVars: function (ascending) {
-			var self    = this;
-			var setVars = self._getVarsForSet();
-			var sorted  = setVars.slice().sort(function (a, b) {
-				var na = (a.name || '').toLowerCase();
-				var nb = (b.name || '').toLowerCase();
-				return ascending ? (na < nb ? -1 : na > nb ? 1 : 0)
-				                 : (na > nb ? -1 : na < nb ? 1 : 0);
-			});
-			sorted.forEach(function (v, i) { v.order = i + 1; });
-
-			var chain = Promise.resolve();
-			sorted.forEach(function (v) {
-				(function (variable) {
-					chain = chain.then(function () {
-						return AFF.App.ajax('aff_save_color', {
-							filename: AFF.state.currentFile,
-							variable: JSON.stringify({ id: variable.id, order: variable.order }),
-						}).then(function (r) {
-							if (r.success && r.data && r.data.data) {
-								AFF.state.variables = r.data.data.variables;
-							}
-						});
-					});
-				}(v));
-			});
-			chain.then(function () {
-				if (AFF.App) { AFF.App.setDirty(true); }
-				self._rerenderView();
-			}).catch(function () {});
-		},
-
-		/**
-		 * Sort non-locked categories alphabetically (locked always last).
-		 *
-		 * @param {boolean} ascending True = A→Z, false = Z→A.
-		 */
-		_sortCategories: function (ascending) {
-			var self   = this;
-			var catKey = self._cfg.catKey;
-			if (!AFF.state.config || !Array.isArray(AFF.state.config[catKey])) { return; }
-
-			var locked   = AFF.state.config[catKey].filter(function (c) { return c.locked; });
-			var unlocked = AFF.state.config[catKey].filter(function (c) { return !c.locked; });
-			unlocked.sort(function (a, b) {
-				var na = (a.name || '').toLowerCase();
-				var nb = (b.name || '').toLowerCase();
-				return ascending ? (na < nb ? -1 : na > nb ? 1 : 0)
-				                 : (na > nb ? -1 : na < nb ? 1 : 0);
-			});
-			var combined = unlocked.concat(locked);
-			combined.forEach(function (c, i) { c.order = i + 1; });
-			AFF.state.config[catKey] = combined;
-
-			AFF.App.ajax('aff_reorder_categories', {
-				filename:    AFF.state.currentFile,
-				subgroup:    self._cfg.setName,
-				ordered_ids: JSON.stringify(combined.map(function (c) { return c.id; })),
-			}).then(function (r) {
-				if (r.success && r.data && r.data.categories) {
-					AFF.state.config[catKey] = r.data.categories;
-				}
-				if (AFF.App) { AFF.App.setDirty(true); }
-				self._rerenderView();
-				if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
-			}).catch(function () {});
-		},
 
 		// -------------------------------------------------------------------
 		// AJAX HELPERS
@@ -1534,6 +1471,7 @@
 			var d    = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
 
 			container.addEventListener('mousedown', function (e) {
+				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
 				var handle = e.target.closest('.aff-cat-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
@@ -1670,6 +1608,7 @@
 			var d    = self._drag;
 
 			container.addEventListener('mousedown', function (e) {
+				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
 				var handle = e.target.closest('.aff-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
@@ -1768,14 +1707,10 @@
 		 */
 		_onDropVar: function (srcId, targetId, above, container) {
 			var self    = this;
-			var setVars = self._getVarsForSet();
-			var srcVar  = null;
-			var tgtVar  = null;
-			for (var i = 0; i < setVars.length; i++) {
-				if (setVars[i].id === srcId)   { srcVar = setVars[i]; }
-				if (setVars[i].id === targetId) { tgtVar = setVars[i]; }
-			}
+			var srcVar  = self._findVarByKey(srcId);
+			var tgtVar  = self._findVarByKey(targetId);
 			if (!srcVar || !tgtVar) { return; }
+			var setVars = self._getVarsForSet();
 
 			// Move src into target's category if different.
 			var newCatId   = tgtVar.category_id || '';
@@ -1783,10 +1718,10 @@
 
 			// Rebuild order: remove src, insert near target.
 			var sorted     = setVars.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-			var withoutSrc = sorted.filter(function (v) { return v.id !== srcId; });
+			var withoutSrc = sorted.filter(function (v) { return v !== srcVar; });
 			var tgtIdx     = -1;
 			for (var j = 0; j < withoutSrc.length; j++) {
-				if (withoutSrc[j].id === targetId) { tgtIdx = j; break; }
+				if (withoutSrc[j] === tgtVar) { tgtIdx = j; break; }
 			}
 			if (tgtIdx === -1) { return; }
 			withoutSrc.splice(above ? tgtIdx : tgtIdx + 1, 0, srcVar);
@@ -1871,13 +1806,26 @@
 		},
 
 		/**
-		 * Find a variable by its id.
-		 * @param {string} id
+		 * Find a variable by row key or UUID.
+		 *
+		 * Primary:  exact match on v.id (UUID).
+		 * Fallback: '__n_name' synthetic keys become stale once the server
+		 *           assigns a UUID; fall back to a name-based lookup so
+		 *           interactions still work after the first save.
+		 *
+		 * @param {string} key Row key from data-var-id attribute.
 		 * @returns {Object|null}
 		 */
-		_findVarByKey: function (id) {
-			for (var i = 0; i < AFF.state.variables.length; i++) {
-				if (AFF.state.variables[i].id === id) { return AFF.state.variables[i]; }
+		_findVarByKey: function (key) {
+			var vars = AFF.state.variables || [];
+			for (var i = 0; i < vars.length; i++) {
+				if (vars[i].id === key) { return vars[i]; }
+			}
+			if (key.indexOf('__n_') === 0) {
+				var name = key.slice(4);
+				for (var j = 0; j < vars.length; j++) {
+					if (vars[j].name === name) { return vars[j]; }
+				}
 			}
 			return null;
 		},
@@ -1885,8 +1833,13 @@
 		/** Alias for _findVarByKey. @param {string} id @returns {Object|null} */
 		_findVarById: function (id) { return this._findVarByKey(id); },
 
-		/** Row key for a variable (its UUID). @param {Object} v @returns {string} */
-		_rowKey: function (v) { return v.id || ''; },
+		/**
+		 * Row key for a variable. Uses UUID when available, otherwise a
+		 * synthetic '__n_name' key so unsaved/synced variables each get a
+		 * unique DOM anchor (matches the same pattern used by aff-colors.js).
+		 * @param {Object} v @returns {string}
+		 */
+		_rowKey: function (v) { return v.id || ('__n_' + v.name); },
 
 		// -------------------------------------------------------------------
 		// DOM HELPERS

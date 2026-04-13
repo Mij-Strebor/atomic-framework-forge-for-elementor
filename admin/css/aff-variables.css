@@ -27,8 +27,8 @@
    ========================================================================== */
 
 .aff-fonts-view .aff-color-row {
-	grid-template-columns: 24px 8px 15% 1fr 28% 12% 28px;
-	column-gap: 16px;
+	grid-template-columns: 24px 8px 60px 1fr 22% 12% 28px;
+	column-gap: 10px;
 }
 
 /* ==========================================================================
@@ -189,7 +189,7 @@
 
 @media (max-width: 600px) {
 	.aff-fonts-view .aff-color-row {
-		grid-template-columns: 24px 8px 10% 1fr 24% 0 28px;
+		grid-template-columns: 24px 8px 44px 1fr 20% 0 28px;
 		column-gap: 6px;
 	}
 

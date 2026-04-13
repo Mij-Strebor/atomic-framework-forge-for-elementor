@@ -797,17 +797,88 @@
 	margin-bottom:  var(--sp-2);
 }
 
-.aff-picker-row {
-	display:     flex;
-	align-items: center;
+/* Column header row */
+.aff-picker-header {
+	display:     grid;
+	grid-template-columns: 1fr 48px 120px 96px;
 	gap:         var(--sp-2);
-	padding:     var(--sp-2) var(--sp-3);
-	border-radius: 4px;
-	border:      1px solid var(--aff-clr-border);
+	padding:     var(--sp-1) var(--sp-3);
+	font-size:   var(--fs-xs);
+	color:       var(--aff-clr-muted);
+	font-weight: var(--fw-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
 }
 
-.aff-picker-row__name {
-	flex:          1;
+.aff-picker-row {
+	display:       grid;
+	grid-template-columns: 1fr 48px 120px 96px;
+	align-items:   center;
+	gap:           var(--sp-2);
+	padding:       var(--sp-2) var(--sp-3);
+	border-radius: 4px;
+	border:        1px solid var(--aff-clr-border);
+}
+
+/* Name input takes up the flex-1 column */
+.aff-picker-name-edit {
+	width:    100%;
+	min-width: 0;
+	font-size: var(--fs-sm);
+}
+
+.aff-picker-row__saves {
+	font-size:   var(--fs-xs);
+	color:       var(--aff-clr-muted);
+	text-align:  center;
+	flex-shrink: 0;
+}
+
+.aff-picker-row__date {
+	font-size:   var(--fs-xs);
+	color:       var(--aff-clr-muted);
+	flex-shrink: 0;
+	white-space: nowrap;
+	overflow:    hidden;
+	text-overflow: ellipsis;
+}
+
+/* Buttons column in the picker row: icon buttons inline */
+.aff-picker-row__actions {
+	display:         flex;
+	align-items:     center;
+	gap:             var(--sp-1);
+	justify-content: flex-end;
+}
+
+/* Level 2 — backup list rows */
+.aff-picker-backup-header {
+	display:     grid;
+	grid-template-columns: 1fr 80px 108px;
+	gap:         var(--sp-2);
+	padding:     var(--sp-1) var(--sp-3);
+	font-size:   var(--fs-xs);
+	color:       var(--aff-clr-muted);
+	font-weight: var(--fw-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.aff-picker-backup-header__vars {
+	text-align: center;
+}
+
+.aff-picker-backup-row {
+	display:       grid;
+	grid-template-columns: 1fr 80px 108px;
+	align-items:   center;
+	gap:           var(--sp-2);
+	padding:       var(--sp-2) var(--sp-3);
+	border-radius: 4px;
+	border:        1px solid var(--aff-clr-border);
+}
+
+.aff-picker-backup-row__date {
 	font-size:     var(--fs-sm);
 	color:         var(--aff-clr-primary);
 	white-space:   nowrap;
@@ -815,10 +886,10 @@
 	text-overflow: ellipsis;
 }
 
-.aff-picker-row__date {
+.aff-picker-backup-row__vars {
 	font-size:  var(--fs-xs);
 	color:      var(--aff-clr-muted);
-	flex-shrink: 0;
+	text-align: center;
 }
 
 .aff-picker-back-bar {
