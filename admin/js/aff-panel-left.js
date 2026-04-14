@@ -221,6 +221,8 @@
 			var numList = (vars.Numbers && vars.Numbers.length > 0) ? vars.Numbers : ((globalVarsN.Numbers && globalVarsN.Numbers.length > 0) ? globalVarsN.Numbers : ['Spacing', 'Gaps', 'Grids', 'Radius']);
 			this._populateList('aff-nav-numbers', numList);
 		}
+
+		this._updateSubgroupCounts();
 		},
 
 		/**
@@ -248,6 +250,11 @@
 				return;
 			}
 
+			// Determine subgroup for per-category counts.
+			var sgMap = { 'aff-nav-colors': 'Colors', 'aff-nav-fonts': 'Fonts', 'aff-nav-numbers': 'Numbers' };
+			var subgroup = sgMap[listId] || '';
+			var vars = (AFF.state && AFF.state.variables) ? AFF.state.variables : [];
+
 			list.innerHTML = '';
 
 			items.forEach(function (item) {
@@ -257,12 +264,28 @@
 				var li  = document.createElement('li');
 				var btn = document.createElement('button');
 
-				btn.className   = 'aff-nav-item';
-				btn.textContent = name;
+				btn.className = 'aff-nav-item';
 				btn.setAttribute('type', 'button');
 				btn.setAttribute('data-category', name);
 				if (catId) {
 					btn.setAttribute('data-category-id', catId);
+				}
+
+				// Category name text.
+				var nameSpan = document.createElement('span');
+				nameSpan.className   = 'aff-nav-item__name';
+				nameSpan.textContent = name;
+				btn.appendChild(nameSpan);
+
+				// Per-category variable count badge.
+				var count = vars.filter(function (v) {
+					return v.subgroup === subgroup && v.category === name;
+				}).length;
+				if (count > 0) {
+					var badge = document.createElement('span');
+					badge.className   = 'aff-nav-count';
+					badge.textContent = count;
+					btn.appendChild(badge);
 				}
 
 				btn.addEventListener('click', function () {
@@ -272,6 +295,32 @@
 				li.appendChild(btn);
 				list.appendChild(li);
 			}.bind(this));
+		},
+
+		/**
+		 * Update the variable count shown at the right of each subgroup header button
+		 * (Colors / Fonts / Numbers), aligned with the per-category count badges.
+		 */
+		_updateSubgroupCounts: function () {
+			var vars = (AFF.state && AFF.state.variables) ? AFF.state.variables : [];
+			var subgroups = [
+				{ key: 'Colors',  selector: '[data-subgroup="colors"] .aff-nav-subgroup__header' },
+				{ key: 'Fonts',   selector: '[data-subgroup="fonts"] .aff-nav-subgroup__header' },
+				{ key: 'Numbers', selector: '[data-subgroup="numbers"] .aff-nav-subgroup__header' },
+			];
+			subgroups.forEach(function (sg) {
+				var btn = document.querySelector(sg.selector);
+				if (!btn) { return; }
+				var existing = btn.querySelector('.aff-nav-count');
+				if (existing) { existing.remove(); }
+				var count = vars.filter(function (v) { return v.subgroup === sg.key; }).length;
+				if (count > 0) {
+					var badge = document.createElement('span');
+					badge.className   = 'aff-nav-count';
+					badge.textContent = count;
+					btn.appendChild(badge);
+				}
+			});
 		},
 
 		/**
@@ -336,6 +385,7 @@
 		 */
 		refresh: function () {
 			this._loadNavItems();
+			this._updateSubgroupCounts();
 		},
 	};
 }());

@@ -37,7 +37,8 @@
    format (12%) | delete (28px)
    ========================================================================== */
 
-.aff-numbers-view .aff-color-row {
+.aff-numbers-view .aff-color-row,
+.aff-numbers-view .aff-color-list-header {
 	grid-template-columns: 24px 8px 1fr 28% 12% 28px;
 	column-gap: 16px;
 }

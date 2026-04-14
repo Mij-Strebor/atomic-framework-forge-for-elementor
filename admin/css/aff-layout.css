@@ -91,21 +91,20 @@
 	isolation:  isolate; /* Own stacking context — keeps ::before behind panel children */
 }
 
-/* Background image — on workspace so panel collapse slides without resizing it.
-   z-index: -1 keeps it behind the solid-background left/right panels while
-   remaining visible through the transparent edit space. */
+/* Watermark — faint banner behind the edit space when a category is active.
+   Hidden by default; images in .aff-placeholder replace it on the empty state. */
 .aff-workspace::before {
 	content:    '';
 	position:   absolute;
 	inset:      0;
-	background: url('../../assets/images/banner-jimr-forge.png') center / cover no-repeat;
-	opacity:    1;
+	background: url('../../assets/images/banner-jimr-forge.png') center / contain no-repeat;
+	opacity:    0;
 	transition: opacity 0.6s ease;
 	pointer-events: none;
 	z-index:    -1;
 }
 
-/* Fade to faint watermark once user activates the edit space */
+/* Show as faint watermark once the user opens a category */
 .aff-workspace[data-active="true"]::before {
 	opacity: 0.04;
 }
@@ -334,6 +333,38 @@
 	margin-left:   calc(-1 * var(--sp-2));
 }
 
+/* Name span fills available space */
+.aff-nav-item__name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Variable count badges — used on nav items and subgroup labels */
+.aff-nav-count {
+	flex-shrink:     0;
+	display:         inline-flex;
+	align-items:     center;
+	justify-content: center;
+	min-width:       18px;
+	height:          16px;
+	padding:         0 4px;
+	background:      var(--aff-clr-accent);
+	color:           var(--aff-clr-on-accent, #fff);
+	font-size:       10px;
+	font-weight:     var(--fw-semibold);
+	line-height:     1;
+	border-radius:   8px;
+}
+
+/* Subgroup label fills available space so the count badge right-aligns */
+.aff-nav-subgroup__label {
+	flex: 1;
+	min-width: 0;
+}
+
 /* ==========================================================================
    6. CENTER EDIT SPACE
    ========================================================================== */
@@ -343,7 +374,7 @@
 	display:    flex;
 	flex-direction: column;
 	overflow-y: auto;
-	background: transparent; /* Image lives on .aff-workspace::before */
+	background: var(--aff-bg-page); /* Match app background — PNG transparency shows theme colour, not WP admin white */
 	min-width:  0; /* Prevent flex blowout */
 	padding:    var(--sp-9);
 	position:   relative;
@@ -361,12 +392,34 @@
 	flex:            1;
 	display:         flex;
 	flex-direction:  column;
-	align-items:     center;
-	justify-content: center;
-	gap:             var(--sp-4);
+	align-items:     flex-start;
+	justify-content: flex-start;
 	pointer-events:  none;
 	min-height:      300px;
+	position:        relative; /* arch is absolutely positioned inside */
 }
+
+/* Full-width banner image — negative margins bleed past the edit-space padding */
+.aff-placeholder-banner {
+	display:      block;
+	width:        calc(100% + 2 * var(--sp-9));
+	max-width:    none;
+	height:       auto;
+	margin-top:   calc(-1 * var(--sp-9));
+	margin-left:  calc(-1 * var(--sp-9));
+	margin-right: calc(-1 * var(--sp-9));
+}
+
+/* Follow-on image below the banner.
+   mix-blend-mode: multiply makes white/checkerboard areas dissolve into the page background
+   so the sign appears to float without a visible background box. */
+.aff-placeholder-lookahead {
+	display:         block;
+	max-width:       100%;
+	height:          auto;
+	mix-blend-mode:  multiply;
+}
+
 
 .aff-placeholder__text {
 	font-size:   var(--fs-md);

@@ -967,8 +967,21 @@
 			}
 
 			var source    = commitVars || AFF.state.variables;
+			// For Numbers variables the stored value is a pure number; reconstruct
+			// the CSS dimension string (e.g. '16' + 'PX' → '16px') for the commit
+			// payload. FX values (function expressions) are sent as-is.
+			// Legacy values that already include the unit are handled by extracting
+			// only the numeric prefix before re-appending the unit.
+			var FORMAT_UNIT = { 'PX': 'px', '%': '%', 'EM': 'em', 'REM': 'rem',
+			                    'VW': 'vw', 'VH': 'vh', 'CH': 'ch' };
 			var variables = source.map(function (v) {
-				return { name: v.name, value: v.value };
+				var cssValue = v.value;
+				if (v.subgroup === 'Numbers' && v.format !== 'FX') {
+					var unit      = FORMAT_UNIT[v.format] || '';
+					var numMatch  = (v.value || '').match(/^(-?[\d.]+)/);
+					cssValue = numMatch ? numMatch[1] + unit : v.value;
+				}
+				return { name: v.name, value: cssValue };
 			});
 
 			AFF.App.ajax('aff_commit_to_elementor', {

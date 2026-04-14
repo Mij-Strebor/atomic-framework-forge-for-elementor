@@ -3,8 +3,8 @@ Contributors:      jimrforge
 Tags:              elementor, css variables, design system, developer tools, atomic widgets
 Requires at least: 5.8
 Tested up to:      6.9
-Requires PHP:      7.4
-Stable tag:        0.3.5-beta
+Requires PHP:      8.2
+Stable tag:        0.4.0-beta
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ AFF allows developers to organize, edit, and persist the three core asset types 
 
 **Requires Elementor and Elementor Pro.**
 
-=== Key Features (Beta 0.3.5) ===
+=== Key Features (Beta 0.4.0) ===
 
 * **Sync from Elementor** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
 * **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
@@ -62,6 +62,18 @@ In your WordPress uploads directory under `/uploads/aff/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 0.4.0-beta =
+* Numbers editing overhaul: pure number storage, autofill unit suffix on entry (px, rem, em, %, vw, vh, ch, x=PX), FX function mode with auto-close, invalid suffix error.
+* New unitless `—` format type for Numbers (z-index, opacity, line-height, etc.).
+* Variable counts in left navigation: per-category counts on category items; total counts on Colors/Fonts/Numbers subgroup headers.
+* Collapse/expand all buttons on all three sets now use double-chevron icons with state-aware tooltips.
+* Fixed drag/drop broken on Numbers and Fonts (undefined setLower caused ReferenceError in strict mode).
+* Fixed scroll-to-top on Add Variable (wrong scroll container; also added preventScroll on focus).
+* Fixed Numbers sort header column misalignment.
+* Placeholder panel image changed from cover to contain; forge-themed arch banner prompts new users to read QUICK-START.md.
+* QUICK-START.md corrected: button names, step numbering, section table, stale notes removed.
+* fₓ display label for FX format throughout UI (stored value remains 'FX' for backward compatibility).
 
 = 0.3.5-beta =
 * Load Project modal: project list now shows folder structure with save count, last-saved date, and inline rename. Copy and delete project actions added.

@@ -327,11 +327,19 @@
 
 	/** Build a <select> for the format column. */
 	function _varFormatSelect(current, types) {
+		// FX renders as fₓ (f + U+2093 LATIN SUBSCRIPT SMALL LETTER X) to match the
+		// Functions button icon in the top bar. The option *value* stays 'FX' for
+		// data compatibility with saved .aff.json files.
+		function _formatLabel(t) {
+			if (t === '')   { return '\u2014'; }   // — em dash: unitless / no suffix
+			if (t === 'FX') { return 'f\u2093'; }  // fₓ subscript-x
+			return t;
+		}
 		var html = '<select class="aff-var-format-sel" aria-label="Format">';
 		for (var i = 0; i < types.length; i++) {
 			html += '<option value="' + _varEsc(types[i]) + '"'
 				+ (types[i] === current ? ' selected' : '')
-				+ '>' + _varEsc(types[i]) + '</option>';
+				+ '>' + _formatLabel(types[i]) + '</option>';
 		}
 		html += '</select>';
 		return html;
@@ -375,14 +383,14 @@
 	 * Numbers variable-set configuration.
 	 *
 	 * No preview cell (col 3 absent — 6-column grid).
-	 * Format: PX | % | EM | REM | VW | VH | CH | FX
+	 * Format: '' (unitless) | PX | % | EM | REM | VW | VH | CH | FX
 	 */
 	var NUMBERS_CFG = {
 		setName:         'Numbers',
 		catKey:          'numberCategories',
 		showExpandPanel: false,
-		valueTypes:      ['PX', '%', 'EM', 'REM', 'VW', 'VH', 'CH', 'FX'],
-		newVarDefaults:  { name: 'new-number', value: '1rem', format: 'REM' },
+		valueTypes:      ['', 'PX', '%', 'EM', 'REM', 'VW', 'VH', 'CH', 'FX'],
+		newVarDefaults:  { name: 'new-number', value: '1', format: 'REM' },
 
 		renderPreviewCell: null, // Numbers has no preview column.
 
@@ -392,8 +400,8 @@
 				+ ' data-original="' + _varEsc(v.value) + '"'
 				+ ' spellcheck="false"'
 				+ ' aria-label="Value"'
-				+ ' data-aff-tooltip="Value \u2014 edit directly"'
-				+ ' data-aff-tooltip-long="CSS value \u2014 include the unit (e.g. 1.5rem, 16px)">'
+				+ ' data-aff-tooltip="Numeric value \u2014 enter number only"'
+				+ ' data-aff-tooltip-long="Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix on Enter to change unit (e.g. 16px, 1.5rem, 100pc).">'
 				+ _varFormatSelect(v.format, this.valueTypes);
 		},
 	};

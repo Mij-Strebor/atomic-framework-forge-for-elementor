@@ -2862,11 +2862,13 @@
 				if (collapsed) {
 					toggleBtn.setAttribute('title', 'Expand all categories');
 					toggleBtn.setAttribute('aria-label', 'Expand all categories');
+					toggleBtn.setAttribute('data-aff-tooltip', 'Expand all categories');
 					toggleBtn.setAttribute('data-toggle-state', 'collapsed');
 					toggleBtn.innerHTML = this._expandAllSVG();
 				} else {
 					toggleBtn.setAttribute('title', 'Collapse all categories');
 					toggleBtn.setAttribute('aria-label', 'Collapse all categories');
+					toggleBtn.setAttribute('data-aff-tooltip', 'Collapse all categories');
 					toggleBtn.setAttribute('data-toggle-state', 'expanded');
 					toggleBtn.innerHTML = this._collapseAllSVG();
 				}
@@ -3526,21 +3528,23 @@
 				+ '</svg>';
 		},
 
-		/** Double-chevron up (collapse-all icon — shown when expanded). */
+		/** Double-chevron up — collapse-all icon, shown when any category is expanded. */
 		_collapseAllSVG: function () {
 			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
 				+ ' fill="none" stroke="currentColor" stroke-width="2"'
 				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-				+ '<polyline points="18 15 12 9 6 15"></polyline>'
+				+ '<polyline points="18 11 12 5 6 11"></polyline>'
+				+ '<polyline points="18 19 12 13 6 19"></polyline>'
 				+ '</svg>';
 		},
 
-		/** Double-chevron down (expand-all icon — shown when collapsed). */
+		/** Double-chevron down — expand-all icon, shown when all categories are collapsed. */
 		_expandAllSVG: function () {
 			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
 				+ ' fill="none" stroke="currentColor" stroke-width="2"'
 				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-				+ '<polyline points="6 9 12 15 18 9"></polyline>'
+				+ '<polyline points="6 5 12 11 18 5"></polyline>'
+				+ '<polyline points="6 13 12 19 18 13"></polyline>'
 				+ '</svg>';
 		},
 

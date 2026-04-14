@@ -1,8 +1,8 @@
 # AFF — Numbers Workpage Specification
 
 **Document:** AFF-Spec-Numbers.md
-**Version:** 1.0
-**Date:** 2026-03-14
+**Version:** 1.1
+**Date:** 2026-04-13
 **Scope:** The Numbers edit-space — everything rendered inside `#aff-edit-content` when a Numbers subgroup or category is selected in the left nav.
 **Related:** AFF-Spec-Colors.md (template), AFF-Spec-Fonts.md, AFF-Spec-Variables.md §2–5
 
@@ -18,7 +18,7 @@ The Numbers workpage is a full editing environment for CSS custom property numer
 |---------|--------|---------|
 | Col 3 | Color swatch (clickable) | **Absent** (6-column grid) |
 | Expand panel | Yes (tints/shades/transparencies) | **No** |
-| Formats | HEX HEXA RGB RGBA HSL HSLA | **PX % EM REM VW VH CH FX** |
+| Formats | HEX HEXA RGB RGBA HSL HSLA | **PX % EM REM VW VH CH fₓ** |
 | Value display | Monospace hex/color string | **Monospace numeric string** |
 
 Everything else — filter bar, category blocks, drag-and-drop, undo/redo, sort, search, collapse/expand, status dots, commit, AJAX layer, CSS architecture — is identical to Colors. Differences are called out explicitly in each section; otherwise assume the Colors behavior applies.
@@ -38,8 +38,8 @@ AFF.Variables.initSet(NUMBERS_CFG);
 var NUMBERS_CFG = {
     setName:           'Numbers',
     showExpandPanel:   false,
-    valueTypes:        ['PX', '%', 'EM', 'REM', 'VW', 'VH', 'CH', 'FX'],
-    newVarDefaults:    { name: '--new-number', value: '1rem', format: 'REM' },
+    valueTypes:        ['PX', '%', 'EM', 'REM', 'VW', 'VH', 'CH', 'FX'], // 'FX' stored; displayed as 'fₓ'
+    newVarDefaults:    { name: '--new-number', value: '1', format: 'REM' },
     catKey:            'numberCategories',
     renderPreviewCell: null,  // no preview column for Numbers
     renderValueCell: function (v) {
@@ -64,7 +64,7 @@ All Numbers variables have `subgroup === 'Numbers'` and `type === 'number'`. Fie
 | `subgroup` | `'Numbers'` |
 | `type` | `'number'` |
 | `format` | One of: `PX`, `%`, `EM`, `REM`, `VW`, `VH`, `CH`, `FX` |
-| `value` | CSS dimension value, e.g. `'1.5rem'`, `'16px'`, `'100%'` |
+| `value` | Pure numeric string, e.g. `'1.5'`, `'16'`, `'100'`. FX format stores the full function expression, e.g. `'clamp(1rem, 2vw, 3rem)'` |
 | `original_value` | Value at last Sync from Elementor |
 
 **Format semantics:**
@@ -78,9 +78,11 @@ All Numbers variables have `subgroup === 'Numbers'` and `type === 'number'`. Fie
 | `VW` | `vw` | Viewport-width-relative values |
 | `VH` | `vh` | Viewport-height-relative values |
 | `CH` | `ch` | Character-width-relative values |
-| `FX` | *(none)* | Unitless / raw number (e.g. `1.5` for `line-height`, `0` for resets) |
+| `FX` | *(none)* | CSS function expression — `calc()`, `clamp()`, `min()`, `max()`, or any expression containing `(` and `)`. Displayed as **fₓ** in the UI. |
 
-The format selector allows the user to indicate which unit a variable is intended to use. Changing the format does **not** automatically convert the numeric value (e.g. switching from `PX` to `REM` does not divide by 16). The format field is metadata; the value field is always stored as-is.
+**Value storage:** The `value` field stores only the numeric portion — no unit suffix. The unit is determined by the `format` field. Exception: `FX` variables store the full function string including the function name, parentheses, and all parameters.
+
+The format selector allows the user to indicate which unit a variable uses. Changing the format does **not** automatically convert the numeric value (e.g. switching from `PX` to `REM` does not divide by 16). The format field is metadata; value conversion is the user's responsibility. The exception is autofill (§6.2) which sets the format as a side effect of type-indicator entry.
 
 ### 3.2 Category Object
 
@@ -151,13 +153,14 @@ No preview column. No expand button. The name column (col 3) is wider than in Co
 ```html
 <input class="aff-var-value-input"
        value="{v.value}"
-       data-aff-tooltip="Numeric value — edit directly"
+       data-aff-tooltip="Numeric value — enter number only"
+       data-aff-tooltip-long="Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix to change unit on Enter (e.g. 16px, 1.5rem, 100%)."
        spellcheck="false">
 ```
 
-Rendered in monospace (same as Colors name/value inputs). The value is stored as a CSS dimension string including the unit (e.g. `'1.5rem'`, `'16px'`). The format selector (col 5) reflects the unit category but does not dictate value format.
+Rendered in monospace (same as Colors name/value inputs). The field displays the stored pure numeric value. The unit is shown via the format selector (col 5). For FX variables the field displays the full function expression.
 
-**Live guard:** `input` event does not enforce any prefix (unlike Colors which enforces `--`). The value is saved as-is; validation on blur checks for non-empty.
+**Live guard:** No prefix is enforced on `input` events (unlike Colors which enforces `--`). Autofill parsing occurs on blur or Enter — see §6.2 for the full value entry and autofill rules.
 
 ### 5.5 Tooltip Attributes on Variable Row Elements
 
@@ -166,7 +169,7 @@ Rendered in monospace (same as Colors name/value inputs). The value is stored as
 | Drag handle | "Drag to reorder" | — |
 | Status dot | Status name (e.g. "Synced") | Status-specific long text (see §4) |
 | Name input | "Variable name — click to edit" | — |
-| Value input | "Numeric value — edit directly" | "CSS dimension value — include the unit (e.g. 1.5rem, 16px)" |
+| Value input | "Numeric value — enter number only" | "Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix to change unit on Enter (e.g. 16px, 1.5rem, 100%)." |
 | Format selector | "Unit type" | "Indicates which CSS unit this variable uses (does not convert the value)" |
 | Delete button | "Delete variable" | "Remove this variable from the project" |
 
@@ -176,23 +179,68 @@ Rendered in monospace (same as Colors name/value inputs). The value is stored as
 
 ### 6.1 Variable Name
 
-Identical to Colors and Fonts. `<input type="text" readonly>` — single click removes `readonly`. Enforces `--` prefix on `input` events. Saved via `aff_save_color` AJAX (with `subgroup: 'Numbers'`) on `change` / Enter. Invalid name → revert + field error.
+Identical to Colors and Fonts. `<input type="text" readonly>` — single click removes `readonly`. Saved via `aff_save_color` AJAX (with `subgroup: 'Numbers'`) on `change` / Enter. Invalid name → revert + field error. The `--` prefix is not re-enforced by a live `input` handler — names are validated on save only.
 
 ### 6.2 Numeric Value
 
 - `<input type="text">` — always editable, monospace
-- **Save:** `change` event (blur) or Enter key → `_saveVarValue(varId, value, input)`
-- **Validation:** value must be non-empty after `trim()`; empty → revert to `data-original` + field error. No unit syntax validation is applied at the JS layer — CSS dimension syntax is validated by the browser when the value is applied to Elementor
-- **On save:** AJAX `aff_save_color` with `{id, value, status: 'modified', subgroup: 'Numbers'}`; updates the DOM input `data-original` on success
+- **Save:** blur or Enter key → `_saveVarValue(varId, rawInput, input)`
+- **On save:** AJAX `aff_save_color` with `{id, value, format, status: 'modified', subgroup: 'Numbers'}`; updates `data-original` and the format selector on success
 
 No live preview cell to update (no col 3 for Numbers).
 
+#### 6.2.1 Value Entry and Autofill
+
+The user types a number, optionally followed by a type-indicator suffix. On blur or Enter the input is parsed, the suffix is stripped, and the format is updated automatically. No suggestion UI is shown — autofill is silent.
+
+**Type-indicator suffixes (case-insensitive except where noted):**
+
+| User types (examples) | Detected suffix | Sets format |
+|----------------------|-----------------|-------------|
+| `16px` | `px` | `PX` |
+| `1.5e`, `1.5em` | `e` or `em` | `EM` |
+| `1.5r`, `1.5rem` | `r` or `rem` | `REM` |
+| `50pc`, `50PC` | `pc` or `PC` (full string only) | `%` |
+| `100vw` | `vw` (full string only) | `VW` |
+| `100vh` | `vh` (full string only) | `VH` |
+| `2ch` | `ch` (full string only) | `CH` |
+
+Rules:
+- Single-character shortcuts: `e` → EM, `r` → REM, `x` → PX (as trailing char of `px`). These are consumed as part of the full suffix detection — not standalone.
+- `pc` / `PC` are the only trigger for `%` (avoids ambiguity with other p-prefixed suffixes).
+- `vw`, `vh`, `ch` require the full two-character suffix (no single-char shortcut).
+- Suffix detection is performed on the trailing characters of the trimmed input string after the numeric portion.
+- The suffix is stripped from the value before saving; only the pure number is stored.
+
+**fₓ detection (function expressions):**
+- If the input contains `(` and `)`, the entire string is treated as an fₓ value — format is set to `FX` (displayed as `fₓ`) and the full string is stored as-is.
+- If the input contains `(` but no `)` (incomplete function), Enter autofills the closing `)`. The full string including the autofilled `)` is stored.
+
+#### 6.2.2 Numeric Rules
+
+| Rule | Detail |
+|------|--------|
+| Decimal digits | Allowed for EM, REM, VW, VH (e.g. `1.5`, `0.75`) |
+| PX and % | Stored as-is; implementation rounds up to nearest integer on commit when writing to CSS |
+| Negative values | Allowed for all types (e.g. `-4` for negative margin tokens) |
+| Empty input | Reverts to `data-original` + field error |
+| Unitless (no suffix) | Saved with current format unchanged |
+
+#### 6.2.3 Invalid Suffix
+
+If the trailing characters after the numeric portion are not empty and do not match any recognized suffix pattern:
+- Red border applied to the input field
+- Inline error message: `"invalid type"`
+- Save is blocked — the AJAX call is not made
+- The commit button is also blocked while any value field has an invalid suffix
+- Clearing the suffix (backspace) removes the error state immediately
+
 ### 6.3 Format Selector
 
-- `<select>` with options: `PX`, `%`, `EM`, `REM`, `VW`, `VH`, `CH`, `FX`
+- `<select>` with options: `PX`, `%`, `EM`, `REM`, `VW`, `VH`, `CH`, `fₓ` (stored as `FX`)
 - **On change:** saves immediately via `aff_save_color` with `{id, format: newFormat}`
-- No value conversion is performed. The format is informational metadata only
-- UI hint: the selected format can serve as a reminder to the user of the intended unit, even if the stored value string includes a different unit
+- No value conversion is performed. The format is metadata indicating which CSS unit the stored number represents
+- The selector is also updated automatically when autofill (§6.2.1) detects a type suffix in the value input — this is the primary way format changes as the user works
 
 ### 6.4 Category Name
 
@@ -231,7 +279,7 @@ Add button (circle on bottom-left edge of category block) → AJAX `aff_save_col
 ```javascript
 {
     name:        '--new-number',
-    value:       '1rem',
+    value:       '1',
     type:        'number',
     subgroup:    'Numbers',
     category:    catName,
@@ -258,7 +306,7 @@ Identical to Colors. 50-entry stack. Ctrl+Z / Ctrl+Y. Tracked operation types:
 | Type | Fields |
 |------|--------|
 | `name-change` | `id, oldValue (name), newValue (name)` |
-| `value-change` | `id, oldValue (dimension), newValue (dimension)` |
+| `value-change` | `id, oldValue (number), newValue (number)` |
 
 ---
 
@@ -393,7 +441,7 @@ return AFF.state.variables.filter(function (v) { return v.subgroup === 'Numbers'
 | Value conversion | Yes (hex↔rgb↔hsl) | No | **No** |
 | Live preview | Swatch + row swatch update | Font-family on input | **None** |
 | Child variables | Yes (tints/shades/alpha) | No | **No** |
-| New var defaults | `--new-color` / `#000000` / HEX | `--new-font` / `sans-serif` / System | **`--new-number` / `1rem` / REM** |
+| New var defaults | `--new-color` / `#000000` / HEX | `--new-font` / `sans-serif` / System | **`--new-number` / `1` / REM** |
 | Default categories | Branding, Backgrounds, Neutral, Status | Titles, Text | **Font Size, Line Height, Spacing, Gaps, Grids, Radius** |
 | Config key | `colorCategories` | `fontCategories` | **`numberCategories`** |
 | `subgroup` value | `'Colors'` | `'Fonts'` | **`'Numbers'`** |

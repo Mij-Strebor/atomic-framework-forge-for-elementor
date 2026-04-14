@@ -7,6 +7,33 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.0-beta] — 2026-04-14
+
+### Added
+
+- **Numbers autofill suffix entry** — Type `33px`, `1.5rem`, `100%`, `33x`, `50vw` etc; unit suffix sets the format automatically on blur/Enter. Parentheses trigger FX function mode with auto-closing `)`. Unknown suffixes show an inline "invalid type" error.
+- **`x` shorthand for PX** — Entering `33x` sets value `33`, format `PX`.
+- **Numbers unitless type** — New blank `—` format option for pure unitless CSS values (e.g. `z-index`, `opacity`, `line-height`). Committed to Elementor as a bare number with no unit.
+- **Variable counts in left navigation** — Each category item shows how many variables it contains. Colors / Fonts / Numbers subgroup headers show total counts, right-aligned to match category item badges.
+- **Quick-start arch banner** — Forge-themed amber gradient arch at the bottom of the placeholder panel prompts new users to read QUICK-START.md on first open.
+
+### Fixed
+
+- **Drag/drop broken on Numbers and Fonts** — `setLower` was referenced but never declared in `_initDrag` and `_initCatDrag` prototype methods, causing a silent `ReferenceError` in strict mode that killed all mousedown drag handlers. Each method now declares `setLower` locally from `self._cfg.setName`.
+- **Scroll-to-top on Add Variable** — `_rerenderView` was saving/restoring `aff-edit-content.scrollTop` (always 0); the real scroll container is `aff-edit-space` (`overflow-y: auto`). Now saves/restores both `aff-edit-space.scrollTop` and `window.pageYOffset`. Also changed `nameInp.focus()` to `focus({ preventScroll: true })` to prevent a second scroll jump after the new row is focused.
+- **Numbers sort header misalignment** — `.aff-color-list-header` inside `.aff-numbers-view` was inheriting the 7-column Colors grid. Added explicit 6-column grid override to match `.aff-color-row`.
+
+### Changed
+
+- **fₓ display for FX format** — FX format now displays as `fₓ` (f + U+2093 LATIN SUBSCRIPT SMALL LETTER X) in all UI dropdowns, matching the Functions icon in the top bar. Stored JSON value remains `'FX'` for backward compatibility.
+- **Numbers pure number storage** — Values stored without unit suffix (e.g. `16` not `16px`). CSS unit reconstructed from `format` field when committing to Elementor. Units stripped from synced variables on import.
+- **Collapse/expand all buttons** — All three sets (Colors, Fonts, Numbers) now use double-chevron SVG icons. Tooltip text and `aria-label` update dynamically on toggle to reflect the actual current state.
+- **Placeholder panel image** — Changed CSS `background-size` from `cover` to `contain` so the full blacksmith image is visible within the panel height without cropping.
+- **QUICK-START.md** — Corrected button names throughout (Fetch Elementor, Write to Elementor). Fixed duplicate Step 5 / 5a numbering (now sequential 5–11). Updated right-panel section table to match actual UI. Removed stale "(Not yet active)" note on Write to Elementor. Renamed "What's Not in Beta Yet" section to "Beta Status".
+- **Version** — Bumped to 0.4.0-beta.
+
+---
+
 ## [0.3.5-beta] — 2026-04-13
 
 ### Added

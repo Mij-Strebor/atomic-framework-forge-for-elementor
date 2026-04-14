@@ -4,10 +4,10 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Beta](https://img.shields.io/badge/status-Beta%200.3.5-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-0.3.5--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-21759b?style=flat-square)](https://wordpress.org)
-[![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square)](https://php.net)
+[![Beta](https://img.shields.io/badge/status-Beta%200.4.0-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-0.4.0--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%206.9-21759b?style=flat-square)](https://wordpress.org)
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-3d2f1f?style=flat-square)](LICENSE)
 
@@ -51,13 +51,13 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Beta Status
 
-This is **Beta 0.3.5**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
+This is **Beta 0.4.0**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 
-## What Works in Beta 0.3.5
+## What Works in Beta 0.4.0
 
 | Feature | Status |
 |---------|--------|
@@ -246,7 +246,8 @@ atomic-framework-forge-for-elementor/
 | **0.3.2-beta** | Bug fixes: drag-and-drop color reorder; column sort persistence across tab switches; auto-load reliability. |
 | **0.3.3-beta** | Auto-regenerate Elementor kit CSS when file is missing, preventing 0-variable sync on first load. |
 | **0.3.4-beta** | Renamed EFF → AFF for WordPress.org compatibility. Sync reads Elementor kit meta directly. Category defaults and AJAX action name fixes. |
-| **0.3.5-beta** *(this release)* | Load Project modal improvements (save count, inline rename, copy, delete). Cross-module event contamination fix. Drag fixes in Numbers view. Write to Elementor auto-regenerates missing kit CSS. Duplicate variable name prevention. Removed forced `--` prefix while typing. |
+| **0.3.5-beta** | Load Project modal improvements (save count, inline rename, copy, delete). Cross-module event contamination fix. Drag fixes in Numbers view. Write to Elementor auto-regenerates missing kit CSS. Duplicate variable name prevention. Removed forced `--` prefix while typing. |
+| **0.4.0-beta** *(this release)* | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
 | **1.0.0** | Classes management. Components registry. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
 | **Future** | Standalone Windows / Mac desktop application. |

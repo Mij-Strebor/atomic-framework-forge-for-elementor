@@ -13,7 +13,7 @@
 - **Plugin name:** Atomic Framework Forge for Elementor
 - **Acronym / folder:** `aff`
 - **Path:** `E:/projects/plugins/aff`
-- **Version:** v0.3.4-beta
+- **Version:** v0.3.5-beta
 - **GitHub:** https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor
 - **Branding:** Always "Jim R Forge" — never "JimRWeb"
 - **Author URI:** https://jimrforge.com
@@ -25,11 +25,11 @@
 AFF is a WordPress admin plugin that provides a management interface for **Elementor v4 (atomic widget) assets** — specifically the CSS custom properties that Elementor v4 writes into its compiled kit stylesheet (`post-{id}.css`). AFF reads those variables, lets developers organize and edit them, and persists the data as `.aff.json` files.
 
 **Three asset types managed:**
-1. **Variables** — CSS custom properties from the Elementor v4 `:root` block
-2. **Classes** — Developer-defined CSS class names on atomic widgets (future — Elementor v4 not yet exposing these)
-3. **Components** — User-assembled widget compositions (future phase)
+1. **Variables** — CSS custom properties from the Elementor v4 `:root` block (Colors, Fonts, Numbers — fully implemented)
+2. **Classes** — Developer-defined CSS class names on atomic widgets (future)
+3. **Components** — User-assembled widget compositions (future)
 
-**Current phase: v1 framework.** The layout shell, panels, modal system, CSS parser, and theme toggle are built or being built. Edit-space content (variable list/edit UI) comes in v2.
+**Current phase: v0.3.5-beta.** Full Variables workflow is production-ready: sync from Elementor, organize into categories, inline edit, drag-reorder, versioned project backups, commit back to Elementor kit CSS. Classes and Components are future phases.
 
 ---
 
@@ -64,13 +64,15 @@ atomic-framework-forge-for-elementor/
 ├── admin/
 │   ├── views/page-aff-main.php          # Root PHP template for the admin page
 │   ├── js/
-│   │   ├── aff-app.js                   # Main JS entry point
-│   │   ├── aff-panel-left.js            # Left menu panel logic
-│   │   ├── aff-panel-right.js           # Right status panel logic
-│   │   ├── aff-panel-top.js             # Top menu bar logic
-│   │   ├── aff-edit-space.js            # Center edit space logic
-│   │   ├── aff-modal.js                 # Modal dialog system  ← built
-│   │   └── aff-theme.js                 # Light/dark mode toggle  ← built
+│   │   ├── aff-app.js                   # Main JS entry point, AFF.state init
+│   │   ├── aff-panel-left.js            # Left nav tree
+│   │   ├── aff-panel-right.js           # Right panel: project, sync, backup
+│   │   ├── aff-panel-top.js             # Top bar: project name, Switch Project
+│   │   ├── aff-colors.js                # Colors variable set (full edit UI)
+│   │   ├── aff-variables.js             # Generic variable set factory (Fonts, Numbers)
+│   │   ├── aff-merge.js                 # Merge/conflict resolution utilities
+│   │   ├── aff-modal.js                 # Single-instance modal system
+│   │   └── aff-theme.js                 # Light/dark mode toggle
 │   └── css/
 │       ├── aff-layout.css               # Panel layout and structure
 │       └── aff-theme.css                # Light/dark mode CSS variables
@@ -276,6 +278,83 @@ All icons are **inline SVG** from `assets/icons/`. No icon fonts. All icons use 
 
 ---
 
+## JavaScript Architecture
+
+### AFF.state — global state object (aff-app.js)
+
+```js
+AFF.state = {
+    variables:      [],        // flat array of all variable objects
+    categories:     {},        // { Colors: [...], Fonts: [...], Numbers: [...] }
+    config:         {},        // project config (name, backup limit, etc.)
+    currentFile:    null,      // active project slug
+    isDirty:        false,     // unsaved changes exist
+    activeSet:      'Colors',  // currently visible variable set
+}
+```
+
+### Shared Container — the root cause of cross-module bugs
+
+`#aff-edit-content` is a **single DOM element** shared by all variable set modules (Colors, Fonts, Numbers). Each module renders into it and binds delegated events to it. This means:
+
+- Delegated event listeners from a previous module remain bound when a new module renders
+- Without guards, Colors' click/drag handlers fire while Numbers is showing
+
+**The fix — view-presence guard — must be on every handler.** See `PATTERNS.md`.
+
+### Module Architecture
+
+- **`aff-colors.js`** — self-contained module for the Colors variable set. Uses module-level `_drag` object. Binds to `#aff-edit-content`.
+- **`aff-variables.js`** — factory function `AFF.Variables(config)` instantiated for Fonts and Numbers. Each instance has its own `self._drag`. Also binds to `#aff-edit-content`.
+- Both modules use `_effEventsBound` / `_effVarsEventsBound` flags on the container DOM node to prevent re-binding on re-render. **These flags persist even when innerHTML is replaced** — never clear them by destroying the node.
+
+### Key JS Patterns
+
+Documented with code examples in `PATTERNS.md`:
+- View-presence guard (prevents cross-module event firing)
+- `_rowKey` / `_findVarByKey` (stable identity for Elementor-synced variables with no id)
+- AJAX request pattern (fetch + nonce + error handling)
+- Delegated event binding with re-bind guard
+
+---
+
+## Elementor Data Structures
+
+### Active Kit
+
+| Item | Value |
+|------|-------|
+| WordPress option | `elementor_active_kit` → post ID (e.g. `67`) |
+| Kit CSS file | `wp-content/uploads/elementor/css/post-{id}.css` |
+| Local path | `C:\Users\Owner\Local Sites\site\app\public\wp-content\uploads\elementor\css\post-67.css` |
+| Global variables meta key | `_elementor_global_variables` on the kit post |
+| V3 colors meta key | `_elementor_page_settings` → `system_colors` / `custom_colors` |
+
+### Kit CSS Format (what AFF parses)
+
+```css
+:root {
+    --e-global-color-primary: #6EC1E4;
+    --e-global-color-secondary: #54595F;
+    --e-global-typography-primary-font-family: "Roboto";
+    /* ... */
+}
+```
+
+`AFF_CSS_Parser::parse_variables()` reads this file and returns structured variable objects. `AFF_CSS_Parser::read_from_kit_meta()` reads directly from post meta (primary path — more reliable than CSS file). CSS file parsing is the fallback.
+
+### Elementor Kit CSS Regeneration
+
+If `find_kit_css_file()` returns null (file deleted or cache cleared):
+- `AFF_Ajax_Handler::try_regenerate_elementor_kit_css()` calls Elementor's `CSS\Post` API
+- This is the only sanctioned path for regenerating the CSS — never call it from `AFF_CSS_Parser`
+
+### Variable Name Convention
+
+Elementor v4 variables use `--e-global-*` prefix. AFF normalizes these on import. The `lamp()` → `clamp()` typo correction in `AFF_CSS_Parser::normalize_value()` is the single point of truth for value normalization — do not add corrections elsewhere.
+
+---
+
 ## PHP Standards
 
 - All classes prefixed `AFF_`
@@ -290,15 +369,14 @@ All icons are **inline SVG** from `assets/icons/`. No icon fonts. All icons use 
 
 ## Roadmap Phases (do not build ahead of phase)
 
-| Phase | Scope |
-|-------|-------|
-| **v1 (current)** | Framework: layout, panels, left menu, right panel, top bar, modal system, CSS parser, variable data model, light/dark mode, file save/load |
-| **v2** | Edit space content: variable list/edit UI, inline editing, drag-to-reorder |
-| **v3** | Classes support |
-| **v4** | Components registry |
-| **v5** | Write-back to Elementor via API, History/undo, Export/Import |
+| Phase | Scope | Status |
+|-------|-------|--------|
+| **v0.x-beta** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Current — 0.3.5-beta** |
+| **v1.0** | Classes management | Planned |
+| **v2.0** | Components registry; Elementor Kit Manager API write-back | Planned |
+| **Future** | Standalone Windows/Mac desktop application | Roadmap |
 
-Do not add v2+ functionality unless Jim explicitly requests it. The center edit space in v1 shows only a placeholder message: "Select a category from the left panel."
+Do not build ahead of the current phase without explicit instruction from Jim.
 
 ---
 

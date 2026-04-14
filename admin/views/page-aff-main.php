@@ -237,7 +237,14 @@ function aff_icon( string $name ): string {
 		<main class="aff-edit-space" id="aff-edit-space" role="main">
 
 			<!-- Placeholder — shown when no category is selected -->
-			<div class="aff-placeholder" id="aff-placeholder"></div>
+			<div class="aff-placeholder" id="aff-placeholder">
+				<img class="aff-placeholder-banner"
+				     src="<?php echo esc_url( AFF_PLUGIN_URL . 'assets/images/banner-jimr-forge.png' ); ?>"
+				     alt="<?php esc_attr_e( 'Atomic Framework Forge for Elementor', 'atomic-framework-forge-for-elementor' ); ?>">
+				<img class="aff-placeholder-lookahead"
+				     src="<?php echo esc_url( AFF_PLUGIN_URL . 'assets/images/take-a-look.png' ); ?>"
+				     alt="<?php esc_attr_e( 'Take a look', 'atomic-framework-forge-for-elementor' ); ?>">
+			</div>
 
 			<!-- Content area — hidden until a category is selected -->
 			<div class="aff-edit-content" id="aff-edit-content" hidden aria-live="polite"></div>

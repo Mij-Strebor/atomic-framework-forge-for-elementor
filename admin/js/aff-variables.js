@@ -610,6 +610,21 @@
 					return;
 				}
 				self._clearFieldError(valInput);
+
+				// Numbers: parse autofill suffix and optional format change.
+				if (self._cfg.setName === 'Numbers') {
+					var parsed = self._parseNumberInput(newVal, varId, valInput);
+					if (parsed === null) { return; } // invalid suffix — error shown, save blocked
+					newVal = parsed.value;
+					valInput.value = newVal; // update display to stripped value
+					if (parsed.format) {
+						var fmtSel = row.querySelector('.aff-var-format-sel');
+						if (fmtSel) { fmtSel.value = parsed.format; }
+						self._saveVarValue(varId, newVal, valInput, parsed.format);
+						return;
+					}
+				}
+
 				self._saveVarValue(varId, newVal, valInput);
 			});
 			container.addEventListener('keydown', function (e) {
@@ -684,7 +699,10 @@
 			}
 			var toggleBtn = container.querySelector('[data-toggle-state]');
 			if (toggleBtn) {
+				var newTitle = collapse ? 'Expand all categories' : 'Collapse all categories';
 				toggleBtn.setAttribute('data-toggle-state', collapse ? 'collapsed' : 'expanded');
+				toggleBtn.setAttribute('aria-label', newTitle);
+				toggleBtn.setAttribute('data-aff-tooltip', newTitle);
 				toggleBtn.innerHTML = collapse ? self._expandAllSVG() : self._collapseAllSVG();
 			}
 		},
@@ -827,21 +845,78 @@
 		},
 
 		/**
-		 * Persist a value change.
+		 * Parse a raw Numbers value input string.
 		 *
-		 * @param {string}          varId
-		 * @param {string}          newValue
-		 * @param {HTMLElement|null} input
+		 * Strips a recognised type-indicator suffix and returns the pure number plus
+		 * the inferred format. Returns null if the suffix is unrecognised (and shows
+		 * a field error). Returns { value, format: null } when no suffix is present
+		 * (caller should keep the current format unchanged).
+		 *
+		 * Recognised suffixes (case-insensitive, except pc/PC):
+		 *   px → PX   |  e/em → EM   |  r/rem → REM
+		 *   pc/PC → % |  vw → VW     |  vh → VH   |  ch → CH   |  % → %
+		 * Function expressions (contain '(' and/or ')') → FX, stored as-is.
+		 *
+		 * @param {string}      raw   Trimmed input value.
+		 * @param {string}      varId Row key (for _findVarByKey).
+		 * @param {HTMLElement} input The <input> element (for error display).
+		 * @returns {{ value: string, format: string|null }|null}
 		 */
-		_saveVarValue: function (varId, newValue, input) {
+		_parseNumberInput: function (raw, varId, input) {
+			var self = this;
+
+			// FX: any expression containing '(' is a function.
+			if (raw.indexOf('(') !== -1) {
+				var val = raw.indexOf(')') === -1 ? raw + ')' : raw; // autocomplete ')'
+				return { value: val, format: 'FX' };
+			}
+
+			// Split into numeric part + trailing suffix.
+			var m = raw.match(/^(-?[\d.]+)(.*?)$/);
+			if (!m) {
+				self._showFieldError(input, 'invalid type');
+				return null;
+			}
+
+			var numPart   = m[1];
+			var suffixRaw = m[2].trim();
+			var suffixLc  = suffixRaw.toLowerCase();
+			var format    = null; // null → keep current format
+
+			if (suffixLc === '') {
+				format = null; // no suffix — keep current format
+			} else if (suffixLc === 'px' || suffixLc === 'x') {
+				format = 'PX';
+			} else if (suffixLc === 'e' || suffixLc === 'em') {
+				format = 'EM';
+			} else if (suffixLc === 'r' || suffixLc === 'rem') {
+				format = 'REM';
+			} else if (suffixRaw === 'pc' || suffixRaw === 'PC' || suffixLc === '%') {
+				format = '%';
+			} else if (suffixLc === 'vw') {
+				format = 'VW';
+			} else if (suffixLc === 'vh') {
+				format = 'VH';
+			} else if (suffixLc === 'ch') {
+				format = 'CH';
+			} else {
+				self._showFieldError(input, 'invalid type');
+				return null;
+			}
+
+			return { value: numPart, format: format };
+		},
+
+		_saveVarValue: function (varId, newValue, input, newFormat) {
 			var self     = this;
 			var v        = self._findVarByKey(varId);
 			if (!v) { return; }
 			var oldValue = v.value || '';
-			if (newValue === oldValue) { return; }
+			if (newValue === oldValue && !newFormat) { return; }
 
 			v.value  = newValue;
 			v.status = 'modified';
+			if (newFormat) { v.format = newFormat; }
 			self._updateStatusDotInDOM(varId, 'modified');
 
 			// For Fonts: update the preview cell and value input's inline style.
@@ -860,7 +935,9 @@
 
 			self._pushUndo({ type: 'value-change', id: v.id, oldValue: oldValue, newValue: newValue });
 
-			self._ajaxSaveVar({ id: v.id, value: newValue, status: 'modified' }, function () {
+			var payload = { id: v.id, value: newValue, status: 'modified' };
+			if (newFormat) { payload.format = newFormat; }
+			self._ajaxSaveVar(payload, function () {
 				if (input) { input.setAttribute('data-original', newValue); }
 				if (AFF.App) { AFF.App.setDirty(true); AFF.App.setPendingCommit(true); }
 			});
@@ -944,6 +1021,28 @@
 					}
 					self._collapsedIds[catId] = false;
 					self._rerenderView();
+
+					// Find the new row and activate its name input for immediate editing.
+					// Use _rowKey so unsaved variables (no id yet) are found correctly.
+					var content = document.getElementById('aff-edit-content');
+					if (content) {
+						var newVarObj = null;
+						var vars = AFF.state.variables;
+						for (var j = 0; j < vars.length; j++) {
+							if (vars[j].name === _newName) { newVarObj = vars[j]; break; }
+						}
+						if (newVarObj) {
+							var rowKey  = self._rowKey(newVarObj);
+							var newRow  = content.querySelector('.aff-color-row[data-var-id="' + rowKey + '"]');
+							var nameInp = newRow ? newRow.querySelector('.aff-var-name-input') : null;
+							if (nameInp) {
+								nameInp.removeAttribute('readonly');
+								nameInp.focus({ preventScroll: true });
+								nameInp.select();
+								newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+							}
+						}
+					}
 				} else if (!res.success) {
 					var msg = (res.data && res.data.message) ? res.data.message : 'Could not add variable.';
 					AFF.Modal.open({ title: 'Error', body: '<p>' + msg + '</p>' });
@@ -1373,10 +1472,18 @@
 
 		/** Re-render the current view using the existing currentSelection. */
 		_rerenderView: function () {
-			var content = document.getElementById('aff-edit-content');
-			if (content) {
-				this._renderAll(AFF.state.currentSelection || {}, content);
-			}
+			var content   = document.getElementById('aff-edit-content');
+			var editSpace = document.getElementById('aff-edit-space');
+			if (!content) { return; }
+			// Save scroll on both the panel's own scroll container (.aff-edit-space,
+			// overflow-y:auto) and the window — WordPress admin may be the outermost
+			// scrollable container depending on screen height. innerHTML replacement
+			// destroys the focused element which causes browsers to jump to top.
+			var savedPanel  = editSpace ? editSpace.scrollTop : 0;
+			var savedWindow = window.pageYOffset;
+			this._renderAll(AFF.state.currentSelection || {}, content);
+			if (editSpace) { editSpace.scrollTop = savedPanel; }
+			if (window.pageYOffset !== savedWindow) { window.scrollTo(0, savedWindow); }
 		},
 
 		/**
@@ -1467,8 +1574,9 @@
 		 * @param {HTMLElement} container
 		 */
 		_initCatDrag: function (container) {
-			var self = this;
-			var d    = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+			var self     = this;
+			var setLower = self._cfg.setName.toLowerCase();
+			var d        = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
 
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
@@ -1604,8 +1712,9 @@
 		 * @param {HTMLElement} container
 		 */
 		_initDrag: function (container) {
-			var self = this;
-			var d    = self._drag;
+			var self     = this;
+			var setLower = self._cfg.setName.toLowerCase();
+			var d        = self._drag;
 
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
@@ -2014,12 +2123,20 @@
 			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="2" x2="7" y2="12"/><polyline points="3 8 7 12 11 8"/></svg>';
 		},
 
+		/** Double-chevron down — expand-all icon, shown when all categories are collapsed. */
 		_expandAllSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 10 8 6 12 10"/><polyline points="4 14 8 10 12 14"/></svg>';
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<polyline points="6 5 12 11 18 5"/>'
+				+ '<polyline points="6 13 12 19 18 13"/>'
+				+ '</svg>';
 		},
 
+		/** Double-chevron up — collapse-all icon, shown when any category is expanded. */
 		_collapseAllSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 6 8 10 12 6"/><polyline points="4 2 8 6 12 2"/></svg>';
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<polyline points="18 11 12 5 6 11"/>'
+				+ '<polyline points="18 19 12 13 6 19"/>'
+				+ '</svg>';
 		},
 	};
 

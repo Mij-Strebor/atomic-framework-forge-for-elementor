@@ -1,5 +1,5 @@
 # AFF User Manual
-## Atomic Framework Forge for Elementor — Beta 0.3.4
+## Atomic Framework Forge for Elementor — Beta 0.4.0
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**
@@ -191,7 +191,7 @@ Each row in a category block shows:
 | Swatch / preview | Color swatch (Colors) or blank (Fonts, Numbers); click swatch to open the color picker |
 | Name | CSS custom property name (e.g., `--brand-primary`); click to rename |
 | Value | Current value; click to edit inline |
-| Format | Type selector: HEX / RGB / HSL for Colors; PX / REM / % etc. for Numbers |
+| Format | Type selector: HEX / RGB / HSL for Colors; PX / REM / % / fₓ etc. for Numbers |
 | › | Expand chevron — opens the detail panel (Colors only) |
 | 🗑 | Delete button — appears on hover |
 
@@ -217,7 +217,14 @@ Click the variable **name** in the row. The field becomes editable. Type the new
 Click the **value** field in the row. Type the new value and press **Enter** or click away. AFF validates and normalizes the value on blur:
 
 - **Colors:** Must be a valid HEX (`#RRGGBB` or `#RRGGBBAA`), `rgb()`, `rgba()`, `hsl()`, or `hsla()` value.
-- **Numbers:** Any numeric value with a unit (px, rem, %, etc.) or a `clamp()` / `calc()` expression.
+- **Numbers:** Enter a plain number (e.g. `16`, `1.5`, `100`). The unit is set by the **Format** selector. To change the unit while entering a value, add a type suffix — AFF strips it and updates the format automatically:
+  - `16px` → value `16`, format `PX`
+  - `1.5r` or `1.5rem` → value `1.5`, format `REM`
+  - `1.5e` or `1.5em` → value `1.5`, format `EM`
+  - `100pc` or `100PC` → value `100`, format `%`
+  - `50vw` / `50vh` / `2ch` → set the corresponding viewport/character unit
+  - `clamp(1rem, 2vw, 3rem)` (any expression with parentheses) → format `fₓ`, stored as-is
+  - Unrecognised suffix → red border + "invalid type" tooltip; save is blocked until corrected.
 - **Fonts:** Any valid font-family string.
 
 If the value is invalid, an error tooltip appears and the field reverts to the last good value.
@@ -560,7 +567,7 @@ The format that is pre-selected when you create a new variable in each set:
 |---------|---------|
 | Colors default type | HEX / RGB / HSL |
 | Fonts default type | System / Custom |
-| Numbers default type | PX / REM / % / EM / VW / VH / CH / FX |
+| Numbers default type | PX / REM / % / EM / VW / VH / CH / fₓ |
 
 ### Variable Sets — Default Categories
 

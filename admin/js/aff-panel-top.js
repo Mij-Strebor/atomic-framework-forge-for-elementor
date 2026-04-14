@@ -417,7 +417,7 @@
 			+ '<div>'
 			+ '<label class="aff-field-label" for="aff-proj-numbers-type" style="font-size:11px;margin-bottom:4px">Numbers</label>'
 			+ '<select class="aff-field-input" id="aff-proj-numbers-type" style="width:100%">'
-			+ ['PX','%','EM','REM','VW','VH','CH','FX'].map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('')
+			+ ['PX','%','EM','REM','VW','VH','CH','FX'].map(function (t) { return '<option value="' + t + '">' + (t === 'FX' ? 'f\u2093' : t) + '</option>'; }).join('')
 			+ '</select>'
 			+ '</div>'
 			+ '</div>'
@@ -810,10 +810,19 @@
 					format = 'HEX';
 				}
 
+				// Strip the unit suffix from Numbers values so the stored value is a
+				// pure number (e.g. '1.5rem' → '1.5', format 'REM'). FX expressions
+				// (clamp, calc, etc.) are kept as-is since they have no simple unit.
+				var storeValue = v.value;
+				if (isNumber && format !== 'FX') {
+					var stripped = (v.value || '').replace(/(-?[\d.]+)(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\s*$/i, '$1');
+					if (stripped !== v.value) { storeValue = stripped; }
+				}
+
 				AFF.state.variables.push({
 					id:          '',
 					name:        v.name.toLowerCase(),
-					value:       v.value,
+					value:       storeValue,
 					format:      format,
 					source:      'elementor-parsed',
 					type:        isColor ? 'color' : (isFont ? 'font' : (isNumber ? 'number' : 'unknown')),
