@@ -7,6 +7,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.1-beta] — 2026-04-14
+
+### Fixed
+
+- **Placeholder sign background** — The "Take a look" sign PNG now renders with a transparent background; transparent areas show the page theme colour instead of a checkerboard pattern (`mix-blend-mode: multiply` applied; edit-space background set to page theme colour).
+
+### Changed
+
+- **Version** — Bumped to 0.4.1-beta.
+
+---
+
 ## [0.4.0-beta] — 2026-04-14
 
 ### Added
@@ -314,6 +326,8 @@ Initial Alpha release.
 | **0.2.3** | Elementor sync lowercase names; Manage Project select-all; stacked `.aff` suffix fix |
 | **0.3.0-beta** | Versioned backup system; multi-project; two-level picker; right panel reorganization; sync options dialog; commit summary dialog; V3 Global Colors import |
 | **0.3.5-beta** | Load Project modal improvements; cross-module event fix; drag fixes; Write to Elementor kit CSS auto-regeneration; duplicate variable name prevention; removed forced `--` prefix |
+| **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
+| **0.4.1-beta** | Placeholder sign background transparency fix. |
 | **1.0.0** | Classes management; Components registry |
 | **2.0.0** | Components registry; Elementor Kit Manager API write-back; Bulk variable rename |
 | **Future** | Standalone Windows / Mac desktop application |

@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      6.9
 Requires PHP:      8.2
-Stable tag:        0.4.0-beta
+Stable tag:        0.4.1-beta
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ AFF allows developers to organize, edit, and persist the three core asset types 
 
 **Requires Elementor and Elementor Pro.**
 
-=== Key Features (Beta 0.4.0) ===
+=== Key Features (Beta 0.4.1) ===
 
 * **Sync from Elementor** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
 * **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
@@ -62,6 +62,9 @@ In your WordPress uploads directory under `/uploads/aff/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 0.4.1-beta =
+* Fixed placeholder sign background: transparent PNG areas now render against the page theme colour instead of showing a checkerboard pattern.
 
 = 0.4.0-beta =
 * Numbers editing overhaul: pure number storage, autofill unit suffix on entry (px, rem, em, %, vw, vh, ch, x=PX), FX function mode with auto-close, invalid suffix error.
