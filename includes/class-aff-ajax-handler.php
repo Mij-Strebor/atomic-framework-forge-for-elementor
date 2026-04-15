@@ -1022,6 +1022,12 @@ class AFF_Ajax_Handler {
 				continue;
 			}
 
+			// Normalize: Elementor Atomic widget convention omits the -- prefix.
+			// Always write a valid CSS custom property to the kit CSS.
+			if ( ! str_starts_with( $v['name'], '--' ) ) {
+				$v['name'] = '--' . $v['name'];
+			}
+
 			$name  = sanitize_text_field( $v['name'] );
 			$value = isset( $v['value'] ) ? sanitize_text_field( $v['value'] ) : '';
 
@@ -1044,7 +1050,12 @@ class AFF_Ajax_Handler {
 			$newly_committed = array();
 			foreach ( $skipped as $name ) {
 				foreach ( $variables as $v ) {
-					if ( isset( $v['name'] ) && $v['name'] === $name ) {
+					if ( ! isset( $v['name'] ) ) {
+						continue;
+					}
+					// Match against the normalized name — $name already has --; $v['name'] may not.
+					$v_normalized = str_starts_with( $v['name'], '--' ) ? $v['name'] : '--' . $v['name'];
+					if ( $v_normalized === $name ) {
 						$val           = sanitize_text_field( $v['value'] ?? '' );
 						$insert_block .= "\n  " . $name . ': ' . $val . ';';
 						$newly_committed[] = $name;
@@ -1357,7 +1368,7 @@ class AFF_Ajax_Handler {
 	// PRIVATE HELPERS — REQUEST, DECODING & VALIDATION
 	// -----------------------------------------------------------------------
 
-	private const CSS_VAR_PATTERN = '/^[A-Za-z0-9_-]+$/';
+	private const CSS_VAR_PATTERN = '/^(--)?[A-Za-z_][A-Za-z0-9_-]*$/';
 
 	/**
 	 * Decode a JSON string and send an error response if decoding fails.
