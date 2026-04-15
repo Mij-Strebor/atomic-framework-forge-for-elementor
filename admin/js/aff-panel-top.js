@@ -692,6 +692,7 @@
 					variables:  AFF.state.variables || [],
 					classes:    AFF.state.classes    || [],
 					components: AFF.state.components || [],
+					metadata:   AFF.state.metadata   || {},
 				};
 				AFF.App.ajax('aff_save_file', {
 					project_name: AFF.state.projectName,
@@ -716,6 +717,13 @@
 					if (res.success) {
 						var vars    = res.data.variables || [];
 						var source  = res.data.source    || '';
+
+						// Record which labels came from EV4 so the commit can detect
+						// variables deleted in AFF and remove them from Elementor.
+						if (!AFF.state.metadata) { AFF.state.metadata = {}; }
+						AFF.state.metadata.elementor_snapshot = vars.map(function (v) {
+							return (v.name || '').toLowerCase();
+						});
 
 						// Partition Elementor vars into: new / conflict / match.
 						var partition = AFF.Merge.buildConflictList(vars, AFF.state.variables);

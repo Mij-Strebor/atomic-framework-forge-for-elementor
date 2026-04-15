@@ -94,6 +94,7 @@
 						AFF.state.variables  = res.data.data.variables  || [];
 						AFF.state.classes    = res.data.data.classes    || [];
 						AFF.state.components = res.data.data.components || [];
+						AFF.state.metadata   = res.data.data.metadata   || {};
 						var _oldGroups = AFF.state.config && AFF.state.config.groups;
 						AFF.state.config     = res.data.data.config     || {};
 						if (!AFF.state.config.groups && _oldGroups) { AFF.state.config.groups = _oldGroups; }
@@ -157,6 +158,7 @@
 						AFF.state.variables  = res.data.data.variables  || [];
 						AFF.state.classes    = res.data.data.classes    || [];
 						AFF.state.components = res.data.data.components || [];
+						AFF.state.metadata   = res.data.data.metadata   || {};
 						var _oldGroupsAL = AFF.state.config && AFF.state.config.groups;
 						AFF.state.config     = res.data.data.config     || {};
 						if (!AFF.state.config.groups && _oldGroupsAL) { AFF.state.config.groups = _oldGroupsAL; }
@@ -1024,29 +1026,79 @@
 					var numMatch  = (v.value || '').match(/^(-?[\d.]+)/);
 					cssValue = numMatch ? numMatch[1] + unit : v.value;
 				}
-				return { name: v.name, value: cssValue };
+				return {
+					name:     v.name,
+					value:    cssValue,
+					type:     v.type     || '',
+					subgroup: v.subgroup || '',
+					format:   v.format   || '',
+				};
 			});
 
+			// Snapshot: labels imported from EV4 on last fetch — used server-side
+			// to detect variables deleted in AFF that should also be removed from EV4.
+			var snapshot = (AFF.state.metadata && AFF.state.metadata.elementor_snapshot)
+				? AFF.state.metadata.elementor_snapshot
+				: [];
+
 			AFF.App.ajax('aff_commit_to_elementor', {
-				filename:  AFF.state.currentFile,
-				variables: JSON.stringify(variables),
+				filename:           AFF.state.currentFile,
+				variables:          JSON.stringify(variables),
+				elementor_snapshot: JSON.stringify(snapshot),
 			}).then(function (res) {
 				if (res.success) {
 					var committed = res.data.committed || [];
+					var created   = res.data.created   || [];
+					var deleted   = res.data.deleted   || [];
 					var skipped   = res.data.skipped   || [];
 
+					// Update in-memory snapshot to current AFF variable names so the
+					// next commit correctly detects future deletions.
+					if (!AFF.state.metadata) { AFF.state.metadata = {}; }
+					AFF.state.metadata.elementor_snapshot = AFF.state.variables.map(function (v) {
+						return v.name;
+					});
+
+					// Persist the updated snapshot to disk.
+					if (AFF.state.currentFile && AFF.state.projectName) {
+						AFF.App.ajax('aff_save_file', {
+							project_name: AFF.state.projectName,
+							data: JSON.stringify({
+								version:    '1.0',
+								config:     AFF.state.config    || {},
+								variables:  AFF.state.variables || [],
+								classes:    AFF.state.classes    || [],
+								components: AFF.state.components || [],
+								metadata:   AFF.state.metadata,
+							}),
+						}).then(function (sr) {
+							if (sr.success && sr.data && sr.data.filename) {
+								AFF.state.currentFile = sr.data.filename;
+							}
+						}).catch(function () {
+							console.warn('[AFF] Snapshot save after commit failed.');
+						});
+					}
+
 					// Update variable statuses to 'synced' for committed vars.
+					var committedLc = committed.map(function (n) { return n.toLowerCase(); });
 					for (var i = 0; i < AFF.state.variables.length; i++) {
-						if (committed.indexOf(AFF.state.variables[i].name) !== -1) {
+						if (committedLc.indexOf((AFF.state.variables[i].name || '').toLowerCase()) !== -1) {
 							AFF.state.variables[i].status = 'synced';
 						}
 					}
 
 					AFF.App.setPendingCommit(false);
 
-					var msg = committed.length + ' variable(s) committed.';
+					var msg = committed.length + ' variable(s) written to Elementor.';
+					if (created.length > 0) {
+						msg += ' ' + created.length + ' new.';
+					}
+					if (deleted.length > 0) {
+						msg += ' ' + deleted.length + ' removed from Elementor: ' + deleted.join(', ') + '.';
+					}
 					if (skipped.length > 0) {
-						msg += ' ' + skipped.length + ' variable(s) not found in Elementor kit (check names).';
+						msg += ' ' + skipped.length + ' not found in CSS (refresh page to see all changes).';
 					}
 					AFF.Modal.open({ title: 'Commit complete', body: '<p>' + msg + '</p>' });
 

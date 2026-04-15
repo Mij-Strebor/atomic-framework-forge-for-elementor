@@ -971,13 +971,24 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Commit AFF color variable values back to Elementor's kit CSS file.
+	 * Commit AFF variables to Elementor.
 	 *
-	 * Reads the Elementor kit CSS, replaces matching variable values in the
-	 * last `:root` block (the Elementor v4 atomic block), writes the file back,
-	 * triggers Elementor CSS regeneration, and updates the baseline.
+	 * PRIMARY: Updates _elementor_global_variables post meta — Elementor's
+	 * authoritative store. This makes changes visible in EV4's Variables Manager
+	 * and survives Elementor's next CSS regeneration.
 	 *
-	 * POST params: filename, variables (JSON array of {name, value} to commit)
+	 * SECONDARY: Also patches the kit CSS file directly for immediate visual
+	 * effect without requiring a page reload to trigger EV4 regeneration.
+	 *
+	 * Deletions: variables present in elementor_snapshot (sent by client) but
+	 * absent from the current variable list are removed from EV4 meta. Only
+	 * variables AFF has previously imported are eligible for deletion — EV4
+	 * variables that AFF has never seen are always left untouched.
+	 *
+	 * POST params:
+	 *   filename           - current .aff.json relative path
+	 *   variables          - JSON array of {name, value, type, subgroup, format}
+	 *   elementor_snapshot - JSON array of label names from last EV4 import
 	 */
 	// Intentional Phase 5 write-back exception — see AFF CLAUDE.md Critical Rule #1.
 	public function ajax_aff_commit_to_elementor(): void {
@@ -987,7 +998,140 @@ class AFF_Ajax_Handler {
 		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
 		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
 
-		// Locate the Elementor kit CSS file; attempt regeneration if missing.
+		$snapshot_raw = isset( $_POST['elementor_snapshot'] ) ? wp_unslash( $_POST['elementor_snapshot'] ) : '[]';
+		$snapshot     = json_decode( $snapshot_raw, true );
+		if ( ! is_array( $snapshot ) ) {
+			$snapshot = array();
+		}
+
+		// -----------------------------------------------------------------------
+		// PRIMARY — Update _elementor_global_variables post meta.
+		// -----------------------------------------------------------------------
+		$kit_id      = AFF_CSS_Parser::get_active_kit_id();
+		$meta_ok     = false;
+		$ev4_updated = array(); // labels updated in existing EV4 entries
+		$ev4_created = array(); // labels added as new EV4 entries
+		$ev4_deleted = array(); // labels removed from EV4
+
+		if ( $kit_id ) {
+			$raw = get_post_meta( $kit_id, '_elementor_global_variables', true );
+
+			if ( is_string( $raw ) && '' !== $raw ) {
+				$meta = json_decode( $raw, true );
+			} else {
+				$meta = is_array( $raw ) ? $raw : array();
+			}
+
+			if ( empty( $meta ) || ! is_array( $meta ) ) {
+				$meta = array( 'data' => array(), 'watermark' => 0, 'version' => 2 );
+			}
+
+			$existing  = is_array( $meta['data'] ?? null ) ? $meta['data'] : array();
+			$watermark = (int) ( $meta['watermark'] ?? 0 );
+			$now       = current_time( 'Y-m-d H:i:s' );
+
+			// Build a case-insensitive label → EV4 entry ID map for fast lookup.
+			$label_index = array();
+			foreach ( $existing as $eid => $entry ) {
+				$lc = strtolower( $entry['label'] ?? '' );
+				if ( '' !== $lc ) {
+					$label_index[ $lc ] = $eid;
+				}
+			}
+
+			// Collect the lowercased names of variables being committed.
+			$current_names_lc = array();
+			foreach ( $variables as $v ) {
+				if ( isset( $v['name'] ) && is_string( $v['name'] ) ) {
+					$current_names_lc[] = strtolower( $v['name'] );
+				}
+			}
+
+			// Deletions: snapshot labels no longer present in AFF.
+			foreach ( $snapshot as $snap_label ) {
+				$snap_lc = strtolower( (string) $snap_label );
+				if ( ! in_array( $snap_lc, $current_names_lc, true ) ) {
+					if ( isset( $label_index[ $snap_lc ] ) ) {
+						$eid = $label_index[ $snap_lc ];
+						unset( $existing[ $eid ], $label_index[ $snap_lc ] );
+						$ev4_deleted[] = (string) $snap_label;
+						$watermark++;
+					}
+				}
+			}
+
+			// Compute max order for new entries.
+			$max_order = 0;
+			foreach ( $existing as $entry ) {
+				$o = (int) ( $entry['order'] ?? 0 );
+				if ( $o > $max_order ) {
+					$max_order = $o;
+				}
+			}
+
+			// Update or create each AFF variable in EV4 meta.
+			foreach ( $variables as $v ) {
+				if ( ! is_array( $v ) || ! isset( $v['name'] ) ) {
+					continue;
+				}
+
+				$label = sanitize_text_field( $v['name'] );
+				if ( ! $this->is_valid_css_var( $label ) ) {
+					continue;
+				}
+
+				$css_value  = sanitize_text_field( $v['value']    ?? '' );
+				$aff_type   = sanitize_text_field( $v['type']     ?? '' );
+				$subgroup   = sanitize_text_field( $v['subgroup'] ?? '' );
+				$format     = sanitize_text_field( $v['format']   ?? '' );
+				$label_lc   = strtolower( $label );
+				$meta_value = $this->build_elementor_meta_value( $css_value, $aff_type, $subgroup, $format );
+
+				if ( isset( $label_index[ $label_lc ] ) ) {
+					// Update existing — preserve original EV4 label casing.
+					$eid = $label_index[ $label_lc ];
+					$existing[ $eid ]['value']      = $meta_value;
+					$existing[ $eid ]['updated_at'] = $now;
+					$watermark++;
+					$ev4_updated[] = $label;
+				} else {
+					// Create new entry.
+					$new_id     = $this->generate_elementor_var_id();
+					$ev4_type   = $this->get_elementor_var_type( $aff_type, $subgroup );
+					$max_order++;
+					$existing[ $new_id ] = array(
+						'label'      => $label,
+						'value'      => $meta_value,
+						'type'       => $ev4_type,
+						'order'      => $max_order,
+						'created_at' => $now,
+						'updated_at' => $now,
+					);
+					$watermark++;
+					$ev4_created[] = $label;
+				}
+			}
+
+			$meta['data']      = $existing;
+			$meta['watermark'] = $watermark;
+
+			$encoded = wp_json_encode( $meta );
+			if ( false !== $encoded ) {
+				update_post_meta( $kit_id, '_elementor_global_variables', $encoded );
+				$meta_ok = true;
+				// Clear Elementor's CSS cache so it regenerates from the updated meta.
+				$this->clear_elementor_css_cache();
+			}
+		}
+
+		// -----------------------------------------------------------------------
+		// SECONDARY — Patch the kit CSS file for immediate visual effect.
+		// Keeps the page styled without requiring a browser reload to trigger
+		// Elementor's CSS regeneration from the (now updated) meta.
+		// -----------------------------------------------------------------------
+		$css_committed = array();
+		$css_skipped   = array();
+
 		$parser   = new AFF_CSS_Parser();
 		$css_file = $parser->find_kit_css_file();
 
@@ -995,111 +1139,72 @@ class AFF_Ajax_Handler {
 			$css_file = $this->try_regenerate_elementor_kit_css();
 		}
 
-		if ( ! $css_file ) {
-			wp_send_json_error( array(
-				'message' => __( 'Elementor kit CSS file not found. Regenerate CSS from Elementor → Tools → Regenerate Files.', 'atomic-framework-forge-for-elementor' ),
-			) );
-		}
+		if ( $css_file ) {
+			$fs = $this->get_wp_filesystem();
+			if ( $fs && $fs->is_writable( $css_file ) ) {
+				$css = @file_get_contents( $css_file );
+				if ( false !== $css ) {
+					foreach ( $variables as $v ) {
+						if ( ! is_array( $v ) || ! isset( $v['name'] ) || ! $this->is_valid_css_var( $v['name'] ) ) {
+							continue;
+						}
+						$css_name = sanitize_text_field( '--' . $v['name'] );
+						$value    = sanitize_text_field( $v['value'] ?? '' );
+						$pattern  = '/' . preg_quote( $css_name, '/' ) . '\s*:\s*[^;]+;/';
+						$new_css  = preg_replace( $pattern, $css_name . ': ' . $value . ';', $css, -1, $count );
 
-		$fs = $this->get_wp_filesystem();
-		if ( ! $fs || ! $fs->is_writable( $css_file ) ) {
-			wp_send_json_error( array(
-				/* translators: %s: absolute file path */
-				'message' => sprintf( __( 'Kit CSS file is not writable: %s', 'atomic-framework-forge-for-elementor' ), esc_html( $css_file ) ),
-			) );
-		}
-
-		$css = file_get_contents( $css_file );
-		if ( false === $css ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read kit CSS file.', 'atomic-framework-forge-for-elementor' ) ) );
-		}
-
-		$committed = array();
-		$skipped   = array();
-
-		foreach ( $variables as $v ) {
-			if ( ! is_array( $v ) || ! isset( $v['name'] ) ) {
-				continue;
-			}
-
-			// Validate the stored name (may be 'purple' or '--purple'), then prepend
-			// -- for CSS output — matching EV4: 'purple' → '--purple', '--purple' → '----purple'.
-			if ( ! $this->is_valid_css_var( $v['name'] ) ) {
-				continue;
-			}
-			$v['name'] = '--' . $v['name'];
-
-			$name  = sanitize_text_field( $v['name'] );
-			$value = isset( $v['value'] ) ? sanitize_text_field( $v['value'] ) : '';
-
-			// Replace value in the CSS: target `--name: anything;` pattern.
-			$pattern     = '/' . preg_quote( $name, '/' ) . '\s*:\s*[^;]+;/';
-			$replacement = $name . ': ' . $value . ';';
-			$new_css     = preg_replace( $pattern, $replacement, $css, -1, $count );
-
-			if ( $count > 0 ) {
-				$css         = $new_css;
-				$committed[] = $name;
-			} else {
-				$skipped[] = $name;
-			}
-		}
-
-		// Insert pass — add newly-created variables not yet in the CSS.
-		if ( ! empty( $skipped ) ) {
-			$insert_block    = '';
-			$newly_committed = array();
-			foreach ( $skipped as $name ) {
-				foreach ( $variables as $v ) {
-					if ( ! isset( $v['name'] ) ) {
-						continue;
+						if ( $count > 0 ) {
+							$css             = $new_css;
+							$css_committed[] = $css_name;
+						} else {
+							$css_skipped[] = $css_name;
+						}
 					}
-					// $name already has -- prepended; mirror that for the lookup.
-					$v_normalized = '--' . $v['name'];
-					if ( $v_normalized === $name ) {
-						$val           = sanitize_text_field( $v['value'] ?? '' );
-						$insert_block .= "\n  " . $name . ': ' . $val . ';';
-						$newly_committed[] = $name;
-						break;
+
+					// Insert pass — add variables not yet present in the CSS file.
+					if ( ! empty( $css_skipped ) ) {
+						$insert_block    = '';
+						$newly_added     = array();
+						foreach ( $css_skipped as $css_name ) {
+							foreach ( $variables as $v ) {
+								if ( isset( $v['name'] ) && '--' . $v['name'] === $css_name ) {
+									$insert_block .= "\n  " . $css_name . ': ' . sanitize_text_field( $v['value'] ?? '' ) . ';';
+									$newly_added[] = $css_name;
+									break;
+								}
+							}
+						}
+						if ( $insert_block ) {
+							$pos = $this->find_user_root_close_pos( $css );
+							if ( false !== $pos ) {
+								$css = substr( $css, 0, $pos ) . $insert_block . "\n" . substr( $css, $pos );
+							} else {
+								$css .= "\n\n/* AFF user-defined variables */\n:root {" . $insert_block . "\n}\n";
+							}
+							foreach ( $newly_added as $n ) {
+								$css_committed[] = $n;
+							}
+							$css_skipped = array_values( array_diff( $css_skipped, $newly_added ) );
+						}
+					}
+
+					if ( ! empty( $css_committed ) ) {
+						@file_put_contents( $css_file, $css );
 					}
 				}
 			}
-			if ( $insert_block ) {
-				// Find the user-defined :root block (the one that contains no --e-global- / system vars).
-				// If found, insert before its closing }. If not found, append a new :root block.
-				$user_root_close = $this->find_user_root_close_pos( $css );
-				if ( false !== $user_root_close ) {
-					$css = substr( $css, 0, $user_root_close )
-						. $insert_block . "\n"
-						. substr( $css, $user_root_close );
-				} else {
-					// No user-variables :root block exists — append one.
-					$css .= "\n\n/* AFF user-defined variables */\n:root {" . $insert_block . "\n}\n";
-				}
-				foreach ( $newly_committed as $n ) {
-					$committed[] = $n;
-				}
-				$skipped = array_values( array_diff( $skipped, $newly_committed ) );
-			}
 		}
 
-		if ( ! empty( $committed ) ) {
-			if ( false === file_put_contents( $css_file, $css ) ) {
-				wp_send_json_error( array( 'message' => __( 'Could not write kit CSS file. Check file permissions.', 'atomic-framework-forge-for-elementor' ) ) );
-			}
-		}
-
-		// NOTE: We intentionally do NOT call do_action('elementor/css-file/clear-cache') here.
-		// Doing so causes Elementor to regenerate CSS from its database, which would overwrite
-		// the variables AFF just inserted. The CSS file is the source of truth for AFF variables.
-
-		// Update the baseline to reflect the committed values.
-		$baseline_vars = array();
-		foreach ( $committed as $name ) {
+		// -----------------------------------------------------------------------
+		// BASELINE — record committed values for change-tracking.
+		// -----------------------------------------------------------------------
+		$all_committed_labels = array_merge( $ev4_updated, $ev4_created );
+		$baseline_vars        = array();
+		foreach ( $all_committed_labels as $label ) {
 			foreach ( $variables as $v ) {
-				if ( isset( $v['name'] ) && $v['name'] === $name ) {
+				if ( isset( $v['name'] ) && strtolower( $v['name'] ) === strtolower( $label ) ) {
 					$baseline_vars[] = array(
-						'name'  => $name,
+						'name'  => $label,
 						'value' => sanitize_text_field( $v['value'] ?? '' ),
 					);
 					break;
@@ -1107,10 +1212,9 @@ class AFF_Ajax_Handler {
 			}
 		}
 		if ( ! empty( $baseline_vars ) ) {
-			// Merge into existing baseline.
-			$existing  = AFF_Data_Store::get_baseline( $filename );
-			$index     = array();
-			foreach ( $existing as $bv ) {
+			$existing_bl = AFF_Data_Store::get_baseline( $filename );
+			$index       = array();
+			foreach ( $existing_bl as $bv ) {
 				$index[ $bv['name'] ] = $bv['value'];
 			}
 			foreach ( $baseline_vars as $bv ) {
@@ -1123,12 +1227,131 @@ class AFF_Ajax_Handler {
 			AFF_Data_Store::save_baseline( $filename, $merged );
 		}
 
+		// -----------------------------------------------------------------------
+		// RESPONSE
+		// -----------------------------------------------------------------------
+		$total = count( $all_committed_labels );
+		/* translators: %d: number of variables written */
+		$msg = sprintf( __( '%d variable(s) written to Elementor.', 'atomic-framework-forge-for-elementor' ), $total );
+		if ( ! empty( $ev4_created ) ) {
+			/* translators: %d: number of new variables */
+			$msg .= ' ' . sprintf( __( '%d new.', 'atomic-framework-forge-for-elementor' ), count( $ev4_created ) );
+		}
+		if ( ! empty( $ev4_deleted ) ) {
+			/* translators: %d: number of removed variables */
+			$msg .= ' ' . sprintf( __( '%d removed from Elementor.', 'atomic-framework-forge-for-elementor' ), count( $ev4_deleted ) );
+		}
+		if ( ! $meta_ok ) {
+			$msg .= ' ' . __( '(CSS file only — Elementor kit meta unavailable.)', 'atomic-framework-forge-for-elementor' );
+		}
+
 		wp_send_json_success( array(
-			'committed' => $committed,
-			'skipped'   => $skipped,
-			/* translators: %d: number of variables committed */
-			'message'   => sprintf( __( '%d variable(s) committed to Elementor.', 'atomic-framework-forge-for-elementor' ), count( $committed ) ),
+			'committed' => $all_committed_labels,
+			'created'   => $ev4_created,
+			'deleted'   => $ev4_deleted,
+			'skipped'   => $css_skipped,
+			'message'   => $msg,
 		) );
+	}
+
+	// -----------------------------------------------------------------------
+	// PRIVATE HELPERS — Elementor meta write-back
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Build an Elementor v4 meta value object from an AFF variable's CSS value.
+	 *
+	 * EV4 wraps every value in { "$$type": "...", "value": ... }. The exact
+	 * shape of `value` depends on the type: plain string for colors/strings,
+	 * { size, unit } for sizes.
+	 *
+	 * @param string $css_value Full CSS value string (e.g. '9rem', '#f00', 'clamp(...)').
+	 * @param string $aff_type  AFF type field ('color', 'number', 'font', etc.).
+	 * @param string $subgroup  AFF subgroup ('Colors', 'Numbers', 'Fonts', etc.).
+	 * @param string $format    AFF format field ('HEX', 'REM', 'PX', 'FX', etc.).
+	 * @return array EV4 meta value: { $$type, value }.
+	 */
+	private function build_elementor_meta_value( string $css_value, string $aff_type, string $subgroup, string $format ): array {
+		$is_color = ( 'color' === $aff_type || 'Colors' === $subgroup );
+		$is_size  = ( 'number' === $aff_type || 'Numbers' === $subgroup );
+
+		if ( $is_color ) {
+			return array( '$$type' => 'color', 'value' => $css_value );
+		}
+
+		if ( $is_size ) {
+			// FX format = clamp/calc/etc. — store the full expression as a custom unit.
+			if ( 'FX' === $format || preg_match( '/^(clamp|calc|min|max)\s*\(/i', $css_value ) ) {
+				return array(
+					'$$type' => 'size',
+					'value'  => array( 'size' => $css_value, 'unit' => 'custom' ),
+				);
+			}
+			$parsed = $this->parse_size_value( $css_value );
+			return array(
+				'$$type' => 'size',
+				'value'  => array( 'size' => $parsed['size'], 'unit' => $parsed['unit'] ),
+			);
+		}
+
+		// Default: string type (fonts, custom expressions, etc.).
+		return array( '$$type' => 'string', 'value' => $css_value );
+	}
+
+	/**
+	 * Parse a CSS size value string into a { size, unit } pair.
+	 *
+	 * @param string $value e.g. '1.5rem', '16px', '100%'
+	 * @return array { 'size' => float, 'unit' => string }
+	 */
+	private function parse_size_value( string $value ): array {
+		if ( preg_match( '/^(-?[\d.]+)\s*([a-z%]*)$/i', $value, $m ) ) {
+			$unit = strtolower( $m[2] ) ?: 'px';
+			return array( 'size' => (float) $m[1], 'unit' => $unit );
+		}
+		// Fallback: treat unrecognised values as custom.
+		return array( 'size' => $value, 'unit' => 'custom' );
+	}
+
+	/**
+	 * Map AFF type/subgroup to the Elementor variable type string stored in meta.
+	 *
+	 * @param string $aff_type AFF type field.
+	 * @param string $subgroup AFF subgroup.
+	 * @return string EV4 type string.
+	 */
+	private function get_elementor_var_type( string $aff_type, string $subgroup ): string {
+		if ( 'color' === $aff_type || 'Colors' === $subgroup ) {
+			return 'global-color-variable';
+		}
+		if ( 'number' === $aff_type || 'Numbers' === $subgroup ) {
+			return 'global-size-variable';
+		}
+		return 'global-variable';
+	}
+
+	/**
+	 * Generate an Elementor v4 variable ID in e-gv-XXXXXXX format.
+	 *
+	 * @return string
+	 */
+	private function generate_elementor_var_id(): string {
+		return 'e-gv-' . substr( md5( uniqid( '', true ) ), 0, 7 );
+	}
+
+	/**
+	 * Clear Elementor's generated CSS cache.
+	 *
+	 * Deletes cached CSS files so Elementor regenerates them from the
+	 * (now updated) post meta on the next page request.
+	 */
+	private function clear_elementor_css_cache(): void {
+		if (
+			class_exists( '\Elementor\Plugin' ) &&
+			isset( \Elementor\Plugin::$instance->files_manager )
+		) {
+			\Elementor\Plugin::$instance->files_manager->clear_cache();
+		}
 	}
 
 	// -----------------------------------------------------------------------
