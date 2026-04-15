@@ -671,12 +671,39 @@
 		// ------------------------------------------------------------------
 
 		_syncFromElementor: function (options) {
-			var self   = this;
-			var silent = options && options.silent;
-			var btn    = document.getElementById('aff-btn-sync-variables');
+			var self      = this;
+			var silent    = options && options.silent;
+			var clearMode = options && options.clearMode;
+			var btn       = document.getElementById('aff-btn-sync-variables');
 			if (btn) {
 				btn.style.opacity = '0.5';
 				btn.disabled      = true;
+			}
+
+			// In clear+replace mode, persist the in-memory state (now the freshly
+			// synced variables) to disk immediately after all vars are applied.
+			// Without this, the first write operation (e.g. Add Variable) reads the
+			// stale .aff.json and overwrites the synced state with the old one.
+			function autoSaveIfClearMode() {
+				if (!clearMode || !AFF.state.currentFile || !AFF.state.projectName) { return; }
+				var saveData = {
+					version:    '1.0',
+					config:     AFF.state.config    || {},
+					variables:  AFF.state.variables || [],
+					classes:    AFF.state.classes    || [],
+					components: AFF.state.components || [],
+				};
+				AFF.App.ajax('aff_save_file', {
+					project_name: AFF.state.projectName,
+					data:         JSON.stringify(saveData),
+				}).then(function (res) {
+					if (res.success && res.data && res.data.filename) {
+						AFF.state.currentFile = res.data.filename;
+						if (AFF.App) { AFF.App.setDirty(false); }
+					}
+				}).catch(function () {
+					console.warn('[AFF] Auto-save after clear+replace failed.');
+				});
 			}
 
 			AFF.App.ajax('aff_sync_from_elementor', {})
@@ -727,6 +754,7 @@
 										AFF.App.setDirty(true);
 									}
 									self._postSyncRefresh(source, partition.newVars.length, partition.conflictVars.length);
+									autoSaveIfClearMode();
 								},
 								function () {
 									// User cancelled — new vars already added; no further action.
@@ -734,6 +762,7 @@
 										AFF.App.setDirty(true);
 										self._postSyncRefresh(source, partition.newVars.length, 0);
 									}
+									autoSaveIfClearMode();
 								}
 							);
 						} else {
@@ -745,6 +774,7 @@
 							if (!silent) {
 								self._postSyncRefresh(source, partition.newVars.length, 0);
 							}
+							autoSaveIfClearMode();
 						}
 
 					} else if (!silent) {
