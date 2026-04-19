@@ -145,6 +145,11 @@ class AFF_Admin {
 				'version'   => AFF_VERSION,
 				'uploadUrl' => $this->get_aff_upload_dir_url(),
 				'pluginUrl' => AFF_PLUGIN_URL,
+				// Elementor version data for runtime safety check.
+				'elVersion'       => defined( 'ELEMENTOR_VERSION' )     ? ELEMENTOR_VERSION     : null,
+				'elProVersion'    => defined( 'ELEMENTOR_PRO_VERSION' ) ? ELEMENTOR_PRO_VERSION : null,
+				'elDevVersion'    => AFF_DEV_ELEMENTOR_VERSION,
+				'elProDevVersion' => AFF_DEV_ELEMENTOR_PRO_VERSION,
 			)
 		);
 	}

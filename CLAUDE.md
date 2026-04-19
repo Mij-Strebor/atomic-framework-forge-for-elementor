@@ -29,7 +29,7 @@ AFF is a WordPress admin plugin that provides a management interface for **Eleme
 2. **Classes** — Developer-defined CSS class names on atomic widgets (future)
 3. **Components** — User-assembled widget compositions (future)
 
-**Current phase: v0.3.5-beta.** Full Variables workflow is production-ready: sync from Elementor, organize into categories, inline edit, drag-reorder, versioned project backups, commit back to Elementor kit CSS. Classes and Components are future phases.
+**Current phase: v0.3.5-beta.** Full Variables workflow is test-ready: sync from Elementor, organize into categories, inline edit, drag-reorder, versioned project backups, commit back to Elementor kit CSS. Classes and Components are future phases.
 
 ---
 
@@ -122,9 +122,6 @@ Pure PHP/JS/CSS. No npm, no Babel, no bundler. ES6+ is fine (modern browser targ
 
 ### 5. Font override must be scoped
 The Inter font override uses `!important` — it must be scoped within `.aff-app *`, never bare `*`, to avoid bleeding into WordPress admin styles outside the AFF panel.
-
-### 6. Elementor v4 `lamp()` quirk
-Elementor v4's variable editor has a known typo where it outputs `lamp()` instead of `clamp()`. `AFF_CSS_Parser::normalize_value()` already corrects this. Do not add workarounds elsewhere — funnel all CSS value normalization through that method.
 
 ---
 

@@ -160,6 +160,15 @@ class AFF_CSS_Parser {
 			);
 
 			if ( ! empty( $user_vars ) ) {
+				// Strip exactly one -- AFTER filtering (is_user_variable needs the full
+				// CSS name intact for its prefix checks). EV4 adds one -- when writing
+				// CSS, so removing one -- recovers the label the user originally typed:
+				//   --purple    → purple   (user typed 'purple')
+				//   ----purple  → --purple (user typed '--purple')
+				foreach ( $user_vars as &$v ) {
+					$v['name'] = substr( $v['name'], 2 );
+				}
+				unset( $v );
 				return $user_vars;
 			}
 		}
@@ -326,7 +335,10 @@ class AFF_CSS_Parser {
 			}
 
 			$variables[] = array(
-				'name'    => '--' . $label,
+				// $label is exactly what the user typed in EV4 — preserve it as-is.
+				// EV4 prepends -- when writing CSS, so 'purple' → '--purple' in CSS,
+				// '--purple' → '----purple' in CSS. AFF stores the label unchanged.
+				'name'    => $label,
 				'value'   => $this->normalize_value( $value ),
 				'el_type' => $el_type,  // Elementor type hint ('color'|'size'|'string')
 				'el_unit' => $el_unit,  // Elementor size unit when el_type === 'size'
@@ -372,6 +384,12 @@ class AFF_CSS_Parser {
 
 			if ( 'auto' === $unit ) {
 				return 'auto';
+			}
+
+			// 'custom' means the size field already contains the full CSS expression
+			// (e.g. a clamp() or calc()) — there is no separate unit suffix to append.
+			if ( 'custom' === $unit ) {
+				return trim( (string) $size );
 			}
 
 			return trim( $size . $unit );

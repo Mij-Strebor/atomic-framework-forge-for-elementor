@@ -38,16 +38,16 @@
    ========================================================================== */
 
 .aff-colors-filter-bar {
-	display:       flex;
+	display:        flex;
 	flex-direction: column;
-	border:        none;
-	border-radius: 12px;
-	margin-bottom: 32px;
-	background:    var(--aff-bg-panel);
-	position:      sticky;
-	top:           0;
-	z-index:       10;
-	flex-shrink:   0;
+	border:         none;
+	border-radius:  12px;
+	margin-bottom:  32px;
+	background:     var(--aff-clr-primary);
+	position:       sticky;
+	top:            0;
+	z-index:        10;
+	flex-shrink:    0;
 }
 
 /* Top row: COLORS title + search + close btn + collapse toggle */
@@ -62,10 +62,19 @@
 .aff-filter-bar-set-name {
 	font-size:      var(--fs-xxl);
 	font-weight:    var(--fw-bold);
-	color:          var(--aff-clr-primary);
+	color:          var(--aff-bg-page);
 	text-transform: capitalize;
 	user-select:    none;
 	padding-left:   40px;
+}
+
+/* Icon buttons inside the filter bar must read against the primary-color background. */
+.aff-colors-filter-bar .aff-icon-btn {
+	color: var(--aff-bg-page);
+}
+.aff-colors-filter-bar .aff-icon-btn:hover {
+	color:   var(--aff-bg-page);
+	opacity: 0.75;
 }
 
 /* Add Category button: circle on the bottom-left border of the set header (mirrors .aff-cat-add-btn-wrap) */

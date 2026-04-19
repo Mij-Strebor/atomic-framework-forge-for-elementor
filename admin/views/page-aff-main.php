@@ -51,9 +51,9 @@ function aff_icon( string $name ): string {
 				<?php echo aff_icon( 'gear' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</button>
 			<button class="aff-icon-btn" id="aff-btn-manage-project"
-			        aria-label="<?php esc_attr_e( 'Manage Project', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Manage Project', 'atomic-framework-forge-for-elementor' ); ?>"
-		        data-aff-tooltip-long="<?php esc_attr_e( 'Manage Project — edit the project name, color categories, and subgroup layout', 'atomic-framework-forge-for-elementor' ); ?>">
+			        aria-label="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-aff-tooltip="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
+		        data-aff-tooltip-long="<?php esc_attr_e( 'Manage Projects — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php echo aff_icon( 'grid' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</button>
 			<div class="aff-dropdown-wrap" id="aff-dropdown-wrap-functions">
@@ -73,6 +73,9 @@ function aff_icon( string $name ): string {
 					<li class="aff-dropdown__item" data-action="change-types" role="menuitem">
 						<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
 						<span class="aff-badge aff-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
+					</li>
+					<li class="aff-dropdown__item" data-action="diagnose" role="menuitem">
+						<?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>
 					</li>
 				</ul>
 			</div>
@@ -277,10 +280,10 @@ function aff_icon( string $name ): string {
 					<?php esc_html_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>
 				</button>
 				<button class="aff-btn" id="aff-btn-load"
-				        aria-label="<?php esc_attr_e( 'Open or switch project', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-aff-tooltip="<?php esc_attr_e( 'Open/Switch Project', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-aff-tooltip-long="<?php esc_attr_e( 'Open the project picker to load a saved project or restore a backup snapshot', 'atomic-framework-forge-for-elementor' ); ?>">
-					<?php esc_html_e( 'Open/Switch Project', 'atomic-framework-forge-for-elementor' ); ?>
+				        aria-label="<?php esc_attr_e( 'Open the Project Manager', 'atomic-framework-forge-for-elementor' ); ?>"
+				        data-aff-tooltip="<?php esc_attr_e( 'Project Manager', 'atomic-framework-forge-for-elementor' ); ?>"
+				        data-aff-tooltip-long="<?php esc_attr_e( 'Project Manager — open, create, copy, rename, or delete projects and restore backup snapshots', 'atomic-framework-forge-for-elementor' ); ?>">
+					<?php esc_html_e( 'Project Manager', 'atomic-framework-forge-for-elementor' ); ?>
 				</button>
 			</div><!-- Active Project -->
 

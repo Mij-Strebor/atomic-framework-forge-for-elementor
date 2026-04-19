@@ -66,6 +66,7 @@
 				active: false, varId: null, ghost: null,
 				indicator: null, startY: 0, scrollTimer: null,
 				_dropTargetId: null, _dropAbove: null,
+				_expandedCatBlock: null,
 			};
 
 			AFF.Variables._sets[cfg.setName] = inst;
@@ -181,7 +182,7 @@
 				if (!_tcCollapsed) { _anyExpanded = true; break; }
 			}
 			var _toggleState = _anyExpanded ? 'expanded' : 'collapsed';
-			var _toggleSVG   = _anyExpanded ? self._collapseAllSVG() : self._expandAllSVG();
+			var _toggleSVG   = _anyExpanded ? AFF.Icons.collapseAllSVG() : AFF.Icons.expandAllSVG();
 			var _toggleTitle = _anyExpanded ? 'Collapse all categories' : 'Expand all categories';
 
 			var html = '<div class="aff-' + setLower + '-view">';
@@ -189,7 +190,7 @@
 			// ---- Filter bar ----
 			html += '<div class="aff-colors-filter-bar aff-' + setLower + '-filter-bar">'
 				+ '<div class="aff-filter-bar-top">'
-				+ '<span class="aff-filter-bar-set-name">' + self._esc(cfg.setName) + '</span>'
+				+ '<span class="aff-filter-bar-set-name">' + AFF.Utils.escAttr(cfg.setName) + '</span>'
 				+ '<span style="flex:1"></span>'
 				+ '<input type="text" class="aff-colors-search aff-' + setLower + '-search"'
 				+ ' id="aff-' + setLower + '-search"'
@@ -199,7 +200,7 @@
 				+ ' id="aff-' + setLower + '-back"'
 				+ ' data-aff-tooltip="Close ' + cfg.setName + ' view"'
 				+ ' aria-label="Close ' + cfg.setName + ' view">'
-				+ self._closeSVG()
+				+ AFF.Icons.closeSVG()
 				+ '</button>'
 				+ '<button class="aff-icon-btn"'
 				+ ' id="aff-' + setLower + '-collapse-toggle"'
@@ -214,7 +215,7 @@
 				+ ' id="aff-' + setLower + '-add-category"'
 				+ ' data-aff-tooltip="Add category"'
 				+ ' aria-label="Add category">'
-				+ self._plusCircleSVG()
+				+ AFF.Icons.plusCircleSVG()
 				+ '</button>'
 				+ '</div>'
 				+ '</div>'; // filter bar
@@ -261,7 +262,7 @@
 			}
 
 			var html = '<div class="aff-category-block"'
-				+ ' data-category-id="' + self._esc(cat.id) + '"'
+				+ ' data-category-id="' + AFF.Utils.escAttr(cat.id) + '"'
 				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '">'
 				+ '<div class="aff-category-inner">';
 
@@ -271,22 +272,22 @@
 				+ '<div class="aff-cat-header-left">'
 				+ '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
 				+ ' data-aff-tooltip="Drag to reorder">'
-				+ self._sixDotSVG()
+				+ AFF.Icons.sixDotSVG()
 				+ '</span>'
 				+ '<span class="aff-category-name-input"'
-				+ ' data-cat-id="' + self._esc(cat.id) + '"'
-				+ ' data-original="' + self._esc(cat.name) + '"'
+				+ ' data-cat-id="' + AFF.Utils.escAttr(cat.id) + '"'
+				+ ' data-original="' + AFF.Utils.escAttr(cat.name) + '"'
 				+ ' aria-label="Category name"'
 				+ ' contenteditable="false"'
 				+ (cat.locked ? ' data-locked="true"' : '') + '>'
-				+ self._esc(cat.name)
+				+ AFF.Utils.escAttr(cat.name)
 				+ '</span>'
 				+ '<span class="aff-category-count">' + count + '</span>'
 				+ '</div>' // .aff-cat-header-left
 				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
-				+ self._catBtn('duplicate', 'Duplicate category', self._duplicateSVG(), '')
-				+ (cat.locked ? '' : self._catBtn('delete', 'Delete category', self._trashSVG(), 'aff-icon-btn--danger'))
-				+ self._catBtn('collapse', 'Collapse/expand category', self._chevronSVG(), 'aff-category-collapse-btn')
+				+ AFF.Icons.catBtn('duplicate', 'Duplicate category', AFF.Icons.duplicateSVG(), '')
+				+ (cat.locked ? '' : AFF.Icons.catBtn('delete', 'Delete category', AFF.Icons.trashSVG(), 'aff-icon-btn--danger'))
+				+ AFF.Icons.catBtn('collapse', 'Collapse/expand category', AFF.Icons.chevronSVG(), 'aff-category-collapse-btn')
 				+ '</div>' // .aff-category-actions
 				+ '</div>' // .aff-cat-header-top
 				+ '</div>'; // .aff-category-header
@@ -295,7 +296,7 @@
 			// Fonts has preview col (col3), Numbers does not; adjust empty spans accordingly.
 			var _ns = (self._catSortState[cat.id] && self._catSortState[cat.id].field === 'name')  ? self._catSortState[cat.id].dir : 'none';
 			var _vs = (self._catSortState[cat.id] && self._catSortState[cat.id].field === 'value') ? self._catSortState[cat.id].dir : 'none';
-			html += '<div class="aff-color-list-header" data-cat-id="' + self._esc(cat.id) + '">'
+			html += '<div class="aff-color-list-header" data-cat-id="' + AFF.Utils.escAttr(cat.id) + '">'
 				+ '<span></span>'  // col1: drag
 				+ '<span></span>'; // col2: status dot
 			if (self._cfg.renderPreviewCell) {
@@ -304,18 +305,18 @@
 			}
 			// Name sort (col4 for Fonts, col3 for Numbers)
 			html += '<span class="aff-col-sort-wrap">'
-				+ '<button class="aff-col-sort-btn" data-sort-col="name" data-cat-id="' + self._esc(cat.id) + '" data-sort-dir="' + _ns + '"'
+				+ '<button class="aff-col-sort-btn" data-sort-col="name" data-cat-id="' + AFF.Utils.escAttr(cat.id) + '" data-sort-dir="' + _ns + '"'
 				+ ' title="Sort by name" aria-label="Sort by name"'
 				+ ' data-aff-tooltip="Sort by name">'
-				+ self._sortBtnSVG(_ns)
+				+ AFF.Icons.sortBtnSVG(_ns)
 				+ '</button>'
 				+ '</span>';
 			// Value sort (col5 for Fonts, col4 for Numbers)
 			html += '<span class="aff-col-sort-wrap">'
-				+ '<button class="aff-col-sort-btn" data-sort-col="value" data-cat-id="' + self._esc(cat.id) + '" data-sort-dir="' + _vs + '"'
+				+ '<button class="aff-col-sort-btn" data-sort-col="value" data-cat-id="' + AFF.Utils.escAttr(cat.id) + '" data-sort-dir="' + _vs + '"'
 				+ ' title="Sort by value" aria-label="Sort by value"'
 				+ ' data-aff-tooltip="Sort by value">'
-				+ self._sortBtnSVG(_vs)
+				+ AFF.Icons.sortBtnSVG(_vs)
 				+ '</button>'
 				+ '</span>'
 				+ '</div>'; // .aff-color-list-header
@@ -337,12 +338,12 @@
 			var addLabel = 'Add variable to ' + cat.name;
 			html += '<div class="aff-cat-add-btn-wrap">'
 				+ '<button class="aff-icon-btn aff-add-var-btn" data-action="add-var"'
-				+ ' data-cat-id="' + self._esc(cat.id) + '"'
-				+ ' aria-label="' + self._esc(addLabel) + '"'
-				+ ' data-aff-tooltip="Add ' + self._esc(self._cfg.setName) + '"'
-				+ ' data-aff-tooltip-long="Add a new ' + self._esc(self._cfg.setName.toLowerCase())
+				+ ' data-cat-id="' + AFF.Utils.escAttr(cat.id) + '"'
+				+ ' aria-label="' + AFF.Utils.escAttr(addLabel) + '"'
+				+ ' data-aff-tooltip="Add ' + AFF.Utils.escAttr(self._cfg.setName) + '"'
+				+ ' data-aff-tooltip-long="Add a new ' + AFF.Utils.escAttr(self._cfg.setName.toLowerCase())
 				+ ' variable to this category">'
-				+ self._plusSVG()
+				+ AFF.Icons.plusSVG()
 				+ '</button>'
 				+ '</div>';
 
@@ -364,22 +365,22 @@
 			var self   = this;
 			var cfg    = self._cfg;
 			var status = v.status || 'synced';
-			var rowKey = self._rowKey(v);
+			var rowKey = AFF.Utils.rowKey(v);
 
-			var html = '<div class="aff-color-row" data-var-id="' + self._esc(rowKey) + '">'
+			var html = '<div class="aff-color-row" data-var-id="' + AFF.Utils.escAttr(rowKey) + '">'
 
 				// Col 1: drag handle (24px)
 				+ '<div class="aff-drag-handle" data-action="drag-handle" draggable="false"'
 				+ ' aria-label="Drag to reorder" data-aff-tooltip="Drag to reorder">'
-				+ self._sixDotSVG()
+				+ AFF.Icons.sixDotSVG()
 				+ '</div>'
 
 				// Col 2: status dot (8px circle)
 				+ '<span class="aff-status-dot"'
-				+ ' style="background:' + self._statusColor(status) + '"'
-				+ ' data-aff-tooltip="' + self._esc(status.charAt(0).toUpperCase() + status.slice(1)) + '"'
-				+ ' data-aff-tooltip-long="' + self._esc(self._statusLongTooltip(status)) + '"'
-				+ ' aria-label="Status: ' + self._esc(status) + '">'
+				+ ' style="background:' + AFF.Utils.statusColor(status) + '"'
+				+ ' data-aff-tooltip="' + AFF.Utils.escAttr(status.charAt(0).toUpperCase() + status.slice(1)) + '"'
+				+ ' data-aff-tooltip-long="' + AFF.Utils.escAttr(AFF.Utils.statusLongTooltip(status)) + '"'
+				+ ' aria-label="Status: ' + AFF.Utils.escAttr(status) + '">'
 				+ '</span>';
 
 			// Col 3 (optional): preview cell — Fonts only.
@@ -389,8 +390,8 @@
 
 			// Name input (read-only by default; single-click activates).
 			html += '<input type="text" class="aff-var-name-input"'
-				+ ' value="' + self._esc(v.name) + '"'
-				+ ' data-original="' + self._esc(v.name) + '"'
+				+ ' value="' + AFF.Utils.escAttr(v.name) + '"'
+				+ ' data-original="' + AFF.Utils.escAttr(v.name) + '"'
 				+ ' readonly'
 				+ ' aria-label="Variable name"'
 				+ ' data-aff-tooltip="Variable name \u2014 click to edit"'
@@ -401,7 +402,7 @@
 
 			// Delete button (last column, 28px, hidden until row hover).
 			html += '<button class="aff-icon-btn aff-var-delete-btn" data-action="delete-var"'
-				+ ' data-var-id="' + self._esc(rowKey) + '"'
+				+ ' data-var-id="' + AFF.Utils.escAttr(rowKey) + '"'
 				+ ' aria-label="Delete variable"'
 				+ ' data-aff-tooltip="Delete variable"'
 				+ ' data-aff-tooltip-long="Remove this variable from the project">&#x1F5D1;</button>';
@@ -606,10 +607,10 @@
 				var newVal = valInput.value.trim();
 				if (!newVal) {
 					valInput.value = valInput.getAttribute('data-original') || '';
-					self._showFieldError(valInput, 'Value must not be empty.');
+					AFF.Utils.showFieldError(valInput, 'Value must not be empty.');
 					return;
 				}
-				self._clearFieldError(valInput);
+				AFF.Utils.clearFieldError(valInput);
 
 				// Numbers: parse autofill suffix and optional format change.
 				if (self._cfg.setName === 'Numbers') {
@@ -665,7 +666,7 @@
 				for (var ri = 0; ri < rows.length; ri++) {
 					var row   = rows[ri];
 					var varId = row.getAttribute('data-var-id');
-					var v     = varId ? self._findVarByKey(varId) : null;
+					var v     = varId ? AFF.Utils.findVarByKey(varId) : null;
 					var match = !query;
 					if (!match && v) {
 						match = (v.name  || '').toLowerCase().indexOf(query) !== -1
@@ -703,22 +704,8 @@
 				toggleBtn.setAttribute('data-toggle-state', collapse ? 'collapsed' : 'expanded');
 				toggleBtn.setAttribute('aria-label', newTitle);
 				toggleBtn.setAttribute('data-aff-tooltip', newTitle);
-				toggleBtn.innerHTML = collapse ? self._expandAllSVG() : self._collapseAllSVG();
+				toggleBtn.innerHTML = collapse ? AFF.Icons.expandAllSVG() : AFF.Icons.collapseAllSVG();
 			}
-		},
-
-		/**
-		 * Scroll to and expand a specific category block.
-		 *
-		 * @param {string}      catId
-		 * @param {HTMLElement} container
-		 */
-		_jumpToCategory: function (catId, container) {
-			var block = container.querySelector('.aff-category-block[data-category-id="' + catId + '"]');
-			if (!block) { return; }
-			block.setAttribute('data-collapsed', 'false');
-			this._collapsedIds[catId] = false;
-			block.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		},
 
 		// -------------------------------------------------------------------
@@ -812,7 +799,7 @@
 
 			if (!/^[A-Za-z0-9_-]+$/.test(newName)) {
 				nameInput.value = oldName;
-				self._showFieldError(nameInput,
+				AFF.Utils.showFieldError(nameInput,
 					'Name may only contain letters, digits, hyphens, and underscores.');
 				return;
 			}
@@ -822,11 +809,11 @@
 			});
 			if (duplicate) {
 				nameInput.value = oldName;
-				self._showFieldError(nameInput, 'A variable with that name already exists.');
+				AFF.Utils.showFieldError(nameInput, 'A variable with that name already exists.');
 				return;
 			}
 
-			var v = self._findVarByKey(varId);
+			var v = AFF.Utils.findVarByKey(varId);
 			if (!v) { return; }
 
 			v.status = 'modified';
@@ -874,7 +861,7 @@
 			// Split into numeric part + trailing suffix.
 			var m = raw.match(/^(-?[\d.]+)(.*?)$/);
 			if (!m) {
-				self._showFieldError(input, 'invalid type');
+				AFF.Utils.showFieldError(input, 'invalid type');
 				return null;
 			}
 
@@ -900,7 +887,7 @@
 			} else if (suffixLc === 'ch') {
 				format = 'CH';
 			} else {
-				self._showFieldError(input, 'invalid type');
+				AFF.Utils.showFieldError(input, 'invalid type');
 				return null;
 			}
 
@@ -909,7 +896,7 @@
 
 		_saveVarValue: function (varId, newValue, input, newFormat) {
 			var self     = this;
-			var v        = self._findVarByKey(varId);
+			var v        = AFF.Utils.findVarByKey(varId);
 			if (!v) { return; }
 			var oldValue = v.value || '';
 			if (newValue === oldValue && !newFormat) { return; }
@@ -923,7 +910,7 @@
 			if (self._cfg.setName === 'Fonts') {
 				var content = document.getElementById('aff-edit-content');
 				if (content) {
-					var listRow = content.querySelector('.aff-color-row[data-var-id="' + self._esc(varId) + '"]');
+					var listRow = content.querySelector('.aff-color-row[data-var-id="' + AFF.Utils.escAttr(varId) + '"]');
 					if (listRow) {
 						var preview = listRow.querySelector('.aff-font-preview');
 						if (preview) { preview.style.fontFamily = newValue; }
@@ -951,7 +938,7 @@
 		 */
 		_saveVarFormat: function (varId, newFormat) {
 			var self = this;
-			var v    = self._findVarByKey(varId);
+			var v    = AFF.Utils.findVarByKey(varId);
 			if (!v) { return; }
 			v.format = newFormat;
 			v.status = 'modified';
@@ -1032,14 +1019,13 @@
 							if (vars[j].name === _newName) { newVarObj = vars[j]; break; }
 						}
 						if (newVarObj) {
-							var rowKey  = self._rowKey(newVarObj);
+							var rowKey  = AFF.Utils.rowKey(newVarObj);
 							var newRow  = content.querySelector('.aff-color-row[data-var-id="' + rowKey + '"]');
 							var nameInp = newRow ? newRow.querySelector('.aff-var-name-input') : null;
 							if (nameInp) {
 								nameInp.removeAttribute('readonly');
 								nameInp.focus({ preventScroll: true });
 								nameInp.select();
-								newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 							}
 						}
 					}
@@ -1061,14 +1047,14 @@
 		 */
 		_deleteVariable: function (varId) {
 			var self     = this;
-			var variable = self._findVarByKey(varId);
+			var variable = AFF.Utils.findVarByKey(varId);
 			if (!variable) { return; }
 			// Use the resolved UUID for the AJAX call; varId may be a stale __n_ key.
 			var resolvedId = variable.id || varId;
 
 			AFF.Modal.open({
 				title: 'Delete variable',
-				body:  '<p>Delete <strong>' + self._esc(variable.name || varId) + '</strong>?</p>'
+				body:  '<p>Delete <strong>' + AFF.Utils.escAttr(variable.name || varId) + '</strong>?</p>'
 					+ '<p>This cannot be undone.</p>',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
 					+ '<button class="aff-btn aff-btn--secondary" id="aff-del-var-cancel">Cancel</button>'
@@ -1101,172 +1087,10 @@
 		},
 
 		// -------------------------------------------------------------------
-		// CATEGORY OPERATIONS
+		// CATEGORY OPERATIONS  (provided by AFF.CatMixin via Object.assign)
 		// -------------------------------------------------------------------
-
-		/** Open the add-category modal. */
-		_addCategory: function () {
-			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
-
-			AFF.Modal.open({
-				title: 'New Category',
-				body:  '<p style="margin-bottom:10px">Enter a name for the new category.</p>'
-					+ '<input type="text" class="aff-field-input" id="aff-modal-cat-name"'
-					+ ' placeholder="e.g., Heading fonts" autocomplete="off" style="width:100%">',
-				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-cat-cancel">Cancel</button>'
-					+ '<button class="aff-btn" id="aff-modal-cat-ok">Add Category</button>'
-					+ '</div>',
-			});
-			setTimeout(function () {
-				var inp = document.getElementById('aff-modal-cat-name');
-				if (inp) { inp.focus(); }
-			}, 50);
-
-			function handleClick(e) {
-				if (e.target.id === 'aff-modal-cat-cancel') {
-					AFF.Modal.close();
-					document.removeEventListener('click', handleClick);
-				} else if (e.target.id === 'aff-modal-cat-ok') {
-					var inp  = document.getElementById('aff-modal-cat-name');
-					var name = inp ? inp.value.trim() : '';
-					AFF.Modal.close();
-					document.removeEventListener('click', handleClick);
-					if (!name) { return; }
-
-					AFF.App.ajax('aff_save_category', {
-						filename: AFF.state.currentFile,
-						subgroup: self._cfg.setName,
-						category: JSON.stringify({ name: name }),
-					}).then(function (res) {
-						if (res.success && res.data) {
-							if (!AFF.state.config) { AFF.state.config = {}; }
-							// Merge: append new category to local state instead of
-							// replacing — preserves globalConfig-sourced categories
-							// that aren't written to the file yet.
-							var _newCat = null;
-							var _serverCats = res.data.categories || [];
-							for (var _ki = 0; _ki < _serverCats.length; _ki++) {
-								if (_serverCats[_ki].id === res.data.id) { _newCat = _serverCats[_ki]; break; }
-							}
-							if (_newCat) {
-								if (!Array.isArray(AFF.state.config[self._cfg.catKey])) { AFF.state.config[self._cfg.catKey] = []; }
-								AFF.state.config[self._cfg.catKey].push(_newCat);
-							} else {
-								AFF.state.config[self._cfg.catKey] = _serverCats;
-							}
-							if (AFF.App) { AFF.App.setDirty(true); }
-							self._rerenderView();
-							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
-						}
-					}).catch(function () {});
-				}
-			}
-			document.addEventListener('click', handleClick);
-		},
-
-		/**
-		 * Save the category name from the contenteditable span.
-		 *
-		 * @param {HTMLElement} input The .aff-category-name-input element.
-		 */
-		_saveCategoryName: function (input) {
-			var self    = this;
-			var newName = input.textContent.trim();
-			var oldName = input.getAttribute('data-original') || '';
-			var catId   = input.getAttribute('data-cat-id')   || '';
-
-			if (!newName || newName === oldName) {
-				input.textContent = oldName;
-				return;
-			}
-			if (!AFF.state.currentFile) {
-				input.textContent = oldName;
-				self._noFileModal();
-				return;
-			}
-
-			AFF.App.ajax('aff_save_category', {
-				filename: AFF.state.currentFile,
-				subgroup: self._cfg.setName,
-				category: JSON.stringify({ id: catId, name: newName }),
-			}).then(function (res) {
-				if (res.success && res.data) {
-					if (!AFF.state.config) { AFF.state.config = {}; }
-					// Merge: update the renamed category in local state by ID.
-					var _localCats = AFF.state.config[self._cfg.catKey];
-					if (Array.isArray(_localCats)) {
-						for (var _ri = 0; _ri < _localCats.length; _ri++) {
-							if (_localCats[_ri].id === catId) { _localCats[_ri].name = newName; break; }
-						}
-					} else {
-						AFF.state.config[self._cfg.catKey] = res.data.categories || [];
-					}
-					input.setAttribute('data-original', newName);
-					if (AFF.App) { AFF.App.setDirty(true); }
-					self._rerenderView();
-					if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
-				} else {
-					input.textContent = oldName;
-				}
-			}).catch(function () { input.textContent = oldName; });
-		},
-
-		/**
-		 * Delete a category (with confirmation modal).
-		 *
-		 * @param {string} catId Category ID.
-		 */
-		_deleteCategory: function (catId) {
-			var self = this;
-			var vars = self._getVarsForCategoryId(catId);
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
-
-			var bodyText = vars.length > 0
-				? '<p>' + vars.length + ' variable(s) are in this category. Variables will be moved to Uncategorized.</p>'
-				  + '<p style="margin-top:8px">Delete the category anyway?</p>'
-				: '<p>Delete this category?</p>';
-
-			AFF.Modal.open({
-				title:  'Delete Category',
-				body:   bodyText,
-				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-del-cancel">Cancel</button>'
-					+ '<button class="aff-btn aff-btn--danger" id="aff-modal-del-ok">Delete Category</button>'
-					+ '</div>',
-			});
-
-			function handleClick(e) {
-				if (e.target.id === 'aff-modal-del-cancel') {
-					AFF.Modal.close();
-					document.removeEventListener('click', handleClick);
-				} else if (e.target.id === 'aff-modal-del-ok') {
-					AFF.Modal.close();
-					document.removeEventListener('click', handleClick);
-					var _preDelCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey])) ? AFF.state.config[self._cfg.catKey].slice() : null;
-				AFF.App.ajax('aff_delete_category', {
-						filename:    AFF.state.currentFile,
-						subgroup:    self._cfg.setName,
-						category_id: catId,
-					}).then(function (res) {
-						if (res.success && res.data) {
-							if (!AFF.state.config) { AFF.state.config = {}; }
-							AFF.state.config[self._cfg.catKey] = res.data.categories;
-							// Merge: use pre-captured local list, filtered by deleted ID.
-						if (_preDelCats !== null) {
-							AFF.state.config[self._cfg.catKey] = _preDelCats.filter(function (c) { return c.id !== catId; });
-						}
-						delete self._collapsedIds[catId];
-							if (AFF.App) { AFF.App.setDirty(true); }
-							self._rerenderView();
-							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
-						}
-					}).catch(function () {});
-				}
-			}
-			document.addEventListener('click', handleClick);
-		},
+		// _addCategory, _saveCategoryName, _deleteCategory, _duplicateCategory,
+		// _ajaxReorderCategories, _jumpToCategory — all in AFF.CatMixin (aff-app.js)
 
 		/**
 		 * Move a category one position up.
@@ -1298,110 +1122,6 @@
 			if (idx < 0 || idx >= cats.length - 1) { return; }
 			var tmp = cats[idx + 1]; cats[idx + 1] = cats[idx]; cats[idx] = tmp;
 			this._ajaxReorderCategories(cats.map(function (c) { return c.id; }));
-		},
-
-		/**
-		 * Duplicate a category and all its variables.
-		 *
-		 * @param {string} catId Source category ID.
-		 */
-		_duplicateCategory: function (catId) {
-			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
-
-			var cats = self._getCatsForSet();
-			var cat  = null;
-			for (var i = 0; i < cats.length; i++) {
-				if (cats[i].id === catId) { cat = cats[i]; break; }
-			}
-			if (!cat) { return; }
-
-			AFF.App.ajax('aff_save_category', {
-				filename: AFF.state.currentFile,
-				subgroup: self._cfg.setName,
-				category: JSON.stringify({ name: cat.name + ' (copy)' }),
-			}).then(function (res) {
-				if (!res.success || !res.data) { return; }
-				if (!AFF.state.config) { AFF.state.config = {}; }
-				// Merge: append new duplicate category to local state by ID.
-				var _dupCat = null;
-				var _dupServerCats = res.data.categories || [];
-				for (var _di = 0; _di < _dupServerCats.length; _di++) {
-					if (_dupServerCats[_di].id === res.data.id) { _dupCat = _dupServerCats[_di]; break; }
-				}
-				if (_dupCat) {
-					if (!Array.isArray(AFF.state.config[self._cfg.catKey])) { AFF.state.config[self._cfg.catKey] = []; }
-					AFF.state.config[self._cfg.catKey].push(_dupCat);
-				} else {
-					AFF.state.config[self._cfg.catKey] = _dupServerCats;
-				}
-				var newCatId = res.data.id;
-				var vars     = self._getVarsForCategory(cat);
-				var chain    = Promise.resolve();
-				vars.forEach(function (v) {
-					var dupVar = {
-						name:        v.name + '-copy',
-						value:       v.value,
-						format:      v.format || '',
-						subgroup:    self._cfg.setName,
-						category:    _dupCat.name,
-						category_id: newCatId,
-						order:       (v.order || 0),
-					};
-					(function (dv) {
-						chain = chain.then(function () {
-							return AFF.App.ajax('aff_save_color', {
-								filename: AFF.state.currentFile,
-								variable: JSON.stringify(dv),
-							}).then(function (r) {
-								if (r.success && r.data && r.data.data) {
-									AFF.state.variables = r.data.data.variables;
-								}
-							});
-						});
-					}(dupVar));
-				});
-				chain.then(function () {
-					if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
-					self._rerenderView();
-					if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
-				}).catch(function () {});
-			}).catch(function () {});
-		},
-
-		/**
-		 * Apply a category reorder locally and persist via AJAX if a file is loaded.
-		 *
-		 * @param {string[]} orderedIds Category IDs in desired order.
-		 */
-		_ajaxReorderCategories: function (orderedIds) {
-			var self   = this;
-			var catKey = self._cfg.catKey;
-
-			// Apply locally so the re-render shows the new order instantly.
-			if (AFF.state.config && AFF.state.config[catKey]) {
-				var cats = AFF.state.config[catKey];
-				for (var i = 0; i < orderedIds.length; i++) {
-					for (var j = 0; j < cats.length; j++) {
-						if (cats[j].id === orderedIds[i]) { cats[j].order = i; break; }
-					}
-				}
-			}
-			self._rerenderView();
-
-			if (!AFF.state.currentFile) { return; }
-			if (AFF.App) { AFF.App.setDirty(true); }
-
-			AFF.App.ajax('aff_reorder_categories', {
-				filename:    AFF.state.currentFile,
-				subgroup:    self._cfg.setName,
-				ordered_ids: JSON.stringify(orderedIds),
-			}).then(function (res) {
-				if (res.success) {
-					// Order already applied locally; no state overwrite needed.
-					self._rerenderView();
-				}
-			}).catch(function () {});
 		},
 
 		/**
@@ -1487,28 +1207,6 @@
 		},
 
 		/**
-		 * Return a small sort-direction SVG icon.
-		 * @param {string} dir 'none' | 'asc' | 'desc'
-		 * @returns {string}
-		 */
-		_sortBtnSVG: function (dir) {
-			if (dir === 'asc') {
-				return '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">'
-					+ '<polygon points="12,3 22,21 2,21" fill="currentColor"/>'
-					+ '</svg>';
-			}
-			if (dir === 'desc') {
-				return '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">'
-					+ '<polygon points="12,21 2,3 22,3" fill="currentColor"/>'
-					+ '</svg>';
-			}
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="12" viewBox="0 0 10 12" aria-hidden="true">'
-				+ '<polygon points="5,1 9,5 1,5" fill="currentColor" opacity="0.6"/>'
-				+ '<polygon points="5,11 1,7 9,7" fill="currentColor" opacity="0.6"/>'
-				+ '</svg>';
-		},
-
-		/**
 		 * Sort variables within a single category and re-render that category's variable list.
 		 * Client-side only — does not call the server.
 		 *
@@ -1560,7 +1258,7 @@
 				var btnCol = btn.getAttribute('data-sort-col');
 				var btnDir = (btnCol === field) ? dir : 'none';
 				btn.setAttribute('data-sort-dir', btnDir);
-				btn.innerHTML = self._sortBtnSVG(btnDir);
+				btn.innerHTML = AFF.Icons.sortBtnSVG(btnDir);
 			}
 		},
 
@@ -1692,6 +1390,7 @@
 			AFF.state.config[catKey] = cats;
 
 			AFF.App.ajax('aff_reorder_categories', {
+				filename:    AFF.state.currentFile,
 				subgroup:    self._cfg.setName,
 				ordered_ids: JSON.stringify(ordered_ids),
 			}).then(function (res) {
@@ -1714,155 +1413,25 @@
 		_initDrag: function (container) {
 			var self     = this;
 			var setLower = self._cfg.setName.toLowerCase();
-			var d        = self._drag;
 
-			container.addEventListener('mousedown', function (e) {
-				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
-				var handle = e.target.closest('.aff-drag-handle');
-				if (!handle) { return; }
-				e.preventDefault();
-
-				var row = handle.closest('.aff-color-row');
-				if (!row) { return; }
-
-				d.varId = row.getAttribute('data-var-id');
-				if (!d.varId) { return; }
-
-				d.active = true;
-				d.startY = e.clientY;
-
-				// Ghost: a fixed-position clone of the dragged row.
-				var ghost = row.cloneNode(true);
-				var rowRect = row.getBoundingClientRect();
-				ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;'
-					+ 'width:' + row.offsetWidth + 'px;height:' + row.offsetHeight + 'px;'
-					+ 'top:' + rowRect.top + 'px;left:' + rowRect.left + 'px;'
-					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:4px;';
-				ghost.className += ' aff-drag-ghost';
-				document.body.appendChild(ghost);
-				d.ghost = ghost;
-
-				// Drop indicator: accent-colour horizontal bar.
-				var indicator          = document.createElement('div');
-				indicator.className   = 'aff-drop-indicator';
-				indicator.style.display      = 'none';
-				indicator.style.pointerEvents = 'none';
-				var _appEl  = document.getElementById('aff-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
-				if (!_accent) { _accent = '#f4c542'; }
-				indicator.style.background = 'linear-gradient(to right, transparent, '
-					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
-				document.body.appendChild(indicator);
-				d.indicator = indicator;
-
-				row.classList.add('aff-row-dragging');
-			});
-
-			document.addEventListener('mousemove', function (e) {
-				if (!d.active || !d.ghost) { return; }
-				var dy = e.clientY - d.startY;
-				d.ghost.style.transform = 'translateY(' + dy + 'px)';
-
-				// Temporarily hide ghost so elementFromPoint sees the row underneath.
-				d.ghost.style.display = 'none';
-				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
-				d.ghost.style.display = '';
-
-				var targetRow = elBelow ? elBelow.closest('.aff-color-row') : null;
-				if (targetRow && targetRow.getAttribute('data-var-id') !== d.varId) {
-					var trRect  = targetRow.getBoundingClientRect();
-					var above   = e.clientY < trRect.top + trRect.height / 2;
-					d.indicator.style.display = '';
-					d.indicator.style.left    = trRect.left + 'px';
-					d.indicator.style.width   = trRect.width + 'px';
-					d.indicator.style.top     = (above ? trRect.top : trRect.bottom) - 2 + 'px';
-					d.indicator.style.height  = '4px';
-					d._dropTargetId = targetRow.getAttribute('data-var-id');
-					d._dropAbove    = above;
-				} else {
-					d.indicator.style.display = 'none';
-					d._dropTargetId = null;
-				}
-			});
-
-			document.addEventListener('mouseup', function () {
-				if (!d.active) { return; }
-				d.active = false;
-
-				if (d.ghost     && d.ghost.parentNode)     { d.ghost.parentNode.removeChild(d.ghost); }
-				if (d.indicator && d.indicator.parentNode) { d.indicator.parentNode.removeChild(d.indicator); }
-				d.ghost     = null;
-				d.indicator = null;
-
-				var draggingRow = container.querySelector('.aff-color-row.aff-row-dragging');
-				if (draggingRow) { draggingRow.classList.remove('aff-row-dragging'); }
-
-				if (d._dropTargetId && d.varId && d._dropTargetId !== d.varId) {
-					self._onDropVar(d.varId, d._dropTargetId, d._dropAbove, container);
-				}
-				d._dropTargetId = null;
-				d._dropAbove    = null;
-				d.varId         = null;
-			});
-		},
-
-		/**
-		 * Handle a completed drop: reorder variables and update category if needed.
-		 *
-		 * @param {string}      srcId    Dragged variable ID.
-		 * @param {string}      targetId Drop-target variable ID.
-		 * @param {boolean}     above    True = insert before target.
-		 * @param {HTMLElement} container
-		 */
-		_onDropVar: function (srcId, targetId, above, container) {
-			var self    = this;
-			var srcVar  = self._findVarByKey(srcId);
-			var tgtVar  = self._findVarByKey(targetId);
-			if (!srcVar || !tgtVar) { return; }
-			var setVars = self._getVarsForSet();
-
-			// Move src into target's category if different.
-			var newCatId   = tgtVar.category_id || '';
-			var newCatName = tgtVar.category    || '';
-
-			// Rebuild order: remove src, insert near target.
-			var sorted     = setVars.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-			var withoutSrc = sorted.filter(function (v) { return v !== srcVar; });
-			var tgtIdx     = -1;
-			for (var j = 0; j < withoutSrc.length; j++) {
-				if (withoutSrc[j] === tgtVar) { tgtIdx = j; break; }
-			}
-			if (tgtIdx === -1) { return; }
-			withoutSrc.splice(above ? tgtIdx : tgtIdx + 1, 0, srcVar);
-			withoutSrc.forEach(function (v, idx) { v.order = idx + 1; });
-
-			srcVar.category    = newCatName;
-			srcVar.category_id = newCatId;
-
-			var chain = Promise.resolve();
-			withoutSrc.forEach(function (v) {
-				(function (variable) {
-					chain = chain.then(function () {
-						return AFF.App.ajax('aff_save_color', {
-							filename: AFF.state.currentFile,
-							variable: JSON.stringify({
-								id:          variable.id,
-								order:       variable.order,
-								category:    variable.category,
-								category_id: variable.category_id,
-							}),
-						}).then(function (r) {
-							if (r.success && r.data && r.data.data) {
-								AFF.state.variables = r.data.data.variables;
-							}
-						});
+			// Delegate all drag infrastructure to the shared AFF.VarDrag module.
+			// Supply getCats so the drop logic reads the correct category array for
+			// this subgroup (Colors → config.categories, Fonts → config.fontCategories,
+			// Numbers → config.numberCategories).
+			AFF.VarDrag.init(container, {
+				viewSelector: '.aff-' + setLower + '-view',
+				onDrop: function (draggedId, targetId, insertBefore, targetCatBlock) {
+					AFF.VarDrag.drop({
+						draggedId:      draggedId,
+						targetId:       targetId,
+						insertBefore:   insertBefore,
+						targetCatBlock: targetCatBlock,
+						getCats:        function () { return self._getCatsForSet(); },
+						getSetVars:     function () { return self._getVarsForSet(); },
+						rerenderView:   function () { self._rerenderView(); },
 					});
-				}(v));
+				},
 			});
-			chain.then(function () {
-				if (AFF.App) { AFF.App.setDirty(true); }
-				self._rerenderView();
-			}).catch(function () {});
 		},
 
 		// -------------------------------------------------------------------
@@ -1896,15 +1465,6 @@
 		},
 
 		/**
-		 * Return variables in a category by ID only.
-		 * @param {string} catId
-		 * @returns {Array}
-		 */
-		_getVarsForCategoryId: function (catId) {
-			return this._getVarsForSet().filter(function (v) { return v.category_id === catId; });
-		},
-
-		/**
 		 * Return the sorted category list for this set.
 		 * @returns {Array}
 		 */
@@ -1913,42 +1473,6 @@
 			var arr    = (AFF.state.config && AFF.state.config[catKey]) || [];
 			return arr.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 		},
-
-		/**
-		 * Find a variable by row key or UUID.
-		 *
-		 * Primary:  exact match on v.id (UUID).
-		 * Fallback: '__n_name' synthetic keys become stale once the server
-		 *           assigns a UUID; fall back to a name-based lookup so
-		 *           interactions still work after the first save.
-		 *
-		 * @param {string} key Row key from data-var-id attribute.
-		 * @returns {Object|null}
-		 */
-		_findVarByKey: function (key) {
-			var vars = AFF.state.variables || [];
-			for (var i = 0; i < vars.length; i++) {
-				if (vars[i].id === key) { return vars[i]; }
-			}
-			if (key.indexOf('__n_') === 0) {
-				var name = key.slice(4);
-				for (var j = 0; j < vars.length; j++) {
-					if (vars[j].name === name) { return vars[j]; }
-				}
-			}
-			return null;
-		},
-
-		/** Alias for _findVarByKey. @param {string} id @returns {Object|null} */
-		_findVarById: function (id) { return this._findVarByKey(id); },
-
-		/**
-		 * Row key for a variable. Uses UUID when available, otherwise a
-		 * synthetic '__n_name' key so unsaved/synced variables each get a
-		 * unique DOM anchor (matches the same pattern used by aff-colors.js).
-		 * @param {Object} v @returns {string}
-		 */
-		_rowKey: function (v) { return v.id || ('__n_' + v.name); },
 
 		// -------------------------------------------------------------------
 		// DOM HELPERS
@@ -1962,37 +1486,9 @@
 		_updateStatusDotInDOM: function (varId, status) {
 			var content = document.getElementById('aff-edit-content');
 			if (!content) { return; }
-			var row = content.querySelector('.aff-color-row[data-var-id="' + this._esc(varId) + '"]');
+			var row = content.querySelector('.aff-color-row[data-var-id="' + AFF.Utils.escAttr(varId) + '"]');
 			var dot = row ? row.querySelector('.aff-status-dot') : null;
-			if (dot) { dot.style.background = this._statusColor(status); }
-		},
-
-		/**
-		 * Show a floating field-error tooltip below the field.
-		 * @param {HTMLElement} field
-		 * @param {string}      message
-		 */
-		_showFieldError: function (field, message) {
-			this._clearFieldError(field);
-			var tip = document.createElement('div');
-			tip.className   = 'aff-inline-error';
-			tip.textContent = message;
-			document.body.appendChild(tip);
-			var rect        = field.getBoundingClientRect();
-			tip.style.left  = rect.left + 'px';
-			tip.style.top   = (rect.bottom + 4) + 'px';
-			field._effErrTip = tip;
-			setTimeout(function () {
-				if (tip.parentNode) { tip.parentNode.removeChild(tip); }
-			}, 3000);
-		},
-
-		/** Remove any existing field-error tooltip for the given field. */
-		_clearFieldError: function (field) {
-			if (field._effErrTip && field._effErrTip.parentNode) {
-				field._effErrTip.parentNode.removeChild(field._effErrTip);
-			}
-			field._effErrTip = null;
+			if (dot) { dot.style.background = AFF.Utils.statusColor(status); }
 		},
 
 		/** Open a "no project file" error modal. */
@@ -2003,141 +1499,6 @@
 			});
 		},
 
-		// -------------------------------------------------------------------
-		// STATUS HELPERS
-		// -------------------------------------------------------------------
-
-		/**
-		 * CSS color for a status value.
-		 * @param {string} status
-		 * @returns {string}
-		 */
-		_statusColor: function (status) {
-			var map = {
-				synced:   'var(--aff-status-synced)',
-				modified: 'var(--aff-status-modified)',
-				new:      'var(--aff-status-new)',
-				deleted:  'var(--aff-status-deleted)',
-				conflict: 'var(--aff-status-conflict)',
-				orphaned: 'var(--aff-status-orphaned)',
-			};
-			return map[status] || 'var(--aff-status-synced)';
-		},
-
-		/**
-		 * Extended tooltip text for a status value.
-		 * @param {string} status
-		 * @returns {string}
-		 */
-		_statusLongTooltip: function (status) {
-			var map = {
-				synced:   'Synced \u2014 This variable matches the value in the Elementor kit.',
-				modified: 'Modified \u2014 Value changed since last sync. Commit to push to Elementor.',
-				new:      'New \u2014 Variable not yet in the Elementor kit. Commit to add it.',
-				deleted:  'Deleted \u2014 Marked for deletion. Commit to remove from Elementor.',
-				conflict: 'Conflict \u2014 Value changed both here and in Elementor since last sync.',
-				orphaned: 'Orphaned \u2014 Exists in AFFbut not found in Elementor kit. Commit to add it.',
-			};
-			return map[status] || ('Status: ' + status);
-		},
-
-		// -------------------------------------------------------------------
-		// ICON / SVG HELPERS
-		// -------------------------------------------------------------------
-
-		/** HTML-escape a string for safe attribute/text insertion. */
-		_esc: function (str) {
-			return String(str || '')
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/"/g, '&quot;')
-				.replace(/'/g, '&#39;');
-		},
-
-		/**
-		 * Build a category action icon button.
-		 * @param {string}  action
-		 * @param {string}  label
-		 * @param {string}  icon     SVG HTML string.
-		 * @param {string}  extraClass
-		 * @param {boolean} disabled
-		 * @returns {string}
-		 */
-		_catBtn: function (action, label, icon, extraClass, disabled) {
-			return '<button class="aff-icon-btn ' + (extraClass || '') + '"'
-				+ ' data-action="' + action + '"'
-				+ ' aria-label="' + this._esc(label) + '"'
-				+ ' data-aff-tooltip="' + this._esc(label) + '"'
-				+ (disabled ? ' disabled' : '')
-				+ '>'
-				+ icon
-				+ '</button>';
-		},
-
-		_sixDotSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="20" viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">'
-				+ '<circle cx="4" cy="4" r="2"/><circle cx="10" cy="4" r="2"/>'
-				+ '<circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/>'
-				+ '<circle cx="4" cy="16" r="2"/><circle cx="10" cy="16" r="2"/>'
-				+ '</svg>';
-		},
-
-		_chevronSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 6 8 10 12 6"/></svg>';
-		},
-
-		_plusSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>';
-		},
-
-		_plusCircleSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="5" y1="8" x2="11" y2="8"/></svg>';
-		},
-
-		_closeSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>';
-		},
-
-		_trashSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-				+ '<polyline points="1 3 3 3 13 3"/>'
-				+ '<path d="M4 3V2a1 1 0 011-1h4a1 1 0 011 1v1"/>'
-				+ '<path d="M12 3l-1 9a1 1 0 01-1 1H4a1 1 0 01-1-1L2 3"/>'
-				+ '<line x1="6" y1="6" x2="6" y2="10"/><line x1="8" y1="6" x2="8" y2="10"/>'
-				+ '</svg>';
-		},
-
-		_duplicateSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-				+ '<rect x="4" y="4" width="8" height="8" rx="1"/>'
-				+ '<path d="M2 10V3a1 1 0 011-1h7"/>'
-				+ '</svg>';
-		},
-
-		_arrowUpSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="12" x2="7" y2="2"/><polyline points="3 6 7 2 11 6"/></svg>';
-		},
-
-		_arrowDownSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="2" x2="7" y2="12"/><polyline points="3 8 7 12 11 8"/></svg>';
-		},
-
-		/** Double-chevron down — expand-all icon, shown when all categories are collapsed. */
-		_expandAllSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-				+ '<polyline points="6 5 12 11 18 5"/>'
-				+ '<polyline points="6 13 12 19 18 13"/>'
-				+ '</svg>';
-		},
-
-		/** Double-chevron up — collapse-all icon, shown when any category is expanded. */
-		_collapseAllSVG: function () {
-			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-				+ '<polyline points="18 11 12 5 6 11"/>'
-				+ '<polyline points="18 19 12 13 6 19"/>'
-				+ '</svg>';
-		},
 	};
 
 }());

@@ -1,5 +1,5 @@
 # AFF Quick Start Guide
-## Atomic Framework Forge for Elementor — Beta 0.4.1
+## Atomic Framework Forge for Elementor — Beta 0.4.2
 
 > This guide gets you from zero to your first organized variable set in about ten minutes.
 >
@@ -16,8 +16,15 @@ You will need:
 - ✅ At least one **Elementor Kit** configured with Elementor Version 4 CSS variables
 - ✅ A non-production website with Elementor Version 4 active and one or more pages using atomic elements
 - ✅ A set of **Version 4 Variables** defined on those pages
+---
 
-> **Beta note:** AFF is read-first and non-destructive. It will not modify your Elementor kit unless you explicitly click **Write to Elementor**. Feel free to explore.
+## How AFF Interacts with Elementor
+
+> **Read — Fetch Elementor Data:** AFF reads global variables from the active kit's `_elementor_global_variables` post meta. This is the same authoritative data store Elementor uses internally. The read is non-destructive — nothing in Elementor is changed.
+>
+> **Write — Write to Elementor:** AFF writes modified variable values back to `_elementor_global_variables` on the kit post. This is the only write operation AFF performs on your Elementor installation. It is always user-triggered, always preceded by a confirmation dialog showing exactly what will change, and always limited to the variables you have managed in AFF.
+>
+>### **Important:** Use AFF on a staging site or local development environment only. Always export a project backup before writing to Elementor.
 
 ---
 

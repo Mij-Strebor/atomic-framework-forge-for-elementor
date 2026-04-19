@@ -1,5 +1,5 @@
 # AFF User Manual
-## Atomic Framework Forge for Elementor — Beta 0.4.1
+## Atomic Framework Forge for Elementor — Beta 0.4.2
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**
@@ -27,6 +27,23 @@
 17. [Keyboard and Accessibility](#17-keyboard-and-accessibility)
 18. [Troubleshooting](#18-troubleshooting)
 19. [Known Limitations](#19-known-limitations)
+
+---
+
+## How AFF Interacts with Elementor
+
+> **Read — Fetch Elementor Data** (`↓ Variables` button in the right panel):
+> AFF reads global variables from the active Elementor kit's `_elementor_global_variables` post meta — the same authoritative data store Elementor uses internally. This read is non-destructive; nothing in Elementor is changed.
+>
+> **Write — Write to Elementor** (`↑ Variables` button in the right panel):
+> AFF writes modified variable values back to `_elementor_global_variables` on the kit post. Elementor regenerates its CSS from this meta on the next page load. **This is the only write operation AFF performs on your Elementor installation.**
+>
+> Every write operation is:
+> - **User-triggered** — no background or automatic writes, ever
+> - **Confirmed** — a dialog shows the exact count of modified / new / deleted variables before anything is written
+> - **Scoped** — only variables you have managed in AFF are affected; AFF does not touch any other part of your Elementor configuration
+>
+> ### **Use AFF on staging or a local development environment only.** Always export a project backup before writing to Elementor.
 
 ---
 

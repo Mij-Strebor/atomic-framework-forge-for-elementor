@@ -1,4 +1,5 @@
 <?php
+
 /**
  * AFF Data Store — Platform-Portable Data Management Layer
  *
@@ -17,11 +18,12 @@
  * @package AtomicFrameworkForge
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
 	exit;
 }
 
-class AFF_Data_Store {
+class AFF_Data_Store
+{
 
 	/**
 	 * The in-memory project data structure.
@@ -62,23 +64,24 @@ class AFF_Data_Store {
 	 * @param string $file_path Absolute path to .aff.json file.
 	 * @return bool True on success.
 	 */
-	public function load_from_file( string $file_path ): bool {
-		if ( ! file_exists( $file_path ) || ! is_readable( $file_path ) ) {
+	public function load_from_file(string $file_path): bool
+	{
+		if (! file_exists($file_path) || ! is_readable($file_path)) {
 			return false;
 		}
 
-		$json = file_get_contents( $file_path );
-		if ( false === $json ) {
+		$json = file_get_contents($file_path);
+		if (false === $json) {
 			return false;
 		}
 
-		$decoded = json_decode( $json, true );
-		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $decoded ) ) {
+		$decoded = json_decode($json, true);
+		if (JSON_ERROR_NONE !== json_last_error() || ! is_array($decoded)) {
 			return false;
 		}
 
-		$merged = $this->merge_with_defaults( $decoded );
-		$this->migrate_data( $merged );
+		$merged = $this->merge_with_defaults($decoded);
+		$this->migrate_data($merged);
 
 		$this->data         = $merged;
 		$this->current_file = $file_path;
@@ -93,14 +96,15 @@ class AFF_Data_Store {
 	 * @param string $file_path Absolute path for output file.
 	 * @return bool True on success.
 	 */
-	public function save_to_file( string $file_path ): bool {
-		$json = json_encode( $this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	public function save_to_file(string $file_path): bool
+	{
+		$json = json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-		if ( false === $json ) {
+		if (false === $json) {
 			return false;
 		}
 
-		if ( false === file_put_contents( $file_path, $json ) ) {
+		if (false === file_put_contents($file_path, $json)) {
 			return false;
 		}
 
@@ -119,21 +123,22 @@ class AFF_Data_Store {
 	 * @param array $parsed_vars Array of { name, value } pairs from AFF_CSS_Parser.
 	 * @return int Number of new variables imported.
 	 */
-	public function import_parsed_variables( array $parsed_vars ): int {
+	public function import_parsed_variables(array $parsed_vars): int
+	{
 		$imported = 0;
 
-		foreach ( $parsed_vars as $parsed ) {
-			if ( null === $this->find_variable_by_name( $parsed['name'] ) ) {
-				$this->add_variable( array(
+		foreach ($parsed_vars as $parsed) {
+			if (null === $this->find_variable_by_name($parsed['name'])) {
+				$this->add_variable(array(
 					'name'   => $parsed['name'],
 					'value'  => $parsed['value'],
 					'source' => 'elementor-parsed',
-				) );
+				));
 				$imported++;
 			}
 		}
 
-		if ( $imported > 0 ) {
+		if ($imported > 0) {
 			$this->dirty = true;
 		}
 
@@ -147,7 +152,8 @@ class AFF_Data_Store {
 	/**
 	 * @return array[]
 	 */
-	public function get_variables(): array {
+	public function get_variables(): array
+	{
 		return $this->data['variables'];
 	}
 
@@ -157,11 +163,12 @@ class AFF_Data_Store {
 	 * @param array $var Variable data (name, value, type, etc.).
 	 * @return string UUID-style ID.
 	 */
-	public function add_variable( array $var ): string {
+	public function add_variable(array $var): string
+	{
 		$id        = $this->generate_id();
 		$var['id'] = $id;
-		$var       = array_merge( $this->variable_defaults(), $var );
-		$var       = $this->set_timestamps( $var );
+		$var       = array_merge($this->variable_defaults(), $var);
+		$var       = $this->set_timestamps($var);
 
 		$this->data['variables'][] = $var;
 		$this->dirty               = true;
@@ -176,19 +183,20 @@ class AFF_Data_Store {
 	 * @param array  $data Fields to update.
 	 * @return bool True if found and updated.
 	 */
-	public function update_variable( string $id, array $data ): bool {
-		$k = $this->find_item_key( $this->data['variables'], 'id', $id );
-		if ( $k === null ) {
+	public function update_variable(string $id, array $data): bool
+	{
+		$k = $this->find_item_key($this->data['variables'], 'id', $id);
+		if ($k === null) {
 			return false;
 		}
 
-		$data['updated_at'] = gmdate( 'c' );
+		$data['updated_at'] = gmdate('c');
 		$data['modified']   = true;
 		// Phase 2: update status to 'modified' unless caller explicitly sets it.
-		if ( ! isset( $data['status'] ) ) {
+		if (! isset($data['status'])) {
 			$data['status'] = 'modified';
 		}
-		$this->data['variables'][ $k ] = array_merge( $this->data['variables'][ $k ], $data );
+		$this->data['variables'][$k] = array_merge($this->data['variables'][$k], $data);
 		$this->dirty = true;
 
 		return true;
@@ -201,22 +209,23 @@ class AFF_Data_Store {
 	 * @param bool   $delete_children If true, also remove variables where parent_id === $id.
 	 * @return bool True if found and deleted.
 	 */
-	public function delete_variable( string $id, bool $delete_children = false ): bool {
-		$k = $this->find_item_key( $this->data['variables'], 'id', $id );
-		if ( $k === null ) {
+	public function delete_variable(string $id, bool $delete_children = false): bool
+	{
+		$k = $this->find_item_key($this->data['variables'], 'id', $id);
+		if ($k === null) {
 			return false;
 		}
 
-		array_splice( $this->data['variables'], $k, 1 );
+		array_splice($this->data['variables'], $k, 1);
 		$this->dirty = true;
 
-		if ( $delete_children ) {
-			$this->data['variables'] = array_values( array_filter(
+		if ($delete_children) {
+			$this->data['variables'] = array_values(array_filter(
 				$this->data['variables'],
-				static function ( array $v ) use ( $id ): bool {
-					return ! isset( $v['parent_id'] ) || $v['parent_id'] !== $id;
+				static function (array $v) use ($id): bool {
+					return ! isset($v['parent_id']) || $v['parent_id'] !== $id;
 				}
-			) );
+			));
 		}
 
 		return true;
@@ -231,10 +240,11 @@ class AFF_Data_Store {
 	 * @param string $name CSS custom property name (e.g., '--primary').
 	 * @return bool True if a matching empty-id variable was found and removed.
 	 */
-	public function delete_variable_by_name_if_empty_id( string $name ): bool {
-		foreach ( $this->data['variables'] as $k => $var ) {
-			if ( ( $var['name'] ?? '' ) === $name && empty( $var['id'] ) ) {
-				array_splice( $this->data['variables'], $k, 1 );
+	public function delete_variable_by_name_if_empty_id(string $name): bool
+	{
+		foreach ($this->data['variables'] as $k => $var) {
+			if (($var['name'] ?? '') === $name && empty($var['id'])) {
+				array_splice($this->data['variables'], $k, 1);
 				$this->dirty = true;
 				return true;
 			}
@@ -248,9 +258,10 @@ class AFF_Data_Store {
 	 * @param string $name CSS custom property name.
 	 * @return array|null Variable array or null if not found.
 	 */
-	public function find_variable_by_name( string $name ): ?array {
-		$k = $this->find_item_key( $this->data['variables'], 'name', $name );
-		return $k !== null ? $this->data['variables'][ $k ] : null;
+	public function find_variable_by_name(string $name): ?array
+	{
+		$k = $this->find_item_key($this->data['variables'], 'name', $name);
+		return $k !== null ? $this->data['variables'][$k] : null;
 	}
 
 	// -----------------------------------------------------------------------
@@ -262,8 +273,9 @@ class AFF_Data_Store {
 	 *
 	 * @return array[]
 	 */
-	public function get_categories(): array {
-		return $this->get_categories_for_subgroup( 'Colors' );
+	public function get_categories(): array
+	{
+		return $this->get_categories_for_subgroup('Colors');
 	}
 
 	/**
@@ -272,8 +284,9 @@ class AFF_Data_Store {
 	 * @param array $cat Category data (name, locked, order).
 	 * @return string UUID-style ID.
 	 */
-	public function add_category( array $cat ): string {
-		return $this->add_category_for_subgroup( 'Colors', $cat );
+	public function add_category(array $cat): string
+	{
+		return $this->add_category_for_subgroup('Colors', $cat);
 	}
 
 	/**
@@ -283,8 +296,9 @@ class AFF_Data_Store {
 	 * @param array  $data Fields to update.
 	 * @return bool True if found and updated.
 	 */
-	public function update_category( string $id, array $data ): bool {
-		return $this->update_category_for_subgroup( 'Colors', $id, $data );
+	public function update_category(string $id, array $data): bool
+	{
+		return $this->update_category_for_subgroup('Colors', $id, $data);
 	}
 
 	/**
@@ -293,8 +307,9 @@ class AFF_Data_Store {
 	 * @param string $id Category UUID.
 	 * @return bool True if found and deleted.
 	 */
-	public function delete_category( string $id ): bool {
-		return $this->delete_category_for_subgroup( 'Colors', $id );
+	public function delete_category(string $id): bool
+	{
+		return $this->delete_category_for_subgroup('Colors', $id);
 	}
 
 	/**
@@ -303,8 +318,9 @@ class AFF_Data_Store {
 	 * @param string[] $ordered_ids Category IDs in the desired display order.
 	 * @return bool True on success.
 	 */
-	public function reorder_categories( array $ordered_ids ): bool {
-		return $this->reorder_categories_for_subgroup( 'Colors', $ordered_ids );
+	public function reorder_categories(array $ordered_ids): bool
+	{
+		return $this->reorder_categories_for_subgroup('Colors', $ordered_ids);
 	}
 
 	// -----------------------------------------------------------------------
@@ -324,13 +340,14 @@ class AFF_Data_Store {
 	 * @param string $subgroup 'Colors' | 'Fonts' | 'Numbers'
 	 * @return string Config key, e.g. 'categories', 'fontCategories'.
 	 */
-	private function subgroup_to_cat_key( string $subgroup ): string {
+	private function subgroup_to_cat_key(string $subgroup): string
+	{
 		$map = array(
 			'Colors'  => 'categories',
 			'Fonts'   => 'fontCategories',
 			'Numbers' => 'numberCategories',
 		);
-		return $map[ $subgroup ] ?? 'categories';
+		return $map[$subgroup] ?? 'categories';
 	}
 
 	/**
@@ -339,9 +356,10 @@ class AFF_Data_Store {
 	 * @param string $subgroup Subgroup name ('Colors'|'Fonts'|'Numbers').
 	 * @return array[]
 	 */
-	public function get_categories_for_subgroup( string $subgroup ): array {
-		$key = $this->subgroup_to_cat_key( $subgroup );
-		return $this->data['config'][ $key ] ?? array();
+	public function get_categories_for_subgroup(string $subgroup): array
+	{
+		$key = $this->subgroup_to_cat_key($subgroup);
+		return $this->data['config'][$key] ?? array();
 	}
 
 	/**
@@ -351,17 +369,18 @@ class AFF_Data_Store {
 	 * @param array  $cat      Category data (name, locked, order).
 	 * @return string UUID-style ID.
 	 */
-	public function add_category_for_subgroup( string $subgroup, array $cat ): string {
-		$key       = $this->subgroup_to_cat_key( $subgroup );
+	public function add_category_for_subgroup(string $subgroup, array $cat): string
+	{
+		$key       = $this->subgroup_to_cat_key($subgroup);
 		$id        = $this->generate_id();
 		$cat['id'] = $id;
-		$cat       = array_merge( $this->category_defaults(), $cat );
+		$cat       = array_merge($this->category_defaults(), $cat);
 
-		if ( ! isset( $this->data['config'][ $key ] ) ) {
-			$this->data['config'][ $key ] = array();
+		if (! isset($this->data['config'][$key])) {
+			$this->data['config'][$key] = array();
 		}
 
-		$this->data['config'][ $key ][] = $cat;
+		$this->data['config'][$key][] = $cat;
 		$this->dirty                    = true;
 
 		return $id;
@@ -375,20 +394,21 @@ class AFF_Data_Store {
 	 * @param array  $data     Fields to update.
 	 * @return bool True if found and updated.
 	 */
-	public function update_category_for_subgroup( string $subgroup, string $id, array $data ): bool {
-		$key = $this->subgroup_to_cat_key( $subgroup );
+	public function update_category_for_subgroup(string $subgroup, string $id, array $data): bool
+	{
+		$key = $this->subgroup_to_cat_key($subgroup);
 
-		if ( ! isset( $this->data['config'][ $key ] ) ) {
+		if (! isset($this->data['config'][$key])) {
 			return false;
 		}
 
-		$k = $this->find_item_key( $this->data['config'][ $key ], 'id', $id );
-		if ( $k === null ) {
+		$k = $this->find_item_key($this->data['config'][$key], 'id', $id);
+		if ($k === null) {
 			return false;
 		}
 
-		unset( $data['locked'] ); // Never allow changing the locked flag.
-		$this->data['config'][ $key ][ $k ] = array_merge( $this->data['config'][ $key ][ $k ], $data );
+		unset($data['locked']); // Never allow changing the locked flag.
+		$this->data['config'][$key][$k] = array_merge($this->data['config'][$key][$k], $data);
 		$this->dirty = true;
 
 		return true;
@@ -403,23 +423,24 @@ class AFF_Data_Store {
 	 * @param string $id       Category UUID.
 	 * @return bool True if found and deleted.
 	 */
-	public function delete_category_for_subgroup( string $subgroup, string $id ): bool {
-		$key = $this->subgroup_to_cat_key( $subgroup );
+	public function delete_category_for_subgroup(string $subgroup, string $id): bool
+	{
+		$key = $this->subgroup_to_cat_key($subgroup);
 
-		if ( ! isset( $this->data['config'][ $key ] ) ) {
+		if (! isset($this->data['config'][$key])) {
 			return false;
 		}
 
-		$k = $this->find_item_key( $this->data['config'][ $key ], 'id', $id );
-		if ( $k === null ) {
+		$k = $this->find_item_key($this->data['config'][$key], 'id', $id);
+		if ($k === null) {
 			return false;
 		}
 
-		if ( ! empty( $this->data['config'][ $key ][ $k ]['locked'] ) ) {
+		if (! empty($this->data['config'][$key][$k]['locked'])) {
 			return false; // Cannot delete locked categories.
 		}
 
-		array_splice( $this->data['config'][ $key ], $k, 1 );
+		array_splice($this->data['config'][$key], $k, 1);
 		$this->dirty = true;
 
 		return true;
@@ -432,25 +453,26 @@ class AFF_Data_Store {
 	 * @param string[] $ordered_ids Category IDs in the desired display order.
 	 * @return bool True on success.
 	 */
-	public function reorder_categories_for_subgroup( string $subgroup, array $ordered_ids ): bool {
-		$key = $this->subgroup_to_cat_key( $subgroup );
+	public function reorder_categories_for_subgroup(string $subgroup, array $ordered_ids): bool
+	{
+		$key = $this->subgroup_to_cat_key($subgroup);
 
-		if ( ! isset( $this->data['config'][ $key ] ) ) {
+		if (! isset($this->data['config'][$key])) {
 			return false;
 		}
 
-		$index = array_flip( $ordered_ids );
+		$index = array_flip($ordered_ids);
 
-		foreach ( $this->data['config'][ $key ] as &$cat ) {
-			if ( isset( $index[ $cat['id'] ] ) ) {
-				$cat['order'] = $index[ $cat['id'] ];
+		foreach ($this->data['config'][$key] as &$cat) {
+			if (isset($index[$cat['id']])) {
+				$cat['order'] = $index[$cat['id']];
 			}
 		}
-		unset( $cat );
+		unset($cat);
 
 		usort(
-			$this->data['config'][ $key ],
-			static function ( array $a, array $b ): int {
+			$this->data['config'][$key],
+			static function (array $a, array $b): int {
 				return $a['order'] <=> $b['order'];
 			}
 		);
@@ -466,7 +488,8 @@ class AFF_Data_Store {
 	/**
 	 * @return array[]
 	 */
-	public function get_classes(): array {
+	public function get_classes(): array
+	{
 		return $this->data['classes'];
 	}
 
@@ -477,7 +500,8 @@ class AFF_Data_Store {
 	/**
 	 * @return array[]
 	 */
-	public function get_components(): array {
+	public function get_components(): array
+	{
 		return $this->data['components'];
 	}
 
@@ -488,14 +512,16 @@ class AFF_Data_Store {
 	/**
 	 * @return array
 	 */
-	public function get_config(): array {
+	public function get_config(): array
+	{
 		return $this->data['config'];
 	}
 
 	/**
 	 * @param array $config Full config structure.
 	 */
-	public function set_config( array $config ): void {
+	public function set_config(array $config): void
+	{
 		$this->data['config'] = $config;
 		$this->dirty          = true;
 	}
@@ -505,26 +531,30 @@ class AFF_Data_Store {
 	// -----------------------------------------------------------------------
 
 	/** @return bool */
-	public function is_dirty(): bool {
+	public function is_dirty(): bool
+	{
 		return $this->dirty;
 	}
 
 	/** @return string|null */
-	public function get_current_file(): ?string {
+	public function get_current_file(): ?string
+	{
 		return $this->current_file;
 	}
 
 	/** @return array */
-	public function get_counts(): array {
+	public function get_counts(): array
+	{
 		return array(
-			'variables'  => count( $this->data['variables'] ),
-			'classes'    => count( $this->data['classes'] ),
-			'components' => count( $this->data['components'] ),
+			'variables'  => count($this->data['variables']),
+			'classes'    => count($this->data['classes']),
+			'components' => count($this->data['components']),
 		);
 	}
 
 	/** @return array */
-	public function get_all_data(): array {
+	public function get_all_data(): array
+	{
 		return $this->data;
 	}
 
@@ -543,14 +573,158 @@ class AFF_Data_Store {
 	 * @param string $value Value to match.
 	 * @return int|null Array key, or null if not found.
 	 */
-	private function find_item_key( array $items, string $field, string $value ): ?int {
-		foreach ( $items as $k => $item ) {
-			if ( isset( $item[ $field ] ) && $item[ $field ] === $value ) {
+	private function find_item_key(array $items, string $field, string $value): ?int
+	{
+		foreach ($items as $k => $item) {
+			if (isset($item[$field]) && $item[$field] === $value) {
 				return $k;
 			}
 		}
 		return null;
 	}
+
+	// -----------------------------------------------------------------------
+	// DIAGNOSTICS & DEDUPLICATION
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Scan for duplicate variables (by name) and duplicate categories (by name
+	 * within each subgroup). Returns a report; makes no changes.
+	 *
+	 * @return array{
+	 *   duplicate_variable_names: string[],
+	 *   duplicate_categories:     array{ subgroup: string, name: string }[],
+	 *   variable_count:           int,
+	 *   category_counts:          array{ Colors: int, Fonts: int, Numbers: int },
+	 * }
+	 */
+	public function get_diagnostics(): array
+	{
+		$dup_var_names = array();
+		$seen_names    = array();
+
+		foreach ($this->data['variables'] as $var) {
+			$lc = strtolower($var['name'] ?? '');
+			if ('' === $lc) {
+				continue;
+			}
+			if (isset($seen_names[$lc])) {
+				$dup_var_names[] = $var['name'];
+			} else {
+				$seen_names[$lc] = true;
+			}
+		}
+
+		$dup_cats   = array();
+		$cat_counts = array();
+		foreach (array('Colors', 'Fonts', 'Numbers') as $sg) {
+			$cats              = $this->get_categories_for_subgroup($sg);
+			$cat_counts[$sg] = count($cats);
+			$seen_cat          = array();
+			foreach ($cats as $cat) {
+				$lc = strtolower($cat['name'] ?? '');
+				if ('' === $lc) {
+					continue;
+				}
+				if (isset($seen_cat[$lc])) {
+					$dup_cats[] = array('subgroup' => $sg, 'name' => $cat['name']);
+				} else {
+					$seen_cat[$lc] = true;
+				}
+			}
+		}
+
+		return array(
+			'duplicate_variable_names' => array_unique($dup_var_names),
+			'duplicate_categories'     => $dup_cats,
+			'variable_count'           => count($this->data['variables']),
+			'category_counts'          => $cat_counts,
+		);
+	}
+
+	/**
+	 * Remove duplicate variables (keep first occurrence by array order) and
+	 * duplicate categories (keep first occurrence, reassign affected variables).
+	 *
+	 * Marks the store dirty if anything was removed. Does NOT save to disk —
+	 * caller must call save_to_file() after.
+	 *
+	 * @return array{ removed_variables: int, removed_categories: int }
+	 */
+	public function deduplicate(): array
+	{
+		$removed_vars = 0;
+		$removed_cats = 0;
+
+		// Variables: keep first occurrence of each name (case-insensitive).
+		$seen     = array();
+		$new_vars = array();
+		foreach ($this->data['variables'] as $var) {
+			$lc = strtolower($var['name'] ?? '');
+			if ('' === $lc || ! isset($seen[$lc])) {
+				$seen[$lc] = true;
+				$new_vars[]  = $var;
+			} else {
+				$removed_vars++;
+			}
+		}
+		$this->data['variables'] = array_values($new_vars);
+
+		// Categories: per subgroup, keep first occurrence of each name.
+		foreach (array('Colors', 'Fonts', 'Numbers') as $sg) {
+			$key  = $this->subgroup_to_cat_key($sg);
+			$cats = $this->data['config'][$key] ?? array();
+
+			$seen_cat = array();
+			$kept     = array();
+			$remap    = array(); // removed_cat_id => kept_cat_id
+
+			foreach ($cats as $cat) {
+				$lc = strtolower($cat['name'] ?? '');
+				if (! isset($seen_cat[$lc])) {
+					$seen_cat[$lc] = $cat['id'];
+					$kept[]          = $cat;
+				} else {
+					$remap[$cat['id']] = $seen_cat[$lc];
+					$removed_cats++;
+				}
+			}
+
+			$this->data['config'][$key] = array_values($kept);
+
+			// Reassign variables whose category_id pointed to a removed category.
+			if (! empty($remap)) {
+				$id_to_name = array();
+				foreach ($kept as $kcat) {
+					$id_to_name[$kcat['id']] = $kcat['name'];
+				}
+
+				foreach ($this->data['variables'] as &$var) {
+					if (($var['subgroup'] ?? '') !== $sg) {
+						continue;
+					}
+					$cid = $var['category_id'] ?? '';
+					if (isset($remap[$cid])) {
+						$new_id             = $remap[$cid];
+						$var['category_id'] = $new_id;
+						$var['category']    = $id_to_name[$new_id] ?? $var['category'];
+					}
+				}
+				unset($var);
+			}
+		}
+
+		if ($removed_vars > 0 || $removed_cats > 0) {
+			$this->dirty = true;
+		}
+
+		return array(
+			'removed_variables'  => $removed_vars,
+			'removed_categories' => $removed_cats,
+		);
+	}
+
+	// -----------------------------------------------------------------------
 
 	/**
 	 * Upgrade legacy data structures to the current schema in-place.
@@ -561,24 +735,37 @@ class AFF_Data_Store {
 	 *
 	 * @param array $data Decoded project data (modified in-place).
 	 */
-	private function migrate_data( array &$data ): void {
-		if ( ! isset( $data['variables'] ) || ! is_array( $data['variables'] ) ) {
+	private function migrate_data(array &$data): void
+	{
+		if (! isset($data['variables']) || ! is_array($data['variables'])) {
 			return;
 		}
-		foreach ( $data['variables'] as &$var ) {
-			if ( ! isset( $var['status'] ) ) {
-				$var['status'] = ( isset( $var['modified'] ) && true === $var['modified'] )
+		foreach ($data['variables'] as &$var) {
+			if (! isset($var['status'])) {
+				$var['status'] = (isset($var['modified']) && true === $var['modified'])
 					? 'modified'
 					: 'synced';
 			}
-			if ( ! isset( $var['original_value'] ) )           { $var['original_value']      = $var['value'] ?? ''; }
-			if ( ! array_key_exists( 'pending_rename_from', $var ) ) { $var['pending_rename_from'] = null; }
-			if ( ! array_key_exists( 'parent_id', $var ) )    { $var['parent_id']            = null; }
-			if ( ! isset( $var['format'] ) )                   { $var['format']               = 'HEX'; }
-			if ( ! isset( $var['category_id'] ) )              { $var['category_id']          = ''; }
-			if ( ! isset( $var['order'] ) )                    { $var['order']                = 0; }
+			if (! isset($var['original_value'])) {
+				$var['original_value']      = $var['value'] ?? '';
+			}
+			if (! array_key_exists('pending_rename_from', $var)) {
+				$var['pending_rename_from'] = null;
+			}
+			if (! array_key_exists('parent_id', $var)) {
+				$var['parent_id']            = null;
+			}
+			if (! isset($var['format'])) {
+				$var['format']               = 'HEX';
+			}
+			if (! isset($var['category_id'])) {
+				$var['category_id']          = '';
+			}
+			if (! isset($var['order'])) {
+				$var['order']                = 0;
+			}
 		}
-		unset( $var );
+		unset($var);
 	}
 
 	/**
@@ -587,8 +774,9 @@ class AFF_Data_Store {
 	 * @param array $data Decoded JSON data.
 	 * @return array
 	 */
-	private function merge_with_defaults( array $data ): array {
-		return array_merge( $this->data, $data );
+	private function merge_with_defaults(array $data): array
+	{
+		return array_merge($this->data, $data);
 	}
 
 	/**
@@ -596,11 +784,12 @@ class AFF_Data_Store {
 	 *
 	 * @return string
 	 */
-	private function generate_id(): string {
-		$bytes = random_bytes( 16 );
-		$bytes[6] = chr( ( ord( $bytes[6] ) & 0x0f ) | 0x40 ); // version 4
-		$bytes[8] = chr( ( ord( $bytes[8] ) & 0x3f ) | 0x80 ); // variant bits
-		return vsprintf( '%s%s-%s-%s-%s-%s%s%s', str_split( bin2hex( $bytes ), 4 ) );
+	private function generate_id(): string
+	{
+		$bytes = random_bytes(16);
+		$bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40); // version 4
+		$bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80); // variant bits
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
 	}
 
 	/**
@@ -609,8 +798,9 @@ class AFF_Data_Store {
 	 * @param array $item
 	 * @return array
 	 */
-	private function set_timestamps( array $item ): array {
-		$now              = gmdate( 'c' );
+	private function set_timestamps(array $item): array
+	{
+		$now              = gmdate('c');
 		$item['created_at'] = $item['created_at'] ?? $now;
 		$item['updated_at'] = $now;
 		return $item;
@@ -625,7 +815,8 @@ class AFF_Data_Store {
 	 *
 	 * @return array
 	 */
-	private function variable_defaults(): array {
+	private function variable_defaults(): array
+	{
 		return array(
 			'id'                  => '',
 			'name'                => '',
@@ -653,7 +844,8 @@ class AFF_Data_Store {
 	 *
 	 * @return array
 	 */
-	private function category_defaults(): array {
+	private function category_defaults(): array
+	{
 		return array(
 			'id'     => '',
 			'name'   => '',
@@ -673,10 +865,11 @@ class AFF_Data_Store {
 	 *
 	 * @return string Absolute path with trailing slash.
 	 */
-	public static function get_wp_storage_dir(): string {
+	public static function get_wp_storage_dir(): string
+	{
 		$upload_dir = wp_upload_dir();
 		$dir        = $upload_dir['basedir'] . '/aff/';
-		wp_mkdir_p( $dir );
+		wp_mkdir_p($dir);
 		return $dir;
 	}
 
@@ -686,13 +879,14 @@ class AFF_Data_Store {
 	 * @param string $filename Raw input filename.
 	 * @return string Safe filename with .aff.json extension.
 	 */
-	public static function sanitize_filename( string $filename ): string {
-		$filename = sanitize_file_name( $filename );
+	public static function sanitize_filename(string $filename): string
+	{
+		$filename = sanitize_file_name($filename);
 
 		// Strip existing extension and enforce .aff.json.
-		$base = pathinfo( $filename, PATHINFO_FILENAME );
+		$base = pathinfo($filename, PATHINFO_FILENAME);
 		// Handle double-extension like "my-project.aff" → "my-project".
-		$base = preg_replace( '/(\.aff)+$/', '', $base );
+		$base = preg_replace('/(\.aff)+$/', '', $base);
 
 		return $base . '.aff.json';
 	}
@@ -711,10 +905,11 @@ class AFF_Data_Store {
 	 * @param string $filename Sanitized .aff.json filename (e.g., 'my-project.aff.json').
 	 * @return array Baseline variable array, or empty array if not yet set.
 	 */
-	public static function get_baseline( string $filename ): array {
-		$key  = 'aff_elementor_baseline_' . md5( $filename );
-		$data = get_option( $key, array() );
-		return is_array( $data ) ? $data : array();
+	public static function get_baseline(string $filename): array
+	{
+		$key  = 'aff_elementor_baseline_' . md5($filename);
+		$data = get_option($key, array());
+		return is_array($data) ? $data : array();
 	}
 
 	/**
@@ -723,9 +918,10 @@ class AFF_Data_Store {
 	 * @param string  $filename  Sanitized .aff.json filename.
 	 * @param array   $variables Array of { name, value } pairs from Elementor.
 	 */
-	public static function save_baseline( string $filename, array $variables ): void {
-		$key = 'aff_elementor_baseline_' . md5( $filename );
-		update_option( $key, $variables, false ); // autoload=false: only needed on demand.
+	public static function save_baseline(string $filename, array $variables): void
+	{
+		$key = 'aff_elementor_baseline_' . md5($filename);
+		update_option($key, $variables, false); // autoload=false: only needed on demand.
 	}
 
 	/**
@@ -733,9 +929,10 @@ class AFF_Data_Store {
 	 *
 	 * @param string $filename Sanitized .aff.json filename.
 	 */
-	public static function delete_baseline( string $filename ): void {
-		$key = 'aff_elementor_baseline_' . md5( $filename );
-		delete_option( $key );
+	public static function delete_baseline(string $filename): void
+	{
+		$key = 'aff_elementor_baseline_' . md5($filename);
+		delete_option($key);
 	}
 
 	/**
@@ -744,7 +941,8 @@ class AFF_Data_Store {
 	 * @param string $name Human-readable project name.
 	 * @return array
 	 */
-	public function new_project( string $name ): array {
+	public function new_project(string $name): array
+	{
 		return array(
 			'version'    => '1.0',
 			'name'       => $name,
@@ -766,10 +964,11 @@ class AFF_Data_Store {
 	 * @param string $name Human-readable project name.
 	 * @return string Slug.
 	 */
-	public static function sanitize_project_slug( string $name ): string {
-		$name = mb_strtolower( $name );
-		$name = preg_replace( '/[^a-z0-9]+/', '-', $name );
-		return trim( $name, '-' );
+	public static function sanitize_project_slug(string $name): string
+	{
+		$name = mb_strtolower($name);
+		$name = preg_replace('/[^a-z0-9]+/', '-', $name);
+		return trim($name, '-');
 	}
 
 	/**
@@ -778,10 +977,11 @@ class AFF_Data_Store {
 	 * @param string $project_slug Slug from sanitize_project_slug().
 	 * @return string Absolute path with trailing slash.
 	 */
-	public static function get_project_dir( string $project_slug ): string {
+	public static function get_project_dir(string $project_slug): string
+	{
 		$dir = self::get_wp_storage_dir() . $project_slug . '/';
-		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
+		if (! is_dir($dir)) {
+			wp_mkdir_p($dir);
 		}
 		return $dir;
 	}
@@ -792,8 +992,9 @@ class AFF_Data_Store {
 	 * @param string $project_slug Slug.
 	 * @return string e.g. "my-demo_2026-03-18_14-30-00.aff.json"
 	 */
-	public static function generate_backup_filename( string $project_slug ): string {
-		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.aff.json';
+	public static function generate_backup_filename(string $project_slug): string
+	{
+		return $project_slug . '_' . gmdate('Y-m-d_H-i-s') . '.aff.json';
 	}
 
 	/**
@@ -802,32 +1003,38 @@ class AFF_Data_Store {
 	 * @param string $base_dir Absolute path with trailing slash.
 	 * @return array[] Each item: { slug, name, backup_count, latest_modified }.
 	 */
-	public static function list_projects_v2( string $base_dir ): array {
-		$dirs = glob( $base_dir . '*/', GLOB_ONLYDIR ) ?: array();
+	public static function list_projects(string $base_dir): array
+	{
+		$dirs = glob($base_dir . '*/', GLOB_ONLYDIR) ?: array();
 		$list = array();
 
-		foreach ( $dirs as $d ) {
-			$slug    = basename( $d );
-			$backups = self::list_project_backups( $base_dir, $slug );
-			if ( empty( $backups ) ) {
+		foreach ($dirs as $d) {
+			$slug    = basename($d);
+			$backups = self::list_project_backups($base_dir, $slug);
+			if (empty($backups)) {
 				continue;
 			}
 			$latest  = $backups[0];
 			$list[]  = array(
 				'slug'            => $slug,
 				'name'            => $latest['name'] ?: $slug,
-				'backup_count'    => count( $backups ),
+				'backup_count'    => count($backups),
 				'latest_modified' => $latest['modified'],
 			);
 		}
 
-		usort( $list, function ( $a, $b ) use ( $base_dir ) {
+		// Sort newest-first by latest backup modification time. The comparator
+		// re-calls glob() + filemtime() on both directories for every comparison.
+		// A comparison-based sort makes O(N log N) filesystem calls — ~34 glob() calls
+		// for 10 projects, ~280 for 50. Tech debt A-06: add a raw filemtime integer to
+		// each $list entry during the foreach above and sort on that field instead.
+		usort($list, function ($a, $b) use ($base_dir) {
 			$fa = $base_dir . $a['slug'] . '/';
 			$fb = $base_dir . $b['slug'] . '/';
-			$ta = ( $files_a = glob( $fa . '*.aff.json' ) ) ? max( array_map( 'filemtime', $files_a ) ) : 0;
-			$tb = ( $files_b = glob( $fb . '*.aff.json' ) ) ? max( array_map( 'filemtime', $files_b ) ) : 0;
+			$ta = ($files_a = glob($fa . '*.aff.json')) ? max(array_map('filemtime', $files_a)) : 0;
+			$tb = ($files_b = glob($fb . '*.aff.json')) ? max(array_map('filemtime', $files_b)) : 0;
 			return $tb - $ta;
-		} );
+		});
 
 		return $list;
 	}
@@ -839,19 +1046,22 @@ class AFF_Data_Store {
 	 * @param string $project_slug Slug.
 	 * @return array[] Each item: { filename (relative: slug/file.aff.json), name, modified }.
 	 */
-	public static function list_project_backups( string $base_dir, string $project_slug ): array {
+	public static function list_project_backups(string $base_dir, string $project_slug): array
+	{
 		$dir   = $base_dir . $project_slug . '/';
-		$files = glob( $dir . '*.aff.json' ) ?: array();
-		usort( $files, function ( $a, $b ) { return filemtime( $b ) - filemtime( $a ); } );
+		$files = glob($dir . '*.aff.json') ?: array();
+		usort($files, function ($a, $b) {
+			return filemtime($b) - filemtime($a);
+		});
 
 		$list = array();
-		foreach ( $files as $f ) {
-			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		foreach ($files as $f) {
+			$raw    = json_decode(file_get_contents($f), true) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$list[] = array(
-				'filename'       => $project_slug . '/' . basename( $f ),
-				'name'           => isset( $raw['name'] ) ? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
-				'modified'       => date( 'M j, g:i a', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-				'variable_count' => isset( $raw['variables'] ) && is_array( $raw['variables'] ) ? count( $raw['variables'] ) : 0,
+				'filename'       => $project_slug . '/' . basename($f),
+				'name'           => isset($raw['name']) ? preg_replace('/(\.aff)+(?:\.json)?$/i', '', $raw['name']) : $project_slug,
+				'modified'       => date('M j, g:i a', filemtime($f)), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+				'variable_count' => isset($raw['variables']) && is_array($raw['variables']) ? count($raw['variables']) : 0,
 			);
 		}
 
@@ -864,46 +1074,21 @@ class AFF_Data_Store {
 	 * @param string $project_dir Absolute path to project subdirectory (with trailing slash).
 	 * @param int    $max         Maximum number of backups to keep.
 	 */
-	public static function prune_backups( string $project_dir, int $max ): void {
-		if ( $max < 1 ) {
+	public static function prune_backups(string $project_dir, int $max): void
+	{
+		if ($max < 1) {
 			return;
 		}
-		$files = glob( $project_dir . '*.aff.json' ) ?: array();
-		if ( count( $files ) <= $max ) {
+		$files = glob($project_dir . '*.aff.json') ?: array();
+		if (count($files) <= $max) {
 			return;
 		}
-		usort( $files, function ( $a, $b ) { return filemtime( $a ) - filemtime( $b ); } ); // oldest first
-		$to_delete = array_slice( $files, 0, count( $files ) - $max );
-		foreach ( $to_delete as $f ) {
-			wp_delete_file( $f );
+		usort($files, function ($a, $b) {
+			return filemtime($a) - filemtime($b);
+		}); // oldest first
+		$to_delete = array_slice($files, 0, count($files) - $max);
+		foreach ($to_delete as $f) {
+			wp_delete_file($f);
 		}
-	}
-
-	/**
-	 * List all .aff.json projects in a directory, sorted by most recently modified.
-	 *
-	 * @param string $dir Absolute path with trailing slash.
-	 * @return array[] Array of { name, filename, modified } maps.
-	 */
-	public static function list_projects( string $dir ): array {
-		$files = glob( $dir . '*.aff.json' ) ?: array();
-		$list  = array();
-
-		foreach ( $files as $f ) {
-			$raw    = json_decode( file_get_contents( $f ), true ) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$list[] = array(
-				'name'     => isset( $raw['name'] ) && $raw['name'] !== ''
-					? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] )
-					: preg_replace( '/(\.aff)+$/i', '', basename( $f, '.aff.json' ) ),
-				'filename' => basename( $f ),
-				'modified' => date( 'M j', filemtime( $f ) ), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-			);
-		}
-
-		usort( $list, function ( $a, $b ) use ( $dir ) {
-			return filemtime( $dir . $b['filename'] ) - filemtime( $dir . $a['filename'] );
-		} );
-
-		return $list;
 	}
 }

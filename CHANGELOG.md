@@ -7,6 +7,32 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.2-beta] — 2026-04-18
+
+### Added
+
+- **Elementor Write via Post Meta** — Committing to Elementor now writes variable values directly to the `_elementor_global_variables` post meta (Elementor's authoritative data store). A CSS file patch is applied as a secondary step for immediate visual preview without a page reload.
+
+### Fixed
+
+- **CSS Variable Names on Commit** — Variable names are now normalized to the `--` prefix when committing to Elementor. Bare identifiers stored in AFF (e.g. `sp-s`) are written as valid CSS custom properties (`--sp-s`).
+- **CSS Variable Storage** — AFF now stores bare identifiers internally without the `--` prefix, preventing a double-prefix (`----sp-s`) on round-trip commit and re-import.
+- **Elementor V4 Import** — EV4 variable labels are preserved unchanged on import; only a single `--` prefix is stripped per name to avoid mangling variable names that contain double hyphens.
+- **Category Rename Hides Variables** — Renaming a category no longer causes its variables to disappear from the edit view. The per-variable `category` field is now synced whenever a category is renamed.
+- **Add Category — Fonts/Numbers** — Add Category now works correctly in Fonts and Numbers panels; the modal click handler was not removed on close, causing duplicate fires on subsequent attempts.
+- **Delete Project** — Deleting a project now correctly clears the active display. Native browser `confirm()` replaced with the AFF modal dialog for consistency.
+- **Auto-save After Clear/Replace Sync** — Project file is saved to disk automatically after Clear and Replace sync operations, preventing unsaved state from being silently discarded.
+- **Left Panel Count Badges** — Category count badges in the left panel now match variables by `category_id` in addition to `category` name, fixing blank counts for Numbers and Fonts categories whose variables were saved with an ID reference.
+- **Placeholder Sign Image** — Take-a-look sign converted to a true PNG; the previous file had an opaque white background that blocked the page theme colour.
+
+### Changed
+
+- **Shared Utilities — Phase 1** — Duplicate utility methods across Colors and Variables extracted into shared `AFF.Utils` and `AFF.Icons` objects, removing ~520 lines of duplication.
+- **Shared Category Mixin — Phase 2** — Six category-management methods (`_addCategory`, `_saveCategoryName`, `_deleteCategory`, `_duplicateCategory`, `_ajaxReorderCategories`, `_jumpToCategory`) consolidated into `AFF.CatMixin` and applied to both Colors and Variables via `Object.assign`, removing a further ~290 lines of duplication.
+- **Version** — Bumped to 0.4.2-beta.
+
+---
+
 ## [0.4.1-beta] — 2026-04-14
 
 ### Fixed
@@ -328,6 +354,8 @@ Initial Alpha release.
 | **0.3.5-beta** | Load Project modal improvements; cross-module event fix; drag fixes; Write to Elementor kit CSS auto-regeneration; duplicate variable name prevention; removed forced `--` prefix |
 | **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
 | **0.4.1-beta** | Placeholder sign background transparency fix. |
+| **0.4.2-beta** | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
+| **0.5.x-beta** | Super Categories — two-level category nesting within each variable set (Colors, Fonts, Numbers). Top-level category holds sub-categories only; sub-categories hold variables only. Flat Elementor commit unchanged. Motivated by large Number sets (382-variable website design systems). |
 | **1.0.0** | Classes management; Components registry |
 | **2.0.0** | Components registry; Elementor Kit Manager API write-back; Bulk variable rename |
 | **Future** | Standalone Windows / Mac desktop application |

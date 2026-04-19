@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Beta](https://img.shields.io/badge/status-Beta%200.4.1-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-0.4.1--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Beta](https://img.shields.io/badge/status-Beta%200.4.2-e07a40?style=flat-square&labelColor=2a1a0e)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-0.4.2--beta-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%206.9-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -30,7 +30,20 @@ Atomic Framework Forge for Elementor (AFF) is a WordPress developer tool that gi
 
 Instead of hunting through Elementor's generated CSS by hand, AFF reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
 
-**AFF is a read-first, non-destructive tool.** It never modifies Elementor's CSS unless you explicitly commit changes back.
+---
+
+## How AFF Interacts with Elementor
+
+> **Read:** AFF reads global variables directly from the active Elementor kit's `_elementor_global_variables` post meta — the same authoritative data store Elementor itself uses. This happens only when you click **↓ Variables (Fetch Elementor Data)**. It is purely read-only; nothing in Elementor is touched.
+>
+> **Write:** When you click **↑ Variables (Write to Elementor)**, AFF writes the current variable values back to `_elementor_global_variables` on the kit post. Elementor rebuilds its CSS from this meta on the next page load. **This is the only write operation AFF performs on Elementor data.**
+>
+> Every write is:
+> - **Always user-triggered** — no background or automatic writes, ever
+> - **Always preceded by a confirmation dialog** showing exactly what will change
+> - **Always limited to variables you have managed in AFF** — AFF does not touch anything else in your Elementor configuration
+>
+> **Use on staging or a local development environment only.** A corrupted write could damage your Elementor kit's variable data. Always export a project backup before writing to Elementor.
 
 ---
 
@@ -51,13 +64,13 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Beta Status
 
-This is **Beta 0.4.1**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
+This is **Beta 0.4.2**. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 
-## What Works in Beta 0.4.1
+## What Works in Beta 0.4.2
 
 | Feature | Status |
 |---------|--------|
@@ -247,8 +260,10 @@ atomic-framework-forge-for-elementor/
 | **0.3.3-beta** | Auto-regenerate Elementor kit CSS when file is missing, preventing 0-variable sync on first load. |
 | **0.3.4-beta** | Renamed EFF → AFF for WordPress.org compatibility. Sync reads Elementor kit meta directly. Category defaults and AJAX action name fixes. |
 | **0.3.5-beta** | Load Project modal improvements (save count, inline rename, copy, delete). Cross-module event contamination fix. Drag fixes in Numbers view. Write to Elementor auto-regenerates missing kit CSS. Duplicate variable name prevention. Removed forced `--` prefix while typing. |
-| **0.4.1-beta** *(this release)* | Placeholder sign background transparency fix. |
+| **0.4.1-beta** | Placeholder sign background transparency fix. |
+| **0.4.2-beta** *(this release)* | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
 | **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
+| **0.5.x-beta** | Super Categories — two-level nesting within Colors, Fonts, and Numbers. Top-level category contains sub-categories only; sub-categories contain variables only. Elementor commit remains flat. Requested for large design systems (382-variable projects). |
 | **1.0.0** | Classes management. Components registry. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
 | **Future** | Standalone Windows / Mac desktop application. |

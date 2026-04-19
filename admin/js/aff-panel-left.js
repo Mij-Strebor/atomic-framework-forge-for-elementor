@@ -278,8 +278,12 @@
 				btn.appendChild(nameSpan);
 
 				// Per-category variable count badge.
+				// Match by category_id (authoritative) OR by category name (fallback),
+				// mirroring the dual-check in _getVarsForCategory in the edit view.
 				var count = vars.filter(function (v) {
-					return v.subgroup === subgroup && v.category === name;
+					if (v.subgroup !== subgroup) { return false; }
+					if (catId && v.category_id === catId) { return true; }
+					return v.category === name;
 				}).length;
 				if (count > 0) {
 					var badge = document.createElement('span');
