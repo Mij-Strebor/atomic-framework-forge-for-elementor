@@ -2631,151 +2631,6 @@
     },
 
     /**
-     * Initialize mouse-based drag-and-drop for category blocks.
-     *
-     * @param {HTMLElement} container
-     */
-    _initCatDrag: function (container) {
-      var self = this;
-      var d = {
-        active: false,
-        catId: null,
-        ghost: null,
-        indicator: null,
-        startY: 0,
-        _dropTargetId: null,
-        _dropAbove: null,
-      };
-
-      container.addEventListener("mousedown", function (e) {
-        if (!container.querySelector(".aff-colors-view")) {
-          return;
-        }
-        var handle = e.target.closest(".aff-cat-drag-handle");
-        if (!handle) {
-          return;
-        }
-        e.preventDefault();
-
-        var block = handle.closest(".aff-category-block");
-        if (!block) {
-          return;
-        }
-
-        d.catId = block.getAttribute("data-category-id");
-        if (!d.catId) {
-          return;
-        }
-
-        d.active = true;
-        d.startY = e.clientY;
-
-        var blockRect = block.getBoundingClientRect();
-        var ghost = block.cloneNode(true);
-        ghost.style.cssText =
-          "position:fixed;pointer-events:none;z-index:9999;" +
-          "width:" +
-          block.offsetWidth +
-          "px;" +
-          "top:" +
-          blockRect.top +
-          "px;left:" +
-          blockRect.left +
-          "px;" +
-          "opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:12px;";
-        ghost.className += " aff-drag-ghost";
-        document.body.appendChild(ghost);
-        d.ghost = ghost;
-
-        var indicator = document.createElement("div");
-        indicator.className = "aff-drop-indicator";
-        indicator.style.display = "none";
-        indicator.style.pointerEvents = "none";
-        var _appEl = document.getElementById("aff-app");
-        var _accent = _appEl
-          ? getComputedStyle(_appEl).getPropertyValue("--aff-clr-accent").trim()
-          : "";
-        if (!_accent) {
-          _accent = "#f4c542";
-        }
-        indicator.style.background =
-          "linear-gradient(to right, transparent, " +
-          _accent +
-          " 15%, " +
-          _accent +
-          " 85%, transparent)";
-        document.body.appendChild(indicator);
-        d.indicator = indicator;
-
-        block.style.opacity = "0.3";
-      });
-
-      document.addEventListener("mousemove", function (e) {
-        if (!d.active || !d.ghost) {
-          return;
-        }
-        var dy = e.clientY - d.startY;
-        d.ghost.style.transform = "translateY(" + dy + "px)";
-
-        d.ghost.style.display = "none";
-        var elBelow = document.elementFromPoint(e.clientX, e.clientY);
-        d.ghost.style.display = "";
-
-        var targetBlock = elBelow
-          ? elBelow.closest(".aff-category-block")
-          : null;
-        if (
-          targetBlock &&
-          targetBlock.getAttribute("data-category-id") !== d.catId
-        ) {
-          var tbRect = targetBlock.getBoundingClientRect();
-          var above = e.clientY < tbRect.top + tbRect.height / 2;
-          d.indicator.style.display = "";
-          d.indicator.style.left = tbRect.left + "px";
-          d.indicator.style.width = tbRect.width + "px";
-          d.indicator.style.top =
-            (above ? tbRect.top : tbRect.bottom) - 2 + "px";
-          d.indicator.style.height = "4px";
-          d._dropTargetId = targetBlock.getAttribute("data-category-id");
-          d._dropAbove = above;
-        } else {
-          d.indicator.style.display = "none";
-          d._dropTargetId = null;
-        }
-      });
-
-      document.addEventListener("mouseup", function () {
-        if (!d.active) {
-          return;
-        }
-        d.active = false;
-
-        if (d.ghost && d.ghost.parentNode) {
-          d.ghost.parentNode.removeChild(d.ghost);
-        }
-        if (d.indicator && d.indicator.parentNode) {
-          d.indicator.parentNode.removeChild(d.indicator);
-        }
-        d.ghost = null;
-        d.indicator = null;
-
-        var draggingBlock = container.querySelector(
-          '.aff-category-block[data-category-id="' + d.catId + '"]',
-        );
-        if (draggingBlock) {
-          draggingBlock.style.opacity = "";
-        }
-
-        if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
-          self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
-        }
-        d._dropTargetId = null;
-        d._dropAbove = null;
-        d.catId = null;
-      });
-    },
-
-    /**
      * Handle a completed category drop: reorder categories.
      */
     _onDropCat: function (srcId, targetId, above) {
@@ -3528,29 +3383,8 @@
     },
 
     // -----------------------------------------------------------------------
-    // FILTER / COLLAPSE
+    // COLLAPSE
     // -----------------------------------------------------------------------
-
-    /**
-     * Filter color rows by search query.
-     *
-     * @param {HTMLElement} container
-     * @param {string}      query
-     */
-    _filterRows: function (container, query) {
-      var lq = query.toLowerCase();
-      var rows = container.querySelectorAll(".aff-color-row");
-
-      for (var i = 0; i < rows.length; i++) {
-        var nameInput = rows[i].querySelector(".aff-color-name-input");
-        var valueInput = rows[i].querySelector(".aff-color-value-input");
-        var name = nameInput ? nameInput.value.toLowerCase() : "";
-        var value = valueInput ? valueInput.value.toLowerCase() : "";
-
-        var match = !lq || name.indexOf(lq) !== -1 || value.indexOf(lq) !== -1;
-        rows[i].style.display = match ? "" : "none";
-      }
-    },
 
     /**
      * Expand or collapse all category blocks and update the toggle button.
@@ -4233,6 +4067,11 @@
     // -----------------------------------------------------------------------
     // MODAL HELPERS
     // -----------------------------------------------------------------------
+
+    /** CSS selector for the active view inside the container. Required by AFF.CatMixin._initCatDrag. */
+    _catViewSelector: function () {
+      return '.aff-colors-view';
+    },
 
     /**
      * Show a "no file loaded" info modal.
