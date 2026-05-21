@@ -3725,16 +3725,23 @@
      * by the nav-click behaviour) then re-renders with current selection.
      */
     _rerenderView: function () {
-      var content = document.getElementById("aff-edit-content");
+      var content   = document.getElementById("aff-edit-content");
+      var editSpace = document.getElementById("aff-edit-space");
       if (!content || !AFF.state.currentSelection) {
         return;
       }
 
-      // Call _renderAll directly to avoid resetting this._collapsedIds.
-      // (loadColors would re-apply _focusedCategoryId from currentSelection
-      //  and wipe out the manual collapse overrides set by recent CRUD ops.)
+      // Save scroll position before innerHTML replacement resets it.
+      var savedPanel  = editSpace ? editSpace.scrollTop : 0;
+      var savedWindow = window.pageYOffset;
+
+      // Clear focused category so _renderAll does not scroll to it via
+      // _jumpToCategory — CRUD rerenders must not move the viewport.
       _focusedCategoryId = null;
       this._renderAll(AFF.state.currentSelection, content);
+
+      if (editSpace) { editSpace.scrollTop = savedPanel; }
+      if (window.pageYOffset !== savedWindow) { window.scrollTo(0, savedWindow); }
     },
 
     /**

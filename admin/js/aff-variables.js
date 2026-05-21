@@ -1167,12 +1167,23 @@
 			var content   = document.getElementById('aff-edit-content');
 			var editSpace = document.getElementById('aff-edit-space');
 			if (!content) { return; }
-			// Save scroll on both the panel's own scroll container (.aff-edit-space,
-			// overflow-y:auto) and the window — WordPress admin may be the outermost
-			// scrollable container depending on screen height. innerHTML replacement
-			// destroys the focused element which causes browsers to jump to top.
 			var savedPanel  = editSpace ? editSpace.scrollTop : 0;
 			var savedWindow = window.pageYOffset;
+			// Snapshot focus-driven collapse state into _collapsedIds before clearing
+			// _focusedCatId. Without this, clearing _focusedCatId causes previously
+			// auto-collapsed categories to expand (their state was never in _collapsedIds).
+			// Clears _focusedCatId so _renderAll does not fire _jumpToCategory's
+			// scrollIntoView (setTimeout 50ms), which would override the scroll restore.
+			if (this._focusedCatId) {
+				var cats = this._getCatsForSet();
+				for (var i = 0; i < cats.length; i++) {
+					var cat = cats[i];
+					if (!this._collapsedIds.hasOwnProperty(cat.id)) {
+						this._collapsedIds[cat.id] = (cat.id !== this._focusedCatId);
+					}
+				}
+				this._focusedCatId = null;
+			}
 			this._renderAll(AFF.state.currentSelection || {}, content);
 			if (editSpace) { editSpace.scrollTop = savedPanel; }
 			if (window.pageYOffset !== savedWindow) { window.scrollTo(0, savedWindow); }

@@ -442,20 +442,33 @@ class AFF_Data_Store
 			return false; // Cannot delete locked categories.
 		}
 
+		// Capture category name before splicing it out — needed for matching
+		// legacy variables that have a category name but no category_id.
+		$cat_name = $this->data['config'][$key][$k]['name'] ?? '';
+
 		array_splice($this->data['config'][$key], $k, 1);
 
 		// Handle variables that belong to this category.
+		// Match by category_id (primary) or by category name with no ID (legacy).
 		if ($delete_vars) {
 			$this->data['variables'] = array_values(array_filter(
 				$this->data['variables'],
-				static function (array $v) use ($id): bool {
-					return ($v['category_id'] ?? '') !== $id;
+				static function (array $v) use ($id, $cat_name): bool {
+					if (($v['category_id'] ?? '') === $id) {
+						return false;
+					}
+					if ($cat_name !== '' && ($v['category_id'] ?? '') === '' && ($v['category'] ?? '') === $cat_name) {
+						return false;
+					}
+					return true;
 				}
 			));
 		} else {
 			// Clear the category reference so variables appear in Uncategorized.
 			foreach ($this->data['variables'] as &$v) {
-				if (($v['category_id'] ?? '') === $id) {
+				$matches_id   = ($v['category_id'] ?? '') === $id;
+				$matches_name = $cat_name !== '' && ($v['category_id'] ?? '') === '' && ($v['category'] ?? '') === $cat_name;
+				if ($matches_id || $matches_name) {
 					$v['category_id'] = '';
 					$v['category']    = '';
 				}

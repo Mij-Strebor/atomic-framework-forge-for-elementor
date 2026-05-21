@@ -193,9 +193,13 @@
 		 * @param {string} catId Category UUID.
 		 * @returns {Array}
 		 */
-		getVarsForCategoryId: function (catId) {
+		getVarsForCategoryId: function (catId, catName) {
 			return (AFF.state.variables || []).filter(function (v) {
-				return v.category_id === catId && v.status !== 'deleted';
+				if (v.status === 'deleted') { return false; }
+				if (v.category_id === catId) { return true; }
+				// Legacy: var assigned by name only (no category_id set).
+				if (catName && !v.category_id && v.category === catName) { return true; }
+				return false;
 			});
 		},
 
@@ -627,13 +631,13 @@
 		 */
 		_deleteCategory: function (catId) {
 			var self = this;
-			var vars = AFF.Utils.getVarsForCategoryId(catId);
 			if (!AFF.state.currentFile) { self._noFileModal(); return; }
 
 			var cats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
 				? AFF.state.config[self._cfg.catKey] : [];
-			var catObj = cats.find(function (c) { return c.id === catId; });
-			var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
+			var catObj   = cats.find(function (c) { return c.id === catId; });
+			var catLabel = catObj ? ‘’’ + catObj.name + ‘’’ : ‘this category’;
+			var vars     = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : ‘’);
 
 			// deleteVars: true = delete vars with category; false = move to Uncategorized.
 			// Toggle represents "Save to Uncategorized" — off by default (vars are deleted).
