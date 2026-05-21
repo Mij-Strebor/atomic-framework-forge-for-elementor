@@ -258,6 +258,14 @@
 			var isColor = AFF.Utils.isColorValue(lc);
 			var isFont  = !isColor &&
 				/\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
+			// Named font fallback: a plain word/phrase (letters, digits, spaces, hyphens,
+			// commas, apostrophes) that isn't a CSS keyword is almost certainly a font name.
+			if (!isFont && !isColor) {
+				var _cssKw = /^(none|inherit|initial|unset|auto|normal|bold|bolder|lighter|italic|oblique|currentcolor|transparent)$/i;
+				if (/^[a-zA-Z][a-zA-Z0-9 '\-,]*$/.test((value || '').trim()) && !_cssKw.test((value || '').trim())) {
+					isFont = true;
+				}
+			}
 			var isNumber = !isColor && !isFont && (
 				/^\d/.test(lc) ||
 				/^(clamp|calc|min|max)\s*\(/.test(lc) ||
@@ -301,6 +309,27 @@
 			}
 
 			return { type: type, subgroup: subgroup, format: format, storeValue: storeValue };
+		},
+
+		/**
+		 * Re-classify any variables that have no subgroup (e.g. font names stored
+		 * before the named-font heuristic existed). Called at file-load time so
+		 * in-memory state is always correct; the fix persists on next save.
+		 *
+		 * @param {Array} variables  AFF.state.variables array (mutated in place).
+		 */
+		migrateUnclassifiedVars: function (variables) {
+			for (var i = 0; i < variables.length; i++) {
+				var v = variables[i];
+				if (!v.subgroup && v.status !== 'deleted') {
+					var cls = AFF.Utils.classifyVar(v.value || '', '');
+					if (cls.type !== 'unknown') {
+						v.type     = cls.type;
+						v.subgroup = cls.subgroup;
+						if (!v.format) { v.format = cls.format; }
+					}
+				}
+			}
 		},
 	};
 

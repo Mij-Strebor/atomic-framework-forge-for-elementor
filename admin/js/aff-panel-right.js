@@ -105,6 +105,7 @@
             // are that _loadFile closes the modal, clears dirty state, and shows a toast.
             // When fixing DP-03, extract this block to a shared _applyLoadedData(res, opts).
             AFF.state.variables = res.data.data.variables || [];
+            AFF.Utils.migrateUnclassifiedVars(AFF.state.variables);
             AFF.state.classes = res.data.data.classes || [];
             AFF.state.components = res.data.data.components || [];
             AFF.state.metadata = res.data.data.metadata || {};
@@ -209,6 +210,7 @@
             // _loadFile above. The only difference is that _autoLoadFile is silent on
             // failure (no modal, no dirty-flag reset). Extract to _applyLoadedData(res, opts).
             AFF.state.variables = res.data.data.variables || [];
+            AFF.Utils.migrateUnclassifiedVars(AFF.state.variables);
             AFF.state.classes = res.data.data.classes || [];
             AFF.state.components = res.data.data.components || [];
             AFF.state.metadata = res.data.data.metadata || {};
