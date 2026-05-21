@@ -1387,7 +1387,7 @@
 		 */
 		refreshCounts: function () {
 			var counts = {
-				variables:  AFF.state.variables.length,
+				variables:  AFF.state.variables.filter(function (v) { return v.status !== 'deleted'; }).length,
 				classes:    AFF.state.classes.length,
 				components: AFF.state.components.length,
 			};

@@ -1049,26 +1049,30 @@ class AFF_Data_Store
 				continue;
 			}
 			$latest  = $backups[0];
+			// Embed the latest backup's filename for stable sort (see usort below).
 			$list[]  = array(
-				'slug'            => $slug,
-				'name'            => $latest['name'] ?: $slug,
-				'backup_count'    => count($backups),
-				'latest_modified' => $latest['modified'],
+				'slug'                => $slug,
+				'name'                => $latest['name'] ?: $slug,
+				'backup_count'        => count($backups),
+				'latest_modified'     => $latest['modified'],
+				'latest_modified_ts'  => $latest['modified_ts'],
+				'_sort_key'           => basename($latest['filename'] ?? ''),
 			);
 		}
 
-		// Sort newest-first by latest backup modification time. The comparator
-		// re-calls glob() + filemtime() on both directories for every comparison.
-		// A comparison-based sort makes O(N log N) filesystem calls — ~34 glob() calls
-		// for 10 projects, ~280 for 50. Tech debt A-06: add a raw filemtime integer to
-		// each $list entry during the foreach above and sort on that field instead.
-		usort($list, function ($a, $b) use ($base_dir) {
-			$fa = $base_dir . $a['slug'] . '/';
-			$fb = $base_dir . $b['slug'] . '/';
-			$ta = ($files_a = glob($fa . '*.aff.json')) ? max(array_map('filemtime', $files_a)) : 0;
-			$tb = ($files_b = glob($fb . '*.aff.json')) ? max(array_map('filemtime', $files_b)) : 0;
-			return $tb - $ta;
+		// Sort newest-first by the backup filename, which encodes the original
+		// creation timestamp (slug_YYYY-MM-DD_HH-II-SS.aff.json). This is stable —
+		// CRUD saves overwrite the file but never rename it, so the sort order
+		// does not change when a user edits categories or variables.
+		usort($list, static function (array $a, array $b): int {
+			return strcmp($b['_sort_key'], $a['_sort_key']);
 		});
+
+		// Strip the internal sort key before returning.
+		foreach ($list as &$item) {
+			unset($item['_sort_key']);
+		}
+		unset($item);
 
 		return $list;
 	}
@@ -1084,18 +1088,26 @@ class AFF_Data_Store
 	{
 		$dir   = $base_dir . $project_slug . '/';
 		$files = glob($dir . '*.aff.json') ?: array();
-		usort($files, function ($a, $b) {
-			return filemtime($b) - filemtime($a);
+		// Sort by filename descending — filenames encode the original creation
+		// timestamp (slug_YYYY-MM-DD_HH-II-SS.aff.json), so this order is stable
+		// and is not affected by CRUD saves that update filemtime.
+		usort($files, static function (string $a, string $b): int {
+			return strcmp(basename($b), basename($a));
 		});
 
 		$list = array();
 		foreach ($files as $f) {
 			$raw    = json_decode(file_get_contents($f), true) ?: array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$ts     = filemtime($f);
+			$vars   = isset($raw['variables']) && is_array($raw['variables']) ? $raw['variables'] : array();
 			$list[] = array(
 				'filename'       => $project_slug . '/' . basename($f),
 				'name'           => isset($raw['name']) ? preg_replace('/(\.aff)+(?:\.json)?$/i', '', $raw['name']) : $project_slug,
-				'modified'       => date('M j, g:i a', filemtime($f)), // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-				'variable_count' => isset($raw['variables']) && is_array($raw['variables']) ? count($raw['variables']) : 0,
+				'modified'       => wp_date('M j, g:i a', $ts),
+				'modified_ts'    => $ts,
+				'variable_count' => count(array_filter($vars, static function (array $v): bool {
+					return ($v['status'] ?? '') !== 'deleted';
+				})),
 			);
 		}
 
