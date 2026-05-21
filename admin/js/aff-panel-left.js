@@ -257,6 +257,16 @@
 
 			list.innerHTML = '';
 
+			// Build a lookup of all non-Uncategorized category IDs in this list so
+			// the Uncategorized badge can apply the same catch-all logic as
+			// _getVarsForCategory: empty refs and orphaned refs land in Uncategorized.
+			var knownCatIds = {};
+			items.forEach(function (it) {
+				var itName = (typeof it === 'string') ? it : (it.name || '');
+				var itId   = (typeof it === 'string') ? null : (it.id || null);
+				if (itId && itName !== 'Uncategorized') { knownCatIds[itId] = true; }
+			});
+
 			items.forEach(function (item) {
 				var name  = (typeof item === 'string') ? item : (item.name || '');
 				var catId = (typeof item === 'string') ? null  : (item.id  || null);
@@ -277,13 +287,17 @@
 				nameSpan.textContent = name;
 				btn.appendChild(nameSpan);
 
-				// Per-category variable count badge.
-				// Match by category_id (authoritative) OR by category name (fallback),
-				// mirroring the dual-check in _getVarsForCategory in the edit view.
+				// Per-category variable count badge — mirrors _getVarsForCategory logic.
 				var count = vars.filter(function (v) {
 					if (v.subgroup !== subgroup || v.status === 'deleted') { return false; }
 					if (catId && v.category_id === catId) { return true; }
-					return v.category === name;
+					if (v.category === name) { return true; }
+					// Uncategorized catch-all: empty refs and orphaned refs.
+					if (name === 'Uncategorized') {
+						if (!v.category_id && !v.category) { return true; }
+						if (v.category_id && !knownCatIds[v.category_id]) { return true; }
+					}
+					return false;
 				}).length;
 				if (count > 0) {
 					var badge = document.createElement('span');
