@@ -636,8 +636,8 @@
 			var cats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
 				? AFF.state.config[self._cfg.catKey] : [];
 			var catObj   = cats.find(function (c) { return c.id === catId; });
-			var catLabel = catObj ? ‘’’ + catObj.name + ‘’’ : ‘this category’;
-			var vars     = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : ‘’);
+			var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
+			var vars     = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
 
 			// deleteVars: true = delete vars with category; false = move to Uncategorized.
 			// Toggle represents "Save to Uncategorized" — off by default (vars are deleted).
