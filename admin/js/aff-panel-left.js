@@ -281,7 +281,7 @@
 				// Match by category_id (authoritative) OR by category name (fallback),
 				// mirroring the dual-check in _getVarsForCategory in the edit view.
 				var count = vars.filter(function (v) {
-					if (v.subgroup !== subgroup) { return false; }
+					if (v.subgroup !== subgroup || v.status === 'deleted') { return false; }
 					if (catId && v.category_id === catId) { return true; }
 					return v.category === name;
 				}).length;
@@ -317,7 +317,7 @@
 				if (!btn) { return; }
 				var existing = btn.querySelector('.aff-nav-count');
 				if (existing) { existing.remove(); }
-				var count = vars.filter(function (v) { return v.subgroup === sg.key; }).length;
+				var count = vars.filter(function (v) { return v.subgroup === sg.key && v.status !== 'deleted'; }).length;
 				if (count > 0) {
 					var badge = document.createElement('span');
 					badge.className   = 'aff-nav-count';

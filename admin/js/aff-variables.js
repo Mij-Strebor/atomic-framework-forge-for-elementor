@@ -1330,7 +1330,7 @@
 		 */
 		_getVarsForSet: function () {
 			var sub = this._cfg.setName;
-			return AFF.state.variables.filter(function (v) { return v.subgroup === sub; });
+			return AFF.state.variables.filter(function (v) { return v.subgroup === sub && v.status !== 'deleted'; });
 		},
 
 		/**
