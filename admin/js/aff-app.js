@@ -312,6 +312,30 @@
 		},
 
 		/**
+		 * Inject Google Fonts <link> tags for each unique font-family found in
+		 * .aff-font-preview cells inside container. Skips families already
+		 * requested. Non-Google fonts fail silently — preview falls back to default.
+		 *
+		 * @param {Element} container
+		 */
+		loadFontPreviews: function (container) {
+			var cells = container ? container.querySelectorAll('.aff-font-preview') : [];
+			if (!cells.length) { return; }
+			var loaded = AFF.Utils._loadedFonts || (AFF.Utils._loadedFonts = {});
+			for (var i = 0; i < cells.length; i++) {
+				var family = (cells[i].style.fontFamily || '').replace(/['"]/g, '').trim();
+				if (!family || loaded[family]) { continue; }
+				loaded[family] = true;
+				var link = document.createElement('link');
+				link.rel  = 'stylesheet';
+				link.href = 'https://fonts.googleapis.com/css2?family='
+					+ encodeURIComponent(family).replace(/%20/g, '+')
+					+ ':wght@400;700&display=swap';
+				document.head.appendChild(link);
+			}
+		},
+
+		/**
 		 * Re-classify any variables that have no subgroup (e.g. font names stored
 		 * before the named-font heuristic existed). Called at file-load time so
 		 * in-memory state is always correct; the fix persists on next save.

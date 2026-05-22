@@ -233,6 +233,9 @@
 
 			container.innerHTML = html;
 			self._bindEvents(container);
+			if (cfg.renderPreviewCell && AFF.Utils.loadFontPreviews) {
+				AFF.Utils.loadFontPreviews(container);
+			}
 
 			if (self._focusedCatId) {
 				self._jumpToCategory(self._focusedCatId, container);
