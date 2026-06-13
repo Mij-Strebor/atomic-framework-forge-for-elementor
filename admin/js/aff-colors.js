@@ -410,7 +410,7 @@
       var total = this._getVarsForCategory(cat).length;
       var subs  = this._getSubCategoriesOf(catId, allCats);
       for (var j = 0; j < subs.length; j++) {
-        total += this._getVarsForCategory(subs[j]).length;
+        total += this._getSubtreeVarCount(subs[j].id, allCats);
       }
       return total;
     },
@@ -435,7 +435,7 @@
       );
       var vars         = self._getVarsForCategory(cat);
       var directCount  = vars.length;
-      var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
+      var subtreeCount = (depth < 2) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
       // Determine initial collapsed state for this render.
       var isCollapsed;
@@ -497,6 +497,9 @@
         "</span>" +
         "</div>" + // .aff-cat-header-left
         '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">' +
+        (!cat.locked && depth < 2
+          ? AFF.Icons.catBtn("add-sub-cat", "Add sub-category", AFF.Icons.plusCircleSVG(), "")
+          : "") +
         AFF.Icons.catBtn(
           "duplicate",
           "Duplicate category",
@@ -573,11 +576,11 @@
       }
       html += "</div>"; // .aff-color-list
 
-      // Sub-category blocks (MAX_DEPTH = 2; only rendered at depth 0)
-      if (depth === 0) {
+      // Sub-category blocks (MAX_DEPTH = 2; rendered at depth 0 and 1)
+      if (depth < 2) {
         var subs = self._getSubCategoriesOf(cat.id, allCats);
         for (var si = 0; si < subs.length; si++) {
-          html += self._buildCategoryBlock(subs[si], si, subs.length, 1, allCats);
+          html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
         }
       }
 
@@ -1137,6 +1140,11 @@
         var catId = block ? block.getAttribute("data-category-id") : null;
 
         switch (action) {
+          case "add-sub-cat":
+            if (catId) {
+              self._addSubCategory(catId);
+            }
+            break;
           case "duplicate":
             if (catId) {
               self._duplicateCategory(catId);

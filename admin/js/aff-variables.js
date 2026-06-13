@@ -258,7 +258,7 @@
 			allCats          = allCats || self._getCatsForSet();
 			var vars         = self._getVarsForCategory(cat);
 			var directCount  = vars.length;
-			var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
+			var subtreeCount = (depth < 2) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
 			var isCollapsed;
 			if (self._collapsedIds.hasOwnProperty(cat.id)) {
@@ -297,6 +297,7 @@
 				+ '<span class="aff-category-count">' + subtreeCount + '</span>'
 				+ '</div>' // .aff-cat-header-left
 				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
+				+ (!cat.locked && depth < 2 ? AFF.Icons.catBtn('add-sub-cat', 'Add sub-category', AFF.Icons.plusCircleSVG(), '') : '')
 				+ AFF.Icons.catBtn('duplicate', 'Duplicate category', AFF.Icons.duplicateSVG(), '')
 				+ (cat.locked ? '' : AFF.Icons.catBtn('delete', 'Delete category', AFF.Icons.trashSVG(), 'aff-icon-btn--danger'))
 				+ AFF.Icons.catBtn('collapse', 'Collapse/expand category', AFF.Icons.chevronSVG(), 'aff-category-collapse-btn')
@@ -344,11 +345,11 @@
 			}
 			html += '</div>'; // .aff-color-list
 
-			// Sub-category blocks (MAX_DEPTH = 2; only rendered at depth 0)
-			if (depth === 0) {
+			// Sub-category blocks (MAX_DEPTH = 2; rendered at depth 0 and 1)
+			if (depth < 2) {
 				var subs = self._getSubCategoriesOf(cat.id, allCats);
 				for (var si = 0; si < subs.length; si++) {
-					html += self._buildCategoryBlock(subs[si], si, subs.length, 1, allCats);
+					html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
 				}
 			}
 
@@ -507,9 +508,10 @@
 				var catId  = block ? block.getAttribute('data-category-id') : null;
 
 				switch (action) {
-					case 'duplicate': if (catId) { self._duplicateCategory(catId); } break;
-					case 'add-var':   if (catId) { self._addVariable(catId); }      break;
-					case 'delete':    if (catId) { self._deleteCategory(catId); }   break;
+					case 'add-sub-cat': if (catId) { self._addSubCategory(catId); }    break;
+					case 'duplicate':   if (catId) { self._duplicateCategory(catId); } break;
+					case 'add-var':     if (catId) { self._addVariable(catId); }       break;
+					case 'delete':      if (catId) { self._deleteCategory(catId); }    break;
 
 					case 'delete-var': {
 						var varId = btn.getAttribute('data-var-id');
@@ -1428,7 +1430,7 @@
 			var total = this._getVarsForCategory(cat).length;
 			var subs  = this._getSubCategoriesOf(catId, allCats);
 			for (var j = 0; j < subs.length; j++) {
-				total += this._getVarsForCategory(subs[j]).length;
+				total += this._getSubtreeVarCount(subs[j].id, allCats);
 			}
 			return total;
 		},

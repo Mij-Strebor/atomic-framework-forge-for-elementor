@@ -708,14 +708,41 @@
 			var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
 			var vars     = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
 
+			// BFS to find all descendant sub-categories.
+			var descCats = [];
+			var _bfsQ    = [catId];
+			while (_bfsQ.length) {
+				var _bfsCur = _bfsQ.shift();
+				for (var _bfsi = 0; _bfsi < cats.length; _bfsi++) {
+					if ((cats[_bfsi].parent_id || null) === _bfsCur) {
+						descCats.push(cats[_bfsi]);
+						_bfsQ.push(cats[_bfsi].id);
+					}
+				}
+			}
+			var descVarCount = 0;
+			for (var _dci = 0; _dci < descCats.length; _dci++) {
+				var _dc = descCats[_dci];
+				descVarCount += AFF.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
+			}
+
 			// deleteVars: true = delete vars with category; false = move to Uncategorized.
 			// Toggle represents "Save to Uncategorized" — off by default (vars are deleted).
 			var deleteVars = true;
 
 			var bodyText = '<p>Delete category ' + catLabel + '?</p>';
+			if (descCats.length > 0) {
+				bodyText += '<p style="margin-top:var(--sp-2)">Deleting this category will also delete '
+					+ descCats.length + ' nested sub-categor'
+					+ (descCats.length === 1 ? 'y' : 'ies')
+					+ (descVarCount > 0 ? ' and their ' + descVarCount + ' variable(s)' : '')
+					+ '.</p>';
+			}
 			if (vars.length > 0) {
-				bodyText += '<p style="margin-top:var(--sp-2)">This category has ' + vars.length
-					+ ' variable(s). You may save them to Uncategorized if you wish.</p>'
+				var totalVars = vars.length + descVarCount;
+				bodyText += '<p style="margin-top:var(--sp-2)">This category has '
+					+ (descCats.length > 0 ? totalVars + ' variable(s) in total (direct and nested).' : vars.length + ' variable(s).')
+					+ ' You may save them to Uncategorized if you wish.</p>'
 					+ '<div class="aff-del-cat-vars">'
 					+ '<span class="aff-del-cat-action-label">Save variables to Uncategorized:</span>'
 					+ '<label class="aff-ios-toggle" for="aff-del-cat-check">'
@@ -797,13 +824,19 @@
 				}).then(function (res) {
 					if (res.success && res.data) {
 						if (!AFF.state.config) { AFF.state.config = {}; }
+						var _descIds = descCats.map(function (c) { return c.id; });
 						AFF.state.config[self._cfg.catKey] = _preDelCats !== null
-							? _preDelCats.filter(function (c) { return c.id !== catId; })
+							? _preDelCats.filter(function (c) {
+								return c.id !== catId && _descIds.indexOf(c.id) === -1;
+							})
 							: res.data.categories;
 						if (res.data.variables) {
 							AFF.state.variables = res.data.variables;
 						}
 						delete self._collapsedIds[catId];
+						for (var _ddi = 0; _ddi < descCats.length; _ddi++) {
+							delete self._collapsedIds[descCats[_ddi].id];
+						}
 						if (AFF.App) { AFF.App.setDirty(true); }
 						self._rerenderView();
 						if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
@@ -1060,6 +1093,83 @@
 					self._rerenderView();
 				}
 			}).catch(function () {});
+		},
+
+		/**
+		 * Open the "Add sub-category" modal for a given parent category.
+		 *
+		 * @param {string} parentCatId UUID of the parent category.
+		 */
+		_addSubCategory: function (parentCatId) {
+			var self = this;
+			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+
+			var allCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
+				? AFF.state.config[self._cfg.catKey] : [];
+			var parentCat = null;
+			for (var _pi = 0; _pi < allCats.length; _pi++) {
+				if (allCats[_pi].id === parentCatId) { parentCat = allCats[_pi]; break; }
+			}
+
+			AFF.Modal.open({
+				title: 'New Sub-category',
+				body:  '<p style="margin-bottom:10px">Enter a name for the new sub-category'
+					+ (parentCat ? ' under “' + AFF.Utils.escHtml(parentCat.name) + '”' : '')
+					+ '.</p>'
+					+ '<input type="text" class="aff-field-input" id="aff-modal-subcat-name"'
+					+ ' placeholder="Sub-category name" autocomplete="off" style="width:100%">',
+				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-subcat-cancel">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-modal-subcat-ok">Add Sub-category</button>'
+					+ '</div>',
+				onClose: function () { document.removeEventListener('click', _scHandleClick); },
+			});
+			setTimeout(function () {
+				var inp = document.getElementById('aff-modal-subcat-name');
+				if (inp) { inp.focus(); }
+			}, 50);
+
+			function _scHandleClick(e) {
+				if (e.target.id === 'aff-modal-subcat-cancel') {
+					AFF.Modal.close();
+					document.removeEventListener('click', _scHandleClick);
+				} else if (e.target.id === 'aff-modal-subcat-ok') {
+					var inp  = document.getElementById('aff-modal-subcat-name');
+					var name = inp ? inp.value.trim() : '';
+					AFF.Modal.close();
+					document.removeEventListener('click', _scHandleClick);
+					if (!name) { return; }
+
+					AFF.App.ajax('aff_save_category', {
+						filename: AFF.state.currentFile,
+						subgroup: self._cfg.setName,
+						category: JSON.stringify({ name: name, parent_id: parentCatId }),
+					}).then(function (res) {
+						if (res.success && res.data) {
+							if (!AFF.state.config) { AFF.state.config = {}; }
+							var existing  = (AFF.state.config[self._cfg.catKey] || []).slice();
+							var newId     = res.data.id;
+							var alreadyIn = existing.some(function (c) { return c.id === newId; });
+							if (!alreadyIn) {
+								var _sCats = res.data.categories || [];
+								for (var _ski = 0; _ski < _sCats.length; _ski++) {
+									if (_sCats[_ski].id === newId) {
+										existing.push(_sCats[_ski]);
+										break;
+									}
+								}
+							}
+							AFF.state.config[self._cfg.catKey] = existing;
+							if (AFF.App) { AFF.App.setDirty(true); }
+							self._rerenderView();
+							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+						}
+					}).catch(function () {
+						console.warn('[AFF] AJAX error: add sub-category (' + self._cfg.setName + ')');
+					});
+				}
+			}
+			document.addEventListener('click', _scHandleClick);
 		},
 
 	};
