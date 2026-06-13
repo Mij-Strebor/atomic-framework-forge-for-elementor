@@ -355,6 +355,22 @@
 				}
 			}
 		},
+
+		/**
+		 * Return only the top-level categories (parent_id absent or null) from a
+		 * flat sorted array. Sub-categories are retrieved on demand via
+		 * _getSubCategoriesOf() at render time.
+		 *
+		 * @param {Array} cats Flat sorted category array.
+		 * @returns {Array} Root categories only.
+		 */
+		buildCatTree: function (cats) {
+			var roots = [];
+			for (var i = 0; i < cats.length; i++) {
+				if (!cats[i].parent_id) { roots.push(cats[i]); }
+			}
+			return roots;
+		},
 	};
 
 	// -----------------------------------------------------------------------

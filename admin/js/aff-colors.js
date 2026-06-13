@@ -234,21 +234,23 @@
               return (a.order || 0) - (b.order || 0);
             })
           : self._getDefaultCategories();
+      var topLevelCats = categories.filter(function (c) { return !c.parent_id; });
 
       var html = '<div class="aff-colors-view">';
 
       // Compute initial toggle state: show expand-all if all are collapsed.
+      // Only top-level cats participate — sub-cats render inside their parents.
       var _anyExpanded = false;
-      for (var _ti = 0; _ti < categories.length; _ti++) {
-        var _tc = categories[_ti];
-        var _tv = self._getVarsForCategory(_tc);
+      for (var _ti = 0; _ti < topLevelCats.length; _ti++) {
+        var _tc           = topLevelCats[_ti];
+        var _subtreeCount = self._getSubtreeVarCount(_tc.id, categories);
         var _tcCollapsed;
         if (self._collapsedIds.hasOwnProperty(_tc.id)) {
           _tcCollapsed = self._collapsedIds[_tc.id];
         } else if (_focusedCategoryId) {
           _tcCollapsed = _tc.id !== _focusedCategoryId;
         } else {
-          _tcCollapsed = _tv.length === 0;
+          _tcCollapsed = _subtreeCount === 0;
         }
         if (!_tcCollapsed) {
           _anyExpanded = true;
@@ -320,12 +322,12 @@
         "</div>";
 
       // ------- CATEGORY BLOCKS -------
-      if (categories.length === 0) {
+      if (topLevelCats.length === 0) {
         html +=
           '<p class="aff-colors-empty">No categories found. Click "+ Category" to add one.</p>';
       } else {
-        for (var i = 0; i < categories.length; i++) {
-          html += self._buildCategoryBlock(categories[i], i, categories.length);
+        for (var i = 0; i < topLevelCats.length; i++) {
+          html += self._buildCategoryBlock(topLevelCats[i], i, topLevelCats.length, 0, categories);
         }
       }
 
@@ -378,6 +380,42 @@
     },
 
     /**
+     * Return direct sub-categories of a category, sorted by order.
+     *
+     * @param {string} catId   Parent category ID.
+     * @param {Array}  allCats All categories for this set.
+     * @returns {Array}
+     */
+    _getSubCategoriesOf: function (catId, allCats) {
+      var result = [];
+      for (var i = 0; i < allCats.length; i++) {
+        if (allCats[i].parent_id === catId) { result.push(allCats[i]); }
+      }
+      return result.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    },
+
+    /**
+     * Return total variable count for a category plus all its sub-categories.
+     *
+     * @param {string} catId   Category ID.
+     * @param {Array}  allCats All categories for this set.
+     * @returns {number}
+     */
+    _getSubtreeVarCount: function (catId, allCats) {
+      var cat = null;
+      for (var i = 0; i < allCats.length; i++) {
+        if (allCats[i].id === catId) { cat = allCats[i]; break; }
+      }
+      if (!cat) { return 0; }
+      var total = this._getVarsForCategory(cat).length;
+      var subs  = this._getSubCategoriesOf(catId, allCats);
+      for (var j = 0; j < subs.length; j++) {
+        total += this._getVarsForCategory(subs[j]).length;
+      }
+      return total;
+    },
+
+    /**
      * Build the HTML for one category block.
      *
      * Header layout (two rows):
@@ -387,10 +425,17 @@
      * @param {{ id: string, name: string, locked: boolean, order: number }} cat
      * @returns {string}
      */
-    _buildCategoryBlock: function (cat, catIndex, catTotal) {
-      var self = this;
-      var vars = self._getVarsForCategory(cat);
-      var count = vars.length;
+    _buildCategoryBlock: function (cat, catIndex, catTotal, depth, allCats) {
+      var self         = this;
+      depth            = depth   || 0;
+      allCats          = allCats || (
+        AFF.state.config && AFF.state.config.categories
+          ? AFF.state.config.categories.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); })
+          : self._getDefaultCategories()
+      );
+      var vars         = self._getVarsForCategory(cat);
+      var directCount  = vars.length;
+      var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
       // Determine initial collapsed state for this render.
       var isCollapsed;
@@ -402,7 +447,7 @@
         isCollapsed = cat.id !== _focusedCategoryId;
       } else {
         // No focus set (re-render after CRUD): empty categories collapsed.
-        isCollapsed = count === 0;
+        isCollapsed = subtreeCount === 0;
       }
 
       var html =
@@ -413,6 +458,7 @@
         ' data-collapsed="' +
         (isCollapsed ? "true" : "false") +
         '"' +
+        (depth > 0 ? ' data-depth="' + depth + '"' : "") +
         ">" +
         // Inner wrapper handles overflow clipping; outer block uses
         // overflow:visible so the add button can sit on the bottom edge.
@@ -423,11 +469,13 @@
         '<div class="aff-category-header">' +
         '<div class="aff-cat-header-top">' +
         '<div class="aff-cat-header-left">' +
-        // Drag handle — six-dot grip for category drag-and-drop.
-        '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"' +
-        ' data-aff-tooltip="Drag to reorder">' +
-        AFF.Icons.sixDotSVG() +
-        "</span>" +
+        // Drag handle — hidden for sub-cats (reorder deferred to Phase 3).
+        (depth === 0
+          ? '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"' +
+            ' data-aff-tooltip="Drag to reorder">' +
+            AFF.Icons.sixDotSVG() +
+            "</span>"
+          : "") +
         // Category name as plain span — no surrounding box.
         // Double-click activates contenteditable.
         '<span class="aff-category-name-input"' +
@@ -445,7 +493,7 @@
         "</span>" +
         // Variable count badge — sits right after the name text.
         '<span class="aff-category-count">' +
-        count +
+        subtreeCount +
         "</span>" +
         "</div>" + // .aff-cat-header-left
         '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">' +
@@ -515,7 +563,7 @@
 
       // Variable rows.
       html += '<div class="aff-color-list">';
-      if (count === 0) {
+      if (directCount === 0) {
         html +=
           '<p class="aff-colors-empty">No variables in this category.</p>';
       } else {
@@ -524,6 +572,14 @@
         }
       }
       html += "</div>"; // .aff-color-list
+
+      // Sub-category blocks (MAX_DEPTH = 2; only rendered at depth 0)
+      if (depth === 0) {
+        var subs = self._getSubCategoriesOf(cat.id, allCats);
+        for (var si = 0; si < subs.length; si++) {
+          html += self._buildCategoryBlock(subs[si], si, subs.length, 1, allCats);
+        }
+      }
 
       html += "</div>"; // .aff-category-inner
 

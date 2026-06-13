@@ -164,20 +164,22 @@
 			var self       = this;
 			var cfg        = self._cfg;
 			var setLower   = cfg.setName.toLowerCase();
-			var categories = self._getCatsForSet();
+			var categories   = self._getCatsForSet();
+			var topLevelCats = categories.filter(function (c) { return !c.parent_id; });
 
 			// Determine initial collapse-toggle state for the ⊞/⊟ button.
+			// Only top-level cats participate — sub-cats render inside their parents.
 			var _anyExpanded = false;
-			for (var _ti = 0; _ti < categories.length; _ti++) {
-				var _tc = categories[_ti];
-				var _tvars = self._getVarsForCategory(_tc);
+			for (var _ti = 0; _ti < topLevelCats.length; _ti++) {
+				var _tc           = topLevelCats[_ti];
+				var _subtreeCount = self._getSubtreeVarCount(_tc.id, categories);
 				var _tcCollapsed;
 				if (self._collapsedIds.hasOwnProperty(_tc.id)) {
 					_tcCollapsed = self._collapsedIds[_tc.id];
 				} else if (self._focusedCatId) {
 					_tcCollapsed = (_tc.id !== self._focusedCatId);
 				} else {
-					_tcCollapsed = (_tvars.length === 0);
+					_tcCollapsed = (_subtreeCount === 0);
 				}
 				if (!_tcCollapsed) { _anyExpanded = true; break; }
 			}
@@ -221,11 +223,11 @@
 				+ '</div>'; // filter bar
 
 			// ---- Category blocks ----
-			if (categories.length === 0) {
+			if (topLevelCats.length === 0) {
 				html += '<p class="aff-colors-empty">No categories found. Click + to add one.</p>';
 			} else {
-				for (var i = 0; i < categories.length; i++) {
-					html += self._buildCategoryBlock(categories[i], i, categories.length);
+				for (var i = 0; i < topLevelCats.length; i++) {
+					html += self._buildCategoryBlock(topLevelCats[i], i, topLevelCats.length, 0, categories);
 				}
 			}
 
@@ -250,10 +252,13 @@
 		 * @param {number} catTotal
 		 * @returns {string}
 		 */
-		_buildCategoryBlock: function (cat, catIndex, catTotal) {
-			var self  = this;
-			var vars  = self._getVarsForCategory(cat);
-			var count = vars.length;
+		_buildCategoryBlock: function (cat, catIndex, catTotal, depth, allCats) {
+			var self         = this;
+			depth            = depth   || 0;
+			allCats          = allCats || self._getCatsForSet();
+			var vars         = self._getVarsForCategory(cat);
+			var directCount  = vars.length;
+			var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
 			var isCollapsed;
 			if (self._collapsedIds.hasOwnProperty(cat.id)) {
@@ -261,23 +266,27 @@
 			} else if (self._focusedCatId) {
 				isCollapsed = (cat.id !== self._focusedCatId);
 			} else {
-				isCollapsed = (count === 0);
+				isCollapsed = (subtreeCount === 0);
 			}
 
 			var html = '<div class="aff-category-block"'
 				+ ' data-category-id="' + AFF.Utils.escAttr(cat.id) + '"'
-				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '">'
+				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '"'
+				+ (depth > 0 ? ' data-depth="' + depth + '"' : '')
+				+ '>'
 				+ '<div class="aff-category-inner">';
 
 			// Category header
 			html += '<div class="aff-category-header">'
 				+ '<div class="aff-cat-header-top">'
-				+ '<div class="aff-cat-header-left">'
-				+ '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
-				+ ' data-aff-tooltip="Drag to reorder">'
-				+ AFF.Icons.sixDotSVG()
-				+ '</span>'
-				+ '<span class="aff-category-name-input"'
+				+ '<div class="aff-cat-header-left">';
+			if (depth === 0) {
+				html += '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
+					+ ' data-aff-tooltip="Drag to reorder">'
+					+ AFF.Icons.sixDotSVG()
+					+ '</span>';
+			}
+			html += '<span class="aff-category-name-input"'
 				+ ' data-cat-id="' + AFF.Utils.escAttr(cat.id) + '"'
 				+ ' data-original="' + AFF.Utils.escAttr(cat.name) + '"'
 				+ ' aria-label="Category name"'
@@ -285,7 +294,7 @@
 				+ (cat.locked ? ' data-locked="true"' : '') + '>'
 				+ AFF.Utils.escAttr(cat.name)
 				+ '</span>'
-				+ '<span class="aff-category-count">' + count + '</span>'
+				+ '<span class="aff-category-count">' + subtreeCount + '</span>'
 				+ '</div>' // .aff-cat-header-left
 				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
 				+ AFF.Icons.catBtn('duplicate', 'Duplicate category', AFF.Icons.duplicateSVG(), '')
@@ -326,7 +335,7 @@
 
 			// Variable rows
 			html += '<div class="aff-color-list">';
-			if (count === 0) {
+			if (directCount === 0) {
 				html += '<p class="aff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var i = 0; i < vars.length; i++) {
@@ -334,6 +343,14 @@
 				}
 			}
 			html += '</div>'; // .aff-color-list
+
+			// Sub-category blocks (MAX_DEPTH = 2; only rendered at depth 0)
+			if (depth === 0) {
+				var subs = self._getSubCategoriesOf(cat.id, allCats);
+				for (var si = 0; si < subs.length; si++) {
+					html += self._buildCategoryBlock(subs[si], si, subs.length, 1, allCats);
+				}
+			}
 
 			html += '</div>'; // .aff-category-inner
 
@@ -1378,6 +1395,42 @@
 				return false;
 			});
 			return matched.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+		},
+
+		/**
+		 * Return direct sub-categories of a category, sorted by order.
+		 *
+		 * @param {string} catId   Parent category ID.
+		 * @param {Array}  allCats All categories for this set.
+		 * @returns {Array}
+		 */
+		_getSubCategoriesOf: function (catId, allCats) {
+			var result = [];
+			for (var i = 0; i < allCats.length; i++) {
+				if (allCats[i].parent_id === catId) { result.push(allCats[i]); }
+			}
+			return result.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+		},
+
+		/**
+		 * Return total variable count for a category plus all its sub-categories.
+		 *
+		 * @param {string} catId   Category ID.
+		 * @param {Array}  allCats All categories for this set.
+		 * @returns {number}
+		 */
+		_getSubtreeVarCount: function (catId, allCats) {
+			var cat = null;
+			for (var i = 0; i < allCats.length; i++) {
+				if (allCats[i].id === catId) { cat = allCats[i]; break; }
+			}
+			if (!cat) { return 0; }
+			var total = this._getVarsForCategory(cat).length;
+			var subs  = this._getSubCategoriesOf(catId, allCats);
+			for (var j = 0; j < subs.length; j++) {
+				total += this._getVarsForCategory(subs[j]).length;
+			}
+			return total;
 		},
 
 		/**
