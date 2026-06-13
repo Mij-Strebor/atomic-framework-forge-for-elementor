@@ -418,10 +418,11 @@ class AFF_Data_Store
 	 * Delete a category by ID for a subgroup.
 	 *
 	 * Refuses to delete locked categories (e.g., Uncategorized).
+	 * Also deletes or reassigns all variables in descendant sub-categories.
 	 *
 	 * @param string $subgroup    Subgroup name.
 	 * @param string $id          Category UUID.
-	 * @param bool   $delete_vars True = delete variables in this category;
+	 * @param bool   $delete_vars True = delete variables in this category and all descendants;
 	 *                            false = clear their category reference (move to Uncategorized).
 	 * @return bool True if found and deleted.
 	 */
@@ -442,22 +443,35 @@ class AFF_Data_Store
 			return false; // Cannot delete locked categories.
 		}
 
-		// Capture category name before splicing it out — needed for matching
-		// legacy variables that have a category name but no category_id.
+		// Capture category name before removal — needed for legacy variables
+		// that have a category name but no category_id.
 		$cat_name = $this->data['config'][$key][$k]['name'] ?? '';
 
-		array_splice($this->data['config'][$key], $k, 1);
+		// Collect all descendant category IDs before modifying the list.
+		$descendant_ids = $this->get_descendant_category_ids($subgroup, $id);
+		$all_ids        = array_merge(array( $id ), $descendant_ids);
+		$all_ids_set    = array_flip($all_ids);
 
-		// Handle variables that belong to this category.
-		// Match by category_id (primary) or by category name with no ID (legacy).
+		// Remove the target and all descendant categories from the config.
+		$this->data['config'][$key] = array_values(array_filter(
+			$this->data['config'][$key],
+			static function (array $c) use ($all_ids_set): bool {
+				return ! isset($all_ids_set[ $c['id'] ]);
+			}
+		));
+
+		// Handle variables that belong to any of the removed categories.
 		if ($delete_vars) {
 			$this->data['variables'] = array_values(array_filter(
 				$this->data['variables'],
-				static function (array $v) use ($id, $cat_name): bool {
-					if (($v['category_id'] ?? '') === $id) {
+				static function (array $v) use ($all_ids_set, $cat_name): bool {
+					$cid = $v['category_id'] ?? '';
+					// ID match — covers target and all descendants.
+					if ($cid !== '' && isset($all_ids_set[ $cid ])) {
 						return false;
 					}
-					if ($cat_name !== '' && ($v['category_id'] ?? '') === '' && ($v['category'] ?? '') === $cat_name) {
+					// Legacy: name match for variables with no ID (target category only).
+					if ($cat_name !== '' && $cid === '' && ($v['category'] ?? '') === $cat_name) {
 						return false;
 					}
 					return true;
@@ -466,8 +480,9 @@ class AFF_Data_Store
 		} else {
 			// Clear the category reference so variables appear in Uncategorized.
 			foreach ($this->data['variables'] as &$v) {
-				$matches_id   = ($v['category_id'] ?? '') === $id;
-				$matches_name = $cat_name !== '' && ($v['category_id'] ?? '') === '' && ($v['category'] ?? '') === $cat_name;
+				$cid          = $v['category_id'] ?? '';
+				$matches_id   = $cid !== '' && isset($all_ids_set[ $cid ]);
+				$matches_name = $cat_name !== '' && $cid === '' && ($v['category'] ?? '') === $cat_name;
 				if ($matches_id || $matches_name) {
 					$v['category_id'] = '';
 					$v['category']    = '';
@@ -478,6 +493,57 @@ class AFF_Data_Store
 
 		$this->dirty = true;
 		return true;
+	}
+
+	/**
+	 * Return true if making $child_id a child of $proposed_parent_id would
+	 * create a cycle in the category tree (a category becoming its own ancestor).
+	 *
+	 * @param string $subgroup          Subgroup name.
+	 * @param string $child_id          Category being reparented.
+	 * @param string $proposed_parent_id Intended new parent ID.
+	 * @return bool
+	 */
+	public function would_create_cycle(string $subgroup, string $child_id, string $proposed_parent_id): bool
+	{
+		$cats       = $this->get_categories_for_subgroup($subgroup);
+		$parent_map = array();
+		foreach ($cats as $c) {
+			$parent_map[ $c['id'] ] = $c['parent_id'] ?? null;
+		}
+		$current = $proposed_parent_id;
+		while ($current !== null) {
+			if ($current === $child_id) {
+				return true;
+			}
+			$current = $parent_map[ $current ] ?? null;
+		}
+		return false;
+	}
+
+	/**
+	 * Return the IDs of all categories that are descendants of $root_id
+	 * (i.e. have $root_id anywhere in their ancestor chain).
+	 *
+	 * @param string $subgroup Subgroup name.
+	 * @param string $root_id  Category whose descendants are collected.
+	 * @return string[]
+	 */
+	private function get_descendant_category_ids(string $subgroup, string $root_id): array
+	{
+		$cats   = $this->get_categories_for_subgroup($subgroup);
+		$result = array();
+		$queue  = array( $root_id );
+		while (! empty($queue)) {
+			$current = array_shift($queue);
+			foreach ($cats as $c) {
+				if (($c['parent_id'] ?? null) === $current) {
+					$result[] = $c['id'];
+					$queue[]  = $c['id'];
+				}
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -660,10 +726,13 @@ class AFF_Data_Store
 				if ('' === $lc) {
 					continue;
 				}
-				if (isset($seen_cat[$lc])) {
+				// Scope to siblings: two categories with the same name are only
+				// duplicates when they share the same parent_id.
+				$sibling_key = ($cat['parent_id'] ?? 'null') . ':' . $lc;
+				if (isset($seen_cat[ $sibling_key ])) {
 					$dup_cats[] = array('subgroup' => $sg, 'name' => $cat['name']);
 				} else {
-					$seen_cat[$lc] = true;
+					$seen_cat[ $sibling_key ] = true;
 				}
 			}
 		}
@@ -714,12 +783,14 @@ class AFF_Data_Store
 			$remap    = array(); // removed_cat_id => kept_cat_id
 
 			foreach ($cats as $cat) {
-				$lc = strtolower($cat['name'] ?? '');
-				if (! isset($seen_cat[$lc])) {
-					$seen_cat[$lc] = $cat['id'];
-					$kept[]          = $cat;
+				$lc          = strtolower($cat['name'] ?? '');
+				// Scope to siblings — same name is only a duplicate within the same parent.
+				$sibling_key = ($cat['parent_id'] ?? 'null') . ':' . $lc;
+				if (! isset($seen_cat[ $sibling_key ])) {
+					$seen_cat[ $sibling_key ] = $cat['id'];
+					$kept[]                    = $cat;
 				} else {
-					$remap[$cat['id']] = $seen_cat[$lc];
+					$remap[ $cat['id'] ] = $seen_cat[ $sibling_key ];
 					$removed_cats++;
 				}
 			}
@@ -800,6 +871,20 @@ class AFF_Data_Store
 			}
 		}
 		unset($var);
+
+		// Backfill parent_id on category arrays — makes existing flat files valid
+		// under the nested-category schema. Idempotent on already-migrated data.
+		foreach (array( 'categories', 'fontCategories', 'numberCategories' ) as $cat_key) {
+			if (! isset($data['config'][ $cat_key ]) || ! is_array($data['config'][ $cat_key ])) {
+				continue;
+			}
+			foreach ($data['config'][ $cat_key ] as &$cat) {
+				if (! array_key_exists('parent_id', $cat)) {
+					$cat['parent_id'] = null;
+				}
+			}
+			unset($cat);
+		}
 	}
 
 	/**
@@ -881,10 +966,11 @@ class AFF_Data_Store
 	private function category_defaults(): array
 	{
 		return array(
-			'id'     => '',
-			'name'   => '',
-			'order'  => 0,
-			'locked' => false,
+			'id'        => '',
+			'name'      => '',
+			'order'     => 0,
+			'locked'    => false,
+			'parent_id' => null,
 		);
 	}
 

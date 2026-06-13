@@ -624,7 +624,10 @@ class AFF_Ajax_Handler
 	 * Add or update a category in the .aff.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
-	 *              category (JSON: {id?, name, order?, locked?})
+	 *              category (JSON: {id?, name, order?, locked?, parent_id?})
+	 *
+	 * parent_id (string|null) — UUID of the parent category for sub-categories,
+	 * or null/absent for top-level categories.
 	 */
 	public function ajax_aff_save_category(): void
 	{
@@ -637,14 +640,42 @@ class AFF_Ajax_Handler
 			wp_send_json_error(array('message' => __('Category name is required.', 'atomic-framework-forge-for-elementor')));
 		}
 
-		$this->with_store(function ($store) use ($subgroup, $category, $name) {
+		// Extract and normalise parent_id — empty string treated as null (top-level).
+		$raw_parent   = isset($category['parent_id']) ? sanitize_text_field($category['parent_id']) : null;
+		$parent_id    = ($raw_parent === '' || $raw_parent === null) ? null : $raw_parent;
+		$has_parent   = array_key_exists('parent_id', $category);
+
+		$this->with_store(function ($store) use ($subgroup, $category, $name, $parent_id, $has_parent) {
+			// Validate that the supplied parent_id references a real category.
+			if (! is_null($parent_id)) {
+				$existing_ids = array_column($store->get_categories_for_subgroup($subgroup), 'id');
+				if (! in_array($parent_id, $existing_ids, true)) {
+					throw new \Exception(__('Parent category not found.', 'atomic-framework-forge-for-elementor')); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				}
+			}
+
 			if (! empty($category['id'])) {
-				if (! $store->update_category_for_subgroup($subgroup, $category['id'], array('name' => $name))) {
+				$update_data = array('name' => $name);
+
+				// Only update parent_id when the caller explicitly supplied it.
+				if ($has_parent) {
+					// Cycle guard: refuse an assignment that would make this category
+					// its own ancestor.
+					if (! is_null($parent_id) && $store->would_create_cycle($subgroup, $category['id'], $parent_id)) {
+						throw new \Exception(__('Cannot set parent: this would create a circular reference.', 'atomic-framework-forge-for-elementor')); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+					}
+					$update_data['parent_id'] = $parent_id;
+				}
+
+				if (! $store->update_category_for_subgroup($subgroup, $category['id'], $update_data)) {
 					throw new \Exception(__('Category not found.', 'atomic-framework-forge-for-elementor')); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				}
 				$id = $category['id'];
 			} else {
-				$id = $store->add_category_for_subgroup($subgroup, array('name' => $name));
+				$id = $store->add_category_for_subgroup($subgroup, array(
+					'name'      => $name,
+					'parent_id' => $parent_id,
+				));
 			}
 
 			return array(
