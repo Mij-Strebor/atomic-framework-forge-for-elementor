@@ -200,9 +200,9 @@
 				+ ' aria-label="Search ' + setLower + ' variables">'
 				+ '<button class="aff-icon-btn aff-colors-back-btn"'
 				+ ' id="aff-' + setLower + '-back"'
-				+ ' data-aff-tooltip="Close ' + cfg.setName + ' view"'
-				+ ' aria-label="Close ' + cfg.setName + ' view">'
-				+ AFF.Icons.closeSVG()
+				+ ' data-aff-tooltip="Back to sets"'
+				+ ' aria-label="Back to sets">'
+				+ AFF.Icons.homeSVG()
 				+ '</button>'
 				+ '<button class="aff-icon-btn"'
 				+ ' id="aff-' + setLower + '-collapse-toggle"'
@@ -533,7 +533,16 @@
 							var isColl = block.getAttribute('data-collapsed') === 'true';
 							block.setAttribute('data-collapsed', String(!isColl));
 							self._collapsedIds[catId] = !isColl;
-							if (isColl) {
+							if (!isColl) {
+								// Cascade collapse to sub-categories.
+								var _subBlocks = block.querySelectorAll('.aff-category-block[data-depth="1"]');
+								for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+									var _sb = _subBlocks[_sbi];
+									var _sbId = _sb.getAttribute('data-category-id');
+									_sb.setAttribute('data-collapsed', 'true');
+									if (_sbId) { self._collapsedIds[_sbId] = true; }
+								}
+							} else {
 								block.scrollIntoView({ behavior: 'smooth', block: 'start' });
 							}
 						}

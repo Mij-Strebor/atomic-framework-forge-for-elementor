@@ -426,13 +426,8 @@
 	margin-left:   20px;
 	margin-right:  20px;
 	margin-top:    10px;
-	margin-bottom: 12px;
+	margin-bottom: 28px;
 	border-radius: 8px;
-}
-
-/* Last sub-cat: hold at 12px, overriding the default :last-child 16px */
-.aff-category-block[data-depth="1"]:last-child {
-	margin-bottom: 12px;
 }
 
 .aff-category-block[data-depth="1"] .aff-category-inner {
@@ -448,7 +443,8 @@
    ========================================================================== */
 
 .aff-category-block[data-collapsed="true"] .aff-color-list,
-.aff-category-block[data-collapsed="true"] .aff-color-list-header {
+.aff-category-block[data-collapsed="true"] .aff-color-list-header,
+.aff-category-block[data-collapsed="true"] .aff-category-block[data-depth="1"] {
 	display: none;
 }
 
@@ -458,7 +454,7 @@
 
 .aff-color-list-header {
 	display:               grid;
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
@@ -475,7 +471,7 @@
 /* Single color variable row */
 .aff-color-row {
 	display:               grid;
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       6px var(--sp-3) 6px var(--sp-4);
@@ -725,7 +721,7 @@ button.aff-pickr-btn:focus-visible {
  */
 .aff-modal-header {
 	display:               grid;
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap:            10px;
 	align-items:           center;
 	padding:               var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
@@ -1116,10 +1112,10 @@ button.aff-pickr-btn:focus-visible {
    12. DELETE VARIABLE BUTTON (Issue 8)
    ========================================================================== */
 
-/* Eighth column: 28px delete button — added to row and header grids */
+/* Section-12 override kept for specificity safety — mirrors base rule */
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 120px 1fr 18% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 }
 
 /* Delete button — trash icon, danger variant on hover */

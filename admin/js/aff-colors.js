@@ -276,9 +276,9 @@
         '<input type="text" class="aff-colors-search" id="aff-colors-search"' +
         ' placeholder="Search\u2026" aria-label="Search color variables">' +
         '<button class="aff-icon-btn aff-colors-back-btn" id="aff-colors-back"' +
-        ' title="Close colors view" aria-label="Close colors view"' +
-        ' data-aff-tooltip="Close Colors view">' +
-        AFF.Icons.closeSVG() +
+        ' title="Back to sets" aria-label="Back to sets"' +
+        ' data-aff-tooltip="Back to sets">' +
+        AFF.Icons.homeSVG() +
         "</button>" +
         '<button class="aff-icon-btn" id="aff-colors-collapse-toggle"' +
         ' title="' +
@@ -1188,6 +1188,14 @@
                 self._collapsedIds[catId] = newCollapsed;
               }
               if (newCollapsed) {
+                // Cascade collapse to sub-categories.
+                var _subBlocks = block.querySelectorAll('.aff-category-block[data-depth="1"]');
+                for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+                  var _sb = _subBlocks[_sbi];
+                  var _sbId = _sb.getAttribute("data-category-id");
+                  _sb.setAttribute("data-collapsed", "true");
+                  if (_sbId) { self._collapsedIds[_sbId] = true; }
+                }
                 // Close any open expand panel when the user collapses a category.
                 self._closeExpandPanel(container, true);
               } else {

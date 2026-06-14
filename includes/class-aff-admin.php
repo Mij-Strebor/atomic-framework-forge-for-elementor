@@ -231,28 +231,28 @@ class AFF_Admin {
 		return '
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 }
 .aff-fonts-view .aff-color-row {
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap: 10px;
 }
 .aff-numbers-view .aff-color-row,
 .aff-numbers-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 1fr calc(28% + 120px) 12% 28px;
+	grid-template-columns: 24px 8px 1fr calc(28% + 100px) 12% 28px 28px;
 	column-gap: 16px;
 }
 @media (max-width: 600px) {
 	.aff-color-list-header,
 	.aff-color-row {
-		grid-template-columns: 24px 8px 80px 1fr 20% 0 28px;
+		grid-template-columns: 24px 8px 80px 1fr 16% 0 28px 28px;
 	}
 	.aff-fonts-view .aff-color-row {
-		grid-template-columns: 24px 8px 80px 1fr 20% 0 28px;
+		grid-template-columns: 24px 8px 80px 1fr 16% 0 28px 28px;
 	}
 	.aff-numbers-view .aff-color-row,
 	.aff-numbers-view .aff-color-list-header {
-		grid-template-columns: 24px 8px 1fr calc(24% + 80px) 0 28px;
+		grid-template-columns: 24px 8px 1fr calc(24% + 80px) 0 28px 28px;
 	}
 }';
 	}
