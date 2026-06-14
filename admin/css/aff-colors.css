@@ -91,7 +91,7 @@
 	border-radius: 50%;
 	background:    var(--aff-bg-card);
 	color:         var(--aff-clr-primary);
-	border:        1px solid var(--aff-clr-primary);
+	border:        1px solid var(--aff-clr-border);
 	padding:       0;
 }
 
@@ -212,7 +212,7 @@
 	background:    var(--aff-bg-card);
 	color:         var(--aff-clr-primary);
 	box-shadow:    none;
-	border:        1px solid var(--aff-clr-primary);
+	border:        1px solid var(--aff-clr-border);
 	padding:       0;
 }
 
@@ -426,13 +426,13 @@
 	margin-left:   20px;
 	margin-right:  20px;
 	margin-top:    10px;
-	margin-bottom: 6px;
+	margin-bottom: 12px;
 	border-radius: 8px;
 }
 
-/* Last sub-cat: hold at 6px, overriding the default :last-child 16px */
+/* Last sub-cat: hold at 12px, overriding the default :last-child 16px */
 .aff-category-block[data-depth="1"]:last-child {
-	margin-bottom: 6px;
+	margin-bottom: 12px;
 }
 
 .aff-category-block[data-depth="1"] .aff-category-inner {
