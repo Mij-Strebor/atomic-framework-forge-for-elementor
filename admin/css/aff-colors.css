@@ -395,6 +395,7 @@
 
 .aff-category-block[data-depth="1"] {
 	margin-left:   20px;
+	margin-right:  20px;
 	margin-top:    10px;
 	margin-bottom: 0;
 	border-radius: 8px;
@@ -407,15 +408,10 @@
 
 .aff-category-block[data-depth="1"] .aff-category-inner {
 	background:     var(--aff-bg-panel);
+	border:         1px solid var(--aff-clr-border);
 	border-radius:  8px;
 	padding-top:    12px;
 	padding-bottom: 8px;
-}
-
-/* Add-variable button lives inside parent overflow:hidden — keep it inside the sub-card */
-.aff-category-block[data-depth="1"] .aff-cat-add-btn-wrap {
-	bottom: 6px;
-	left:   6px;
 }
 
 /* ==========================================================================

@@ -305,6 +305,14 @@
 				+ '</div>' // .aff-cat-header-top
 				+ '</div>'; // .aff-category-header
 
+			// Sub-category blocks — one level deep (top-level cats only)
+			if (depth === 0) {
+				var subs = self._getSubCategoriesOf(cat.id, allCats);
+				for (var si = 0; si < subs.length; si++) {
+					html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
+				}
+			}
+
 			// Column sort header — same grid as variable rows.
 			// Fonts has preview col (col3), Numbers does not; adjust empty spans accordingly.
 			var _ns = (self._catSortState[cat.id] && self._catSortState[cat.id].field === 'name')  ? self._catSortState[cat.id].dir : 'none';
@@ -344,14 +352,6 @@
 				}
 			}
 			html += '</div>'; // .aff-color-list
-
-			// Sub-category blocks — one level deep (top-level cats only)
-			if (depth === 0) {
-				var subs = self._getSubCategoriesOf(cat.id, allCats);
-				for (var si = 0; si < subs.length; si++) {
-					html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
-				}
-			}
 
 			html += '</div>'; // .aff-category-inner
 

@@ -524,6 +524,14 @@
         "</div>" + // .aff-cat-header-top
         "</div>"; // .aff-category-header
 
+      // Sub-category blocks — one level deep (top-level cats only)
+      if (depth === 0) {
+        var subs = self._getSubCategoriesOf(cat.id, allCats);
+        for (var si = 0; si < subs.length; si++) {
+          html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
+        }
+      }
+
       // Column sort header row — same grid as variable rows; sort buttons in name (col4) and value (col5).
       var _ns =
         _catSortState[cat.id] && _catSortState[cat.id].field === "name"
@@ -575,14 +583,6 @@
         }
       }
       html += "</div>"; // .aff-color-list
-
-      // Sub-category blocks — one level deep (top-level cats only)
-      if (depth === 0) {
-        var subs = self._getSubCategoriesOf(cat.id, allCats);
-        for (var si = 0; si < subs.length; si++) {
-          html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
-        }
-      }
 
       html += "</div>"; // .aff-category-inner
 
