@@ -426,13 +426,13 @@
 	margin-left:   20px;
 	margin-right:  20px;
 	margin-top:    10px;
-	margin-bottom: 0;
+	margin-bottom: 6px;
 	border-radius: 8px;
 }
 
-/* Last sub-cat: suppress the default :last-child spacing; parent padding handles it */
+/* Last sub-cat: hold at 6px, overriding the default :last-child 16px */
 .aff-category-block[data-depth="1"]:last-child {
-	margin-bottom: 0;
+	margin-bottom: 6px;
 }
 
 .aff-category-block[data-depth="1"] .aff-category-inner {
