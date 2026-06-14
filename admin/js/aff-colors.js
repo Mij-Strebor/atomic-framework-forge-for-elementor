@@ -3359,37 +3359,106 @@
         return;
       }
 
-      var tintsNum = panel ? panel.querySelector(".aff-gen-tints-num") : null;
+      var tintsNum  = panel ? panel.querySelector(".aff-gen-tints-num")  : null;
       var shadesNum = panel ? panel.querySelector(".aff-gen-shades-num") : null;
-      var transChk = panel
-        ? panel.querySelector(".aff-gen-trans-toggle")
-        : null;
+      var transChk  = panel ? panel.querySelector(".aff-gen-trans-toggle") : null;
 
-      var tintSteps = tintsNum ? parseInt(tintsNum.value, 10) || 0 : 0;
+      var tintSteps  = tintsNum  ? parseInt(tintsNum.value,  10) || 0 : 0;
       var shadeSteps = shadesNum ? parseInt(shadesNum.value, 10) || 0 : 0;
-      var transOn = transChk ? (transChk.checked ? "1" : "0") : "0";
+      var transOn    = transChk  ? (transChk.checked ? "1" : "0") : "0";
 
-      AFF.App.ajax("aff_generate_children", {
+      var parentCatId = v.category_id || null;
+      var baseName    = (v.name || "").replace(/^--/, "");
+      var tintsCatId  = null;
+      var shadesCatId = null;
+      var transCatId  = null;
+      var subPromises = [];
+
+      if (parentCatId && tintSteps > 0) {
+        subPromises.push(
+          self._findOrCreateSubcat(parentCatId, baseName + " Tints")
+            .then(function (id) { tintsCatId = id; })
+        );
+      }
+      if (parentCatId && shadeSteps > 0) {
+        subPromises.push(
+          self._findOrCreateSubcat(parentCatId, baseName + " Shades")
+            .then(function (id) { shadesCatId = id; })
+        );
+      }
+      if (parentCatId && transOn === "1") {
+        subPromises.push(
+          self._findOrCreateSubcat(parentCatId, baseName + " Transparencies")
+            .then(function (id) { transCatId = id; })
+        );
+      }
+
+      Promise.all(subPromises).then(function () {
+        var params = {
+          filename:       AFF.state.currentFile,
+          parent_id:      v.id,
+          tints:          String(tintSteps),
+          shades:         String(shadeSteps),
+          transparencies: transOn,
+        };
+        if (tintsCatId)  { params.tints_category_id          = tintsCatId;  }
+        if (shadesCatId) { params.shades_category_id         = shadesCatId; }
+        if (transCatId)  { params.transparencies_category_id = transCatId;  }
+        return AFF.App.ajax("aff_generate_children", params);
+      }).then(function (res) {
+        if (res.success && res.data) {
+          if (res.data.data && res.data.data.variables) {
+            AFF.state.variables = res.data.data.variables;
+          }
+          if (AFF.App) {
+            AFF.App.setDirty(true);
+            AFF.App.refreshCounts();
+          }
+          self._rerenderView();
+        }
+      }).catch(function () {
+        console.warn("[AFF] AJAX error: generate children");
+      });
+    },
+
+    /**
+     * Find an existing sub-category by name+parent, or create it via AJAX.
+     *
+     * @param  {string}  parentCatId UUID of the parent category.
+     * @param  {string}  name        Name for the sub-category.
+     * @returns {Promise<string|null>} Resolves to the sub-cat ID.
+     */
+    _findOrCreateSubcat: function (parentCatId, name) {
+      var allCats = AFF.state.config && AFF.state.config.categories
+        ? AFF.state.config.categories : [];
+
+      for (var i = 0; i < allCats.length; i++) {
+        if ((allCats[i].parent_id || null) === parentCatId && allCats[i].name === name) {
+          return Promise.resolve(allCats[i].id);
+        }
+      }
+
+      return AFF.App.ajax("aff_save_category", {
         filename: AFF.state.currentFile,
-        parent_id: v.id,
-        tints: String(tintSteps),
-        shades: String(shadeSteps),
-        transparencies: transOn,
-      })
-        .then(function (res) {
-          if (res.success && res.data) {
-            if (res.data.data && res.data.data.variables) {
-              AFF.state.variables = res.data.data.variables;
-            }
-            if (AFF.App) {
-              AFF.App.setDirty(true);
-              AFF.App.refreshCounts();
+        subgroup: "Colors",
+        category: JSON.stringify({ name: name, parent_id: parentCatId }),
+      }).then(function (res) {
+        if (res.success && res.data) {
+          if (!AFF.state.config) { AFF.state.config = {}; }
+          var existing  = (AFF.state.config.categories || []).slice();
+          var newId     = res.data.id;
+          var alreadyIn = existing.some(function (c) { return c.id === newId; });
+          if (!alreadyIn) {
+            var sCats = res.data.categories || [];
+            for (var si = 0; si < sCats.length; si++) {
+              if (sCats[si].id === newId) { existing.push(sCats[si]); break; }
             }
           }
-        })
-        .catch(function () {
-          console.warn("[AFF] AJAX error: merge file");
-        });
+          AFF.state.config.categories = existing;
+          return newId;
+        }
+        return null;
+      });
     },
 
     // -----------------------------------------------------------------------

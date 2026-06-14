@@ -1090,7 +1090,7 @@ button.aff-pickr-btn:focus-visible {
 /* Eighth column: 28px delete button — added to row and header grids */
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px 28px;
+	grid-template-columns: 24px 8px 120px 1fr calc(22% - 1em) 12% 28px 28px;
 }
 
 /* Delete button — trash icon, danger variant on hover */

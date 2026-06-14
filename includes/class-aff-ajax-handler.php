@@ -885,16 +885,19 @@ class AFF_Ajax_Handler
 	 */
 	public function ajax_aff_generate_children(): void
 	{
-		$parent_id   = $this->post_param('parent_id');
-		$tint_steps  = max(0, min(10, isset($_POST['tints'])   ? (int) $_POST['tints']   : 0));
-		$shade_steps = max(0, min(10, isset($_POST['shades'])  ? (int) $_POST['shades']  : 0));
-		$trans_on    = isset($_POST['transparencies']) && $_POST['transparencies'] !== '0' && $_POST['transparencies'] !== '';
+		$parent_id     = $this->post_param('parent_id');
+		$tint_steps    = max(0, min(10, isset($_POST['tints'])   ? (int) $_POST['tints']   : 0));
+		$shade_steps   = max(0, min(10, isset($_POST['shades'])  ? (int) $_POST['shades']  : 0));
+		$trans_on      = isset($_POST['transparencies']) && $_POST['transparencies'] !== '0' && $_POST['transparencies'] !== '';
+		$tints_cat_id  = $this->post_param('tints_category_id');
+		$shades_cat_id = $this->post_param('shades_category_id');
+		$trans_cat_id  = $this->post_param('transparencies_category_id');
 
 		if (empty($parent_id)) {
 			wp_send_json_error(array('message' => __('Parent variable ID is required.', 'atomic-framework-forge-for-elementor')));
 		}
 
-		$this->with_store(function ($store) use ($parent_id, $tint_steps, $shade_steps, $trans_on) {
+		$this->with_store(function ($store) use ($parent_id, $tint_steps, $shade_steps, $trans_on, $tints_cat_id, $shades_cat_id, $trans_cat_id) {
 			// Find parent variable.
 			$parent = null;
 			foreach ($store->get_variables() as $var) {
@@ -923,6 +926,26 @@ class AFF_Ajax_Handler
 			list($h, $s, $l) = $this->hex_to_hsl($hex);
 			$base_name = preg_replace('/^--/', '', $parent['name']);
 			$new_ids   = array();
+			$subgroup  = $parent['subgroup'] ?? 'Colors';
+
+			// Resolve a category override ID to name + id; fall back to parent's category.
+			$resolve_cat = function (string $override_id) use ($store, $parent, $subgroup): array {
+				if ($override_id !== '') {
+					foreach ($store->get_categories_for_subgroup($subgroup) as $cat) {
+						if ($cat['id'] === $override_id) {
+							return array('category' => $cat['name'], 'category_id' => $override_id);
+						}
+					}
+				}
+				return array(
+					'category'    => $parent['category']    ?? '',
+					'category_id' => $parent['category_id'] ?? '',
+				);
+			};
+
+			$tint_cat  = $resolve_cat($tints_cat_id);
+			$shade_cat = $resolve_cat($shades_cat_id);
+			$trans_cat_info = $resolve_cat($trans_cat_id);
 
 			// Generate tints: each step i of N shifts lightness equally toward 100% (white).
 			// Naming: --name-{i*10} e.g. --primary-10, --primary-20 … --primary-30 for N=3.
@@ -933,9 +956,9 @@ class AFF_Ajax_Handler
 						'name'        => '--' . $base_name . '-' . ($i * 10),
 						'value'       => $this->hsl_to_hex($h, $s, $tint_l),
 						'type'        => 'color',
-						'subgroup'    => $parent['subgroup'] ?? 'Colors',
-						'category'    => $parent['category'] ?? '',
-						'category_id' => $parent['category_id'] ?? '',
+						'subgroup'    => $subgroup,
+						'category'    => $tint_cat['category'],
+						'category_id' => $tint_cat['category_id'],
 						'format'      => $parent['format'] ?? 'HEX',
 						'status'      => 'new',
 						'source'      => 'user-defined',
@@ -953,9 +976,9 @@ class AFF_Ajax_Handler
 						'name'        => '--' . $base_name . '-plus-' . ($i * 10),
 						'value'       => $this->hsl_to_hex($h, $s, $shade_l),
 						'type'        => 'color',
-						'subgroup'    => $parent['subgroup'] ?? 'Colors',
-						'category'    => $parent['category'] ?? '',
-						'category_id' => $parent['category_id'] ?? '',
+						'subgroup'    => $subgroup,
+						'category'    => $shade_cat['category'],
+						'category_id' => $shade_cat['category_id'],
 						'format'      => $parent['format'] ?? 'HEX',
 						'status'      => 'new',
 						'source'      => 'user-defined',
@@ -973,9 +996,9 @@ class AFF_Ajax_Handler
 						'name'        => '--' . $base_name . ($i * 10),
 						'value'       => '#' . $hex . $alpha_hex,
 						'type'        => 'color',
-						'subgroup'    => $parent['subgroup'] ?? 'Colors',
-						'category'    => $parent['category'] ?? '',
-						'category_id' => $parent['category_id'] ?? '',
+						'subgroup'    => $subgroup,
+						'category'    => $trans_cat_info['category'],
+						'category_id' => $trans_cat_info['category_id'],
 						'format'      => 'HEXA',
 						'status'      => 'new',
 						'source'      => 'user-defined',
