@@ -7,6 +7,36 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.2.0] — 2026-06-13
+
+### Added
+
+- **Sub-Categories** — One level of sub-categories under any top-level category. Full CRUD: add, rename, delete with recursive descendant count. Collapsing a parent cascades to sub-categories. Variable counts roll up to parent.
+- **Tints / Shades / Transparencies as Sub-Categories** — Generated color families placed in named sub-categories (e.g., "brand-primary Tints") rather than flat in the parent. Re-generation updates the existing sub-category in place.
+- **Delete Variable Button** — Trash icon on hover at the right of every variable row (Colors, Fonts, Numbers); confirms before removing.
+- **Status Legend** — Dot-and-label row (Synced / Modified / New / Orphaned / Conflict) under the filter bar in all variable views.
+- **Print / PDF** — Top-bar printer button; set-selection modal; browser print dialog with "Save as PDF" support.
+- **Home Icon** — ✕ close button on type filter bar replaced with a house icon ("Back to sets").
+- **New Categories Insert at Top** — Newly created categories are ordered to the top of the list.
+
+### Fixed
+
+- **Delete Button Column Overflow** — `get_grid_override_css()` emitted a 7-column inline style that overrode static CSS; now correctly 8 columns for all views.
+- **Google Fonts for Font Preview** — Font preview cells now load Google Fonts so previews render in the correct typeface.
+- **Uncategorized Badge Catch-All** — Left-panel badge now correctly counts variables not matched by any named category.
+- **Font Classification** — Custom font names classified correctly; unclassified variables migrated on load.
+- **Soft-Deleted Variable Counts** — Soft-deleted variables excluded from all counts.
+- **Delete-Category Variables Bug** — Deleting a category with "delete variables" now removes those variables correctly.
+- **No Scroll After Delete** — Deleting a variable no longer scrolls the edit space to top.
+- **Smart Quotes Parse Error** — ASCII quotes restored in `_deleteCategory`.
+- **Variable Count / Project List Stability** — Count badge logic and project list stabilized; timestamps display correctly.
+
+### Changed
+
+- **Version** — Bumped to 1.2.0.
+
+---
+
 ## [1.1.0] — 2026-06-13
 
 ### Added

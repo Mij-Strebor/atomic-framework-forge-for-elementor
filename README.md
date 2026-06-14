@@ -4,9 +4,9 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Stable](https://img.shields.io/badge/status-Stable%201.0.0-2d7d46?style=flat-square&labelColor=1a3d28)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-1.0.0-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%206.9-21759b?style=flat-square)](https://wordpress.org)
+[![Stable](https://img.shields.io/badge/status-Stable%201.2.0-2d7d46?style=flat-square&labelColor=1a3d28)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%207.0-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-3d2f1f?style=flat-square)](LICENSE)

@@ -2,9 +2,9 @@
 Contributors:      mijstrebor
 Tags:              elementor, css variables, design system, developer tools, atomic widgets
 Requires at least: 5.8
-Tested up to:      6.9
+Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.0.0
+Stable tag:        1.2.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,18 @@ In your WordPress uploads directory under `/uploads/aff/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 1.2.0 =
+* Added: Sub-categories — one level of sub-categories under any top-level category, with full CRUD and cascade collapse.
+* Added: Tints/Shades/Transparencies generated into named sub-categories rather than flat into the parent.
+* Added: Delete Variable button — trash icon on hover in every variable row, with confirmation modal.
+* Added: Status legend (Synced / Modified / New / Orphaned / Conflict) shown under the filter bar in all variable views.
+* Added: Print/PDF — top-bar printer button with set-selection modal; opens browser print dialog.
+* Added: Home icon replaces the ✕ close button on the type filter bar for clearer back-navigation.
+* Fixed: Delete button column overflow — PHP inline style was emitting 7 columns, now correctly 8 for all views.
+* Fixed: Google Fonts loaded for font preview cells.
+* Fixed: Uncategorized badge catch-all, font classification, soft-deleted variable counts, delete-category variables bug, scroll-to-top after delete, smart quotes parse error.
+* Changed: Category count badges roll up sub-category variables. New categories insert at top of list.
 
 = 1.0.0 =
 * Fixed: Plugin Check errors resolved — is_writable() replaced with WP_Filesystem, Requires PHP header aligned, hidden .gitkeep removed, filename with spaces renamed.
