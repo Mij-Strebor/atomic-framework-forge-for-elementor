@@ -258,7 +258,7 @@
 			allCats          = allCats || self._getCatsForSet();
 			var vars         = self._getVarsForCategory(cat);
 			var directCount  = vars.length;
-			var subtreeCount = (depth < 2) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
+			var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
 			var isCollapsed;
 			if (self._collapsedIds.hasOwnProperty(cat.id)) {
@@ -297,7 +297,7 @@
 				+ '<span class="aff-category-count">' + subtreeCount + '</span>'
 				+ '</div>' // .aff-cat-header-left
 				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
-				+ (!cat.locked && depth < 2 ? AFF.Icons.catBtn('add-sub-cat', 'Add sub-category', AFF.Icons.plusCircleSVG(), '') : '')
+				+ (!cat.locked && depth === 0 ? AFF.Icons.catBtn('add-sub-cat', 'Add sub-category', AFF.Icons.plusCircleSVG(), '') : '')
 				+ AFF.Icons.catBtn('duplicate', 'Duplicate category', AFF.Icons.duplicateSVG(), '')
 				+ (cat.locked ? '' : AFF.Icons.catBtn('delete', 'Delete category', AFF.Icons.trashSVG(), 'aff-icon-btn--danger'))
 				+ AFF.Icons.catBtn('collapse', 'Collapse/expand category', AFF.Icons.chevronSVG(), 'aff-category-collapse-btn')
@@ -345,8 +345,8 @@
 			}
 			html += '</div>'; // .aff-color-list
 
-			// Sub-category blocks (MAX_DEPTH = 2; rendered at depth 0 and 1)
-			if (depth < 2) {
+			// Sub-category blocks — one level deep (top-level cats only)
+			if (depth === 0) {
 				var subs = self._getSubCategoriesOf(cat.id, allCats);
 				for (var si = 0; si < subs.length; si++) {
 					html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);

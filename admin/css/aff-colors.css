@@ -390,7 +390,36 @@
 }
 
 /* ==========================================================================
-   6. COLLAPSE STATE — hide list and add-var button when collapsed
+   6. SUB-CATEGORY BLOCKS (depth 1)
+   ========================================================================== */
+
+.aff-category-block[data-depth="1"] {
+	margin-left:   20px;
+	margin-top:    10px;
+	margin-bottom: 0;
+	border-radius: 8px;
+}
+
+/* Last sub-cat: suppress the default :last-child spacing; parent padding handles it */
+.aff-category-block[data-depth="1"]:last-child {
+	margin-bottom: 0;
+}
+
+.aff-category-block[data-depth="1"] .aff-category-inner {
+	background:     var(--aff-bg-panel);
+	border-radius:  8px;
+	padding-top:    12px;
+	padding-bottom: 8px;
+}
+
+/* Add-variable button lives inside parent overflow:hidden — keep it inside the sub-card */
+.aff-category-block[data-depth="1"] .aff-cat-add-btn-wrap {
+	bottom: 6px;
+	left:   6px;
+}
+
+/* ==========================================================================
+   7. COLLAPSE STATE — hide list and add-var button when collapsed
    ========================================================================== */
 
 .aff-category-block[data-collapsed="true"] .aff-color-list,
