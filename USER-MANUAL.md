@@ -1,5 +1,5 @@
 # AFF User Manual
-## Atomic Framework Forge for Elementor — Beta 0.4.2
+## Atomic Framework Forge for Elementor — v1.1.0
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**
@@ -17,16 +17,17 @@
 7. [The Color Picker](#7-the-color-picker)
 8. [Category Management](#8-category-management)
 9. [Colors Expand Panel](#9-colors-expand-panel)
-10. [Save and Backups](#10-save-and-backups)
-11. [Sync from Elementor](#11-sync-from-elementor)
-12. [Elementor V3 Import](#12-elementor-v3-import)
-13. [Commit to Elementor](#13-commit-to-elementor)
-14. [Preferences](#14-preferences)
-15. [Manage Project](#15-manage-project)
-16. [Usage Badges](#16-usage-badges)
-17. [Keyboard and Accessibility](#17-keyboard-and-accessibility)
-18. [Troubleshooting](#18-troubleshooting)
-19. [Known Limitations](#19-known-limitations)
+10. [Print / PDF](#10-print--pdf)
+11. [Save and Backups](#11-save-and-backups)
+12. [Sync from Elementor](#12-sync-from-elementor)
+13. [Elementor V3 Import](#13-elementor-v3-import)
+14. [Commit to Elementor](#14-commit-to-elementor)
+15. [Preferences](#15-preferences)
+16. [Manage Project](#16-manage-project)
+17. [Usage Badges](#17-usage-badges)
+18. [Keyboard and Accessibility](#18-keyboard-and-accessibility)
+19. [Troubleshooting](#19-troubleshooting)
+20. [Known Limitations](#20-known-limitations)
 
 ---
 
@@ -191,7 +192,9 @@ Each variable set has a sticky filter bar at the top of the edit space:
 | Set name label | Shows which set is active (COLORS / FONTS / NUMBERS) |
 | Search input | Filter visible variables by name or value in real time |
 | Collapse all | Collapse every category block in the current set |
-| Back / close | Return to the set overview |
+| ⌂ Home | Return to the set overview |
+
+A **status legend** row (Synced / Modified / New / Orphaned / Conflict) is displayed directly below the filter bar as a quick color-to-meaning reference.
 
 ### Category blocks
 
@@ -204,22 +207,23 @@ Each row in a category block shows:
 | Column | Content |
 |--------|---------|
 | ⠿ | Drag handle — hold and drag to reorder |
-| ● | Status dot — color indicates sync/edit state |
-| Swatch / preview | Color swatch (Colors) or blank (Fonts, Numbers); click swatch to open the color picker |
+| ● | Status dot — color indicates sync/edit state (see legend below filter bar) |
+| Swatch / preview | Color swatch (Colors) or font preview (Fonts); click swatch to open the color picker |
 | Name | CSS custom property name (e.g., `--brand-primary`); click to rename |
 | Value | Current value; click to edit inline |
 | Format | Type selector: HEX / RGB / HSL for Colors; PX / REM / % / fₓ etc. for Numbers |
 | › | Expand chevron — opens the detail panel (Colors only) |
-| 🗑 | Delete button — appears on hover |
+| 🗑 | Delete button — appears on hover; opens a confirmation modal before removal |
 
 ### Status dot colors
 
 | Color | Meaning |
 |-------|---------|
-| Green | Synced from Elementor — value matches the kit CSS |
+| Green | Synced — value matches the Elementor kit |
 | Orange | Modified — value differs from the synced source |
-| Blue | New — added manually or created in AFF, not from a sync |
-| Gray | Unknown / no sync source |
+| Blue | New — added in AFF, not yet in any Elementor sync |
+| Yellow | Orphaned — previously synced but no longer present in the kit |
+| Red | Conflict — value exists in both AFF and Elementor with different content |
 
 ---
 
@@ -317,7 +321,7 @@ Pressing **Enter** in the value input on the row also validates and saves the va
 
 ### Add a category
 
-Click the **⊕** circle button at the bottom-left of the filter bar (below all category blocks in the edit space). Type a category name and press Enter.
+Click the **⊕** circle button at the bottom-left of the filter bar. Type a category name and press Enter. The new category appears at the top of the list.
 
 ### Rename a category
 
@@ -339,7 +343,19 @@ Drag the **⠿** handle on the left of any category header to move the category 
 
 ### Collapse / expand a category
 
-Click the **⌄ chevron** button on the right of the category header. Collapse all categories at once using the collapse-all button in the filter bar.
+Click the **⌄ chevron** button on the right of the category header. Collapsing a category also collapses all of its sub-categories. Collapse all categories at once using the collapse-all button in the filter bar.
+
+### Sub-categories
+
+Each top-level category supports one level of sub-categories.
+
+**Add a sub-category** — click the **⊕** circle at the bottom-left of the category panel (distinct from the filter bar add button). Type a name and press Enter.
+
+**Sub-category appearance** — sub-categories are indented inside the parent panel, use a subtler background tone, and display their own variable count. The count on the parent category reflects the total of all variables in the category and all its sub-categories.
+
+**Sub-category actions** — Copy and Delete are available in the sub-category header; sub-categories cannot be nested further.
+
+**Tints, shades, and transparencies** — generating color families from the expand panel automatically creates named sub-categories (e.g., "brand-primary Tints") inside the parent category. Re-generating updates the existing sub-category in place.
 
 ### Sort variables within a category
 
@@ -400,7 +416,33 @@ After configuring tints, shades, and transparencies, the generated child variabl
 
 ---
 
-## 10. Save and Backups
+## 10. Print / PDF
+
+Click the **printer icon** in the top bar to open the Print dialog.
+
+### Selection modal
+
+The modal lists the three variable sets with their variable counts:
+
+| Option | Behavior |
+|--------|----------|
+| **Colors** checkbox | Include color variables in the output |
+| **Fonts** checkbox | Include font variables |
+| **Numbers** checkbox | Include number variables |
+
+Only sets that contain at least one active variable can be selected. Click **Print** (or press Enter) to proceed; click **Cancel** to abort.
+
+### Print output
+
+AFF generates a formatted print document and opens the browser's native print dialog. The AFF UI is hidden during printing (`@media print`); only the formatted variable table is visible.
+
+**To save as PDF:** In the print dialog, change the destination to "Save as PDF".
+
+The print output is organized by variable set and category. Each row shows the variable name, value, format, and status.
+
+---
+
+## 11. Save and Backups
 
 ### Save Project — creating a backup
 
@@ -471,7 +513,7 @@ The format is platform-agnostic and designed to be compatible with a future desk
 
 ---
 
-## 11. Sync from Elementor
+## 12. Sync from Elementor
 
 ### Starting a sync
 
@@ -507,7 +549,7 @@ In "Sync by name" mode, variables already in your project are never removed. If 
 
 ---
 
-## 12. Elementor V3 Import
+## 13. Elementor V3 Import
 
 ### What V3 Import does
 
@@ -527,7 +569,7 @@ Use V3 Import when migrating a site from Elementor V3 to V4. After importing, yo
 
 ---
 
-## 13. Commit to Elementor
+## 14. Commit to Elementor
 
 ### Starting a commit
 
@@ -558,7 +600,7 @@ The **↑ Variables** button highlights gold when uncommitted changes exist.
 
 ---
 
-## 14. Preferences
+## 15. Preferences
 
 Click the **⚙ gear icon** in the top-left to open the Preferences modal.
 
@@ -600,7 +642,7 @@ These defaults apply when you start a new file. Existing project files are not a
 
 ---
 
-## 15. Manage Project
+## 16. Manage Project
 
 Click the **▦ grid icon** in the top bar to open the Manage Project modal.
 
@@ -625,7 +667,7 @@ Changes in Manage Project take effect immediately and are saved with your projec
 
 ---
 
-## 16. Usage Badges
+## 17. Usage Badges
 
 Each variable row shows a small badge on the right side indicating how many Elementor widgets reference that variable via `var()`.
 
@@ -644,7 +686,7 @@ Usage scanning reads up to 500 posts' Elementor data. On large sites, the count 
 
 ---
 
-## 17. Keyboard and Accessibility
+## 18. Keyboard and Accessibility
 
 | Key | Context | Action |
 |-----|---------|--------|
@@ -662,7 +704,7 @@ AFF meets WCAG 2.1 AA contrast standards:
 
 ---
 
-## 18. Troubleshooting
+## 19. Troubleshooting
 
 **Sync finds 0 variables**
 → Go to Elementor → Site Settings → click Save Changes to regenerate the kit CSS, then Sync again. If that fails, use the manual path fallback.
@@ -693,7 +735,7 @@ AFF meets WCAG 2.1 AA contrast standards:
 
 ---
 
-## 19. Known Limitations
+## 20. Known Limitations
 
 | Area | Status |
 |------|--------|

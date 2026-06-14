@@ -105,6 +105,7 @@
             // are that _loadFile closes the modal, clears dirty state, and shows a toast.
             // When fixing DP-03, extract this block to a shared _applyLoadedData(res, opts).
             AFF.state.variables = res.data.data.variables || [];
+            AFF.Utils.migrateUnclassifiedVars(AFF.state.variables);
             AFF.state.classes = res.data.data.classes || [];
             AFF.state.components = res.data.data.components || [];
             AFF.state.metadata = res.data.data.metadata || {};
@@ -209,6 +210,7 @@
             // _loadFile above. The only difference is that _autoLoadFile is silent on
             // failure (no modal, no dirty-flag reset). Extract to _applyLoadedData(res, opts).
             AFF.state.variables = res.data.data.variables || [];
+            AFF.Utils.migrateUnclassifiedVars(AFF.state.variables);
             AFF.state.classes = res.data.data.classes || [];
             AFF.state.components = res.data.data.components || [];
             AFF.state.metadata = res.data.data.metadata || {};
@@ -975,7 +977,7 @@
             self._escHtml(String(p.backup_count)) +
             "</span>" +
             '<span class="aff-picker-row__date">' +
-            self._escHtml(p.latest_modified) +
+            self._escHtml(p.latest_modified_ts ? self._fmtTs(p.latest_modified_ts) : (p.latest_modified || '')) +
             "</span>" +
             '<div class="aff-picker-row__actions">' +
             '<button class="aff-icon-btn aff-picker-open-project"' +
@@ -1073,7 +1075,7 @@
           html +=
             '<div class="aff-picker-backup-row">' +
             '<span class="aff-picker-backup-row__date">' +
-            self._escHtml(b.modified) +
+            self._escHtml(b.modified_ts ? self._fmtTs(b.modified_ts) : (b.modified || '')) +
             "</span>" +
             '<span class="aff-picker-backup-row__vars">' +
             (varCount !== "" ? self._escHtml(String(varCount)) : "") +
@@ -1877,6 +1879,18 @@
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+    },
+
+    /** Format a Unix timestamp (seconds) using the browser's local timezone. */
+    _fmtTs: function (ts) {
+      try {
+        return new Date(ts * 1000).toLocaleString(undefined, {
+          month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit',
+        });
+      } catch (e) {
+        return '';
+      }
     },
 
     /**

@@ -22,12 +22,12 @@
 
 /* ==========================================================================
    1. FONTS VIEW — 7-column grid
-   drag (24px) | status (8px) | preview (15%) | name (1fr) | value (28%) |
+   drag (24px) | status (8px) | preview (72px) | name (1fr) | value (28%) |
    format (12%) | delete (28px)
    ========================================================================== */
 
 .aff-fonts-view .aff-color-row {
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 72px 1fr 28% 12% 28px 28px;
 	column-gap: 10px;
 }
 
@@ -39,7 +39,7 @@
 
 .aff-numbers-view .aff-color-row,
 .aff-numbers-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 1fr calc(28% + 120px) 12% 28px;
+	grid-template-columns: 24px 8px 1fr calc(28% + 72px) 12% 28px 28px;
 	column-gap: 16px;
 }
 
@@ -190,12 +190,12 @@
 
 @media (max-width: 600px) {
 	.aff-fonts-view .aff-color-row {
-		grid-template-columns: 24px 8px 80px 1fr 20% 0 28px;
+		grid-template-columns: 24px 8px 60px 1fr 26% 0 28px;
 		column-gap: 6px;
 	}
 
 	.aff-numbers-view .aff-color-row {
-		grid-template-columns: 24px 8px 1fr calc(24% + 80px) 0 28px;
+		grid-template-columns: 24px 8px 1fr calc(26% + 60px) 0 28px;
 		column-gap: 6px;
 	}
 

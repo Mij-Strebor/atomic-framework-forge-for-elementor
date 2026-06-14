@@ -1295,118 +1295,17 @@
      */
     _applyNewVars: function (newVars) {
       newVars.forEach(function (v) {
-        var lc = (v.value || "").trim().toLowerCase();
-        var isColor = AFF.Utils.isColorValue(lc);
-        var isFont =
-          !isColor &&
-          /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(
-            lc,
-          );
-        var isNumber =
-          !isColor &&
-          !isFont &&
-          (/^\d/.test(lc) ||
-            lc.indexOf("clamp(") === 0 ||
-            lc.indexOf("calc(") === 0 ||
-            lc.indexOf("min(") === 0 ||
-            lc.indexOf("max(") === 0 ||
-            /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc));
-        var subgroup = isColor
-          ? "Colors"
-          : isFont
-            ? "Fonts"
-            : isNumber
-              ? "Numbers"
-              : "";
-
-        // Determine the Numbers format (unit selector value).
-        // Priority: Elementor-supplied unit (el_unit) > value-based inference.
-        var format = "";
-        if (isNumber) {
-          var elUnit = (v.el_unit || "").toLowerCase();
-          if (elUnit) {
-            // Map Elementor unit to AFF format label.
-            // 'custom' means the size field holds a full CSS expression
-            // (clamp, calc, etc.) — map it to AFF's FX format.
-            var unitMap = {
-              px: "PX",
-              "%": "%",
-              em: "EM",
-              rem: "REM",
-              vw: "VW",
-              vh: "VH",
-              ch: "CH",
-              custom: "FX",
-            };
-            format = unitMap[elUnit] || elUnit.toUpperCase();
-          } else {
-            // Infer from value string (CSS file path or string-type vars).
-            if (/^(clamp|calc|min|max)\s*\(/.test(lc)) {
-              format = "FX";
-            } else if (/\d+rem\b/.test(lc)) {
-              format = "REM";
-            } else if (/\d+em\b/.test(lc)) {
-              format = "EM";
-            } else if (/\d+px\b/.test(lc)) {
-              format = "PX";
-            } else if (/\d+%/.test(lc)) {
-              format = "%";
-            } else if (/\d+vw\b/.test(lc)) {
-              format = "VW";
-            } else if (/\d+vh\b/.test(lc)) {
-              format = "VH";
-            } else if (/\d+ch\b/.test(lc)) {
-              format = "CH";
-            } else {
-              format = "REM";
-            }
-          }
-        } else if (isColor) {
-          if (lc.indexOf("rgba(") === 0) {
-            format = "RGBA";
-          } else if (lc.indexOf("rgb(") === 0) {
-            format = "RGB";
-          } else if (lc.indexOf("hsla(") === 0) {
-            format = "HSLA";
-          } else if (lc.indexOf("hsl(") === 0) {
-            format = "HSL";
-          } else if (/^#[0-9a-f]{8}$/.test(lc)) {
-            format = "HEXA";
-          } else {
-            format = "HEX";
-          }
-        }
-
-        // Strip the unit suffix from Numbers values so the stored value is a
-        // pure number (e.g. '1.5rem' → '1.5', format 'REM'). FX expressions
-        // (clamp, calc, etc.) are kept as-is since they have no simple unit.
-        var storeValue = v.value;
-        if (isNumber && format !== "FX") {
-          var stripped = (v.value || "").replace(
-            /(-?[\d.]+)(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\s*$/i,
-            "$1",
-          );
-          if (stripped !== v.value) {
-            storeValue = stripped;
-          }
-        }
-
+        var cls = AFF.Utils.classifyVar(v.value, v.el_unit);
         AFF.state.variables.push({
           id: "",
           name: v.name.toLowerCase(),
-          value: storeValue,
-          format: format,
+          value: cls.storeValue,
+          format: cls.format,
           source: "elementor-parsed",
-          type: isColor
-            ? "color"
-            : isFont
-              ? "font"
-              : isNumber
-                ? "number"
-                : "unknown",
+          type: cls.type,
           group: "Variables",
-          subgroup: subgroup,
-          category: subgroup ? "Uncategorized" : "",
+          subgroup: cls.subgroup,
+          category: cls.subgroup ? "Uncategorized" : "",
           category_id: "",
           modified: false,
           created_at: new Date().toISOString(),
@@ -1840,37 +1739,11 @@
         if (!v || typeof v !== "object" || v.type) {
           return;
         }
-        var lc = (v.value || "").trim().toLowerCase();
-        var isCl = AFF.Utils.isColorValue(lc);
-        var isFt =
-          !isCl &&
-          /\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(
-            lc,
-          );
-        var isNm =
-          !isCl &&
-          !isFt &&
-          (/^\d/.test(lc) ||
-            /^(clamp|calc|min|max)\s*\(/.test(lc) ||
-            /\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc));
-        v.type = isCl ? "color" : isFt ? "font" : isNm ? "number" : "unknown";
-        v.subgroup =
-          v.subgroup ||
-          (isCl ? "Colors" : isFt ? "Fonts" : isNm ? "Numbers" : "");
-        if (!v.format && isCl) {
-          if (lc.indexOf("rgba(") === 0) {
-            v.format = "RGBA";
-          } else if (lc.indexOf("rgb(") === 0) {
-            v.format = "RGB";
-          } else if (lc.indexOf("hsla(") === 0) {
-            v.format = "HSLA";
-          } else if (lc.indexOf("hsl(") === 0) {
-            v.format = "HSL";
-          } else if (/^#[0-9a-f]{8}$/.test(lc)) {
-            v.format = "HEXA";
-          } else {
-            v.format = "HEX";
-          }
+        var cls = AFF.Utils.classifyVar(v.value, "");
+        v.type     = cls.type;
+        v.subgroup = v.subgroup || cls.subgroup;
+        if (!v.format) {
+          v.format = cls.format;
         }
       });
 

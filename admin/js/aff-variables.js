@@ -164,20 +164,22 @@
 			var self       = this;
 			var cfg        = self._cfg;
 			var setLower   = cfg.setName.toLowerCase();
-			var categories = self._getCatsForSet();
+			var categories   = self._getCatsForSet();
+			var topLevelCats = categories.filter(function (c) { return !c.parent_id; });
 
 			// Determine initial collapse-toggle state for the ⊞/⊟ button.
+			// Only top-level cats participate — sub-cats render inside their parents.
 			var _anyExpanded = false;
-			for (var _ti = 0; _ti < categories.length; _ti++) {
-				var _tc = categories[_ti];
-				var _tvars = self._getVarsForCategory(_tc);
+			for (var _ti = 0; _ti < topLevelCats.length; _ti++) {
+				var _tc           = topLevelCats[_ti];
+				var _subtreeCount = self._getSubtreeVarCount(_tc.id, categories);
 				var _tcCollapsed;
 				if (self._collapsedIds.hasOwnProperty(_tc.id)) {
 					_tcCollapsed = self._collapsedIds[_tc.id];
 				} else if (self._focusedCatId) {
 					_tcCollapsed = (_tc.id !== self._focusedCatId);
 				} else {
-					_tcCollapsed = (_tvars.length === 0);
+					_tcCollapsed = (_subtreeCount === 0);
 				}
 				if (!_tcCollapsed) { _anyExpanded = true; break; }
 			}
@@ -198,9 +200,9 @@
 				+ ' aria-label="Search ' + setLower + ' variables">'
 				+ '<button class="aff-icon-btn aff-colors-back-btn"'
 				+ ' id="aff-' + setLower + '-back"'
-				+ ' data-aff-tooltip="Close ' + cfg.setName + ' view"'
-				+ ' aria-label="Close ' + cfg.setName + ' view">'
-				+ AFF.Icons.closeSVG()
+				+ ' data-aff-tooltip="Back to sets"'
+				+ ' aria-label="Back to sets">'
+				+ AFF.Icons.homeSVG()
 				+ '</button>'
 				+ '<button class="aff-icon-btn"'
 				+ ' id="aff-' + setLower + '-collapse-toggle"'
@@ -220,12 +222,21 @@
 				+ '</div>'
 				+ '</div>'; // filter bar
 
+			// ---- Status legend ----
+			html += '<div class="aff-status-legend">'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-synced)"></span>Synced</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-modified)"></span>Modified</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-new)"></span>New</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-orphaned)"></span>Orphaned</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-conflict)"></span>Conflict</span>'
+				+ '</div>';
+
 			// ---- Category blocks ----
-			if (categories.length === 0) {
+			if (topLevelCats.length === 0) {
 				html += '<p class="aff-colors-empty">No categories found. Click + to add one.</p>';
 			} else {
-				for (var i = 0; i < categories.length; i++) {
-					html += self._buildCategoryBlock(categories[i], i, categories.length);
+				for (var i = 0; i < topLevelCats.length; i++) {
+					html += self._buildCategoryBlock(topLevelCats[i], i, topLevelCats.length, 0, categories);
 				}
 			}
 
@@ -233,6 +244,9 @@
 
 			container.innerHTML = html;
 			self._bindEvents(container);
+			if (cfg.renderPreviewCell && AFF.Utils.loadFontPreviews) {
+				AFF.Utils.loadFontPreviews(container);
+			}
 
 			if (self._focusedCatId) {
 				self._jumpToCategory(self._focusedCatId, container);
@@ -247,10 +261,13 @@
 		 * @param {number} catTotal
 		 * @returns {string}
 		 */
-		_buildCategoryBlock: function (cat, catIndex, catTotal) {
-			var self  = this;
-			var vars  = self._getVarsForCategory(cat);
-			var count = vars.length;
+		_buildCategoryBlock: function (cat, catIndex, catTotal, depth, allCats) {
+			var self         = this;
+			depth            = depth   || 0;
+			allCats          = allCats || self._getCatsForSet();
+			var vars         = self._getVarsForCategory(cat);
+			var directCount  = vars.length;
+			var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
 			var isCollapsed;
 			if (self._collapsedIds.hasOwnProperty(cat.id)) {
@@ -258,23 +275,27 @@
 			} else if (self._focusedCatId) {
 				isCollapsed = (cat.id !== self._focusedCatId);
 			} else {
-				isCollapsed = (count === 0);
+				isCollapsed = (subtreeCount === 0);
 			}
 
 			var html = '<div class="aff-category-block"'
 				+ ' data-category-id="' + AFF.Utils.escAttr(cat.id) + '"'
-				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '">'
+				+ ' data-collapsed="' + (isCollapsed ? 'true' : 'false') + '"'
+				+ (depth > 0 ? ' data-depth="' + depth + '"' : '')
+				+ '>'
 				+ '<div class="aff-category-inner">';
 
 			// Category header
 			html += '<div class="aff-category-header">'
 				+ '<div class="aff-cat-header-top">'
-				+ '<div class="aff-cat-header-left">'
-				+ '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
-				+ ' data-aff-tooltip="Drag to reorder">'
-				+ AFF.Icons.sixDotSVG()
-				+ '</span>'
-				+ '<span class="aff-category-name-input"'
+				+ '<div class="aff-cat-header-left">';
+			if (depth === 0) {
+				html += '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"'
+					+ ' data-aff-tooltip="Drag to reorder">'
+					+ AFF.Icons.sixDotSVG()
+					+ '</span>';
+			}
+			html += '<span class="aff-category-name-input"'
 				+ ' data-cat-id="' + AFF.Utils.escAttr(cat.id) + '"'
 				+ ' data-original="' + AFF.Utils.escAttr(cat.name) + '"'
 				+ ' aria-label="Category name"'
@@ -282,15 +303,24 @@
 				+ (cat.locked ? ' data-locked="true"' : '') + '>'
 				+ AFF.Utils.escAttr(cat.name)
 				+ '</span>'
-				+ '<span class="aff-category-count">' + count + '</span>'
+				+ '<span class="aff-category-count">' + subtreeCount + '</span>'
 				+ '</div>' // .aff-cat-header-left
 				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
+				+ (!cat.locked && depth === 0 ? AFF.Icons.catBtn('add-sub-cat', 'Add sub-category', AFF.Icons.plusCircleSVG(), '') : '')
 				+ AFF.Icons.catBtn('duplicate', 'Duplicate category', AFF.Icons.duplicateSVG(), '')
 				+ (cat.locked ? '' : AFF.Icons.catBtn('delete', 'Delete category', AFF.Icons.trashSVG(), 'aff-icon-btn--danger'))
 				+ AFF.Icons.catBtn('collapse', 'Collapse/expand category', AFF.Icons.chevronSVG(), 'aff-category-collapse-btn')
 				+ '</div>' // .aff-category-actions
 				+ '</div>' // .aff-cat-header-top
 				+ '</div>'; // .aff-category-header
+
+			// Sub-category blocks — one level deep (top-level cats only)
+			if (depth === 0) {
+				var subs = self._getSubCategoriesOf(cat.id, allCats);
+				for (var si = 0; si < subs.length; si++) {
+					html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
+				}
+			}
 
 			// Column sort header — same grid as variable rows.
 			// Fonts has preview col (col3), Numbers does not; adjust empty spans accordingly.
@@ -323,7 +353,7 @@
 
 			// Variable rows
 			html += '<div class="aff-color-list">';
-			if (count === 0) {
+			if (directCount === 0) {
 				html += '<p class="aff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var i = 0; i < vars.length; i++) {
@@ -487,9 +517,10 @@
 				var catId  = block ? block.getAttribute('data-category-id') : null;
 
 				switch (action) {
-					case 'duplicate': if (catId) { self._duplicateCategory(catId); } break;
-					case 'add-var':   if (catId) { self._addVariable(catId); }      break;
-					case 'delete':    if (catId) { self._deleteCategory(catId); }   break;
+					case 'add-sub-cat': if (catId) { self._addSubCategory(catId); }    break;
+					case 'duplicate':   if (catId) { self._duplicateCategory(catId); } break;
+					case 'add-var':     if (catId) { self._addVariable(catId); }       break;
+					case 'delete':      if (catId) { self._deleteCategory(catId); }    break;
 
 					case 'delete-var': {
 						var varId = btn.getAttribute('data-var-id');
@@ -502,7 +533,16 @@
 							var isColl = block.getAttribute('data-collapsed') === 'true';
 							block.setAttribute('data-collapsed', String(!isColl));
 							self._collapsedIds[catId] = !isColl;
-							if (isColl) {
+							if (!isColl) {
+								// Cascade collapse to sub-categories.
+								var _subBlocks = block.querySelectorAll('.aff-category-block[data-depth="1"]');
+								for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+									var _sb = _subBlocks[_sbi];
+									var _sbId = _sb.getAttribute('data-category-id');
+									_sb.setAttribute('data-collapsed', 'true');
+									if (_sbId) { self._collapsedIds[_sbId] = true; }
+								}
+							} else {
 								block.scrollIntoView({ behavior: 'smooth', block: 'start' });
 							}
 						}
@@ -649,40 +689,6 @@
 				var varId = row ? row.getAttribute('data-var-id') : null;
 				if (varId !== null) { self._saveVarFormat(varId, fmtSel.value); }
 			});
-		},
-
-		// -------------------------------------------------------------------
-		// SEARCH / FILTER
-		// -------------------------------------------------------------------
-
-		/**
-		 * Show/hide rows based on a text search query.
-		 * Category blocks with no visible rows are also hidden.
-		 *
-		 * @param {HTMLElement} container
-		 * @param {string}      query Lowercased search string.
-		 */
-		_filterRows: function (container, query) {
-			var self   = this;
-			var blocks = container.querySelectorAll('.aff-category-block');
-			for (var bi = 0; bi < blocks.length; bi++) {
-				var block      = blocks[bi];
-				var rows       = block.querySelectorAll('.aff-color-row');
-				var anyVisible = false;
-				for (var ri = 0; ri < rows.length; ri++) {
-					var row   = rows[ri];
-					var varId = row.getAttribute('data-var-id');
-					var v     = varId ? AFF.Utils.findVarByKey(varId) : null;
-					var match = !query;
-					if (!match && v) {
-						match = (v.name  || '').toLowerCase().indexOf(query) !== -1
-							 || (v.value || '').toLowerCase().indexOf(query) !== -1;
-					}
-					row.style.display = match ? '' : 'none';
-					if (match) { anyVisible = true; }
-				}
-				block.style.display = anyVisible ? '' : 'none';
-			}
 		},
 
 		// -------------------------------------------------------------------
@@ -1201,12 +1207,23 @@
 			var content   = document.getElementById('aff-edit-content');
 			var editSpace = document.getElementById('aff-edit-space');
 			if (!content) { return; }
-			// Save scroll on both the panel's own scroll container (.aff-edit-space,
-			// overflow-y:auto) and the window — WordPress admin may be the outermost
-			// scrollable container depending on screen height. innerHTML replacement
-			// destroys the focused element which causes browsers to jump to top.
 			var savedPanel  = editSpace ? editSpace.scrollTop : 0;
 			var savedWindow = window.pageYOffset;
+			// Snapshot focus-driven collapse state into _collapsedIds before clearing
+			// _focusedCatId. Without this, clearing _focusedCatId causes previously
+			// auto-collapsed categories to expand (their state was never in _collapsedIds).
+			// Clears _focusedCatId so _renderAll does not fire _jumpToCategory's
+			// scrollIntoView (setTimeout 50ms), which would override the scroll restore.
+			if (this._focusedCatId) {
+				var cats = this._getCatsForSet();
+				for (var i = 0; i < cats.length; i++) {
+					var cat = cats[i];
+					if (!this._collapsedIds.hasOwnProperty(cat.id)) {
+						this._collapsedIds[cat.id] = (cat.id !== this._focusedCatId);
+					}
+				}
+				this._focusedCatId = null;
+			}
 			this._renderAll(AFF.state.currentSelection || {}, content);
 			if (editSpace) { editSpace.scrollTop = savedPanel; }
 			if (window.pageYOffset !== savedWindow) { window.scrollTo(0, savedWindow); }
@@ -1271,103 +1288,6 @@
 		// -------------------------------------------------------------------
 		// DRAG AND DROP
 		// -------------------------------------------------------------------
-
-		/**
-		 * Initialize mouse-based drag-and-drop for category blocks.
-		 *
-		 * @param {HTMLElement} container
-		 */
-		_initCatDrag: function (container) {
-			var self     = this;
-			var setLower = self._cfg.setName.toLowerCase();
-			var d        = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
-
-			container.addEventListener('mousedown', function (e) {
-				if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
-				var handle = e.target.closest('.aff-cat-drag-handle');
-				if (!handle) { return; }
-				e.preventDefault();
-
-				var block = handle.closest('.aff-category-block');
-				if (!block) { return; }
-
-				d.catId = block.getAttribute('data-category-id');
-				if (!d.catId) { return; }
-
-				d.active = true;
-				d.startY = e.clientY;
-
-				var blockRect = block.getBoundingClientRect();
-				var ghost = block.cloneNode(true);
-				ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;'
-					+ 'width:' + block.offsetWidth + 'px;'
-					+ 'top:' + blockRect.top + 'px;left:' + blockRect.left + 'px;'
-					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:12px;';
-				ghost.className += ' aff-drag-ghost';
-				document.body.appendChild(ghost);
-				d.ghost = ghost;
-
-				var indicator = document.createElement('div');
-				indicator.className = 'aff-drop-indicator';
-				indicator.style.display = 'none';
-				indicator.style.pointerEvents = 'none';
-				var _appEl  = document.getElementById('aff-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
-				if (!_accent) { _accent = '#f4c542'; }
-				indicator.style.background = 'linear-gradient(to right, transparent, '
-					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
-				document.body.appendChild(indicator);
-				d.indicator = indicator;
-
-				block.style.opacity = '0.3';
-			});
-
-			document.addEventListener('mousemove', function (e) {
-				if (!d.active || !d.ghost) { return; }
-				var dy = e.clientY - d.startY;
-				d.ghost.style.transform = 'translateY(' + dy + 'px)';
-
-				d.ghost.style.display = 'none';
-				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
-				d.ghost.style.display = '';
-
-				var targetBlock = elBelow ? elBelow.closest('.aff-category-block') : null;
-				if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
-					var tbRect = targetBlock.getBoundingClientRect();
-					var above  = e.clientY < tbRect.top + tbRect.height / 2;
-					d.indicator.style.display = '';
-					d.indicator.style.left    = tbRect.left + 'px';
-					d.indicator.style.width   = tbRect.width + 'px';
-					d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
-					d.indicator.style.height  = '4px';
-					d._dropTargetId = targetBlock.getAttribute('data-category-id');
-					d._dropAbove    = above;
-				} else {
-					d.indicator.style.display = 'none';
-					d._dropTargetId = null;
-				}
-			});
-
-			document.addEventListener('mouseup', function () {
-				if (!d.active) { return; }
-				d.active = false;
-
-				if (d.ghost     && d.ghost.parentNode)     { d.ghost.parentNode.removeChild(d.ghost); }
-				if (d.indicator && d.indicator.parentNode) { d.indicator.parentNode.removeChild(d.indicator); }
-				d.ghost     = null;
-				d.indicator = null;
-
-				var draggingBlock = container.querySelector('.aff-category-block[data-category-id="' + d.catId + '"]');
-				if (draggingBlock) { draggingBlock.style.opacity = ''; }
-
-				if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
-					self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
-				}
-				d._dropTargetId = null;
-				d._dropAbove    = null;
-				d.catId         = null;
-			});
-		},
 
 		/**
 		 * Handle a completed category drop: reorder categories.
@@ -1450,7 +1370,7 @@
 		 */
 		_getVarsForSet: function () {
 			var sub = this._cfg.setName;
-			return AFF.state.variables.filter(function (v) { return v.subgroup === sub; });
+			return AFF.state.variables.filter(function (v) { return v.subgroup === sub && v.status !== 'deleted'; });
 		},
 
 		/**
@@ -1498,6 +1418,42 @@
 		},
 
 		/**
+		 * Return direct sub-categories of a category, sorted by order.
+		 *
+		 * @param {string} catId   Parent category ID.
+		 * @param {Array}  allCats All categories for this set.
+		 * @returns {Array}
+		 */
+		_getSubCategoriesOf: function (catId, allCats) {
+			var result = [];
+			for (var i = 0; i < allCats.length; i++) {
+				if (allCats[i].parent_id === catId) { result.push(allCats[i]); }
+			}
+			return result.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+		},
+
+		/**
+		 * Return total variable count for a category plus all its sub-categories.
+		 *
+		 * @param {string} catId   Category ID.
+		 * @param {Array}  allCats All categories for this set.
+		 * @returns {number}
+		 */
+		_getSubtreeVarCount: function (catId, allCats) {
+			var cat = null;
+			for (var i = 0; i < allCats.length; i++) {
+				if (allCats[i].id === catId) { cat = allCats[i]; break; }
+			}
+			if (!cat) { return 0; }
+			var total = this._getVarsForCategory(cat).length;
+			var subs  = this._getSubCategoriesOf(catId, allCats);
+			for (var j = 0; j < subs.length; j++) {
+				total += this._getSubtreeVarCount(subs[j].id, allCats);
+			}
+			return total;
+		},
+
+		/**
 		 * Return the sorted category list for this set.
 		 * @returns {Array}
 		 */
@@ -1522,6 +1478,11 @@
 			var row = content.querySelector('.aff-color-row[data-var-id="' + AFF.Utils.escAttr(varId) + '"]');
 			var dot = row ? row.querySelector('.aff-status-dot') : null;
 			if (dot) { dot.style.background = AFF.Utils.statusColor(status); }
+		},
+
+		/** CSS selector for the active view inside the container. Required by AFF.CatMixin._initCatDrag. */
+		_catViewSelector: function () {
+			return '.aff-' + this._cfg.setName.toLowerCase() + '-view';
 		},
 
 		/** Open a "no project file" error modal. */

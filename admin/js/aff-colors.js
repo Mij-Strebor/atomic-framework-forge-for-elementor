@@ -234,21 +234,23 @@
               return (a.order || 0) - (b.order || 0);
             })
           : self._getDefaultCategories();
+      var topLevelCats = categories.filter(function (c) { return !c.parent_id; });
 
       var html = '<div class="aff-colors-view">';
 
       // Compute initial toggle state: show expand-all if all are collapsed.
+      // Only top-level cats participate — sub-cats render inside their parents.
       var _anyExpanded = false;
-      for (var _ti = 0; _ti < categories.length; _ti++) {
-        var _tc = categories[_ti];
-        var _tv = self._getVarsForCategory(_tc);
+      for (var _ti = 0; _ti < topLevelCats.length; _ti++) {
+        var _tc           = topLevelCats[_ti];
+        var _subtreeCount = self._getSubtreeVarCount(_tc.id, categories);
         var _tcCollapsed;
         if (self._collapsedIds.hasOwnProperty(_tc.id)) {
           _tcCollapsed = self._collapsedIds[_tc.id];
         } else if (_focusedCategoryId) {
           _tcCollapsed = _tc.id !== _focusedCategoryId;
         } else {
-          _tcCollapsed = _tv.length === 0;
+          _tcCollapsed = _subtreeCount === 0;
         }
         if (!_tcCollapsed) {
           _anyExpanded = true;
@@ -274,9 +276,9 @@
         '<input type="text" class="aff-colors-search" id="aff-colors-search"' +
         ' placeholder="Search\u2026" aria-label="Search color variables">' +
         '<button class="aff-icon-btn aff-colors-back-btn" id="aff-colors-back"' +
-        ' title="Close colors view" aria-label="Close colors view"' +
-        ' data-aff-tooltip="Close Colors view">' +
-        AFF.Icons.closeSVG() +
+        ' title="Back to sets" aria-label="Back to sets"' +
+        ' data-aff-tooltip="Back to sets">' +
+        AFF.Icons.homeSVG() +
         "</button>" +
         '<button class="aff-icon-btn" id="aff-colors-collapse-toggle"' +
         ' title="' +
@@ -302,6 +304,16 @@
         "</div>" +
         "</div>"; // .aff-colors-filter-bar
 
+      // ------- STATUS LEGEND -------
+      html +=
+        '<div class="aff-status-legend">' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-synced)"></span>Synced</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-modified)"></span>Modified</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-new)"></span>New</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-orphaned)"></span>Orphaned</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-conflict)"></span>Conflict</span>' +
+        '</div>';
+
       // ------- SELECTION BAR -------
       // Visible only when ≥1 variable is selected. Shown/hidden live by
       // _updateSelectionUI; also rebuilt here so re-renders preserve state.
@@ -320,12 +332,12 @@
         "</div>";
 
       // ------- CATEGORY BLOCKS -------
-      if (categories.length === 0) {
+      if (topLevelCats.length === 0) {
         html +=
           '<p class="aff-colors-empty">No categories found. Click "+ Category" to add one.</p>';
       } else {
-        for (var i = 0; i < categories.length; i++) {
-          html += self._buildCategoryBlock(categories[i], i, categories.length);
+        for (var i = 0; i < topLevelCats.length; i++) {
+          html += self._buildCategoryBlock(topLevelCats[i], i, topLevelCats.length, 0, categories);
         }
       }
 
@@ -378,6 +390,42 @@
     },
 
     /**
+     * Return direct sub-categories of a category, sorted by order.
+     *
+     * @param {string} catId   Parent category ID.
+     * @param {Array}  allCats All categories for this set.
+     * @returns {Array}
+     */
+    _getSubCategoriesOf: function (catId, allCats) {
+      var result = [];
+      for (var i = 0; i < allCats.length; i++) {
+        if (allCats[i].parent_id === catId) { result.push(allCats[i]); }
+      }
+      return result.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    },
+
+    /**
+     * Return total variable count for a category plus all its sub-categories.
+     *
+     * @param {string} catId   Category ID.
+     * @param {Array}  allCats All categories for this set.
+     * @returns {number}
+     */
+    _getSubtreeVarCount: function (catId, allCats) {
+      var cat = null;
+      for (var i = 0; i < allCats.length; i++) {
+        if (allCats[i].id === catId) { cat = allCats[i]; break; }
+      }
+      if (!cat) { return 0; }
+      var total = this._getVarsForCategory(cat).length;
+      var subs  = this._getSubCategoriesOf(catId, allCats);
+      for (var j = 0; j < subs.length; j++) {
+        total += this._getSubtreeVarCount(subs[j].id, allCats);
+      }
+      return total;
+    },
+
+    /**
      * Build the HTML for one category block.
      *
      * Header layout (two rows):
@@ -387,10 +435,17 @@
      * @param {{ id: string, name: string, locked: boolean, order: number }} cat
      * @returns {string}
      */
-    _buildCategoryBlock: function (cat, catIndex, catTotal) {
-      var self = this;
-      var vars = self._getVarsForCategory(cat);
-      var count = vars.length;
+    _buildCategoryBlock: function (cat, catIndex, catTotal, depth, allCats) {
+      var self         = this;
+      depth            = depth   || 0;
+      allCats          = allCats || (
+        AFF.state.config && AFF.state.config.categories
+          ? AFF.state.config.categories.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); })
+          : self._getDefaultCategories()
+      );
+      var vars         = self._getVarsForCategory(cat);
+      var directCount  = vars.length;
+      var subtreeCount = (depth === 0) ? self._getSubtreeVarCount(cat.id, allCats) : directCount;
 
       // Determine initial collapsed state for this render.
       var isCollapsed;
@@ -402,7 +457,7 @@
         isCollapsed = cat.id !== _focusedCategoryId;
       } else {
         // No focus set (re-render after CRUD): empty categories collapsed.
-        isCollapsed = count === 0;
+        isCollapsed = subtreeCount === 0;
       }
 
       var html =
@@ -413,6 +468,7 @@
         ' data-collapsed="' +
         (isCollapsed ? "true" : "false") +
         '"' +
+        (depth > 0 ? ' data-depth="' + depth + '"' : "") +
         ">" +
         // Inner wrapper handles overflow clipping; outer block uses
         // overflow:visible so the add button can sit on the bottom edge.
@@ -423,11 +479,13 @@
         '<div class="aff-category-header">' +
         '<div class="aff-cat-header-top">' +
         '<div class="aff-cat-header-left">' +
-        // Drag handle — six-dot grip for category drag-and-drop.
-        '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"' +
-        ' data-aff-tooltip="Drag to reorder">' +
-        AFF.Icons.sixDotSVG() +
-        "</span>" +
+        // Drag handle — hidden for sub-cats (reorder deferred to Phase 3).
+        (depth === 0
+          ? '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"' +
+            ' data-aff-tooltip="Drag to reorder">' +
+            AFF.Icons.sixDotSVG() +
+            "</span>"
+          : "") +
         // Category name as plain span — no surrounding box.
         // Double-click activates contenteditable.
         '<span class="aff-category-name-input"' +
@@ -445,10 +503,13 @@
         "</span>" +
         // Variable count badge — sits right after the name text.
         '<span class="aff-category-count">' +
-        count +
+        subtreeCount +
         "</span>" +
         "</div>" + // .aff-cat-header-left
         '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">' +
+        (!cat.locked && depth === 0
+          ? AFF.Icons.catBtn("add-sub-cat", "Add sub-category", AFF.Icons.plusCircleSVG(), "")
+          : "") +
         AFF.Icons.catBtn(
           "duplicate",
           "Duplicate category",
@@ -472,6 +533,14 @@
         "</div>" + // .aff-category-actions
         "</div>" + // .aff-cat-header-top
         "</div>"; // .aff-category-header
+
+      // Sub-category blocks — one level deep (top-level cats only)
+      if (depth === 0) {
+        var subs = self._getSubCategoriesOf(cat.id, allCats);
+        for (var si = 0; si < subs.length; si++) {
+          html += self._buildCategoryBlock(subs[si], si, subs.length, depth + 1, allCats);
+        }
+      }
 
       // Column sort header row — same grid as variable rows; sort buttons in name (col4) and value (col5).
       var _ns =
@@ -515,7 +584,7 @@
 
       // Variable rows.
       html += '<div class="aff-color-list">';
-      if (count === 0) {
+      if (directCount === 0) {
         html +=
           '<p class="aff-colors-empty">No variables in this category.</p>';
       } else {
@@ -1081,6 +1150,11 @@
         var catId = block ? block.getAttribute("data-category-id") : null;
 
         switch (action) {
+          case "add-sub-cat":
+            if (catId) {
+              self._addSubCategory(catId);
+            }
+            break;
           case "duplicate":
             if (catId) {
               self._duplicateCategory(catId);
@@ -1114,6 +1188,14 @@
                 self._collapsedIds[catId] = newCollapsed;
               }
               if (newCollapsed) {
+                // Cascade collapse to sub-categories.
+                var _subBlocks = block.querySelectorAll('.aff-category-block[data-depth="1"]');
+                for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+                  var _sb = _subBlocks[_sbi];
+                  var _sbId = _sb.getAttribute("data-category-id");
+                  _sb.setAttribute("data-collapsed", "true");
+                  if (_sbId) { self._collapsedIds[_sbId] = true; }
+                }
                 // Close any open expand panel when the user collapses a category.
                 self._closeExpandPanel(container, true);
               } else {
@@ -2631,151 +2713,6 @@
     },
 
     /**
-     * Initialize mouse-based drag-and-drop for category blocks.
-     *
-     * @param {HTMLElement} container
-     */
-    _initCatDrag: function (container) {
-      var self = this;
-      var d = {
-        active: false,
-        catId: null,
-        ghost: null,
-        indicator: null,
-        startY: 0,
-        _dropTargetId: null,
-        _dropAbove: null,
-      };
-
-      container.addEventListener("mousedown", function (e) {
-        if (!container.querySelector(".aff-colors-view")) {
-          return;
-        }
-        var handle = e.target.closest(".aff-cat-drag-handle");
-        if (!handle) {
-          return;
-        }
-        e.preventDefault();
-
-        var block = handle.closest(".aff-category-block");
-        if (!block) {
-          return;
-        }
-
-        d.catId = block.getAttribute("data-category-id");
-        if (!d.catId) {
-          return;
-        }
-
-        d.active = true;
-        d.startY = e.clientY;
-
-        var blockRect = block.getBoundingClientRect();
-        var ghost = block.cloneNode(true);
-        ghost.style.cssText =
-          "position:fixed;pointer-events:none;z-index:9999;" +
-          "width:" +
-          block.offsetWidth +
-          "px;" +
-          "top:" +
-          blockRect.top +
-          "px;left:" +
-          blockRect.left +
-          "px;" +
-          "opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:12px;";
-        ghost.className += " aff-drag-ghost";
-        document.body.appendChild(ghost);
-        d.ghost = ghost;
-
-        var indicator = document.createElement("div");
-        indicator.className = "aff-drop-indicator";
-        indicator.style.display = "none";
-        indicator.style.pointerEvents = "none";
-        var _appEl = document.getElementById("aff-app");
-        var _accent = _appEl
-          ? getComputedStyle(_appEl).getPropertyValue("--aff-clr-accent").trim()
-          : "";
-        if (!_accent) {
-          _accent = "#f4c542";
-        }
-        indicator.style.background =
-          "linear-gradient(to right, transparent, " +
-          _accent +
-          " 15%, " +
-          _accent +
-          " 85%, transparent)";
-        document.body.appendChild(indicator);
-        d.indicator = indicator;
-
-        block.style.opacity = "0.3";
-      });
-
-      document.addEventListener("mousemove", function (e) {
-        if (!d.active || !d.ghost) {
-          return;
-        }
-        var dy = e.clientY - d.startY;
-        d.ghost.style.transform = "translateY(" + dy + "px)";
-
-        d.ghost.style.display = "none";
-        var elBelow = document.elementFromPoint(e.clientX, e.clientY);
-        d.ghost.style.display = "";
-
-        var targetBlock = elBelow
-          ? elBelow.closest(".aff-category-block")
-          : null;
-        if (
-          targetBlock &&
-          targetBlock.getAttribute("data-category-id") !== d.catId
-        ) {
-          var tbRect = targetBlock.getBoundingClientRect();
-          var above = e.clientY < tbRect.top + tbRect.height / 2;
-          d.indicator.style.display = "";
-          d.indicator.style.left = tbRect.left + "px";
-          d.indicator.style.width = tbRect.width + "px";
-          d.indicator.style.top =
-            (above ? tbRect.top : tbRect.bottom) - 2 + "px";
-          d.indicator.style.height = "4px";
-          d._dropTargetId = targetBlock.getAttribute("data-category-id");
-          d._dropAbove = above;
-        } else {
-          d.indicator.style.display = "none";
-          d._dropTargetId = null;
-        }
-      });
-
-      document.addEventListener("mouseup", function () {
-        if (!d.active) {
-          return;
-        }
-        d.active = false;
-
-        if (d.ghost && d.ghost.parentNode) {
-          d.ghost.parentNode.removeChild(d.ghost);
-        }
-        if (d.indicator && d.indicator.parentNode) {
-          d.indicator.parentNode.removeChild(d.indicator);
-        }
-        d.ghost = null;
-        d.indicator = null;
-
-        var draggingBlock = container.querySelector(
-          '.aff-category-block[data-category-id="' + d.catId + '"]',
-        );
-        if (draggingBlock) {
-          draggingBlock.style.opacity = "";
-        }
-
-        if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
-          self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
-        }
-        d._dropTargetId = null;
-        d._dropAbove = null;
-        d.catId = null;
-      });
-    },
-
-    /**
      * Handle a completed category drop: reorder categories.
      */
     _onDropCat: function (srcId, targetId, above) {
@@ -3440,37 +3377,106 @@
         return;
       }
 
-      var tintsNum = panel ? panel.querySelector(".aff-gen-tints-num") : null;
+      var tintsNum  = panel ? panel.querySelector(".aff-gen-tints-num")  : null;
       var shadesNum = panel ? panel.querySelector(".aff-gen-shades-num") : null;
-      var transChk = panel
-        ? panel.querySelector(".aff-gen-trans-toggle")
-        : null;
+      var transChk  = panel ? panel.querySelector(".aff-gen-trans-toggle") : null;
 
-      var tintSteps = tintsNum ? parseInt(tintsNum.value, 10) || 0 : 0;
+      var tintSteps  = tintsNum  ? parseInt(tintsNum.value,  10) || 0 : 0;
       var shadeSteps = shadesNum ? parseInt(shadesNum.value, 10) || 0 : 0;
-      var transOn = transChk ? (transChk.checked ? "1" : "0") : "0";
+      var transOn    = transChk  ? (transChk.checked ? "1" : "0") : "0";
 
-      AFF.App.ajax("aff_generate_children", {
+      var parentCatId = v.category_id || null;
+      var baseName    = (v.name || "").replace(/^--/, "");
+      var tintsCatId  = null;
+      var shadesCatId = null;
+      var transCatId  = null;
+      var subPromises = [];
+
+      if (parentCatId && tintSteps > 0) {
+        subPromises.push(
+          self._findOrCreateSubcat(parentCatId, baseName + " Tints")
+            .then(function (id) { tintsCatId = id; })
+        );
+      }
+      if (parentCatId && shadeSteps > 0) {
+        subPromises.push(
+          self._findOrCreateSubcat(parentCatId, baseName + " Shades")
+            .then(function (id) { shadesCatId = id; })
+        );
+      }
+      if (parentCatId && transOn === "1") {
+        subPromises.push(
+          self._findOrCreateSubcat(parentCatId, baseName + " Transparencies")
+            .then(function (id) { transCatId = id; })
+        );
+      }
+
+      Promise.all(subPromises).then(function () {
+        var params = {
+          filename:       AFF.state.currentFile,
+          parent_id:      v.id,
+          tints:          String(tintSteps),
+          shades:         String(shadeSteps),
+          transparencies: transOn,
+        };
+        if (tintsCatId)  { params.tints_category_id          = tintsCatId;  }
+        if (shadesCatId) { params.shades_category_id         = shadesCatId; }
+        if (transCatId)  { params.transparencies_category_id = transCatId;  }
+        return AFF.App.ajax("aff_generate_children", params);
+      }).then(function (res) {
+        if (res.success && res.data) {
+          if (res.data.data && res.data.data.variables) {
+            AFF.state.variables = res.data.data.variables;
+          }
+          if (AFF.App) {
+            AFF.App.setDirty(true);
+            AFF.App.refreshCounts();
+          }
+          self._rerenderView();
+        }
+      }).catch(function () {
+        console.warn("[AFF] AJAX error: generate children");
+      });
+    },
+
+    /**
+     * Find an existing sub-category by name+parent, or create it via AJAX.
+     *
+     * @param  {string}  parentCatId UUID of the parent category.
+     * @param  {string}  name        Name for the sub-category.
+     * @returns {Promise<string|null>} Resolves to the sub-cat ID.
+     */
+    _findOrCreateSubcat: function (parentCatId, name) {
+      var allCats = AFF.state.config && AFF.state.config.categories
+        ? AFF.state.config.categories : [];
+
+      for (var i = 0; i < allCats.length; i++) {
+        if ((allCats[i].parent_id || null) === parentCatId && allCats[i].name === name) {
+          return Promise.resolve(allCats[i].id);
+        }
+      }
+
+      return AFF.App.ajax("aff_save_category", {
         filename: AFF.state.currentFile,
-        parent_id: v.id,
-        tints: String(tintSteps),
-        shades: String(shadeSteps),
-        transparencies: transOn,
-      })
-        .then(function (res) {
-          if (res.success && res.data) {
-            if (res.data.data && res.data.data.variables) {
-              AFF.state.variables = res.data.data.variables;
-            }
-            if (AFF.App) {
-              AFF.App.setDirty(true);
-              AFF.App.refreshCounts();
+        subgroup: "Colors",
+        category: JSON.stringify({ name: name, parent_id: parentCatId }),
+      }).then(function (res) {
+        if (res.success && res.data) {
+          if (!AFF.state.config) { AFF.state.config = {}; }
+          var existing  = (AFF.state.config.categories || []).slice();
+          var newId     = res.data.id;
+          var alreadyIn = existing.some(function (c) { return c.id === newId; });
+          if (!alreadyIn) {
+            var sCats = res.data.categories || [];
+            for (var si = 0; si < sCats.length; si++) {
+              if (sCats[si].id === newId) { existing.push(sCats[si]); break; }
             }
           }
-        })
-        .catch(function () {
-          console.warn("[AFF] AJAX error: merge file");
-        });
+          AFF.state.config.categories = existing;
+          return newId;
+        }
+        return null;
+      });
     },
 
     // -----------------------------------------------------------------------
@@ -3528,29 +3534,8 @@
     },
 
     // -----------------------------------------------------------------------
-    // FILTER / COLLAPSE
+    // COLLAPSE
     // -----------------------------------------------------------------------
-
-    /**
-     * Filter color rows by search query.
-     *
-     * @param {HTMLElement} container
-     * @param {string}      query
-     */
-    _filterRows: function (container, query) {
-      var lq = query.toLowerCase();
-      var rows = container.querySelectorAll(".aff-color-row");
-
-      for (var i = 0; i < rows.length; i++) {
-        var nameInput = rows[i].querySelector(".aff-color-name-input");
-        var valueInput = rows[i].querySelector(".aff-color-value-input");
-        var name = nameInput ? nameInput.value.toLowerCase() : "";
-        var value = valueInput ? valueInput.value.toLowerCase() : "";
-
-        var match = !lq || name.indexOf(lq) !== -1 || value.indexOf(lq) !== -1;
-        rows[i].style.display = match ? "" : "none";
-      }
-    },
 
     /**
      * Expand or collapse all category blocks and update the toggle button.
@@ -3891,16 +3876,23 @@
      * by the nav-click behaviour) then re-renders with current selection.
      */
     _rerenderView: function () {
-      var content = document.getElementById("aff-edit-content");
+      var content   = document.getElementById("aff-edit-content");
+      var editSpace = document.getElementById("aff-edit-space");
       if (!content || !AFF.state.currentSelection) {
         return;
       }
 
-      // Call _renderAll directly to avoid resetting this._collapsedIds.
-      // (loadColors would re-apply _focusedCategoryId from currentSelection
-      //  and wipe out the manual collapse overrides set by recent CRUD ops.)
+      // Save scroll position before innerHTML replacement resets it.
+      var savedPanel  = editSpace ? editSpace.scrollTop : 0;
+      var savedWindow = window.pageYOffset;
+
+      // Clear focused category so _renderAll does not scroll to it via
+      // _jumpToCategory — CRUD rerenders must not move the viewport.
       _focusedCategoryId = null;
       this._renderAll(AFF.state.currentSelection, content);
+
+      if (editSpace) { editSpace.scrollTop = savedPanel; }
+      if (window.pageYOffset !== savedWindow) { window.scrollTo(0, savedWindow); }
     },
 
     /**
@@ -4233,6 +4225,11 @@
     // -----------------------------------------------------------------------
     // MODAL HELPERS
     // -----------------------------------------------------------------------
+
+    /** CSS selector for the active view inside the container. Required by AFF.CatMixin._initCatDrag. */
+    _catViewSelector: function () {
+      return '.aff-colors-view';
+    },
 
     /**
      * Show a "no file loaded" info modal.

@@ -193,9 +193,13 @@
 		 * @param {string} catId Category UUID.
 		 * @returns {Array}
 		 */
-		getVarsForCategoryId: function (catId) {
+		getVarsForCategoryId: function (catId, catName) {
 			return (AFF.state.variables || []).filter(function (v) {
-				return v.category_id === catId && v.status !== 'deleted';
+				if (v.status === 'deleted') { return false; }
+				if (v.category_id === catId) { return true; }
+				// Legacy: var assigned by name only (no category_id set).
+				if (catName && !v.category_id && v.category === catName) { return true; }
+				return false;
 			});
 		},
 
@@ -236,6 +240,136 @@
 				clearTimeout(field._affErrTimer);
 				field._affErrTimer = null;
 			}
+		},
+
+		/**
+		 * Classify a CSS value as color / font / number and derive its AFF
+		 * format string and storage value.
+		 *
+		 * Used by both _applyNewVars (Elementor sync) and _applyImport (JSON
+		 * import normalization) so the heuristic stays in one place.
+		 *
+		 * @param {string} value   Raw CSS value string.
+		 * @param {string} elUnit  Elementor-supplied unit hint (may be '').
+		 * @returns {{ type: string, subgroup: string, format: string, storeValue: string }}
+		 */
+		classifyVar: function (value, elUnit) {
+			var lc      = (value || '').trim().toLowerCase();
+			var isColor = AFF.Utils.isColorValue(lc);
+			var isFont  = !isColor &&
+				/\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
+			// Named font fallback: a plain word/phrase (letters, digits, spaces, hyphens,
+			// commas, apostrophes) that isn't a CSS keyword is almost certainly a font name.
+			if (!isFont && !isColor) {
+				var _cssKw = /^(none|inherit|initial|unset|auto|normal|bold|bolder|lighter|italic|oblique|currentcolor|transparent)$/i;
+				if (/^[a-zA-Z][a-zA-Z0-9 '\-,]*$/.test((value || '').trim()) && !_cssKw.test((value || '').trim())) {
+					isFont = true;
+				}
+			}
+			var isNumber = !isColor && !isFont && (
+				/^\d/.test(lc) ||
+				/^(clamp|calc|min|max)\s*\(/.test(lc) ||
+				/\d+(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\b/.test(lc)
+			);
+
+			var type     = isColor ? 'color'  : isFont ? 'font'  : isNumber ? 'number'  : 'unknown';
+			var subgroup = isColor ? 'Colors' : isFont ? 'Fonts' : isNumber ? 'Numbers' : '';
+			var format   = '';
+			var storeValue = value;
+
+			if (isNumber) {
+				var eu = (elUnit || '').toLowerCase();
+				if (eu) {
+					var unitMap = { px: 'PX', '%': '%', em: 'EM', rem: 'REM', vw: 'VW', vh: 'VH', ch: 'CH', custom: 'FX' };
+					format = unitMap[eu] || eu.toUpperCase();
+				} else {
+					if      (/^(clamp|calc|min|max)\s*\(/.test(lc)) { format = 'FX';  }
+					else if (/\d+rem\b/.test(lc))                    { format = 'REM'; }
+					else if (/\d+em\b/.test(lc))                     { format = 'EM';  }
+					else if (/\d+px\b/.test(lc))                     { format = 'PX';  }
+					else if (/\d+%/.test(lc))                        { format = '%';   }
+					else if (/\d+vw\b/.test(lc))                     { format = 'VW';  }
+					else if (/\d+vh\b/.test(lc))                     { format = 'VH';  }
+					else if (/\d+ch\b/.test(lc))                     { format = 'CH';  }
+					else                                              { format = 'REM'; }
+				}
+				// Strip unit suffix so stored value is a pure number (e.g. '1.5rem' → '1.5').
+				// FX expressions (clamp, calc, etc.) are kept verbatim.
+				if (format !== 'FX') {
+					var stripped = (value || '').replace(/(-?[\d.]+)(px|rem|em|%|vw|vh|ch|fr|pt|deg|ms)\s*$/i, '$1');
+					if (stripped !== value) { storeValue = stripped; }
+				}
+			} else if (isColor) {
+				if      (lc.indexOf('rgba(') === 0)           { format = 'RGBA'; }
+				else if (lc.indexOf('rgb(') === 0)            { format = 'RGB';  }
+				else if (lc.indexOf('hsla(') === 0)           { format = 'HSLA'; }
+				else if (lc.indexOf('hsl(') === 0)            { format = 'HSL';  }
+				else if (/^#[0-9a-f]{8}$/.test(lc))          { format = 'HEXA'; }
+				else                                          { format = 'HEX';  }
+			}
+
+			return { type: type, subgroup: subgroup, format: format, storeValue: storeValue };
+		},
+
+		/**
+		 * Inject Google Fonts <link> tags for each unique font-family found in
+		 * .aff-font-preview cells inside container. Skips families already
+		 * requested. Non-Google fonts fail silently — preview falls back to default.
+		 *
+		 * @param {Element} container
+		 */
+		loadFontPreviews: function (container) {
+			var cells = container ? container.querySelectorAll('.aff-font-preview') : [];
+			if (!cells.length) { return; }
+			var loaded = AFF.Utils._loadedFonts || (AFF.Utils._loadedFonts = {});
+			for (var i = 0; i < cells.length; i++) {
+				var family = (cells[i].style.fontFamily || '').replace(/['"]/g, '').trim();
+				if (!family || loaded[family]) { continue; }
+				loaded[family] = true;
+				var link = document.createElement('link');
+				link.rel  = 'stylesheet';
+				link.href = 'https://fonts.googleapis.com/css2?family='
+					+ encodeURIComponent(family).replace(/%20/g, '+')
+					+ ':wght@400;700&display=swap';
+				document.head.appendChild(link);
+			}
+		},
+
+		/**
+		 * Re-classify any variables that have no subgroup (e.g. font names stored
+		 * before the named-font heuristic existed). Called at file-load time so
+		 * in-memory state is always correct; the fix persists on next save.
+		 *
+		 * @param {Array} variables  AFF.state.variables array (mutated in place).
+		 */
+		migrateUnclassifiedVars: function (variables) {
+			for (var i = 0; i < variables.length; i++) {
+				var v = variables[i];
+				if (!v.subgroup && v.status !== 'deleted') {
+					var cls = AFF.Utils.classifyVar(v.value || '', '');
+					if (cls.type !== 'unknown') {
+						v.type     = cls.type;
+						v.subgroup = cls.subgroup;
+						if (!v.format) { v.format = cls.format; }
+					}
+				}
+			}
+		},
+
+		/**
+		 * Return only the top-level categories (parent_id absent or null) from a
+		 * flat sorted array. Sub-categories are retrieved on demand via
+		 * _getSubCategoriesOf() at render time.
+		 *
+		 * @param {Array} cats Flat sorted category array.
+		 * @returns {Array} Root categories only.
+		 */
+		buildCatTree: function (cats) {
+			var roots = [];
+			for (var i = 0; i < cats.length; i++) {
+				if (!cats[i].parent_id) { roots.push(cats[i]); }
+			}
+			return roots;
 		},
 	};
 
@@ -297,6 +431,16 @@
 				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
 				+ '<line x1="18" y1="6" x2="6" y2="18"></line>'
 				+ '<line x1="6" y1="6" x2="18" y2="18"></line>'
+				+ '</svg>';
+		},
+
+		/** Home icon — back-to-sets navigation. */
+		homeSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>'
+				+ '<polyline points="9 22 9 12 15 12 15 22"></polyline>'
 				+ '</svg>';
 		},
 
@@ -488,6 +632,21 @@
 									}
 								}
 							}
+							// Give the new category an order below all existing top-level
+							// cats so it sorts to the top of the rendered list.
+							var _minOrd = 0;
+							for (var _oi = 0; _oi < existing.length; _oi++) {
+								if (!existing[_oi].parent_id && existing[_oi].id !== newId) {
+									var _ord = existing[_oi].order || 0;
+									if (_ord < _minOrd) { _minOrd = _ord; }
+								}
+							}
+							for (var _ni = 0; _ni < existing.length; _ni++) {
+								if (existing[_ni].id === newId) {
+									existing[_ni].order = _minOrd - 1;
+									break;
+								}
+							}
 							AFF.state.config[self._cfg.catKey] = existing;
 							if (AFF.App) { AFF.App.setDirty(true); }
 							self._rerenderView();
@@ -566,22 +725,49 @@
 		 */
 		_deleteCategory: function (catId) {
 			var self = this;
-			var vars = AFF.Utils.getVarsForCategoryId(catId);
 			if (!AFF.state.currentFile) { self._noFileModal(); return; }
 
 			var cats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
 				? AFF.state.config[self._cfg.catKey] : [];
-			var catObj = cats.find(function (c) { return c.id === catId; });
+			var catObj   = cats.find(function (c) { return c.id === catId; });
 			var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
+			var vars     = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
+
+			// BFS to find all descendant sub-categories.
+			var descCats = [];
+			var _bfsQ    = [catId];
+			while (_bfsQ.length) {
+				var _bfsCur = _bfsQ.shift();
+				for (var _bfsi = 0; _bfsi < cats.length; _bfsi++) {
+					if ((cats[_bfsi].parent_id || null) === _bfsCur) {
+						descCats.push(cats[_bfsi]);
+						_bfsQ.push(cats[_bfsi].id);
+					}
+				}
+			}
+			var descVarCount = 0;
+			for (var _dci = 0; _dci < descCats.length; _dci++) {
+				var _dc = descCats[_dci];
+				descVarCount += AFF.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
+			}
 
 			// deleteVars: true = delete vars with category; false = move to Uncategorized.
 			// Toggle represents "Save to Uncategorized" — off by default (vars are deleted).
 			var deleteVars = true;
 
 			var bodyText = '<p>Delete category ' + catLabel + '?</p>';
+			if (descCats.length > 0) {
+				bodyText += '<p style="margin-top:var(--sp-2)">Deleting this category will also delete '
+					+ descCats.length + ' nested sub-categor'
+					+ (descCats.length === 1 ? 'y' : 'ies')
+					+ (descVarCount > 0 ? ' and their ' + descVarCount + ' variable(s)' : '')
+					+ '.</p>';
+			}
 			if (vars.length > 0) {
-				bodyText += '<p style="margin-top:var(--sp-2)">This category has ' + vars.length
-					+ ' variable(s). You may save them to Uncategorized if you wish.</p>'
+				var totalVars = vars.length + descVarCount;
+				bodyText += '<p style="margin-top:var(--sp-2)">This category has '
+					+ (descCats.length > 0 ? totalVars + ' variable(s) in total (direct and nested).' : vars.length + ' variable(s).')
+					+ ' You may save them to Uncategorized if you wish.</p>'
 					+ '<div class="aff-del-cat-vars">'
 					+ '<span class="aff-del-cat-action-label">Save variables to Uncategorized:</span>'
 					+ '<label class="aff-ios-toggle" for="aff-del-cat-check">'
@@ -663,13 +849,19 @@
 				}).then(function (res) {
 					if (res.success && res.data) {
 						if (!AFF.state.config) { AFF.state.config = {}; }
+						var _descIds = descCats.map(function (c) { return c.id; });
 						AFF.state.config[self._cfg.catKey] = _preDelCats !== null
-							? _preDelCats.filter(function (c) { return c.id !== catId; })
+							? _preDelCats.filter(function (c) {
+								return c.id !== catId && _descIds.indexOf(c.id) === -1;
+							})
 							: res.data.categories;
 						if (res.data.variables) {
 							AFF.state.variables = res.data.variables;
 						}
 						delete self._collapsedIds[catId];
+						for (var _ddi = 0; _ddi < descCats.length; _ddi++) {
+							delete self._collapsedIds[descCats[_ddi].id];
+						}
 						if (AFF.App) { AFF.App.setDirty(true); }
 						self._rerenderView();
 						if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
@@ -767,6 +959,133 @@
 		},
 
 		/**
+		 * Initialize mouse-based drag-and-drop for category blocks.
+		 * Requires host module to implement _catViewSelector() and _onDropCat().
+		 *
+		 * @param {HTMLElement} container
+		 */
+		_initCatDrag: function (container) {
+			var self = this;
+			var d = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+
+			container.addEventListener('mousedown', function (e) {
+				if (!container.querySelector(self._catViewSelector())) { return; }
+				var handle = e.target.closest('.aff-cat-drag-handle');
+				if (!handle) { return; }
+				e.preventDefault();
+
+				var block = handle.closest('.aff-category-block');
+				if (!block) { return; }
+
+				d.catId = block.getAttribute('data-category-id');
+				if (!d.catId) { return; }
+
+				d.active = true;
+				d.startY = e.clientY;
+
+				var blockRect = block.getBoundingClientRect();
+				var ghost = block.cloneNode(true);
+				ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;'
+					+ 'width:' + block.offsetWidth + 'px;'
+					+ 'top:' + blockRect.top + 'px;left:' + blockRect.left + 'px;'
+					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:12px;';
+				ghost.className += ' aff-drag-ghost';
+				document.body.appendChild(ghost);
+				d.ghost = ghost;
+
+				var indicator = document.createElement('div');
+				indicator.className = 'aff-drop-indicator';
+				indicator.style.display = 'none';
+				indicator.style.pointerEvents = 'none';
+				var _appEl  = document.getElementById('aff-app');
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
+				if (!_accent) { _accent = '#f4c542'; }
+				indicator.style.background = 'linear-gradient(to right, transparent, '
+					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
+				document.body.appendChild(indicator);
+				d.indicator = indicator;
+
+				block.style.opacity = '0.3';
+			});
+
+			document.addEventListener('mousemove', function (e) {
+				if (!d.active || !d.ghost) { return; }
+				var dy = e.clientY - d.startY;
+				d.ghost.style.transform = 'translateY(' + dy + 'px)';
+
+				d.ghost.style.display = 'none';
+				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
+				d.ghost.style.display = '';
+
+				var targetBlock = elBelow ? elBelow.closest('.aff-category-block') : null;
+				if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
+					var tbRect = targetBlock.getBoundingClientRect();
+					var above  = e.clientY < tbRect.top + tbRect.height / 2;
+					d.indicator.style.display = '';
+					d.indicator.style.left    = tbRect.left + 'px';
+					d.indicator.style.width   = tbRect.width + 'px';
+					d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
+					d.indicator.style.height  = '4px';
+					d._dropTargetId = targetBlock.getAttribute('data-category-id');
+					d._dropAbove    = above;
+				} else {
+					d.indicator.style.display = 'none';
+					d._dropTargetId = null;
+				}
+			});
+
+			document.addEventListener('mouseup', function () {
+				if (!d.active) { return; }
+				d.active = false;
+
+				if (d.ghost     && d.ghost.parentNode)     { d.ghost.parentNode.removeChild(d.ghost); }
+				if (d.indicator && d.indicator.parentNode) { d.indicator.parentNode.removeChild(d.indicator); }
+				d.ghost     = null;
+				d.indicator = null;
+
+				var draggingBlock = container.querySelector('.aff-category-block[data-category-id="' + d.catId + '"]');
+				if (draggingBlock) { draggingBlock.style.opacity = ''; }
+
+				if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
+					self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
+				}
+				d._dropTargetId = null;
+				d._dropAbove    = null;
+				d.catId         = null;
+			});
+		},
+
+		/**
+		 * Filter variable rows by search query, hiding empty category blocks.
+		 * Uses AFF.Utils.findVarByKey to match against state (name + value).
+		 *
+		 * @param {HTMLElement} container
+		 * @param {string}      query Lowercased search string.
+		 */
+		_filterRows: function (container, query) {
+			var lq     = (query || '').trim().toLowerCase();
+			var blocks = container.querySelectorAll('.aff-category-block');
+			for (var bi = 0; bi < blocks.length; bi++) {
+				var block      = blocks[bi];
+				var rows       = block.querySelectorAll('.aff-color-row');
+				var anyVisible = false;
+				for (var ri = 0; ri < rows.length; ri++) {
+					var row   = rows[ri];
+					var varId = row.getAttribute('data-var-id');
+					var v     = varId ? AFF.Utils.findVarByKey(varId) : null;
+					var match = !lq;
+					if (!match && v) {
+						match = (v.name  || '').toLowerCase().indexOf(lq) !== -1
+							 || (v.value || '').toLowerCase().indexOf(lq) !== -1;
+					}
+					row.style.display = match ? '' : 'none';
+					if (match) { anyVisible = true; }
+				}
+				block.style.display = anyVisible ? '' : 'none';
+			}
+		},
+
+		/**
 		 * Apply a category reorder locally and persist via AJAX if a file is loaded.
 		 *
 		 * @param {string[]} orderedIds Category IDs in desired order.
@@ -799,6 +1118,83 @@
 					self._rerenderView();
 				}
 			}).catch(function () {});
+		},
+
+		/**
+		 * Open the "Add sub-category" modal for a given parent category.
+		 *
+		 * @param {string} parentCatId UUID of the parent category.
+		 */
+		_addSubCategory: function (parentCatId) {
+			var self = this;
+			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+
+			var allCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
+				? AFF.state.config[self._cfg.catKey] : [];
+			var parentCat = null;
+			for (var _pi = 0; _pi < allCats.length; _pi++) {
+				if (allCats[_pi].id === parentCatId) { parentCat = allCats[_pi]; break; }
+			}
+
+			AFF.Modal.open({
+				title: 'New Sub-category',
+				body:  '<p style="margin-bottom:10px">Enter a name for the new sub-category'
+					+ (parentCat ? ' under “' + AFF.Utils.escHtml(parentCat.name) + '”' : '')
+					+ '.</p>'
+					+ '<input type="text" class="aff-field-input" id="aff-modal-subcat-name"'
+					+ ' placeholder="Sub-category name" autocomplete="off" style="width:100%">',
+				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-subcat-cancel">Cancel</button>'
+					+ '<button class="aff-btn" id="aff-modal-subcat-ok">Add Sub-category</button>'
+					+ '</div>',
+				onClose: function () { document.removeEventListener('click', _scHandleClick); },
+			});
+			setTimeout(function () {
+				var inp = document.getElementById('aff-modal-subcat-name');
+				if (inp) { inp.focus(); }
+			}, 50);
+
+			function _scHandleClick(e) {
+				if (e.target.id === 'aff-modal-subcat-cancel') {
+					AFF.Modal.close();
+					document.removeEventListener('click', _scHandleClick);
+				} else if (e.target.id === 'aff-modal-subcat-ok') {
+					var inp  = document.getElementById('aff-modal-subcat-name');
+					var name = inp ? inp.value.trim() : '';
+					AFF.Modal.close();
+					document.removeEventListener('click', _scHandleClick);
+					if (!name) { return; }
+
+					AFF.App.ajax('aff_save_category', {
+						filename: AFF.state.currentFile,
+						subgroup: self._cfg.setName,
+						category: JSON.stringify({ name: name, parent_id: parentCatId }),
+					}).then(function (res) {
+						if (res.success && res.data) {
+							if (!AFF.state.config) { AFF.state.config = {}; }
+							var existing  = (AFF.state.config[self._cfg.catKey] || []).slice();
+							var newId     = res.data.id;
+							var alreadyIn = existing.some(function (c) { return c.id === newId; });
+							if (!alreadyIn) {
+								var _sCats = res.data.categories || [];
+								for (var _ski = 0; _ski < _sCats.length; _ski++) {
+									if (_sCats[_ski].id === newId) {
+										existing.push(_sCats[_ski]);
+										break;
+									}
+								}
+							}
+							AFF.state.config[self._cfg.catKey] = existing;
+							if (AFF.App) { AFF.App.setDirty(true); }
+							self._rerenderView();
+							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+						}
+					}).catch(function () {
+						console.warn('[AFF] AJAX error: add sub-category (' + self._cfg.setName + ')');
+					});
+				}
+			}
+			document.addEventListener('click', _scHandleClick);
 		},
 
 	};
@@ -1195,7 +1591,7 @@
 		 */
 		refreshCounts: function () {
 			var counts = {
-				variables:  AFF.state.variables.length,
+				variables:  AFF.state.variables.filter(function (v) { return v.status !== 'deleted'; }).length,
 				classes:    AFF.state.classes.length,
 				components: AFF.state.components.length,
 			};

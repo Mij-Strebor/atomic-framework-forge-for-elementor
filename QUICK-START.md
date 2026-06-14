@@ -1,5 +1,5 @@
 # AFF Quick Start Guide
-## Atomic Framework Forge for Elementor — Beta 0.4.2
+## Atomic Framework Forge for Elementor — v1.1.0
 
 > This guide gets you from zero to your first organized variable set in about ten minutes.
 >
@@ -116,13 +116,15 @@ Click any category name in the left panel to open it in the center edit space. A
 Each variable row in the open category shows:
 
 - **⠿** Drag handle — reorder by dragging
-- **●** Status dot — green = synced, orange = modified, blue = new, red = deleted
+- **●** Status dot — color indicates sync state (see legend below the filter bar)
 - **Sample** — live preview (color swatch for Colors; "Aa" preview for Fonts)
 - **Variable name** — the CSS custom property; click to rename
 - **Value** — current value; click to edit directly
 - **Format** — HEX / RGB / HSL (Colors) or REM / PX / % / fₓ etc. (Numbers)
 - **›** Expand chevron — opens the expanded editor (Color variables: tints, shades, transparency modal)
-- **Usage badge** — how many Elementor widgets use this variable [*Not yet implemented*]
+- **🗑** Delete button — appears on hover; confirms before removing
+
+A **status legend** (Synced / Modified / New / Orphaned / Conflict) is displayed directly under the filter bar as a quick color-to-meaning reference.
 
 ---
 
@@ -155,7 +157,7 @@ The variable value, the swatch, and any tints/shades/transparencies all update i
 
 Variables arrive in **Uncategorized** by default. Organize them into categories that reflect your design system.
 
-**Add a category** — click the **⊕** button in the class filter bar (top of the edit space).
+**Add a category** — click the **⊕** button in the filter bar (top of the edit space). New categories appear at the top of the list.
 
 **Move a variable** — drag it by the **⠿** handle and drop it into the target category.
 
@@ -164,11 +166,13 @@ Variables arrive in **Uncategorized** by default. Organize them into categories 
 **Category actions** (buttons in each category header):
 - **Copy** — duplicate the category and all its variables
 - **Trash** — delete the category; variables move to Uncategorized
-- **Chevron** — collapse / expand the rows
+- **Chevron** — collapse / expand the rows; collapsing a category also collapses all its sub-categories
+
+**Sub-categories** — each top-level category can have one level of sub-categories. Click the **⊕** circle at the bottom-left of any category panel to add a sub-category. Sub-categories are indented, show a distinct background, and display their own variable count. Tints, shades, and transparency families generated from the expand panel are automatically placed in named sub-categories (e.g., "brand-primary Tints").
 
 **Sort variables** — click the **A↑ A↓** buttons in the filter bar to sort alphabetically.
 
-**Collapse / expand all categories** — use the double-chevron button in the filter bar to toggle the displays of all color categories.
+**Collapse / expand all categories** — use the double-chevron button in the filter bar to toggle all category blocks.
 
 ---
 
@@ -227,6 +231,12 @@ When you are ready to push your edited values back to Elementor:
 5. Open Elementor to see the updated values reflected site-wide.
 
 > **Important:** Writing to Elementor modifies your kit CSS. This is reversible by restoring a backup in AFF, but it is good practice to **Save Project** first so you have a clean snapshot before you commit.
+
+---
+
+## Print / PDF
+
+Click the **printer icon** in the top bar to open the Print dialog. Select which variable sets to include (Colors, Fonts, Numbers) and click **Print**. AFF generates a formatted variable list and opens the browser's native print dialog — use "Save as PDF" to export a portable reference sheet.
 
 ---
 

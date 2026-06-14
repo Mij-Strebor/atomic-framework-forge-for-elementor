@@ -91,7 +91,7 @@
 	border-radius: 50%;
 	background:    var(--aff-bg-card);
 	color:         var(--aff-clr-primary);
-	border:        2px solid var(--aff-clr-primary);
+	border:        1px solid var(--aff-clr-border);
 	padding:       0;
 }
 
@@ -186,6 +186,7 @@
 /* Inner wrapper clips content to rounded corners */
 .aff-category-inner {
 	background:     var(--aff-bg-card);
+	border:         1px solid var(--aff-clr-border);
 	border-radius:  12px;
 	overflow:       hidden;
 	padding-top:    16px;
@@ -211,7 +212,7 @@
 	background:    var(--aff-bg-card);
 	color:         var(--aff-clr-primary);
 	box-shadow:    none;
-	border:        2px solid var(--aff-clr-primary);
+	border:        1px solid var(--aff-clr-border);
 	padding:       0;
 }
 
@@ -390,11 +391,60 @@
 }
 
 /* ==========================================================================
-   6. COLLAPSE STATE — hide list and add-var button when collapsed
+   6. STATUS LEGEND
+   ========================================================================== */
+
+.aff-status-legend {
+	display:         flex;
+	flex-wrap:       wrap;
+	justify-content: center;
+	gap:             4px 14px;
+	padding:         5px 16px 7px;
+	margin-top:      -1rem;
+	font-size:       var(--fs-xs);
+	color:           var(--aff-clr-muted);
+}
+
+.aff-legend-item {
+	display:     flex;
+	align-items: center;
+	gap:         5px;
+}
+
+.aff-legend-dot {
+	width:         8px;
+	height:        8px;
+	border-radius: 50%;
+	flex-shrink:   0;
+}
+
+/* ==========================================================================
+   7. SUB-CATEGORY BLOCKS (depth 1)
+   ========================================================================== */
+
+.aff-category-block[data-depth="1"] {
+	margin-left:   20px;
+	margin-right:  20px;
+	margin-top:    10px;
+	margin-bottom: 28px;
+	border-radius: 8px;
+}
+
+.aff-category-block[data-depth="1"] .aff-category-inner {
+	background:     var(--aff-bg-panel);
+	border:         1px solid var(--aff-clr-border);
+	border-radius:  8px;
+	padding-top:    12px;
+	padding-bottom: 8px;
+}
+
+/* ==========================================================================
+   7. COLLAPSE STATE — hide list and add-var button when collapsed
    ========================================================================== */
 
 .aff-category-block[data-collapsed="true"] .aff-color-list,
-.aff-category-block[data-collapsed="true"] .aff-color-list-header {
+.aff-category-block[data-collapsed="true"] .aff-color-list-header,
+.aff-category-block[data-collapsed="true"] .aff-category-block[data-depth="1"] {
 	display: none;
 }
 
@@ -404,7 +454,7 @@
 
 .aff-color-list-header {
 	display:               grid;
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
@@ -421,7 +471,7 @@
 /* Single color variable row */
 .aff-color-row {
 	display:               grid;
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       6px var(--sp-3) 6px var(--sp-4);
@@ -671,7 +721,7 @@ button.aff-pickr-btn:focus-visible {
  */
 .aff-modal-header {
 	display:               grid;
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 	column-gap:            10px;
 	align-items:           center;
 	padding:               var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
@@ -1062,10 +1112,10 @@ button.aff-pickr-btn:focus-visible {
    12. DELETE VARIABLE BUTTON (Issue 8)
    ========================================================================== */
 
-/* Eighth column: 28px delete button — added to row and header grids */
+/* Section-12 override kept for specificity safety — mirrors base rule */
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 120px 1fr 22% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
 }
 
 /* Delete button — trash icon, danger variant on hover */
