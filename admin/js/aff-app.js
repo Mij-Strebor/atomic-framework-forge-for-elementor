@@ -622,6 +622,21 @@
 									}
 								}
 							}
+							// Give the new category an order below all existing top-level
+							// cats so it sorts to the top of the rendered list.
+							var _minOrd = 0;
+							for (var _oi = 0; _oi < existing.length; _oi++) {
+								if (!existing[_oi].parent_id && existing[_oi].id !== newId) {
+									var _ord = existing[_oi].order || 0;
+									if (_ord < _minOrd) { _minOrd = _ord; }
+								}
+							}
+							for (var _ni = 0; _ni < existing.length; _ni++) {
+								if (existing[_ni].id === newId) {
+									existing[_ni].order = _minOrd - 1;
+									break;
+								}
+							}
 							AFF.state.config[self._cfg.catKey] = existing;
 							if (AFF.App) { AFF.App.setDirty(true); }
 							self._rerenderView();

@@ -222,6 +222,15 @@
 				+ '</div>'
 				+ '</div>'; // filter bar
 
+			// ---- Status legend ----
+			html += '<div class="aff-status-legend">'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-synced)"></span>Synced</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-modified)"></span>Modified</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-new)"></span>New</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-orphaned)"></span>Orphaned</span>'
+				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-conflict)"></span>Conflict</span>'
+				+ '</div>';
+
 			// ---- Category blocks ----
 			if (topLevelCats.length === 0) {
 				html += '<p class="aff-colors-empty">No categories found. Click + to add one.</p>';

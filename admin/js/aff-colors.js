@@ -304,6 +304,16 @@
         "</div>" +
         "</div>"; // .aff-colors-filter-bar
 
+      // ------- STATUS LEGEND -------
+      html +=
+        '<div class="aff-status-legend">' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-synced)"></span>Synced</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-modified)"></span>Modified</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-new)"></span>New</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-orphaned)"></span>Orphaned</span>' +
+        '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-conflict)"></span>Conflict</span>' +
+        '</div>';
+
       // ------- SELECTION BAR -------
       // Visible only when ≥1 variable is selected. Shown/hidden live by
       // _updateSelectionUI; also rebuilt here so re-renders preserve state.
