@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.4.0
+Stable tag:        1.3.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,9 +76,15 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 = 1.3.0 =
 * Added: V3 import result modal — shows import count, Close button, auto-closes after 4 seconds.
 * Added: System color auto-notes — first four V3 imports receive a "System Colors: ..." description automatically.
+* Added: Print sub-category hierarchy — sub-categories indented with gradient band and accent bar; swatches align under sub-category title.
+* Added: Print comments toggle — "Print comments" checkbox in print options modal; comments print as italic second line per variable.
 * Changed: Color expand modal restructured to two-row header (Row 1: controls; Row 2: notes field).
 * Changed: Sticky group header — filter bar and status legend now pin together as one unit when scrolling.
+* Changed: Print document title — removed "V4"; now reads "Atomic Framework Forge for Elementor".
+* Changed: Comment field placeholder — shows "Comment" instead of "Add a note…".
+* Changed: Informational modals (Fetch, Clean Up, V3 Import) unified into AFF.Modal.info() helper with auto-close and Close button.
 * Fixed: App top bar scrolled off screen due to WordPress padding on #wpbody-content.
+* Fixed: Brand name title faded on scroll — fade animation removed.
 
 = 1.2.0 =
 * Added: Sub-categories — one level of sub-categories under any top-level category, with full CRUD and cascade collapse.
