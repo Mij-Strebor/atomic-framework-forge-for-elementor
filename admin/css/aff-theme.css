@@ -89,7 +89,7 @@
 	--aff-panel-left-width:      220px;
 	--aff-panel-left-collapsed:   48px;
 	--aff-panel-right-width:     220px;
-	--aff-top-bar-height:         48px;
+	--aff-top-bar-height:         56px;
 	--aff-border-radius:           8px;
 	--aff-border-radius-sm:        4px;
 	--aff-border-radius-md:        6px;
@@ -414,10 +414,17 @@
 	color:      var(--aff-clr-muted);
 }
 
-/* Save Changes button — active state with gold accent */
-.aff-app .aff-save-changes-btn:not(:disabled):not([aria-disabled="true"]) {
-	color:      var(--aff-clr-accent);
-	transition: color var(--aff-transition), background var(--aff-transition);
+/* Save Changes icon — 0.4s pulse, then ~10s silence, repeat */
+@keyframes aff-save-pulse {
+	0%   { box-shadow: 0 0 0    0   transparent; color: var(--aff-clr-accent); }
+	2%   { box-shadow: 0 0 10px 3px color-mix(in srgb, var(--aff-clr-accent) 55%, transparent); color: var(--aff-clr-accent); }
+	4%   { box-shadow: 0 0 0    0   transparent; color: var(--aff-clr-accent); }
+	100% { box-shadow: 0 0 0    0   transparent; color: var(--aff-clr-accent); }
+}
+
+.aff-app .aff-icon-btn--dirty {
+	color:     var(--aff-clr-accent);
+	animation: aff-save-pulse 10.4s ease-in-out infinite;
 }
 
 /* Dropdown wrapper — positions the panel relative to the trigger button */
@@ -678,8 +685,10 @@
 /* Drag handles — opacity:0.45 with muted gray is invisible in dark mode. */
 [data-aff-theme="dark"] .aff-drag-handle,
 [data-aff-theme="dark"] .aff-cat-drag-handle,
+[data-aff-theme="dark"] .aff-subcat-drag-handle,
 .aff-app[data-aff-theme="dark"] .aff-drag-handle,
-.aff-app[data-aff-theme="dark"] .aff-cat-drag-handle {
+.aff-app[data-aff-theme="dark"] .aff-cat-drag-handle,
+.aff-app[data-aff-theme="dark"] .aff-subcat-drag-handle {
 	color:   var(--aff-clr-secondary);
 	opacity: 0.7;
 }

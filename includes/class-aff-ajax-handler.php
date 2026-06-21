@@ -45,6 +45,7 @@ class AFF_Ajax_Handler
 			// Phase 2 — Colors endpoints
 			'aff_save_category',
 			'aff_delete_category',
+			'aff_clear_category',
 			'aff_reorder_categories',
 			'aff_save_color',
 			'aff_delete_color',
@@ -715,6 +716,33 @@ class AFF_Ajax_Handler
 	}
 
 	/**
+	 * Clear a category: remove all sub-categories and variables inside it,
+	 * but keep the category shell itself.
+	 *
+	 * POST params: filename, subgroup (optional, defaults to 'Colors'), category_id
+	 */
+	public function ajax_aff_clear_category(): void
+	{
+		$subgroup    = $this->get_subgroup_param();
+		$category_id = $this->post_param('category_id');
+
+		if (empty($category_id)) {
+			wp_send_json_error(array('message' => __('Category ID is required.', 'atomic-framework-forge-for-elementor')));
+		}
+
+		$this->with_store(function ($store) use ($subgroup, $category_id) {
+			if (! $store->clear_category_for_subgroup($subgroup, $category_id)) {
+				throw new \Exception(__('Category not found or cannot be cleared.', 'atomic-framework-forge-for-elementor')); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			}
+			return array(
+				'categories' => $store->get_categories_for_subgroup($subgroup),
+				'variables'  => $store->get_variables(),
+				'message'    => __('Category cleared.', 'atomic-framework-forge-for-elementor'),
+			);
+		});
+	}
+
+	/**
 	 * Reorder categories in the .aff.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
@@ -769,6 +797,7 @@ class AFF_Ajax_Handler
 					'type',
 					'subgroup',
 					'group',
+					'notes',
 				);
 				$update = array();
 				foreach ($allowed_fields as $field) {
@@ -831,6 +860,7 @@ class AFF_Ajax_Handler
 					'category'    => isset($variable['category'])    ? sanitize_text_field($variable['category'])    : '',
 					'category_id' => isset($variable['category_id']) ? sanitize_text_field($variable['category_id']) : '',
 					'format'      => isset($variable['format'])      ? sanitize_text_field($variable['format'])      : 'HEX',
+					'notes'       => isset($variable['notes'])       ? sanitize_text_field($variable['notes'])       : '',
 					'status'      => 'new',
 					'source'      => 'user-defined',
 				));
@@ -948,12 +978,12 @@ class AFF_Ajax_Handler
 			$trans_cat_info = $resolve_cat($trans_cat_id);
 
 			// Generate tints: each step i of N shifts lightness equally toward 100% (white).
-			// Naming: --name-{i*10} e.g. --primary-10, --primary-20 … --primary-30 for N=3.
+			// Naming: name-{i*10} e.g. primary-10, primary-20 … primary-30 for N=3.
 			if ($tint_steps > 0) {
 				for ($i = 1; $i <= $tint_steps; $i++) {
 					$tint_l    = min(98.0, $l + (100.0 - $l) * ($i / $tint_steps));
 					$new_ids[] = $store->add_variable(array(
-						'name'        => '--' . $base_name . '-' . ($i * 10),
+						'name'        => $base_name . '-' . ($i * 10),
 						'value'       => $this->hsl_to_hex($h, $s, $tint_l),
 						'type'        => 'color',
 						'subgroup'    => $subgroup,
@@ -968,12 +998,12 @@ class AFF_Ajax_Handler
 			}
 
 			// Generate shades: each step i of N shifts lightness equally toward 0% (black).
-			// Naming: --name-plus-{i*10} ('+' encoded as '-plus-') e.g. --primary-plus-10.
+			// Naming: name-plus-{i*10} ('+' encoded as '-plus-') e.g. primary-plus-10.
 			if ($shade_steps > 0) {
 				for ($i = 1; $i <= $shade_steps; $i++) {
 					$shade_l   = max(2.0, $l - $l * ($i / $shade_steps));
 					$new_ids[] = $store->add_variable(array(
-						'name'        => '--' . $base_name . '-plus-' . ($i * 10),
+						'name'        => $base_name . '-plus-' . ($i * 10),
 						'value'       => $this->hsl_to_hex($h, $s, $shade_l),
 						'type'        => 'color',
 						'subgroup'    => $subgroup,
@@ -988,12 +1018,12 @@ class AFF_Ajax_Handler
 			}
 
 			// Generate transparencies: 9 fixed steps, alpha = step/10 (0.1 to 0.9).
-			// Naming: --name{step*10} (no separator) e.g. --primary10, --primary20 … --primary90.
+			// Naming: name{step*10} (no separator) e.g. primary10, primary20 … primary90.
 			if ($trans_on) {
 				for ($i = 1; $i <= 9; $i++) {
 					$alpha_hex = str_pad(strtoupper(dechex((int) round($i * 10 / 100 * 255))), 2, '0', STR_PAD_LEFT);
 					$new_ids[] = $store->add_variable(array(
-						'name'        => '--' . $base_name . ($i * 10),
+						'name'        => $base_name . ($i * 10),
 						'value'       => '#' . $hex . $alpha_hex,
 						'type'        => 'color',
 						'subgroup'    => $subgroup,
@@ -1932,29 +1962,30 @@ class AFF_Ajax_Handler
 
 		$color_groups = array();
 		if (! empty($settings['system_colors']) && is_array($settings['system_colors'])) {
-			$color_groups[] = $settings['system_colors'];
+			$color_groups['system'] = $settings['system_colors'];
 		}
 		if (! empty($settings['custom_colors']) && is_array($settings['custom_colors'])) {
-			$color_groups[] = $settings['custom_colors'];
+			$color_groups['custom'] = $settings['custom_colors'];
 		}
 
 		$imported = array();
-		foreach ($color_groups as $group) {
+		foreach ($color_groups as $group_key => $group ) {
 			foreach ($group as $color) {
 				if (empty($color['_id']) || empty($color['color'])) {
 					continue;
 				}
-				$var_name = '--e-global-color-' . sanitize_key($color['_id']);
-				$value    = sanitize_text_field($color['color']);
+				$elementor_var = '--e-global-color-' . sanitize_key($color['_id']);
+				$value         = sanitize_text_field($color['color']);
 				// Ensure value starts with '#' for bare hex values (Elementor stores
 				// them without the leading hash in older kit data).
 				if (preg_match('/^[0-9a-fA-F]{3,8}$/', $value)) {
 					$value = '#' . $value;
 				}
 				$imported[] = array(
-					'name'  => $var_name,
-					'value' => $value,
-					'title' => isset($color['title']) ? sanitize_text_field($color['title']) : '',
+					'elementor_var' => $elementor_var,
+					'value'         => $value,
+					'title'         => isset($color['title']) ? sanitize_text_field($color['title']) : '',
+					'source_group'  => $group_key,
 				);
 			}
 		}

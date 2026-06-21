@@ -15,24 +15,42 @@
    1. ROOT CONTAINER — Fills the WordPress admin content area
    ========================================================================== */
 
-/* Remove WordPress default padding so the AFF top bar sits flush. */
-#wpbody-content {
-	padding-top: 0;
+/*
+ * Hide the WP footer — it carries padding and a border-top even when its text
+ * content is emptied by the admin_footer_text filter, which adds enough height
+ * to the document to create a browser scrollbar that scrolls .aff-top-bar
+ * off screen.
+ */
+#wpfooter {
+	display: none;
 }
 
-/**
- * .aff-app fills the WP admin content area (#wpbody-content).
- * We use min-height instead of height so tall content still scrolls.
- * overflow:visible allows panel content to overflow if needed.
- * The body does not scroll (panels scroll internally), so position:sticky
- * on .aff-top-bar is not meaningful — it uses position:relative instead.
+/*
+ * WP renders #screen-meta (Screen Options panel) and #screen-meta-links
+ * (Screen Options/Help tab buttons) inside #wpbody-content before our content.
+ * Their floated height is contained by WP's overflow:hidden on #wpbody-content
+ * and adds to the document height, creating a browser scrollbar that scrolls
+ * .aff-top-bar off screen. AFF doesn't use either feature.
  */
+#screen-meta,
+#screen-meta-links {
+	display: none;
+}
+
+/*
+ * Remove WP default padding so #wpbody-content adds no height.
+ */
+#wpbody-content {
+	padding-top:    0;
+	padding-bottom: 0;
+}
+
 .aff-app {
 	display:        flex;
 	flex-direction: column;
-	min-height:     calc(100vh - 32px); /* 32px = WP admin bar height */
+	height:         calc(100vh - 32px);
 	position:       relative;
-	overflow:       visible;
+	overflow:       hidden;
 }
 
 /* ==========================================================================
@@ -40,6 +58,7 @@
    ========================================================================== */
 
 .aff-top-bar {
+	position:        relative;
 	display:         flex;
 	align-items:     center;
 	justify-content: space-between;
@@ -51,31 +70,96 @@
 	border-bottom:   1px solid var(--aff-top-bar-border);
 	flex-shrink:     0;
 	gap:             var(--sp-2);
-	position:        relative; /* Was sticky — body doesn't scroll, sticky had no effect */
 	z-index:         200;
 }
 
-.aff-top-bar__left,
-.aff-top-bar__right {
-	display:    flex;
+/* Brand — logo + title, left-anchored */
+.aff-top-bar__brand {
+	display:     flex;
 	align-items: center;
-	gap:         var(--sp-1);
+	gap:         0;
+	flex-shrink: 0;
+	padding-left: var(--sp-2);
+}
+
+.aff-logo {
+	height:    36px;
+	width:     auto;
+	display:   block;
 	flex-shrink: 0;
 }
 
-.aff-top-bar__brand {
-	flex:            1;
-	text-align:      center;
-	overflow:        hidden;
+.aff-top-bar__brand .aff-brand-name {
+	font-size:             24px;
+	font-weight:           var(--fw-bold);
+	color:                 var(--aff-clr-accent);
+	-webkit-text-stroke:   1px var(--aff-clr-primary);
+	paint-order:           stroke fill;
+	white-space:           nowrap;
+	letter-spacing:        0.02em;
+	margin-left:           var(--sp-4);
 }
 
-.aff-brand-name {
-	font-size:   var(--fs-xxxl);    /* 32px */
-	font-weight: var(--fw-bold);    /* 700 */
-	color:       var(--aff-clr-accent);
+/* Project — label + editable input, centered */
+.aff-top-bar__project {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-2);
+	flex:        1;
+	justify-content: center;
+	min-width:   0;
+}
+
+.aff-project-label {
+	font-size:   var(--fs-sm);
+	color:       var(--aff-clr-muted);
 	white-space: nowrap;
-	letter-spacing: 0.02em;
-	text-transform: none;
+	flex-shrink: 0;
+}
+
+.aff-project-input {
+	background:   transparent;
+	border:       1px solid transparent;
+	border-radius: var(--aff-border-radius-sm);
+	color:        var(--aff-clr-text);
+	font-size:    var(--fs-sm);
+	padding:      2px var(--sp-2);
+	min-width:    120px;
+	max-width:    260px;
+	transition:   border-color var(--aff-transition);
+}
+
+.aff-project-input:hover,
+.aff-project-input:focus {
+	border-color: var(--aff-clr-border);
+	outline:      none;
+}
+
+.aff-project-input:focus {
+	border-color: var(--aff-clr-accent);
+}
+
+/* Actions — all toolbar buttons, right-anchored */
+.aff-top-bar__actions {
+	display:     flex;
+	align-items: center;
+	gap:         2px;
+	flex-shrink: 0;
+	padding-right: var(--sp-2);
+}
+
+/* Save button gets extra side margin so glow doesn't overlap neighbours */
+.aff-icon-btn--save-slot {
+	margin: 0 var(--sp-1);
+}
+
+.aff-toolbar-sep {
+	display:    block;
+	width:      1px;
+	height:     20px;
+	background: var(--aff-clr-border);
+	margin:     0 var(--sp-1);
+	flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -114,17 +198,18 @@
    ========================================================================== */
 
 .aff-panel-left {
-	width:            var(--aff-panel-left-width);
-	min-width:        var(--aff-panel-left-width);
-	background:       var(--aff-bg-panel);
-	border-right:     1px solid var(--aff-clr-border);
-	display:          flex;
-	flex-direction:   column;
-	overflow-y:       auto;
-	overflow-x:       hidden;
-	transition:       width var(--aff-transition-md), min-width var(--aff-transition-md);
-	flex-shrink:      0;
-	position:         relative;
+	width:                var(--aff-panel-left-width);
+	min-width:            var(--aff-panel-left-width);
+	background:           var(--aff-bg-panel);
+	border-right:         1px solid var(--aff-clr-border);
+	display:              flex;
+	flex-direction:       column;
+	overflow-y:           auto;
+	overflow-x:           hidden;
+	overscroll-behavior:  contain;
+	transition:           width var(--aff-transition-md), min-width var(--aff-transition-md);
+	flex-shrink:          0;
+	position:             relative;
 }
 
 /* Collapse trigger button */
@@ -138,13 +223,21 @@
 	transition: transform var(--aff-transition-md);
 }
 
+.aff-collapse-arrow {
+	display:    inline-block;
+	font-size:  1.1em;
+	line-height: 1;
+	transition: transform var(--aff-transition-md);
+}
+
 /* Collapsed state */
 .aff-panel-left[data-collapsed="true"] {
 	width:     var(--aff-panel-left-collapsed);
 	min-width: var(--aff-panel-left-collapsed);
 }
 
-.aff-panel-left[data-collapsed="true"] .aff-collapse-btn svg {
+.aff-panel-left[data-collapsed="true"] .aff-collapse-btn svg,
+.aff-panel-left[data-collapsed="true"] .aff-collapse-arrow {
 	transform: rotate(180deg);
 }
 
@@ -370,14 +463,15 @@
    ========================================================================== */
 
 .aff-edit-space {
-	flex:       1;
-	display:    flex;
-	flex-direction: column;
-	overflow-y: auto;
-	background: var(--aff-bg-page); /* Match app background — PNG transparency shows theme colour, not WP admin white */
-	min-width:  0; /* Prevent flex blowout */
-	padding:    var(--sp-9);
-	position:   relative;
+	flex:                1;
+	display:             flex;
+	flex-direction:      column;
+	overflow-y:          auto;
+	overscroll-behavior: contain;
+	background:          var(--aff-bg-page); /* Match app background — PNG transparency shows theme colour, not WP admin white */
+	min-width:           0; /* Prevent flex blowout */
+	padding:             var(--sp-9);
+	position:            relative;
 }
 
 /* Ensure content layers sit above the workspace background image */
@@ -387,7 +481,7 @@
 	z-index:  1;
 }
 
-/* Placeholder */
+/* Placeholder — fills the edit space without scrolling */
 .aff-placeholder {
 	flex:            1;
 	display:         flex;
@@ -395,29 +489,21 @@
 	align-items:     flex-start;
 	justify-content: flex-start;
 	pointer-events:  none;
-	min-height:      300px;
-	position:        relative; /* arch is absolutely positioned inside */
+	min-height:      0;
+	position:        relative;
 }
 
-/* Full-width banner image — negative margins bleed past the edit-space padding */
+/* Banner fills the entire edit space including its padding.
+   inset: -36px escapes the placeholder into the edit-space padding area;
+   .aff-workspace { overflow: hidden } provides the outer clip. */
 .aff-placeholder-banner {
-	display:      block;
-	width:        calc(100% + 2 * var(--sp-9));
-	max-width:    none;
-	height:       auto;
-	margin-top:   calc(-1 * var(--sp-9));
-	margin-left:  calc(-1 * var(--sp-9));
-	margin-right: calc(-1 * var(--sp-9));
-}
-
-/* Follow-on image below the banner.
-   mix-blend-mode: multiply makes white/checkerboard areas dissolve into the page background
-   so the sign appears to float without a visible background box. */
-.aff-placeholder-lookahead {
-	display:         block;
-	max-width:       100%;
-	height:          auto;
-	mix-blend-mode:  multiply;
+	display:    block;
+	position:   absolute;
+	inset:      calc(-1 * var(--sp-9));
+	width:      calc(100% + 2 * var(--sp-9));
+	height:     calc(100% + 2 * var(--sp-9));
+	max-width:  none;
+	object-fit: cover;
 }
 
 
@@ -450,17 +536,18 @@
    ========================================================================== */
 
 .aff-panel-right {
-	width:          var(--aff-panel-right-width);
-	min-width:      var(--aff-panel-right-width);
-	background:     var(--aff-bg-panel);
-	border-left:    1px solid var(--aff-clr-border);
-	display:        flex;
-	flex-direction: column;
-	justify-content: space-between;
-	flex-shrink:    0;
-	overflow-y:     auto;
-	padding:        var(--sp-4);
-	gap:            var(--sp-4);
+	width:               var(--aff-panel-right-width);
+	min-width:           var(--aff-panel-right-width);
+	background:          var(--aff-bg-panel);
+	border-left:         1px solid var(--aff-clr-border);
+	display:             flex;
+	flex-direction:      column;
+	justify-content:     space-between;
+	flex-shrink:         0;
+	overflow-y:          auto;
+	overscroll-behavior: contain;
+	padding:             var(--sp-4);
+	gap:                 var(--sp-4);
 }
 
 /* File management section */
@@ -810,27 +897,17 @@
    ========================================================================== */
 
 @keyframes aff-save-pulse {
-	0%, 100% { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
-	50%       { box-shadow: 0 0 16px 5px #dc2626; }
+	0%   { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
+	6%   { box-shadow: 0 0 22px 7px #991b1b; }
+	12%  { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
+	100% { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
 }
 
-/* Save Changes — full-width indicator, ~1rem below project name input.
-   gap on .aff-rp-section is --sp-2 (8px); adding --sp-2 margin-top = 16px ≈ 1rem total. */
-#aff-btn-save-changes {
-	width:      100%;
-	margin-top: var(--sp-2);
-}
-#aff-btn-save-changes:disabled {
-	opacity: 0.45;
-	cursor:  not-allowed;
-	filter:  grayscale(0.4);
+/* Override aff-theme.css duration: 5s cycle, linear so the pause is flat */
+.aff-app .aff-icon-btn--dirty {
+	animation: aff-save-pulse 5s linear infinite;
 }
 
-.aff-save-changes-btn.has-changes {
-	animation:   aff-save-pulse 2s ease-in-out infinite;
-	color:       #2a1a0e !important;
-	font-weight: var(--fw-bold, 700);
-}
 
 /* Export / Import — extra 1rem top gap to visually separate from Elementor sync */
 .aff-rp-section--mt {
@@ -1252,4 +1329,132 @@ a.aff-info-related__status--available:hover {
 .aff-info-support-btn--secondary:hover {
 	background: var(--aff-bg-panel);
 	color:      var(--aff-clr-primary);
+}
+
+/* ==========================================================================
+   SYNC MODAL — Beta warning, version toggle switch, direction and mode sections
+   ========================================================================== */
+
+.aff-sync-warning {
+	display:       flex;
+	gap:           var(--sp-3);
+	align-items:   flex-start;
+	padding:       var(--sp-3) var(--sp-4);
+	border-left:   3px solid var(--aff-clr-accent);
+	background:    rgb(from var(--aff-clr-accent) r g b / 8%);
+	border-radius: var(--aff-border-radius-sm);
+	margin-bottom: var(--sp-4);
+	font-size:     13px;
+	line-height:   1.6;
+}
+
+.aff-sync-warning__icon {
+	font-size:  18px;
+	flex-shrink: 0;
+	line-height: 1.4;
+	color:       var(--aff-clr-accent);
+}
+
+.aff-sync-section {
+	margin-bottom: var(--sp-4);
+}
+
+.aff-sync-section__label {
+	font-size:     11px;
+	font-weight:   600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color:         var(--aff-clr-muted);
+	margin-bottom: var(--sp-2);
+}
+
+/* Version toggle switch row */
+.aff-sync-toggle {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-3);
+}
+
+.aff-sync-toggle__label {
+	font-size:   13px;
+	font-weight: 600;
+	color:       var(--aff-clr-primary);
+	min-width:   20px;
+}
+
+/* iOS-style toggle switch */
+.aff-toggle-switch {
+	position: relative;
+	display:  inline-block;
+	width:    44px;
+	height:   24px;
+	cursor:   pointer;
+}
+
+.aff-toggle-switch input {
+	opacity:  0;
+	width:    0;
+	height:   0;
+	position: absolute;
+}
+
+.aff-toggle-switch__track {
+	position:      absolute;
+	inset:         0;
+	background:    var(--aff-clr-border);
+	border-radius: 12px;
+	transition:    background var(--aff-transition);
+}
+
+.aff-toggle-switch input:checked + .aff-toggle-switch__track {
+	background: var(--aff-clr-accent);
+}
+
+.aff-toggle-switch__thumb {
+	position:      absolute;
+	top:           3px;
+	left:          3px;
+	width:         18px;
+	height:        18px;
+	border-radius: 50%;
+	background:    #fff;
+	box-shadow:    0 1px 3px rgba(0,0,0,.25);
+	transition:    transform var(--aff-transition);
+}
+
+.aff-toggle-switch input:checked + .aff-toggle-switch__track .aff-toggle-switch__thumb {
+	transform: translateX(20px);
+}
+
+.aff-toggle-switch:focus-within .aff-toggle-switch__track {
+	outline:        2px solid var(--aff-clr-accent);
+	outline-offset: 2px;
+}
+
+/* Direction and mode radio rows */
+.aff-sync-radio {
+	display:       flex;
+	align-items:   flex-start;
+	gap:           var(--sp-2);
+	margin-bottom: var(--sp-2);
+	cursor:        pointer;
+	font-size:     13px;
+}
+
+.aff-sync-radio input[type="radio"] {
+	margin-top:  3px;
+	flex-shrink: 0;
+	accent-color: var(--aff-clr-accent);
+}
+
+.aff-sync-radio span {
+	display:        flex;
+	flex-direction: column;
+	gap:            2px;
+}
+
+.aff-sync-hint {
+	font-size: 12px;
+	color:     var(--aff-clr-muted);
+	display:   block;
 }

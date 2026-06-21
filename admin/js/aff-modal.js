@@ -171,6 +171,46 @@
 		},
 
 		/**
+		 * Open an informational modal that auto-closes after 4 seconds.
+		 * A Close button is added to the footer; either it or the timer
+		 * calls AFF.Modal.close(). Use for success/info messages that
+		 * require no user decision.
+		 *
+		 * @param {string} title
+		 * @param {string} bodyHtml
+		 */
+		info: function (title, bodyHtml) {
+			var self    = this;
+			var closeId = 'aff-modal-info-close';
+			var timer;
+
+			self.open({
+				title:  title,
+				body:   bodyHtml,
+				footer: '<div style="text-align:right">'
+					+ '<button class="aff-btn" id="' + closeId + '">Close</button>'
+					+ '</div>',
+				onClose: function () {
+					clearTimeout(timer);
+					document.removeEventListener('click', clickHandler);
+				},
+			});
+
+			timer = setTimeout(function () {
+				if (self.isOpen()) { self.close(); }
+			}, 4000);
+
+			function clickHandler(e) {
+				if (e.target.id === closeId) {
+					clearTimeout(timer);
+					self.close();
+					document.removeEventListener('click', clickHandler);
+				}
+			}
+			document.addEventListener('click', clickHandler);
+		},
+
+		/**
 		 * Trap keyboard focus within the modal while it is open.
 		 * @private
 		 */

@@ -496,6 +496,65 @@ class AFF_Data_Store
 	}
 
 	/**
+	 * Clear a category: remove all descendant sub-categories and all variables
+	 * that belong to the target or any of its descendants. The target category
+	 * shell itself is kept.
+	 *
+	 * @param string $subgroup Subgroup name (e.g. 'Colors').
+	 * @param string $id       Category ID to clear.
+	 * @return bool False if the category does not exist.
+	 */
+	public function clear_category_for_subgroup(string $subgroup, string $id): bool
+	{
+		$key = $this->subgroup_to_cat_key($subgroup);
+
+		if (! isset($this->data['config'][$key])) {
+			return false;
+		}
+
+		$k = $this->find_item_key($this->data['config'][$key], 'id', $id);
+		if ($k === null) {
+			return false;
+		}
+
+		$cat_name = $this->data['config'][$key][$k]['name'] ?? '';
+
+		// Collect descendant IDs (not the target itself — it stays).
+		$descendant_ids     = $this->get_descendant_category_ids($subgroup, $id);
+		$descendant_ids_set = array_flip($descendant_ids);
+
+		// All IDs whose variables should be deleted (target + descendants).
+		$all_ids_set = array_flip(array_merge(array( $id ), $descendant_ids));
+
+		// Remove descendant sub-categories; keep the target.
+		$this->data['config'][$key] = array_values(array_filter(
+			$this->data['config'][$key],
+			static function (array $c) use ($descendant_ids_set): bool {
+				return ! isset($descendant_ids_set[ $c['id'] ]);
+			}
+		));
+
+		// Delete all variables in the target category and its former descendants.
+		$this->data['variables'] = array_values(array_filter(
+			$this->data['variables'],
+			static function (array $v) use ($all_ids_set, $cat_name): bool {
+				$cid = $v['category_id'] ?? '';
+				if ($cid !== '' && isset($all_ids_set[ $cid ])) {
+					return false;
+				}
+				// Legacy: name match for variables in the target with no ID.
+				if ($cat_name !== '' && $cid === '' && ($v['category'] ?? '') === $cat_name) {
+					return false;
+				}
+				return true;
+			}
+		));
+
+		$this->dirty = true;
+		return true;
+	}
+
+	/**
 	 * Return true if making $child_id a child of $proposed_parent_id would
 	 * create a cycle in the category tree (a category becoming its own ancestor).
 	 *

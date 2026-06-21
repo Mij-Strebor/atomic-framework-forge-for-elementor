@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AFF Variables — Generic Variable Set Factory (Fonts & Numbers)
  *
  * A prototype-based factory that creates isolated instances for each
@@ -189,6 +189,9 @@
 
 			var html = '<div class="aff-' + setLower + '-view">';
 
+			// ---- Sticky header wrapper ----
+			html += '<div class="aff-group-sticky-header">';
+
 			// ---- Filter bar ----
 			html += '<div class="aff-colors-filter-bar aff-' + setLower + '-filter-bar">'
 				+ '<div class="aff-filter-bar-top">'
@@ -230,6 +233,8 @@
 				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-orphaned)"></span>Orphaned</span>'
 				+ '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-conflict)"></span>Conflict</span>'
 				+ '</div>';
+
+			html += '</div>'; // .aff-group-sticky-header
 
 			// ---- Category blocks ----
 			if (topLevelCats.length === 0) {
@@ -307,6 +312,7 @@
 				+ '</div>' // .aff-cat-header-left
 				+ '<div class="aff-category-actions" role="toolbar" aria-label="Category actions">'
 				+ (!cat.locked && depth === 0 ? AFF.Icons.catBtn('add-sub-cat', 'Add sub-category', AFF.Icons.plusCircleSVG(), '') : '')
+				+ AFF.Icons.catBtn('clear-cat', 'Clear category contents', AFF.Icons.broomSVG(), 'aff-icon-btn--warning')
 				+ AFF.Icons.catBtn('duplicate', 'Duplicate category', AFF.Icons.duplicateSVG(), '')
 				+ (cat.locked ? '' : AFF.Icons.catBtn('delete', 'Delete category', AFF.Icons.trashSVG(), 'aff-icon-btn--danger'))
 				+ AFF.Icons.catBtn('collapse', 'Collapse/expand category', AFF.Icons.chevronSVG(), 'aff-category-collapse-btn')
@@ -341,7 +347,9 @@
 				+ AFF.Icons.sortBtnSVG(_ns)
 				+ '</button>'
 				+ '</span>';
-			// Value sort (col5 for Fonts, col4 for Numbers)
+			// Notes (col5 for Fonts, col4 for Numbers) — no sort
+			html += '<span></span>';
+			// Value sort (col6 for Fonts, col5 for Numbers)
 			html += '<span class="aff-col-sort-wrap">'
 				+ '<button class="aff-col-sort-btn" data-sort-col="value" data-cat-id="' + AFF.Utils.escAttr(cat.id) + '" data-sort-dir="' + _vs + '"'
 				+ ' title="Sort by value" aria-label="Sort by value"'
@@ -353,7 +361,8 @@
 
 			// Variable rows
 			html += '<div class="aff-color-list">';
-			if (directCount === 0) {
+			var _hasSubs = depth === 0 && self._getSubCategoriesOf(cat.id, allCats).length > 0;
+			if (directCount === 0 && !_hasSubs) {
 				html += '<p class="aff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var i = 0; i < vars.length; i++) {
@@ -385,8 +394,8 @@
 		 * Build a single variable row.
 		 *
 		 * Grid layout:
-		 *   Fonts:   drag | dot | preview | name | value | format | delete (7 cols)
-		 *   Numbers: drag | dot | name | value | format | delete (6 cols)
+		 *   Fonts:   drag | dot | preview | name | notes | value | format | delete | empty (9 cols)
+		 *   Numbers: drag | dot | name | notes | value | format | delete | empty (8 cols)
 		 *
 		 * @param {Object} v Variable object.
 		 * @returns {string}
@@ -426,6 +435,16 @@
 				+ ' aria-label="Variable name"'
 				+ ' data-aff-tooltip="Variable name \u2014 click to edit"'
 				+ ' spellcheck="false">';
+
+				// Notes input (read-only by default; single-click activates; select-all on entry).
+				html += '<input type="text" class="aff-var-notes-input"'
+					+ ' value="' + AFF.Utils.escAttr(v.notes || '') + '"'
+					+ ' data-original="' + AFF.Utils.escAttr(v.notes || '') + '"'
+					+ ' readonly'
+					+ ' placeholder="Comment"'
+					+ ' aria-label="Variable note"'
+					+ ' data-aff-tooltip="Variable note — click to edit"'
+					+ ' spellcheck="false">';
 
 			// Value input + format selector — delegated to per-set config.
 			html += cfg.renderValueCell.call(cfg, v);
@@ -518,6 +537,7 @@
 
 				switch (action) {
 					case 'add-sub-cat': if (catId) { self._addSubCategory(catId); }    break;
+					case 'clear-cat':   if (catId) { self._clearCategory(catId); }     break;
 					case 'duplicate':   if (catId) { self._duplicateCategory(catId); } break;
 					case 'add-var':     if (catId) { self._addVariable(catId); }       break;
 					case 'delete':      if (catId) { self._deleteCategory(catId); }    break;
@@ -564,7 +584,7 @@
 
 			// ---- Single-click to activate editing ----
 			container.addEventListener('mousedown', function (e) {
-				var input = e.target.closest('.aff-var-name-input, .aff-category-name-input');
+				var input = e.target.closest('.aff-var-name-input, .aff-var-notes-input, .aff-category-name-input');
 				if (!input) { return; }
 				if (input.getAttribute('data-locked') === 'true') { return; }
 
@@ -595,6 +615,15 @@
 				var nameInput = e.target.closest('.aff-var-name-input');
 				if (nameInput) { nameInput.setAttribute('readonly', ''); return; }
 
+				var notesInput = e.target.closest('.aff-var-notes-input');
+				if (notesInput) {
+					notesInput.setAttribute('readonly', '');
+					var nRow = notesInput.closest('.aff-color-row');
+					var nId  = nRow ? nRow.getAttribute('data-var-id') : null;
+					if (nId !== null) { self._saveVarNote(nId, notesInput); }
+					return;
+				}
+
 				var catInput = e.target.closest('.aff-category-name-input');
 				if (catInput && catInput.getAttribute('data-locked') !== 'true') {
 					self._saveCategoryName(catInput);
@@ -623,6 +652,36 @@
 				var row   = nameInput.closest('.aff-color-row');
 				var varId = row ? row.getAttribute('data-var-id') : null;
 				if (varId !== null) { self._saveVarName(varId, nameInput); }
+			});
+
+			// ---- Variable notes: save on change / Enter / Escape ----
+			container.addEventListener('change', function (e) {
+				var notesInput = e.target.closest('.aff-var-notes-input');
+				if (!notesInput) { return; }
+				var nRow = notesInput.closest('.aff-color-row');
+				var nId  = nRow ? nRow.getAttribute('data-var-id') : null;
+				if (nId !== null) { self._saveVarNote(nId, notesInput); }
+			});
+			container.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter') {
+					var notesEnter = e.target.closest('.aff-var-notes-input');
+					if (notesEnter && notesEnter.hasAttribute('readonly')) {
+						e.preventDefault();
+						notesEnter.removeAttribute('readonly');
+						setTimeout(function () { notesEnter.focus(); notesEnter.select(); }, 0);
+						return;
+					} else if (notesEnter) {
+						e.preventDefault(); notesEnter.blur(); return;
+					}
+				}
+				if (e.key === 'Escape') {
+					var notesEsc = e.target.closest('.aff-var-notes-input');
+					if (notesEsc && !notesEsc.hasAttribute('readonly')) {
+						e.preventDefault();
+						notesEsc.value = notesEsc.getAttribute('data-original') || '';
+						notesEsc.blur(); return;
+					}
+				}
 			});
 			container.addEventListener('keydown', function (e) {
 				if (e.key !== 'Enter') { return; }
@@ -906,6 +965,26 @@
 			return { value: numPart, format: format };
 		},
 
+		/**
+		 * Save a variable's note after editing.
+		 *
+		 * @param {string}      varId      Variable ID.
+		 * @param {HTMLElement} noteInput  The notes <input> element.
+		 */
+		_saveVarNote: function (varId, noteInput) {
+			var self    = this;
+			var newNote = noteInput.value.trim();
+			var oldNote = noteInput.getAttribute('data-original') || '';
+			if (newNote === oldNote) { return; }
+			var v = AFF.Utils.findVarByKey(varId);
+			if (!v) { return; }
+			v.notes = newNote;
+			self._ajaxSaveVar({ id: v.id, notes: newNote }, function () {
+				noteInput.setAttribute('data-original', newNote);
+				if (AFF.App) { AFF.App.setDirty(true); }
+			});
+		},
+
 		_saveVarValue: function (varId, newValue, input, newFormat) {
 			var self     = this;
 			var v        = AFF.Utils.findVarByKey(varId);
@@ -1066,7 +1145,7 @@
 
 			AFF.Modal.open({
 				title: 'Delete variable',
-				body:  '<p>Delete <strong>' + AFF.Utils.escAttr(variable.name || varId) + '</strong>?</p>'
+				body:  '<p>Delete <strong>' + AFF.Utils.escHtml(variable.name || varId) + '</strong>?</p>'
 					+ '<p>This cannot be undone.</p>',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
 					+ '<button class="aff-btn aff-btn--secondary" id="aff-del-var-cancel">Cancel</button>'
@@ -1074,13 +1153,31 @@
 					+ '</div>',
 			});
 
+			setTimeout(function () {
+				var btn = document.getElementById('aff-del-var-confirm');
+				if (btn) { btn.focus(); }
+			}, 50);
+
+			function handleDelKey(e) {
+				if (e.key === 'Enter') {
+					var focused = document.activeElement;
+					if (focused && (focused.id === 'aff-del-var-confirm' || focused.id === 'aff-del-var-cancel')) {
+						e.preventDefault();
+						focused.click();
+					}
+				}
+			}
+			document.addEventListener('keydown', handleDelKey);
+
 			function handleClick(e) {
 				if (e.target.id === 'aff-del-var-cancel') {
 					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
+					document.removeEventListener('keydown', handleDelKey);
 				} else if (e.target.id === 'aff-del-var-confirm') {
 					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
+					document.removeEventListener('keydown', handleDelKey);
 					AFF.App.ajax('aff_delete_color', {
 						filename:    AFF.state.currentFile,
 						variable_id: resolvedId,
@@ -1266,7 +1363,10 @@
 			if (!list) { return; }
 
 			var html = '';
-			if (vars.length === 0) {
+			var _cats2 = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
+				? AFF.state.config[self._cfg.catKey] : [];
+			var _sortHasSubs = _cats2.some(function (c) { return c.parent_id === catId; });
+			if (vars.length === 0 && !_sortHasSubs) {
 				html = '<p class="aff-colors-empty">No variables in this category.</p>';
 			} else {
 				for (var j = 0; j < vars.length; j++) {

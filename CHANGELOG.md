@@ -7,6 +7,46 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.0] — 2026-06-21
+
+### Added
+
+- **Print: Sub-category hierarchy** — The print document now mirrors the screen layout. Sub-categories appear indented under their parent category header, with a gradient-indented band that starts at the Name column and a type-colored accent bar. Sub-category variable rows shift their swatches to align under the sub-category title.
+- **Print: Comments toggle** — A "Print comments" checkbox in the print options modal. When checked, each variable's saved comment prints on a second line in italic beneath the variable row.
+
+### Changed
+
+- **Print: document title** — Removed "V4" from the printed document header. Title now reads "Atomic Framework Forge for Elementor".
+- **Comment field placeholder** — Notes input in the Colors and Variables expand panels shows "Comment" instead of "Add a note…".
+- **Informational modals** — "Fetch complete", "Clean Up Complete", and "V3 Import complete" success modals now auto-close after 4 seconds and include an explicit Close button. The three separate timer/handler implementations replaced with a single `AFF.Modal.info()` helper.
+- **Version** — Bumped to 1.4.0.
+
+### Fixed
+
+- **Brand name fades on scroll** — The "Atomic Framework Forge" title in the top bar faded to invisible when the center panel was scrolled down. The fade animation has been removed; the title remains visible at all times.
+
+---
+
+## [1.3.0] — 2026-06-19
+
+### Added
+
+- **V3 Import Result Modal** — After a V3 Global Colors sync the result modal now shows the import count, includes a Close button in the footer, and auto-closes after 4 seconds if the user takes no action.
+- **System Color Auto-Notes** — The first four colors imported from V3 (Elementor system colors: Primary, Secondary, Text, Accent) automatically receive a descriptive note in their Notes field prefixed with "System Colors:".
+
+### Changed
+
+- **Color Expand Modal Layout** — Restructured to a two-row header: Row 1 contains drag handle, status dot, color swatch, name input, value input, format selector, and close button; Row 2 is a full-width notes field below.
+- **Sticky Group Header** — Scrolling within a variable group (Colors, Fonts, Numbers) now keeps the filter bar and the status legend pinned together as one sticky unit.
+- **Elementor Dev Versions** — Updated `AFF_DEV_ELEMENTOR_VERSION` to 4.1.3 and `AFF_DEV_ELEMENTOR_PRO_VERSION` to 4.1.1.
+- **Version** — Bumped to 1.3.0.
+
+### Fixed
+
+- **App Top Bar Scrolls Off Screen** — WordPress default padding on `#wpbody-content` (65 px footer reserve plus unmapped screen-meta elements) created a browser scrollbar that scrolled the AFF top bar out of view. Fixed by zeroing the padding, hiding unused WP screen-meta elements, and adding a `max-height` clamp so no WP injected content can grow the document past the viewport.
+
+---
+
 ## [1.2.0] — 2026-06-13
 
 ### Added

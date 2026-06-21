@@ -243,7 +243,7 @@
         self._tooltipDismissTimer = setTimeout(function () {
           self._hideTooltip();
         }, 4000);
-      }, 300);
+      }, 1000);
     },
 
     /**
@@ -271,8 +271,14 @@
       var self = this;
 
       var bindings = {
+        "aff-btn-sync": function () {
+          if (AFF.PanelRight && AFF.PanelRight.openSyncModal) {
+            AFF.PanelRight.openSyncModal();
+          }
+        },
         "aff-btn-preferences": self._openPreferences.bind(self),
         "aff-btn-manage-project": self._openManageProject.bind(self),
+        "aff-btn-history": self._openHistory.bind(self),
         "aff-btn-export": self._openExport.bind(self),
         "aff-btn-import": self._openImport.bind(self),
         "aff-btn-history": self._openHistory.bind(self),
@@ -332,9 +338,7 @@
         e.stopPropagation();
         self._closeFunctionsDropdown();
         var action = item.getAttribute("data-action");
-        if (action === "convert-v3") {
-          self._openConvertV3();
-        } else if (action === "change-types") {
+        if (action === "change-types") {
           self._openChangeTypes();
         } else if (action === "diagnose") {
           self._openDiagnostics();
@@ -354,30 +358,6 @@
       }
       if (btn) {
         btn.setAttribute("aria-expanded", "false");
-      }
-    },
-
-    /**
-     * Placeholder modal — Convert V3 Variables.
-     * @private
-     */
-    _openConvertV3: function () {
-      AFF.Modal.open(
-        "Convert V3 Variables",
-        '<p style="color:var(--aff-clr-secondary);line-height:1.6">' +
-          "This tool will scan your variables for Elementor V3 naming patterns and " +
-          "offer to rename them to the V4 convention." +
-          "</p>" +
-          '<p style="margin-top:12px;color:var(--aff-clr-muted);font-size:var(--fs-sm)">' +
-          "Coming in a future release." +
-          "</p>",
-        '<button class="aff-btn" id="aff-modal-close-btn">Close</button>',
-      );
-      var closeBtn = document.getElementById("aff-modal-close-btn");
-      if (closeBtn) {
-        closeBtn.addEventListener("click", function () {
-          AFF.Modal.close();
-        });
       }
     },
 
@@ -591,10 +571,7 @@
                 (rc !== 1 ? "ies" : "y") +
                 ". File saved.";
 
-          AFF.Modal.open({
-            title: "Clean Up Complete",
-            body: "<p>" + AFF.Utils.escHtml(msg) + "</p>",
-          });
+          AFF.Modal.info("Clean Up Complete", "<p>" + AFF.Utils.escHtml(msg) + "</p>");
         })
         .catch(function () {
           AFF.Modal.open({
@@ -1307,6 +1284,7 @@
           subgroup: cls.subgroup,
           category: cls.subgroup ? "Uncategorized" : "",
           category_id: "",
+          status: "synced",
           modified: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -1357,18 +1335,13 @@
       var msg =
         parts.length > 0 ? parts.join(", ") + "." : "Already up to date.";
 
-      AFF.Modal.open({
-        title: "Fetch complete",
-        body:
-          "<p>" +
-          msg +
-          "</p>" +
+      AFF.Modal.info(
+        "Fetch complete",
+        "<p>" + msg + "</p>" +
           (source
-            ? '<p class="aff-text-muted" style="font-size:12px">Source: ' +
-              source +
-              "</p>"
-            : ""),
-      });
+            ? '<p class="aff-text-muted" style="font-size:12px">Source: ' + source + "</p>"
+            : "")
+      );
     },
 
     // ------------------------------------------------------------------

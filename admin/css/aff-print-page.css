@@ -144,8 +144,14 @@ body {
 }
 
 /* Indent variable rows so category headings read as section leaders */
-.aff-print-table tbody tr:not(.aff-print-cat-row) td:first-child {
+.aff-print-table tbody tr:not(.aff-print-cat-row):not(.aff-print-subcat-row) td:first-child {
 	padding-left: 16pt;
+}
+
+/* Colors/fonts: sub-cat var preview cell is an empty spacer; no extra indent needed.
+   Numbers: indent name cell to align with the sub-cat band start. */
+.aff-print-section--number .aff-print-subcat-var td:first-child {
+	padding-left: 20pt;
 }
 
 /* ==========================================================================
@@ -186,6 +192,97 @@ body {
 	background:  #e8f4ed;
 	border-left: 3pt solid #2a7a4b;
 	color:       #1a5232;
+}
+
+/* ==========================================================================
+   Sub-category separator rows — indented band starting at the Name column
+   ========================================================================== */
+
+/* Colors and Fonts: gradient clears the 54pt preview column so the band
+   starts at the same horizontal position as the Name column header.
+   ::before draws the accent bar at the 54pt indent point.              */
+.aff-print-subcat-row td {
+	padding:        3pt 6pt 3pt 62pt;   /* 54pt spacer + 8pt inner */
+	font-size:      7pt;
+	font-weight:    600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	border-top:     0.5pt solid #ddd;
+	border-bottom:  0.5pt solid #ddd;
+	border-left:    none;
+	position:       relative;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.aff-print-subcat-row td::before {
+	content:  '';
+	position: absolute;
+	left:     54pt;
+	top:      0;
+	bottom:   0;
+	width:    3pt;
+}
+
+.aff-print-section--color .aff-print-subcat-row td {
+	background: linear-gradient(to right, #fff 54pt, #f4f6fd 54pt);
+	color:      #4361b5;
+}
+.aff-print-section--color .aff-print-subcat-row td::before { background: #8fa4d8; }
+
+.aff-print-section--font .aff-print-subcat-row td {
+	background: linear-gradient(to right, #fff 54pt, #fdf5ee 54pt);
+	color:      #884010;
+}
+.aff-print-section--font .aff-print-subcat-row td::before { background: #d99a6e; }
+
+/* Numbers: no preview column, use a simple indent with left-border */
+.aff-print-section--number .aff-print-subcat-row td {
+	padding:     3pt 6pt 3pt 20pt;
+	background:  #f0f9f3;
+	color:       #1a5232;
+	border-left: 3pt solid #72b88e;
+}
+.aff-print-section--number .aff-print-subcat-row td::before { display: none; }
+
+/* ==========================================================================
+   Inline swatch / font preview (sub-cat variable rows only)
+   ========================================================================== */
+
+.aff-print-swatch--inline {
+	display:        inline-block;
+	vertical-align: middle;
+	width:          18pt;
+	height:         10pt;
+	margin-right:   3pt;
+	border-radius:  1pt;
+	border:         0.75pt solid rgba(0,0,0,0.25);
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.aff-print-font-preview--inline {
+	font-size:      9pt;
+	max-width:      36pt;
+	margin-right:   3pt;
+	vertical-align: middle;
+}
+
+/* ==========================================================================
+   Comment rows (second line under a variable when Print comments is on)
+   ========================================================================== */
+
+.aff-print-comment-row td {
+	padding-top:    1pt;
+	padding-bottom: 3.5pt;
+	border-top:     none;
+}
+
+.aff-print-comment {
+	font-size:   7.5pt;
+	font-style:  italic;
+	color:       #666;
+	padding-left: 6pt;
 }
 
 /* ==========================================================================

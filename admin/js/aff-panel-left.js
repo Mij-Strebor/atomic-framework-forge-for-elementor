@@ -90,6 +90,14 @@
 
 			if (newExpanded) {
 				children.removeAttribute('hidden');
+				// Always expand all subgroups fully — no memory of prior state.
+				var subHeaders = children.querySelectorAll('.aff-nav-subgroup__header');
+				subHeaders.forEach(function (sh) {
+					var shId    = sh.getAttribute('aria-controls');
+					var shItems = shId ? document.getElementById(shId) : null;
+					sh.setAttribute('aria-expanded', 'true');
+					if (shItems) { shItems.removeAttribute('hidden'); }
+				});
 			} else {
 				children.setAttribute('hidden', '');
 			}
@@ -186,9 +194,9 @@
 
 			// Phase 2: Colors use config.categories when available.
 			if (config.categories && config.categories.length > 0) {
-				var sortedCats = config.categories.slice().sort(function (a, b) {
-					return (a.order || 0) - (b.order || 0);
-				});
+				var sortedCats = config.categories.slice()
+					.filter(function (c) { return !c.parent_id; })
+					.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 				this._populateList('aff-nav-colors', sortedCats);
 			} else if (config.groups && config.groups.Variables) {
 				var colorItems = (config.groups.Variables.Colors || []).slice();
@@ -201,9 +209,9 @@
 			// Phase 2: Fonts use config.fontCategories when available.
 		var vars = (config.groups && config.groups.Variables) ? config.groups.Variables : {};
 		if (config.fontCategories && config.fontCategories.length > 0) {
-			var sortedFontCats = config.fontCategories.slice().sort(function (a, b) {
-				return (a.order || 0) - (b.order || 0);
-			});
+			var sortedFontCats = config.fontCategories.slice()
+				.filter(function (c) { return !c.parent_id; })
+				.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 			this._populateList('aff-nav-fonts', sortedFontCats);
 		} else {
 			var globalVarsF = (AFF.state.globalConfig && AFF.state.globalConfig.groups && AFF.state.globalConfig.groups.Variables) ? AFF.state.globalConfig.groups.Variables : {};
@@ -212,9 +220,9 @@
 
 		// Phase 2: Numbers use config.numberCategories when available.
 		if (config.numberCategories && config.numberCategories.length > 0) {
-			var sortedNumCats = config.numberCategories.slice().sort(function (a, b) {
-				return (a.order || 0) - (b.order || 0);
-			});
+			var sortedNumCats = config.numberCategories.slice()
+				.filter(function (c) { return !c.parent_id; })
+				.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 			this._populateList('aff-nav-numbers', sortedNumCats);
 		} else {
 			var globalVarsN = (AFF.state.globalConfig && AFF.state.globalConfig.groups && AFF.state.globalConfig.groups.Variables) ? AFF.state.globalConfig.groups.Variables : {};
@@ -253,19 +261,39 @@
 			// Determine subgroup for per-category counts.
 			var sgMap = { 'aff-nav-colors': 'Colors', 'aff-nav-fonts': 'Fonts', 'aff-nav-numbers': 'Numbers' };
 			var subgroup = sgMap[listId] || '';
-			var vars = (AFF.state && AFF.state.variables) ? AFF.state.variables : [];
+			var vars     = (AFF.state && AFF.state.variables) ? AFF.state.variables : [];
+			var config   = (AFF.state && AFF.state.config)    ? AFF.state.config    : {};
 
 			list.innerHTML = '';
 
-			// Build a lookup of all non-Uncategorized category IDs in this list so
-			// the Uncategorized badge can apply the same catch-all logic as
-			// _getVarsForCategory: empty refs and orphaned refs land in Uncategorized.
+			// Build a lookup of all valid (non-Uncategorized) category IDs — including
+			// child categories — so orphaned-ref detection in the Uncategorized block
+			// does not mis-file variables that legitimately belong to a child category.
 			var knownCatIds = {};
 			items.forEach(function (it) {
 				var itName = (typeof it === 'string') ? it : (it.name || '');
 				var itId   = (typeof it === 'string') ? null : (it.id || null);
 				if (itId && itName !== 'Uncategorized') { knownCatIds[itId] = true; }
 			});
+			if (config.categories) {
+				config.categories.forEach(function (c) {
+					if (c.id && c.parent_id) { knownCatIds[c.id] = true; }
+				});
+			}
+
+			// Build child-category-IDs-by-parent so each nav item's count rolls up
+			// variables in child categories into the parent category total.
+			var childCatIdsByParent = {};
+			if (config.categories) {
+				config.categories.forEach(function (c) {
+					if (c.parent_id) {
+						if (!childCatIdsByParent[c.parent_id]) {
+							childCatIdsByParent[c.parent_id] = [];
+						}
+						childCatIdsByParent[c.parent_id].push(c.id);
+					}
+				});
+			}
 
 			items.forEach(function (item) {
 				var name  = (typeof item === 'string') ? item : (item.name || '');
@@ -287,12 +315,14 @@
 				nameSpan.textContent = name;
 				btn.appendChild(nameSpan);
 
-				// Per-category variable count badge — mirrors _getVarsForCategory logic.
+				// Count variables directly in this category plus any child categories.
+				var childIds = (catId && childCatIdsByParent[catId]) ? childCatIdsByParent[catId] : [];
 				var count = vars.filter(function (v) {
 					if (v.subgroup !== subgroup || v.status === 'deleted') { return false; }
 					if (catId && v.category_id === catId) { return true; }
+					if (catId && childIds.indexOf(v.category_id) !== -1) { return true; }
 					if (v.category === name) { return true; }
-					// Uncategorized catch-all: empty refs and orphaned refs.
+					// Uncategorized catch-all: empty refs and truly orphaned refs.
 					if (name === 'Uncategorized') {
 						if (!v.category_id && !v.category) { return true; }
 						if (v.category_id && !knownCatIds[v.category_id]) { return true; }
@@ -307,6 +337,11 @@
 				}
 
 				btn.addEventListener('click', function () {
+					this.selectItem(btn, listId, name, catId);
+				}.bind(this));
+
+				btn.addEventListener('contextmenu', function (e) {
+					e.preventDefault();
 					this.selectItem(btn, listId, name, catId);
 				}.bind(this));
 

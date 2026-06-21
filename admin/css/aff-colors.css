@@ -34,20 +34,33 @@
 }
 
 /* ==========================================================================
-   2. FILTER BAR (two-row layout)
+   2. FILTER BAR + STATUS LEGEND — sticky header wrapper
    ========================================================================== */
+
+/*
+ * Wraps the filter bar and status legend so they scroll as one unit and
+ * stick together at the top of the edit space when the user scrolls down.
+ * The negative margin-top + top cancel out the edit space's padding-top
+ * (--sp-9 = 36px) so the header appears flush with the top edge.
+ */
+.aff-group-sticky-header {
+	position:    sticky;
+	top:         calc(-1 * var(--sp-9));
+	margin-top:  calc(-1 * var(--sp-9));
+	z-index:     10;
+	flex-shrink: 0;
+	background:  var(--aff-bg-page);
+	padding-bottom: 8px;
+}
 
 .aff-colors-filter-bar {
 	display:        flex;
 	flex-direction: column;
 	border:         none;
 	border-radius:  12px;
-	margin-bottom:  32px;
+	margin-bottom:  16px;
 	background:     var(--aff-clr-primary);
-	position:       sticky;
-	top:            0;
-	z-index:        10;
-	flex-shrink:    0;
+	position:       relative; /* containing block for .aff-filter-bar-add-cat-wrap */
 }
 
 /* Top row: COLORS title + search + close btn + collapse toggle */
@@ -66,6 +79,13 @@
 	text-transform: capitalize;
 	user-select:    none;
 	padding-left:   40px;
+}
+
+/* Count badge in the filter bar header — inverted colors for the dark background. */
+.aff-filter-bar-count {
+	background: rgba(255, 255, 255, 0.2);
+	color:      var(--aff-bg-page);
+	margin-left: var(--sp-2);
 }
 
 /* Icon buttons inside the filter bar must read against the primary-color background. */
@@ -264,7 +284,8 @@
 }
 
 /* Category drag handle (six-dot, left side of category header) */
-.aff-cat-drag-handle {
+.aff-cat-drag-handle,
+.aff-subcat-drag-handle {
 	display:         flex;
 	align-items:     center;
 	justify-content: center;
@@ -276,12 +297,14 @@
 	flex-shrink:     0;
 }
 
-.aff-cat-drag-handle:hover {
+.aff-cat-drag-handle:hover,
+.aff-subcat-drag-handle:hover {
 	opacity: 0.85;
 	color:   var(--aff-clr-primary);
 }
 
-.aff-cat-drag-handle:active {
+.aff-cat-drag-handle:active,
+.aff-subcat-drag-handle:active {
 	cursor: grabbing;
 }
 
@@ -390,6 +413,12 @@
 	color:      var(--aff-clr-error);
 }
 
+/* Warning variant (clear category button on hover) */
+.aff-icon-btn--warning:hover {
+	background: var(--aff-clr-warning-bg);
+	color:      var(--aff-clr-warning);
+}
+
 /* ==========================================================================
    6. STATUS LEGEND
    ========================================================================== */
@@ -423,7 +452,7 @@
    ========================================================================== */
 
 .aff-category-block[data-depth="1"] {
-	margin-left:   20px;
+	margin-left:   64px;
 	margin-right:  20px;
 	margin-top:    10px;
 	margin-bottom: 28px;
@@ -454,7 +483,7 @@
 
 .aff-color-list-header {
 	display:               grid;
-	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 1fr 5fr 11% 220px 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
@@ -471,7 +500,7 @@
 /* Single color variable row */
 .aff-color-row {
 	display:               grid;
-	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 1fr 5fr 11% 220px 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       6px var(--sp-3) 6px var(--sp-4);
@@ -533,7 +562,7 @@ button.aff-pickr-btn:focus-visible {
 	padding:       2px var(--sp-2);
 	background:    var(--aff-bg-card);
 	border:        none;
-	font-size:     var(--fs-xs);
+	font-size:     13px;
 	color:         var(--aff-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
@@ -556,13 +585,42 @@ button.aff-pickr-btn:focus-visible {
 	outline: none;
 }
 
+/* Variable note — same style as name input; readonly by default, click to edit */
+.aff-color-notes-input {
+	width:         100%;
+	padding:       2px var(--sp-2);
+	background:    var(--aff-bg-card);
+	border:        none;
+	font-size:     13px;
+	color:         var(--aff-clr-secondary);
+	font-family:   monospace, monospace;
+	min-width:     0;
+	cursor:        default;
+	outline:       none;
+	border-radius: var(--aff-border-radius-sm);
+	box-shadow:
+		inset 0 3px 6px rgba(100, 100, 100, 0.22),
+		inset 0 1px 3px rgba(100, 100, 100, 0.14),
+		0 3px 6px rgba(100, 100, 100, 0.18),
+		0 1px 3px rgba(100, 100, 100, 0.10);
+}
+
+.aff-color-notes-input:not([readonly]) {
+	cursor:      text;
+	user-select: auto;
+}
+
+.aff-color-notes-input:focus {
+	outline: none;
+}
+
 /* Color value — bare input, always editable */
 .aff-color-value-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
 	background:    var(--aff-bg-card);
 	border:        none;
-	font-size:     var(--fs-xs);
+	font-size:     13px;
 	color:         var(--aff-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
@@ -716,18 +774,32 @@ button.aff-pickr-btn:focus-visible {
 }
 
 /*
- * Modal header — identical grid to .aff-color-row so every column aligns.
- * Columns: drag-handle | status-dot | swatch | name | value | format | close-btn
+ * Modal header — two-row flex column.
+ * Row 1: drag | dot | swatch | name | value | format | close
+ * Row 2: full-width notes field
  */
 .aff-modal-header {
+	display:       flex;
+	flex-direction: column;
+	gap:            8px;
+	padding:        var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+	border-bottom:  2px solid var(--aff-clr-border);
+	background:     var(--aff-bg-panel);
+}
+
+/* Row 1 inner grid: drag(24) | dot(8) | swatch(100) | name(2fr) | value(11%) | format(100px) | close(28) */
+.aff-modal-header-row1 {
 	display:               grid;
-	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 2fr 11% 100px 28px;
 	column-gap:            10px;
 	align-items:           center;
-	padding:               var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
-	border-bottom:         2px solid var(--aff-clr-border);
-	background:            var(--aff-bg-panel);
-	min-height:            52px;
+	min-height:            44px;
+}
+
+/* Row 2 full-width notes */
+.aff-modal-header .aff-modal-notes {
+	width:         100%;
+	box-sizing:    border-box;
 }
 
 /* Close button (rightmost column in header) */
@@ -824,6 +896,16 @@ button.aff-pickr-btn:focus-visible {
 /* Toggle inside the ctrl cell — just the track, no text label */
 .aff-modal-gen-ctrl .aff-toggle-label {
 	gap: 0;
+}
+
+/* Swatch revealed in mode variant row after toggle is checked */
+.aff-mode-swatch {
+	display:       block;
+	width:         100px;
+	height:        20px;
+	border-radius: 4px;
+	flex-shrink:   0;
+	border:        1px solid var(--aff-clr-border);
 }
 
 /* Save / Cancel action bar at the bottom of the expand modal */
@@ -1069,9 +1151,14 @@ button.aff-pickr-btn:focus-visible {
 @media (max-width: 600px) {
 	.aff-color-list-header,
 	.aff-color-row {
-		grid-template-columns: 24px 8px 80px 1fr 20% 0 28px;
+		grid-template-columns: 24px 8px 80px 1fr 0 20% 0 28px 28px;
 		column-gap: 6px;
 		padding-right: var(--sp-2);
+	}
+
+	.aff-color-notes-input {
+		visibility: hidden;
+		overflow:   hidden;
 	}
 }
 
@@ -1115,7 +1202,7 @@ button.aff-pickr-btn:focus-visible {
 /* Section-12 override kept for specificity safety — mirrors base rule */
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 1fr 5fr 11% 220px 28px 28px;
 }
 
 /* Delete button — trash icon, danger variant on hover */

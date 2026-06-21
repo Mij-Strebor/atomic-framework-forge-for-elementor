@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Stable](https://img.shields.io/badge/status-Stable%201.2.0-2d7d46?style=flat-square&labelColor=1a3d28)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-1.2.0-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Stable](https://img.shields.io/badge/status-Stable%201.4.0-2d7d46?style=flat-square&labelColor=1a3d28)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%207.0-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -29,6 +29,8 @@
 Atomic Framework Forge for Elementor (AFF) is a WordPress developer tool that gives you a purpose-built management interface for the CSS custom properties introduced by **Elementor Version 4** (the new atomic widget architecture).
 
 Instead of hunting through Elementor's generated CSS by hand, AFF reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
+
+**Migrating from Elementor V3 to V4?** AFF handles the hardest part of the transition. Import all your V3 Global Colors into AFF with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](USER-MANUAL.md#15-v3--v4-migration-workflow)
 
 ---
 
@@ -70,7 +72,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 
 ---
 
-## What Works in 1.0.0
+## What Works in v1.4.0
 
 | Feature | Status |
 |---------|--------|
@@ -101,6 +103,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 | Sync options dialog (Sync by name / Clear and replace) | ✅ Working |
 | Commit summary dialog | ✅ Working |
 | Elementor V3 Global Colors import | ✅ Working |
+| Print / PDF — variable reference sheet with sub-category hierarchy and optional comments | ✅ Working |
 
 ---
 
@@ -264,6 +267,7 @@ atomic-framework-forge-for-elementor/
 | **1.0.0-beta** *(this release)* | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
 | **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
 | **0.5.x-beta** | Super Categories — two-level nesting within Colors, Fonts, and Numbers. Top-level category contains sub-categories only; sub-categories contain variables only. Elementor commit remains flat. Requested for large design systems (382-variable projects). |
+| **1.4.0** | Print hierarchy: sub-categories indented, comments toggle. Modal DRY refactor. Title fade fix. |
 | **1.0.0** | Classes management. Components registry. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
 | **Future** | Standalone Windows / Mac desktop application. |

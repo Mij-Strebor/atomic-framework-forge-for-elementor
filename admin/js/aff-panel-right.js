@@ -21,15 +21,9 @@
     /** @type {HTMLInputElement|null} */
     _filenameInput: null,
     /** @type {HTMLElement|null} */
-    _loadBtn: null,
-    /** @type {HTMLElement|null} */
-    _saveBtn: null,
+    _projectNameEl: null,
     /** @type {HTMLElement|null} */
     _saveChangesBtn: null,
-    /** @type {HTMLElement|null} */
-    _syncVariablesBtn: null,
-    /** @type {HTMLElement|null} */
-    _commitVariablesBtn: null,
     /** @type {string|null} Current project slug shown in Level 2 picker */
     _pickerCurrentSlug: null,
 
@@ -37,23 +31,31 @@
      * Initialize the right panel.
      */
     init: function () {
-      this._filenameInput = document.getElementById("aff-filename");
-      this._loadBtn = document.getElementById("aff-btn-load");
-      this._saveBtn = document.getElementById("aff-btn-save");
+      this._filenameInput  = document.getElementById("aff-filename");
+      this._projectNameEl  = document.getElementById("aff-project-name");
       this._saveChangesBtn = document.getElementById("aff-btn-save-changes");
-      this._syncVariablesBtn = document.getElementById(
-        "aff-btn-sync-variables",
-      );
-      this._commitVariablesBtn = document.getElementById(
-        "aff-btn-commit-variables",
-      );
 
-      this._bindLoadBtn();
-      this._bindSaveBtn();
+      // Initialise the brand project name from state set before panel init.
+      if (AFF.state.projectName) {
+        this._setProjectName(AFF.state.projectName);
+      }
+
       this._bindSaveChangesBtn();
-      this._bindSyncVariablesBtn();
-      this._bindCommitVariablesBtn();
       this._bindFilenameInput();
+    },
+
+    // ------------------------------------------------------------------
+    // PROJECT NAME DISPLAY
+    // ------------------------------------------------------------------
+
+    _setProjectName: function (name) {
+      AFF.state.projectName = name;
+      if (this._projectNameEl) {
+        this._projectNameEl.textContent = name || "";
+      }
+      if (this._filenameInput) {
+        this._filenameInput.value = name || "";
+      }
     },
 
     // ------------------------------------------------------------------
@@ -77,16 +79,6 @@
     // LOAD FILE
     // ------------------------------------------------------------------
 
-    _bindLoadBtn: function () {
-      if (!this._loadBtn) {
-        return;
-      }
-      var self = this;
-
-      this._loadBtn.addEventListener("click", function () {
-        self._openProjectPicker();
-      });
-    },
 
     /**
      * Execute an AJAX load for the given file path.
@@ -154,10 +146,7 @@
               (res.data.filename || path || "")
                 .split("/")[0]
                 .replace(/(?:\.aff|\.eff)+(?:\.json)?$/i, "");
-            AFF.state.projectName = displayName;
-            if (self._filenameInput) {
-              self._filenameInput.value = displayName;
-            }
+            self._setProjectName(displayName);
 
             AFF.App.refreshCounts();
             if (AFF.PanelLeft) {
@@ -256,10 +245,7 @@
               (res.data.filename || "")
                 .split("/")[0]
                 .replace(/(?:\.aff|\.eff)+(?:\.json)?$/i, "");
-            AFF.state.projectName = displayName;
-            if (self._filenameInput) {
-              self._filenameInput.value = displayName;
-            }
+            self._setProjectName(displayName);
 
             AFF.App.refreshCounts();
             if (AFF.PanelLeft) {
@@ -277,28 +263,6 @@
     // ------------------------------------------------------------------
     // SAVE FILE
     // ------------------------------------------------------------------
-
-    _bindSaveBtn: function () {
-      if (!this._saveBtn) {
-        return;
-      }
-      var self = this;
-
-      this._saveBtn.addEventListener("click", function () {
-        var name = self._filenameInput ? self._filenameInput.value.trim() : "";
-        if (!name) {
-          AFF.Modal.open({
-            title: "Name required",
-            body: "<p>Please enter a project name before saving.</p>",
-          });
-          if (self._filenameInput) {
-            self._filenameInput.focus();
-          }
-          return;
-        }
-        self._saveFile(name);
-      });
-    },
 
     /**
      * Execute an AJAX save for the given project name.
@@ -335,14 +299,11 @@
         .then(function (res) {
           if (res.success) {
             AFF.state.currentFile = res.data.filename;
-            AFF.state.projectName = cleanName;
+            self._setProjectName(cleanName);
             // Sync variables back so any empty-id placeholders are replaced
             // with the UUID-assigned copies that php wrote to disk.
             if (res.data.variables) {
               AFF.state.variables = res.data.variables;
-            }
-            if (self._filenameInput) {
-              self._filenameInput.value = cleanName;
             }
             AFF.App.setDirty(false);
             // Keep last_file in sync so auto-load restores the correct project.
@@ -401,16 +362,14 @@
       }
 
       var isPending = AFF.state.pendingSaveCount > 0;
-      var isDirty = AFF.state.hasUnsavedChanges;
+      var isDirty   = AFF.state.hasUnsavedChanges;
 
-      if (isPending) {
-        this._saveChangesBtn.disabled = true;
-        this._saveChangesBtn.setAttribute("aria-disabled", "true");
-        this._saveChangesBtn.textContent = "Saving\u2026";
+      if (isDirty && !isPending) {
+        this._saveChangesBtn.classList.add("aff-icon-btn--dirty");
+        this._saveChangesBtn.setAttribute("aria-label", "Save Changes \u2014 unsaved changes pending");
       } else {
-        this._saveChangesBtn.disabled = !isDirty;
-        this._saveChangesBtn.setAttribute("aria-disabled", String(!isDirty));
-        this._saveChangesBtn.textContent = "Save Changes";
+        this._saveChangesBtn.classList.remove("aff-icon-btn--dirty");
+        this._saveChangesBtn.setAttribute("aria-label", "Save Changes");
       }
     },
 
@@ -508,14 +467,11 @@
           AFF.state.components = [];
           AFF.state.config = {};
           AFF.state.currentFile = null;
-          AFF.state.projectName = newName;
+          self._setProjectName(newName);
           AFF.App.setDirty(false);
           AFF.App.refreshCounts();
           if (AFF.PanelLeft) {
             AFF.PanelLeft.refresh();
-          }
-          if (self._filenameInput) {
-            self._filenameInput.value = newName;
           }
           self._saveFile(newName);
           return;
@@ -577,14 +533,11 @@
                       AFF.state.components = [];
                       AFF.state.config = {};
                       AFF.state.currentFile = null;
-                      AFF.state.projectName = "";
+                      self._setProjectName("");
                       AFF.App.setDirty(false);
                       AFF.App.refreshCounts();
                       if (AFF.PanelLeft) {
                         AFF.PanelLeft.refresh();
-                      }
-                      if (self._filenameInput) {
-                        self._filenameInput.value = "";
                       }
                     }
                     AFF.App.ajax("aff_list_projects", {}).then(function (pr) {
@@ -674,10 +627,7 @@
               }
               // Sync active project name if it was the one renamed.
               if (AFF.state.projectName === oldName) {
-                AFF.state.projectName = newName;
-                if (self._filenameInput) {
-                  self._filenameInput.value = newName;
-                }
+                self._setProjectName(newName);
               }
             } else {
               inp.value = oldName;
@@ -1112,94 +1062,206 @@
     // ELEMENTOR SYNC — pull variables from Elementor
     // ------------------------------------------------------------------
 
+    // ------------------------------------------------------------------
+    // SYNC MODAL — unified V3 / V4 import and export wizard
+    // Opened by the Sync button in the top toolbar.
+    // ------------------------------------------------------------------
+
     /**
-     * Bind the ↓ Variables (sync from Elementor) button.
-     * Shows a sync-options dialog before executing.
+     * Open the Sync modal wizard.
+     * Public — called by AFF.PanelTop when the toolbar Sync button is clicked.
      */
-    _bindSyncVariablesBtn: function () {
-      if (!this._syncVariablesBtn) {
-        return;
-      }
+    openSyncModal: function () {
       var self = this;
+      var handler;
 
-      this._syncVariablesBtn.addEventListener("click", function () {
-        self._openSyncOptionsDialog();
-      });
-    },
+      var warnings = [
+        "Beta — staging sites only. Sync reads from and writes to your Elementor kit data directly. A failed write could affect your V3 or V4 variable data. Always have a current backup before proceeding.",
+        "Warning: Sync operations modify live kit data. Run this on a local or staging site only — never on production. Verify your UpdraftPlus backup before clicking Synchronize.",
+        "Caution: This feature is in beta. Importing replaces or extends your AFF variable set. Exporting writes directly to Elementor’s stored kit. One bad sync can break your site’s design tokens.",
+        "Beta reminder: Sync is a two-way bridge to Elementor’s internal data. If something goes wrong, your backup is the only recovery path. Confirm you have one before continuing.",
+        "Heads up: Sync is in beta and edge cases exist. Color format mismatches, missing kit saves, or version drift between Elementor and AFF can cause unexpected results. Test on staging first.",
+      ];
+      var warningText = warnings[Math.floor(Math.random() * warnings.length)];
 
-    /**
-     * Open the Sync Options dialog (Sync by name / Clear and replace).
-     */
-    _openSyncOptionsDialog: function () {
-      var syncHandler;
-      AFF.Modal.open({
-        title: "Fetch Elementor Data",
-        body:
-          '<p style="margin-bottom:12px">Choose how AFFshould handle existing variables when importing from the Elementor kit.</p>' +
-          '<div style="display:flex;flex-direction:column;gap:10px">' +
-          '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">' +
-          '<input type="radio" name="aff-sync-mode" value="name" checked style="margin-top:3px;flex-shrink:0" />' +
-          "<span><strong>Sync by name</strong><br>" +
-          '<span style="font-size:12px;color:var(--aff-clr-muted)">Add new variables; keep existing AFFvalues unchanged. Safe for incremental updates.</span></span>' +
+      function getBody() {
+        var ver  = document.querySelector('input[name="aff-sync-ver"]:checked');
+        var dir  = document.querySelector('input[name="aff-sync-dir"]:checked');
+        var verV = ver ? ver.value : "v3";
+        var dirV = dir ? dir.value : "import";
+
+        var modeSection = "";
+        if (dirV === "import") {
+          modeSection =
+            '<div class="aff-sync-section">' +
+            '<div class="aff-sync-section__label">Import mode</div>' +
+            '<label class="aff-sync-radio">' +
+            '<input type="radio" name="aff-sync-mode" value="name" checked />' +
+            "<span><strong>Sync by name</strong>" +
+            '<span class="aff-sync-hint">Add new variables; keep existing AFF values unchanged. Safe for incremental updates.</span></span>' +
+            "</label>" +
+            '<label class="aff-sync-radio">' +
+            '<input type="radio" name="aff-sync-mode" value="clear" />' +
+            "<span><strong>Clear and replace</strong>" +
+            '<span class="aff-sync-hint">Remove all existing variables and import fresh from Elementor. Discards AFF edits.</span></span>' +
+            "</label>" +
+            "</div>";
+        } else if (verV === "v3" && dirV === "export") {
+          modeSection =
+            '<div class="aff-sync-section">' +
+            '<p class="aff-sync-hint" style="margin:0">Export AFF data to Elementor V3 is not yet available in this release.</p>' +
+            "</div>";
+        }
+
+        return (
+          // Beta warning — random message picked at modal open time
+          '<div class="aff-sync-warning">' +
+          '<div class="aff-sync-warning__icon">&#9888;</div>' +
+          '<div class="aff-sync-warning__text">' +
+          AFF.Utils.escHtml(warningText) +
+          "</div>" +
+          "</div>" +
+          // Version toggle
+          '<div class="aff-sync-section">' +
+          '<div class="aff-sync-section__label">Elementor version</div>' +
+          '<div class="aff-sync-toggle">' +
+          '<span class="aff-sync-toggle__label">V3</span>' +
+          '<label class="aff-toggle-switch">' +
+          '<input type="checkbox" id="aff-sync-ver-switch" ' + (verV === "v4" ? "checked" : "") + ' />' +
+          '<span class="aff-toggle-switch__track"><span class="aff-toggle-switch__thumb"></span></span>' +
           "</label>" +
-          '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">' +
-          '<input type="radio" name="aff-sync-mode" value="clear" style="margin-top:3px;flex-shrink:0" />' +
-          "<span><strong>Clear and replace</strong><br>" +
-          '<span style="font-size:12px;color:var(--aff-clr-muted)">Remove all existing variables and import fresh from Elementor. Discards AFFedits.</span></span>' +
+          '<span class="aff-sync-toggle__label">V4</span>' +
+          '<input type="radio" name="aff-sync-ver" value="v3" style="display:none" ' + (verV !== "v4" ? "checked" : "") + ' />' +
+          '<input type="radio" name="aff-sync-ver" value="v4" style="display:none" ' + (verV === "v4" ? "checked" : "") + ' />' +
+          "</div>" +
+          "</div>" +
+          // Direction toggle
+          '<div class="aff-sync-section">' +
+          '<div class="aff-sync-section__label">Direction</div>' +
+          '<div class="aff-sync-toggle">' +
+          '<span class="aff-sync-toggle__label">Import</span>' +
+          '<label class="aff-toggle-switch">' +
+          '<input type="checkbox" id="aff-sync-dir-switch" ' + (dirV === "export" ? "checked" : "") + ' />' +
+          '<span class="aff-toggle-switch__track"><span class="aff-toggle-switch__thumb"></span></span>' +
           "</label>" +
-          "</div>",
-        footer:
+          '<span class="aff-sync-toggle__label">Export</span>' +
+          '<input type="radio" name="aff-sync-dir" value="import" style="display:none" ' + (!dirV || dirV === "import" ? "checked" : "") + ' />' +
+          '<input type="radio" name="aff-sync-dir" value="export" style="display:none" ' + (dirV === "export" ? "checked" : "") + ' />' +
+          "</div>" +
+          "</div>" +
+          modeSection
+        );
+      }
+
+      function getFooter() {
+        return (
           '<div style="display:flex;justify-content:flex-end;gap:8px">' +
           '<button class="aff-btn aff-btn--secondary" id="aff-sync-cancel">Cancel</button>' +
-          '<button class="aff-btn" id="aff-sync-confirm">Sync</button>' +
-          "</div>",
+          '<button class="aff-btn" id="aff-sync-go">Synchronize</button>' +
+          "</div>"
+        );
+      }
+
+      function rerender() {
+        var body = document.getElementById("aff-modal-body");
+        var foot = document.getElementById("aff-modal-footer");
+        if (!body || !foot) { return; }
+        body.innerHTML = getBody();
+        foot.innerHTML = getFooter();
+        bindInner();
+      }
+
+      function bindInner() {
+        var verSwitchEl = document.getElementById("aff-sync-ver-switch");
+        var dirSwitchEl = document.getElementById("aff-sync-dir-switch");
+
+        if (verSwitchEl) {
+          verSwitchEl.addEventListener("change", function () {
+            var v3Radio = document.querySelector('input[name="aff-sync-ver"][value="v3"]');
+            var v4Radio = document.querySelector('input[name="aff-sync-ver"][value="v4"]');
+            if (verSwitchEl.checked) {
+              if (v4Radio) { v4Radio.checked = true; }
+            } else {
+              if (v3Radio) { v3Radio.checked = true; }
+            }
+            rerender();
+          });
+        }
+
+        if (dirSwitchEl) {
+          dirSwitchEl.addEventListener("change", function () {
+            var importRadio = document.querySelector('input[name="aff-sync-dir"][value="import"]');
+            var exportRadio = document.querySelector('input[name="aff-sync-dir"][value="export"]');
+            if (dirSwitchEl.checked) {
+              if (exportRadio) { exportRadio.checked = true; }
+            } else {
+              if (importRadio) { importRadio.checked = true; }
+            }
+            rerender();
+          });
+        }
+      }
+
+      AFF.Modal.open({
+        title: "Sync with Elementor",
+        body: getBody(),
+        footer: getFooter(),
         onClose: function () {
-          document.removeEventListener("click", syncHandler);
+          document.removeEventListener("click", handler);
         },
       });
 
-      syncHandler = function (e) {
+      bindInner();
+
+      handler = function (e) {
         if (e.target.id === "aff-sync-cancel") {
           AFF.Modal.close();
-          document.removeEventListener("click", syncHandler);
-        } else if (e.target.id === "aff-sync-confirm") {
-          var modeInput = document.querySelector(
-            'input[name="aff-sync-mode"]:checked',
-          );
-          var clearMode = modeInput && modeInput.value === "clear";
+          document.removeEventListener("click", handler);
+          return;
+        }
+
+        if (e.target.id === "aff-sync-go") {
+          var ver = document.querySelector('input[name="aff-sync-ver"]:checked');
+          var dir = document.querySelector('input[name="aff-sync-dir"]:checked');
+          var verV = ver ? ver.value : "v4";
+          var dirV = dir ? dir.value : "import";
+
+          document.removeEventListener("click", handler);
           AFF.Modal.close();
-          document.removeEventListener("click", syncHandler);
-          if (clearMode) {
-            AFF.state.variables = [];
-          }
-          if (AFF.PanelTop && AFF.PanelTop._syncFromElementor) {
-            AFF.PanelTop._syncFromElementor({ clearMode: clearMode });
+
+          if (verV === "v4" && dirV === "import") {
+            var modeInput = document.querySelector('input[name="aff-sync-mode"]:checked');
+            var clearMode = modeInput && modeInput.value === "clear";
+            if (clearMode) { AFF.state.variables = []; }
+            if (AFF.PanelTop && AFF.PanelTop._syncFromElementor) {
+              AFF.PanelTop._syncFromElementor({ clearMode: clearMode });
+            }
+
+          } else if (verV === "v4" && dirV === "export") {
+            self._showWriteSafetyGate(function () {
+              self._openCommitSummaryDialog();
+            });
+
+          } else if (verV === "v3" && dirV === "import") {
+            var v3ModeInput = document.querySelector('input[name="aff-sync-mode"]:checked');
+            var v3ClearMode = v3ModeInput && v3ModeInput.value === "clear";
+            self._executeV3Import({ clearMode: v3ClearMode });
+
+          } else if (verV === "v3" && dirV === "export") {
+            AFF.Modal.open({
+              title: "Not available",
+              body: "<p>Export to Elementor V3 is not yet implemented. This feature is planned for a future release.</p>",
+            });
           }
         }
       };
-      document.addEventListener("click", syncHandler);
+      document.addEventListener("click", handler);
     },
 
     // ------------------------------------------------------------------
     // ELEMENTOR SYNC — commit variables to Elementor
     // ------------------------------------------------------------------
 
-    /**
-     * Bind the ↑ Variables (commit to Elementor) button.
-     */
-    _bindCommitVariablesBtn: function () {
-      if (!this._commitVariablesBtn) {
-        return;
-      }
-      var self = this;
-
-      this._commitVariablesBtn.addEventListener("click", function () {
-        // Safety gate first — user must read and confirm before anything touches Elementor.
-        self._showWriteSafetyGate(function () {
-          self._openCommitSummaryDialog();
-        });
-      });
-    },
 
     /**
      * Show a mandatory safety confirmation before any Write to Elementor operation.
@@ -1594,7 +1656,22 @@
               },
             );
 
-            // Persist the updated snapshot to disk.
+            // Update variable statuses to 'synced' for committed vars BEFORE
+            // saving so the file on disk reflects the post-commit state.
+            var committedLc = committed.map(function (n) {
+              return n.toLowerCase();
+            });
+            for (var i = 0; i < AFF.state.variables.length; i++) {
+              if (
+                committedLc.indexOf(
+                  (AFF.state.variables[i].name || "").toLowerCase(),
+                ) !== -1
+              ) {
+                AFF.state.variables[i].status = "synced";
+              }
+            }
+
+            // Persist the updated snapshot and synced statuses to disk.
             if (AFF.state.currentFile && AFF.state.projectName) {
               AFF.App.ajax("aff_save_file", {
                 project_name: AFF.state.projectName,
@@ -1615,20 +1692,6 @@
                 .catch(function () {
                   console.warn("[AFF] Snapshot save after commit failed.");
                 });
-            }
-
-            // Update variable statuses to 'synced' for committed vars.
-            var committedLc = committed.map(function (n) {
-              return n.toLowerCase();
-            });
-            for (var i = 0; i < AFF.state.variables.length; i++) {
-              if (
-                committedLc.indexOf(
-                  (AFF.state.variables[i].name || "").toLowerCase(),
-                ) !== -1
-              ) {
-                AFF.state.variables[i].status = "synced";
-              }
             }
 
             AFF.App.setPendingCommit(false);
@@ -1714,10 +1777,8 @@
      *
      * STUB — intentionally not called from init(). The V3 Global Colors import
      * feature is planned but not yet shipping. The button element does not exist
-     * in the current admin template, so init() omits this binding to stay clean.
-     * When the feature ships, add to init():
-     *   this._v3ColorsBtn = document.getElementById('aff-btn-v3-colors');
-     *   this._bindV3ColorsBtn();
+     * V3 import is now triggered via openSyncModal() — this button binding
+     * is retained for reference but is no longer called directly.
      */
     _bindV3ColorsBtn: function () {
       if (!this._v3ColorsBtn) {
@@ -1763,27 +1824,59 @@
     /**
      * Execute the V3 colors import AJAX call.
      */
-    _executeV3Import: function () {
+    _executeV3Import: function (options) {
+      var clearMode = options && options.clearMode;
+
       AFF.App.ajax("aff_sync_v3_global_colors", {})
         .then(function (res) {
           if (res.success) {
             var imported = res.data.imported || [];
 
-            imported.forEach(function (v) {
-              var existing = AFF.state.variables.filter(function (ev) {
-                return ev.name === v.name;
+            if (clearMode) {
+              AFF.state.variables = AFF.state.variables.filter(function (ev) {
+                return ev.source !== "elementor-v3";
               });
+            }
+
+            imported.forEach(function (v, idx) {
+              // Derive a CSS variable name from the human-readable title, preserving
+              // original casing. Strip only apostrophes/quotes; replace other invalid
+              // chars with hyphens. "Don't Use Primary" → "--Dont-Use-Primary".
+              var cleanName = v.title
+                ? "--" + v.title.replace(/['"]/g, "").replace(/[^a-zA-Z0-9-]+/g, "-").replace(/^-+|-+$/g, "")
+                : v.elementor_var;
+
+              var category = "Uncategorized";
+
+              // Match by v3_var (new imports) or name (legacy imports where name = elementor_var).
+              var existing = AFF.state.variables.filter(function (ev) {
+                return ev.v3_var === v.elementor_var || ev.name === v.elementor_var;
+              });
+              // Auto-populate notes for the first four V3 imports (Elementor system
+              // colors: Primary, Secondary, Text, Accent) by position, not by title.
+              // Titles can be renamed in Elementor and won't match; position is stable.
+              var systemColorNotes = [
+                "System Colors: Used for Headings and Icons",
+                "System Colors: Used for List Items, Subheadings, Animated Headings, and Price Table backgrounds",
+                "System Colors: Used for Paragraphs and Menu items",
+                "System Colors: Used for Links, Button backgrounds, Tab and Accordion headings, and Badges",
+              ];
+              var autoNote = idx < systemColorNotes.length ? systemColorNotes[idx] : "";
+
               if (existing.length === 0) {
                 AFF.state.variables.push({
                   id: "",
-                  name: v.name,
+                  name: cleanName,
+                  label: v.title || "",
+                  notes: autoNote,
+                  v3_var: v.elementor_var,
                   value: v.value,
                   source: "elementor-v3",
                   type: "color",
                   group: "Variables",
                   subgroup: "Colors",
-                  category: "Uncategorized",
-                  category_id: "",
+                  category: category,
+                  category_id: "default-uncategorized",
                   modified: false,
                   status: "new",
                   created_at: new Date().toISOString(),
@@ -1810,10 +1903,7 @@
                   (imported.length !== 1 ? "s" : "") +
                   " imported."
                 : "No V3 Global Colors found in the active Elementor kit.";
-            AFF.Modal.open({
-              title: "V3 Import complete",
-              body: "<p>" + msg + "</p>",
-            });
+            AFF.Modal.info("V3 Import complete", "<p>" + msg + "</p>");
           } else {
             AFF.Modal.open({
               title: "V3 Import error",

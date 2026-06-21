@@ -15,7 +15,7 @@
 
 - **Plugin name:** Atomic Framework Forge for Elementor
 - **Acronym / folder:** `aff` → `E:\projects\plugins\aff`
-- **Version:** v0.3.5-beta
+- **Version:** v1.2.0
 - **GitHub:** https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor
 - **Branding:** Always "Jim R Forge" — never "JimRWeb"
 - **Author URI:** https://jimrforge.com
@@ -116,7 +116,7 @@ atomic-framework-forge-for-elementor/
 `class-aff-data-store.php`, `class-aff-ajax-handler.php`, and all business logic classes must have **no WordPress dependencies**. All WordPress-specific code belongs in thin adapter classes only. AFF is architecturally intended for future port to a standalone Windows/Mac app. The `.aff.json` storage format must remain platform-agnostic.
 
 ### 3. No jQuery for AFF UI logic
-AFF UI is **vanilla JS** only. WordPress jQuery may be used for WordPress API calls only. Prefer `fetch()` with nonces for all AJAX.
+Covered by the plugins-level prohibition. AFF-specific addition: prefer `fetch()` with nonces for all AJAX — do not use `jQuery.ajax` even for WordPress API calls in AFF.
 
 ### 4. No build process
 Pure PHP/JS/CSS. No npm, no Babel, no bundler. ES6+ is fine. Hard-refresh (Ctrl+Shift+R) after JS/CSS changes.

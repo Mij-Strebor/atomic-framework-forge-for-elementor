@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AFF Colors — Phase 2 Colors Edit Space
  *
  * Intercepts AFF.EditSpace.loadCategory() for the Colors subgroup and
@@ -92,6 +92,8 @@
     _openExpandId: null,
     /** @type {object|null} */
     _pickrInstance: null,
+    /** @type {object|null} Pickr attached to a color row swatch (outside the expand panel). */
+    _rowPickrInstance: null,
 
     /**
      * Initialize: intercept AFF.EditSpace.loadCategory for Colors subgroup.
@@ -266,12 +268,21 @@
         : "Expand all categories";
 
       // ------- FILTER BAR -------
-      // Top row: COLORS title | spacer | search | close | collapse-toggle
+      // Top row: COLORS title | count | spacer | search | close | collapse-toggle
       // Add-category button: circle below filter bar (matches category add-var position)
+      var _totalColorCount = (AFF.state && AFF.state.variables)
+        ? AFF.state.variables.filter(function (v) { return v.subgroup === 'Colors' && v.status !== 'deleted'; }).length
+        : 0;
+      var _countBadge = _totalColorCount > 0
+        ? '<span class="aff-nav-count aff-filter-bar-count">' + _totalColorCount + '</span>'
+        : '';
+      html += '<div class="aff-group-sticky-header">';
+
       html +=
         '<div class="aff-colors-filter-bar">' +
         '<div class="aff-filter-bar-top">' +
         '<span class="aff-filter-bar-set-name">Colors</span>' +
+        _countBadge +
         '<span style="flex:1"></span>' +
         '<input type="text" class="aff-colors-search" id="aff-colors-search"' +
         ' placeholder="Search\u2026" aria-label="Search color variables">' +
@@ -313,6 +324,8 @@
         '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-orphaned)"></span>Orphaned</span>' +
         '<span class="aff-legend-item"><span class="aff-legend-dot" style="background:var(--aff-status-conflict)"></span>Conflict</span>' +
         '</div>';
+
+      html += '</div>'; // .aff-group-sticky-header
 
       // ------- SELECTION BAR -------
       // Visible only when ≥1 variable is selected. Shown/hidden live by
@@ -479,13 +492,16 @@
         '<div class="aff-category-header">' +
         '<div class="aff-cat-header-top">' +
         '<div class="aff-cat-header-left">' +
-        // Drag handle — hidden for sub-cats (reorder deferred to Phase 3).
+        // Drag handle — six-dot grip; class differs by depth so drag logic stays separate.
         (depth === 0
           ? '<span class="aff-cat-drag-handle" data-action="cat-drag-handle" aria-hidden="true"' +
             ' data-aff-tooltip="Drag to reorder">' +
             AFF.Icons.sixDotSVG() +
             "</span>"
-          : "") +
+          : '<span class="aff-subcat-drag-handle" data-action="subcat-drag-handle" aria-hidden="true"' +
+            ' data-aff-tooltip="Drag to reorder">' +
+            AFF.Icons.sixDotSVG() +
+            "</span>") +
         // Category name as plain span — no surrounding box.
         // Double-click activates contenteditable.
         '<span class="aff-category-name-input"' +
@@ -510,6 +526,12 @@
         (!cat.locked && depth === 0
           ? AFF.Icons.catBtn("add-sub-cat", "Add sub-category", AFF.Icons.plusCircleSVG(), "")
           : "") +
+        AFF.Icons.catBtn(
+          "clear-cat",
+          "Clear category contents",
+          AFF.Icons.broomSVG(),
+          "aff-icon-btn--warning",
+        ) +
         AFF.Icons.catBtn(
           "duplicate",
           "Duplicate category",
@@ -569,6 +591,7 @@
         AFF.Icons.sortBtnSVG(_ns) +
         "</button>" +
         "</span>" +
+        "<span></span>" + // col5: notes (no sort)
         '<span class="aff-col-sort-wrap">' +
         '<button class="aff-col-sort-btn" data-sort-col="value" data-cat-id="' +
         AFF.Utils.escHtml(cat.id) +
@@ -584,7 +607,8 @@
 
       // Variable rows.
       html += '<div class="aff-color-list">';
-      if (directCount === 0) {
+      var _hasSubs = depth === 0 && self._getSubCategoriesOf(cat.id, allCats).length > 0;
+      if (directCount === 0 && !_hasSubs) {
         html +=
           '<p class="aff-colors-empty">No variables in this category.</p>';
       } else {
@@ -666,10 +690,10 @@
         ' aria-label="Color swatch"' +
         ' data-aff-tooltip="Click to open color editor">' +
         "</span>" +
-        // Variable name — single-click to edit.
+        // Variable name — single-click to edit. Shows label (display name) when set.
         '<input type="text" class="aff-color-name-input"' +
         ' value="' +
-        AFF.Utils.escHtml(v.name) +
+        AFF.Utils.escHtml(v.label || v.name) +
         '"' +
         ' data-original="' +
         AFF.Utils.escHtml(v.name) +
@@ -677,6 +701,15 @@
         " readonly" +
         ' aria-label="Variable name"' +
         ' data-aff-tooltip="Variable name — click to edit"' +
+        ' spellcheck="false">' +
+        // Notes — single-click to edit; select-all on focus.
+        '<input type="text" class="aff-color-notes-input"' +
+        ' value="' + AFF.Utils.escHtml(v.notes || '') + '"' +
+        ' data-original="' + AFF.Utils.escHtml(v.notes || '') + '"' +
+        ' readonly' +
+        ' placeholder="Comment"' +
+        ' aria-label="Variable note"' +
+        ' data-aff-tooltip="Variable note — click to edit"' +
         ' spellcheck="false">' +
         // Color value — directly editable.
         '<input type="text" class="aff-color-value-input"' +
@@ -778,58 +811,43 @@
 
       var html =
         '<div class="aff-modal-header">' +
-        // Empty drag-handle placeholder (col 1) — keeps grid alignment with .aff-color-row
-        "<span></span>" +
-        // Status dot (col 2) — matches color row col 2
-        '<span class="aff-status-dot" style="background:' +
-        statusColor +
-        '"' +
-        ' title="Status: ' +
-        AFF.Utils.escHtml(v.status || "synced") +
-        '"></span>' +
-        // Swatch (col 3) — Pickr trigger button (all formats)
-        '<button class="aff-color-swatch aff-pickr-btn" type="button" style="background:' +
-        swatchBg +
-        '"' +
+        // Row 1: drag | dot | swatch | name | value | format | close
+        '<div class="aff-modal-header-row1">' +
+        '<span></span>' +
+        '<span class="aff-status-dot" style="background:' + statusColor + '"' +
+        ' title="Status: ' + AFF.Utils.escHtml(v.status || "synced") + '"></span>' +
+        '<button class="aff-color-swatch aff-pickr-btn" type="button" style="background:' + swatchBg + '"' +
         ' aria-label="Open color picker"' +
         ' data-aff-tooltip="Click to open color picker"></button>' +
-        // Name input (col 3)
         '<input type="text" class="aff-color-name-input"' +
-        ' value="' +
-        AFF.Utils.escHtml(v.name) +
-        '"' +
-        ' data-original="' +
-        AFF.Utils.escHtml(v.name) +
-        '"' +
-        ' data-var-id="' +
-        AFF.Utils.escHtml(rowKey) +
-        '"' +
+        ' value="' + AFF.Utils.escHtml(v.label || v.name) + '"' +
+        ' data-original="' + AFF.Utils.escHtml(v.name) + '"' +
+        ' data-var-id="' + AFF.Utils.escHtml(rowKey) + '"' +
         ' spellcheck="false" aria-label="Variable name"' +
         ' data-aff-tooltip="Variable name \u2014 click to edit">' +
-        // Value input (col 4)
         '<input type="text" class="aff-color-value-input"' +
-        ' value="' +
-        AFF.Utils.escHtml(v.value || "") +
-        '"' +
-        ' data-original="' +
-        AFF.Utils.escHtml(v.value || "") +
-        '"' +
-        ' data-var-id="' +
-        AFF.Utils.escHtml(rowKey) +
-        '"' +
+        ' value="' + AFF.Utils.escHtml(v.value || "") + '"' +
+        ' data-original="' + AFF.Utils.escHtml(v.value || "") + '"' +
+        ' data-var-id="' + AFF.Utils.escHtml(rowKey) + '"' +
         ' spellcheck="false" aria-label="Color value"' +
         ' data-aff-tooltip="Color value \u2014 edit directly">' +
-        // Format select (col 5)
         '<select class="aff-color-format-sel"' +
-        ' data-var-id="' +
-        AFF.Utils.escHtml(rowKey) +
-        '"' +
+        ' data-var-id="' + AFF.Utils.escHtml(rowKey) + '"' +
         ' aria-label="Color format"' +
         ' data-aff-tooltip="Color format">' +
         self._formatOptions(v.format || "HEX") +
         "</select>" +
-        // Close button (col 6)
         '<button class="aff-modal-close-btn" aria-label="Close editor">\u00d7</button>' +
+        "</div>" +
+        // Row 2: full-width notes field
+        '<input type="text" class="aff-color-notes-input aff-modal-notes"' +
+        ' value="' + AFF.Utils.escHtml(v.notes || '') + '"' +
+        ' data-original="' + AFF.Utils.escHtml(v.notes || '') + '"' +
+        ' data-var-id="' + AFF.Utils.escHtml(rowKey) + '"' +
+        ' readonly placeholder="Comment"' +
+        ' aria-label="Variable note"' +
+        ' data-aff-tooltip="Variable note \u2014 click to edit"' +
+        ' spellcheck="false">' +
         "</div>";
 
       html += '<div class="aff-modal-body">';
@@ -844,7 +862,8 @@
         '"' +
         ' data-var-id="' +
         AFF.Utils.escHtml(rowKey) +
-        '">' +
+        '"' +
+        ' data-aff-tooltip="Steps 0–10 — each tint shifts lightness toward white">' +
         "</div>" +
         '<div class="aff-palette-strip aff-tints-palette">' +
         self._buildTintsBars(hsl, currentTints) +
@@ -861,7 +880,8 @@
         '"' +
         ' data-var-id="' +
         AFF.Utils.escHtml(rowKey) +
-        '">' +
+        '"' +
+        ' data-aff-tooltip="Steps 0–10 — each shade shifts lightness toward black">' +
         "</div>" +
         '<div class="aff-palette-strip aff-shades-palette">' +
         self._buildShadesBars(hsl, currentShades) +
@@ -872,7 +892,7 @@
         '<div class="aff-modal-gen-row">' +
         '<span class="aff-modal-gen-label">Transparencies</span>' +
         '<div class="aff-modal-gen-ctrl">' +
-        '<label class="aff-toggle-label">' +
+        '<label class="aff-toggle-label" data-aff-tooltip="Generate 9 transparent steps at 10%–90% opacity">' +
         '<input type="checkbox" class="aff-gen-trans-toggle"' +
         ' data-var-id="' +
         AFF.Utils.escHtml(rowKey) +
@@ -886,6 +906,40 @@
         (transOn ? self._buildTransBars(rgba) : "") +
         "</div>" +
         "</div>";
+
+      // Dark / Light mode variant row.
+      // Dark: always darker than source — push L toward low end (L × 0.4).
+      // Light: always lighter than source — push L toward high end (L + gap × 0.5).
+      // Both guaranteed to differ from each other and from the source at any lightness.
+      if (hsl) {
+        var darkL  = Math.max(10, Math.round(hsl.l * 0.4));
+        var darkS  = Math.min(100, Math.round(hsl.s * 1.1));
+        var lightL = Math.min(98, Math.round(hsl.l + (100 - hsl.l) * 0.5));
+        var lightS = Math.min(100, Math.round(hsl.s * 0.85));
+        var darkHex  = self._hslToHex(hsl.h, darkS,  darkL);
+        var lightHex = self._hslToHex(hsl.h, lightS, lightL);
+        html +=
+          '<div class="aff-modal-gen-row">' +
+          '<span class="aff-modal-gen-label">Dark Variant</span>' +
+          '<div class="aff-modal-gen-ctrl">' +
+          '<label class="aff-toggle-label" data-aff-tooltip="Add a darker version of this color — useful as a dark-mode counterpart">' +
+          '<input type="checkbox" class="aff-dark-mode-on" data-hex="' + AFF.Utils.escHtml(darkHex) + '">' +
+          '<span class="aff-toggle-track"></span>' +
+          '</label>' +
+          '</div>' +
+          '<div class="aff-mode-variant-reveal"></div>' +
+          '</div>' +
+          '<div class="aff-modal-gen-row">' +
+          '<span class="aff-modal-gen-label">Light Variant</span>' +
+          '<div class="aff-modal-gen-ctrl">' +
+          '<label class="aff-toggle-label" data-aff-tooltip="Add a lighter version of this color — useful as a light-mode counterpart">' +
+          '<input type="checkbox" class="aff-light-mode-on" data-hex="' + AFF.Utils.escHtml(lightHex) + '">' +
+          '<span class="aff-toggle-track"></span>' +
+          '</label>' +
+          '</div>' +
+          '<div class="aff-mode-variant-reveal"></div>' +
+          '</div>';
+      }
 
       // Move to Category row.
       var allCats =
@@ -913,7 +967,7 @@
           '<div class="aff-modal-gen-ctrl" style="width:auto;flex:1">' +
           '<select class="aff-cat-move-select" data-var-id="' +
           AFF.Utils.escHtml(rowKey) +
-          '">' +
+          '" data-aff-tooltip="Move this color variable to a different category">' +
           catOptions +
           "</select>" +
           "</div>" +
@@ -1025,6 +1079,7 @@
       container._affEventsBound = true;
       var self = this;
       self._initCatDrag(container);
+      self._initSubcatDrag(container);
       self._initDrag(container);
       self._bindCategoryAndRowActions(container);
       self._bindInlineEditing(container);
@@ -1160,6 +1215,11 @@
               self._duplicateCategory(catId);
             }
             break;
+          case "clear-cat":
+            if (catId) {
+              self._clearCategory(catId);
+            }
+            break;
           case "add-var":
             if (catId) {
               self._addVariable(catId);
@@ -1218,14 +1278,99 @@
           }
 
           case "open-picker": {
+            var swatchEl  = e.target.closest("[data-action='open-picker']");
             var swatchRow = e.target.closest(".aff-color-row");
-            var swVarId = swatchRow
-              ? swatchRow.getAttribute("data-var-id")
-              : null;
-            if (swVarId !== null) {
-              self._toggleExpandPanel(swVarId, swatchRow, container);
+            var swVarId   = swatchRow ? swatchRow.getAttribute("data-var-id") : null;
+            if (!swVarId || !swatchEl || typeof Pickr === "undefined") { break; }
+
+            var swV = AFF.Utils.findVarByKey(swVarId);
+            if (!swV) { break; }
+
+            // Destroy any live row Pickr.
+            if (self._rowPickrInstance) {
+              try { self._rowPickrInstance.destroy(); } catch (_e) {}
+              self._rowPickrInstance = null;
+            }
+
+            var swFmt        = (swV.format || "HEX").replace(/A$/, "");
+            var swValueInput = swatchRow.querySelector(".aff-color-value-input");
+
+            try {
+              var rowPickr = Pickr.create({
+                el:          swatchEl,
+                theme:       "classic",
+                useAsButton: true,
+                default:     swV.value || "#000000",
+                components: {
+                  preview: true,
+                  opacity: true,
+                  hue:     true,
+                  interaction: {
+                    hex:   swFmt === "HEX",
+                    rgba:  swFmt === "RGB",
+                    hsla:  swFmt === "HSL",
+                    input: true,
+                    save:  true,
+                  },
+                },
+              });
+
+              rowPickr.on("change", function (color) {
+                var preview = self._pickrColorToString(color, swFmt);
+                if (preview) { swatchEl.style.background = preview; }
+              });
+
+              rowPickr.on("save", function (color) {
+                if (!color) { return; }
+                var raw    = self._pickrColorToString(color, swFmt);
+                var result = self._normalizeColorValue(raw, swFmt);
+                if (result.error) { return; }
+                swatchEl.style.background = result.value;
+                if (swValueInput) {
+                  swValueInput.value = result.value;
+                  swValueInput.setAttribute("data-original", result.value);
+                }
+                self._saveVarValue(swVarId, result.value, swValueInput);
+                rowPickr.hide();
+              });
+
+              rowPickr.on("hide", function () {
+                if (self._rowPickrInstance === rowPickr) {
+                  try { self._rowPickrInstance.destroy(); } catch (_e) {}
+                  self._rowPickrInstance = null;
+                }
+              });
+
+              self._rowPickrInstance = rowPickr;
+              rowPickr.show();
+            } catch (pickrErr) {
+              console.warn("[AFF] Row Pickr init failed:", pickrErr.message);
             }
             break;
+          }
+        }
+      });
+
+      // Right-click shortcut: expand a collapsed category/subcategory, or open a color's expand panel.
+      container.addEventListener("contextmenu", function (e) {
+        if (!container.querySelector(".aff-colors-view")) { return; }
+
+        var colorRow = e.target.closest(".aff-color-row");
+        if (colorRow) {
+          e.preventDefault();
+          var rcVarId = colorRow.getAttribute("data-var-id");
+          if (rcVarId) { self._toggleExpandPanel(rcVarId, colorRow, container); }
+          return;
+        }
+
+        var catBlock = e.target.closest(".aff-category-block");
+        if (catBlock) {
+          e.preventDefault();
+          if (catBlock.getAttribute("data-collapsed") === "true") {
+            catBlock.setAttribute("data-collapsed", "false");
+            var rcCatId = catBlock.getAttribute("data-category-id");
+            if (rcCatId) { self._collapsedIds[rcCatId] = false; }
+            setTimeout(function () { catBlock.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 50);
           }
         }
       });
@@ -1237,7 +1382,7 @@
       // Single-click to activate inline editing for name and category fields.
       container.addEventListener("mousedown", function (e) {
         var input = e.target.closest(
-          ".aff-color-name-input, .aff-category-name-input",
+          ".aff-color-name-input, .aff-color-notes-input, .aff-category-name-input",
         );
         if (!input) {
           return;
@@ -1283,6 +1428,14 @@
           nameInput.setAttribute("readonly", "");
           return;
         }
+        var notesInput = e.target.closest(".aff-color-notes-input");
+        if (notesInput) {
+          notesInput.setAttribute("readonly", "");
+          var nRow  = notesInput.closest(".aff-color-row");
+          var nId   = nRow ? nRow.getAttribute("data-var-id") : (notesInput.getAttribute("data-var-id") || null);
+          if (nId !== null) { self._saveColorNote(nId, notesInput); }
+          return;
+        }
         var catInput = e.target.closest(".aff-category-name-input");
         if (catInput && catInput.getAttribute("data-locked") !== "true") {
           self._saveCategoryName(catInput);
@@ -1320,6 +1473,15 @@
         }
       });
 
+      // Notes input: save on change.
+      container.addEventListener("change", function (e) {
+        var notesInput = e.target.closest(".aff-color-notes-input");
+        if (!notesInput) { return; }
+        var nRow  = notesInput.closest(".aff-color-row");
+        var nId   = nRow ? nRow.getAttribute("data-var-id") : (notesInput.getAttribute("data-var-id") || null);
+        if (nId !== null) { self._saveColorNote(nId, notesInput); }
+      });
+
       // Name and value inputs: Enter commits; Tab moves between fields.
       container.addEventListener("keydown", function (e) {
         // Enter on a readonly name input — activate it for editing.
@@ -1336,10 +1498,35 @@
           }
         }
 
+        // Enter on a readonly notes input — activate it for editing.
+        if (e.key === "Enter") {
+          var notesInput = e.target.closest(".aff-color-notes-input");
+          if (notesInput && notesInput.hasAttribute("readonly")) {
+            e.preventDefault();
+            notesInput.removeAttribute("readonly");
+            setTimeout(function () {
+              notesInput.focus();
+              notesInput.select();
+            }, 0);
+            return;
+          }
+        }
+
+        // Escape on an active notes input — revert to original and blur.
+        if (e.key === "Escape") {
+          var notesEsc = e.target.closest(".aff-color-notes-input");
+          if (notesEsc && !notesEsc.hasAttribute("readonly")) {
+            e.preventDefault();
+            notesEsc.value = notesEsc.getAttribute("data-original") || "";
+            notesEsc.blur();
+            return;
+          }
+        }
+
         // Enter on an active name/value input — commit (blur).
         if (e.key === "Enter") {
           var input = e.target.closest(
-            ".aff-color-name-input, .aff-color-value-input",
+            ".aff-color-name-input, .aff-color-value-input, .aff-color-notes-input",
           );
           if (input) {
             e.preventDefault();
@@ -1524,6 +1711,12 @@
     _toggleExpandPanel: function (varId, row, container) {
       var self = this;
 
+      // Close any row-level Pickr before opening the expand panel.
+      if (self._rowPickrInstance) {
+        try { self._rowPickrInstance.destroy(); } catch (_e) {}
+        self._rowPickrInstance = null;
+      }
+
       if (self._openExpandId === varId) {
         // Same row clicked again — animate closed.
         self._closeExpandPanel(container, false);
@@ -1664,12 +1857,57 @@
         });
       }
 
-      // Save/Cancel buttons for tints-shades-transparencies palette.
+      // Save/Cancel buttons for tints-shades-transparencies palette and mode variants.
       var saveBtn = modal.querySelector(".aff-gen-save-btn");
       if (saveBtn) {
         saveBtn.addEventListener("click", function () {
-          self._generateChildren(varId, modal);
-          self._closeExpandPanel(container, false);
+          var darkToggle  = modal.querySelector(".aff-dark-mode-on");
+          var lightToggle = modal.querySelector(".aff-light-mode-on");
+
+          function makeVariantSave(hex, suffix) {
+            var baseName = (v.name || "").replace(/^--/, "");
+            var newVar = {
+              name:        baseName + suffix,
+              value:       hex,
+              type:        "color",
+              subgroup:    "Colors",
+              category:    v.category    || "",
+              category_id: v.category_id || "",
+              format:      "HEX",
+              status:      "new",
+            };
+            return AFF.App.ajax("aff_save_color", {
+              filename: AFF.state.currentFile,
+              variable: JSON.stringify(newVar),
+            }).then(function (res) {
+              if (res.success && res.data && res.data.data) {
+                AFF.state.variables = res.data.data.variables || AFF.state.variables;
+              }
+            });
+          }
+
+          // Sequential saves — concurrent file_put_contents calls can corrupt the JSON.
+          var variantChain = Promise.resolve();
+          if (darkToggle  && darkToggle.checked)  { variantChain = variantChain.then(function () { return makeVariantSave(darkToggle.getAttribute("data-hex"),  "-Dark");  }); }
+          if (lightToggle && lightToggle.checked) { variantChain = variantChain.then(function () { return makeVariantSave(lightToggle.getAttribute("data-hex"), "-Light"); }); }
+
+          variantChain.then(function () {
+            if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
+            // Read modal values before closing — _generateChildren reads them synchronously.
+            var childrenPromise = self._generateChildren(varId, modal);
+            self._closeExpandPanel(container, false);
+            // Rerender immediately so saved dark/light variants appear without waiting
+            // for the _generateChildren AJAX chain to complete.
+            if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+            self._rerenderView();
+            // When _generateChildren finishes, rerender again so subcategories appear.
+            if (childrenPromise && typeof childrenPromise.then === "function") {
+              childrenPromise.then(function () {
+                self._rerenderView();
+                if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+              });
+            }
+          });
         });
       }
       var cancelBtn = modal.querySelector(".aff-gen-cancel-btn");
@@ -1881,6 +2119,32 @@
         });
       }
 
+      // Dark / Light variant toggles — show swatch in reveal div on change.
+      var darkChk = modal.querySelector(".aff-dark-mode-on");
+      if (darkChk) {
+        darkChk.addEventListener("change", function () {
+          var reveal = darkChk.closest(".aff-modal-gen-row").querySelector(".aff-mode-variant-reveal");
+          if (reveal) {
+            var hex = darkChk.getAttribute("data-hex");
+            reveal.innerHTML = darkChk.checked
+              ? '<span class="aff-mode-swatch" style="background:' + hex + '" title="' + hex + '"></span>'
+              : "";
+          }
+        });
+      }
+      var lightChk = modal.querySelector(".aff-light-mode-on");
+      if (lightChk) {
+        lightChk.addEventListener("change", function () {
+          var reveal = lightChk.closest(".aff-modal-gen-row").querySelector(".aff-mode-variant-reveal");
+          if (reveal) {
+            var hex = lightChk.getAttribute("data-hex");
+            reveal.innerHTML = lightChk.checked
+              ? '<span class="aff-mode-swatch" style="background:' + hex + '" title="' + hex + '"></span>'
+              : "";
+          }
+        });
+      }
+
       // Move to category select.
       var moveCatSel = modal.querySelector(".aff-cat-move-select");
       if (moveCatSel) {
@@ -2012,6 +2276,26 @@
         if (AFF.App) {
           AFF.App.setDirty(true);
         }
+      });
+    },
+
+    /**
+     * Save a variable's note after editing.
+     *
+     * @param {string}      varId      Variable ID.
+     * @param {HTMLElement} noteInput  The notes <input> element.
+     */
+    _saveColorNote: function (varId, noteInput) {
+      var self    = this;
+      var newNote = noteInput.value.trim();
+      var oldNote = noteInput.getAttribute("data-original") || "";
+      if (newNote === oldNote) { return; }
+      var v = AFF.Utils.findVarByKey(varId);
+      if (!v) { return; }
+      v.notes = newNote;
+      self._ajaxSaveColor({ id: v.id, notes: newNote }, function () {
+        noteInput.setAttribute("data-original", newNote);
+        if (AFF.App) { AFF.App.setDirty(true); }
       });
     },
 
@@ -2280,6 +2564,26 @@
             }
             self._collapsedIds[catId] = false;
             self._rerenderView();
+
+            // Focus and select the new variable's name input for immediate editing.
+            var _content = document.getElementById("aff-edit-content");
+            if (_content) {
+              var _newVarObj = null;
+              var _vars = AFF.state.variables;
+              for (var _j = 0; _j < _vars.length; _j++) {
+                if (_vars[_j].name === _newName) { _newVarObj = _vars[_j]; break; }
+              }
+              if (_newVarObj) {
+                var _rowKey = AFF.Utils.rowKey(_newVarObj);
+                var _newRow = _content.querySelector('.aff-color-row[data-var-id="' + _rowKey + '"]');
+                var _nameInp = _newRow ? _newRow.querySelector(".aff-color-name-input") : null;
+                if (_nameInp) {
+                  _nameInp.removeAttribute("readonly");
+                  _nameInp.focus({ preventScroll: true });
+                  _nameInp.select();
+                }
+              }
+            }
           } else if (!res.success) {
             var msg =
               res.data && res.data.message
@@ -2506,17 +2810,20 @@
       var hasChildren = children.length > 0;
 
       var body = hasChildren
-        ? "<p>This variable has " +
-          children.length +
-          " child variable(s).</p>" +
-          '<p><button id="aff-del-var-with-children" class="aff-btn aff-btn--danger">Delete variable and all children</button> ' +
-          '<button id="aff-del-var-only" class="aff-btn">Delete variable only</button> ' +
-          '<button id="aff-del-var-cancel" class="aff-btn">Cancel</button></p>'
-        : "<p>Delete <strong>" +
-          (variable.name || varId) +
-          "</strong>? This cannot be undone.</p>" +
-          '<p><button id="aff-del-var-confirm" class="aff-btn aff-btn--danger">Delete</button> ' +
-          '<button id="aff-del-var-cancel" class="aff-btn">Cancel</button></p>';
+        ? "<p>This variable has " + children.length + " child variable(s).</p>"
+        : "<p>Delete <strong>" + AFF.Utils.escHtml(variable.name || varId) + "</strong>?</p>"
+          + "<p>This cannot be undone.</p>";
+
+      var footer = hasChildren
+        ? '<div style="display:flex;justify-content:flex-end;gap:8px">'
+          + '<button class="aff-btn aff-btn--secondary" id="aff-del-var-cancel">Cancel</button>'
+          + '<button class="aff-btn" id="aff-del-var-only">Delete variable only</button>'
+          + '<button class="aff-btn aff-btn--danger" id="aff-del-var-with-children">Delete variable and all children</button>'
+          + '</div>'
+        : '<div style="display:flex;justify-content:flex-end;gap:8px">'
+          + '<button class="aff-btn aff-btn--secondary" id="aff-del-var-cancel">Cancel</button>'
+          + '<button class="aff-btn aff-btn--danger" id="aff-del-var-confirm">Delete</button>'
+          + '</div>';
 
       var delVarBtnIds = hasChildren
         ? ["aff-del-var-cancel", "aff-del-var-only", "aff-del-var-with-children"]
@@ -2525,6 +2832,7 @@
       AFF.Modal.open({
         title: "Delete variable",
         body: body,
+        footer: footer,
         onClose: function () {
           document.removeEventListener("click", handleDelClick);
           document.removeEventListener("keydown", handleDelVarKey);
@@ -2538,6 +2846,14 @@
       }, 50);
 
       function handleDelVarKey(e) {
+        if (e.key === "Enter") {
+          var focused = document.activeElement;
+          if (focused && delVarBtnIds.indexOf(focused.id) !== -1) {
+            e.preventDefault();
+            focused.click();
+          }
+          return;
+        }
         var isTab   = e.key === "Tab";
         var isRight = e.key === "ArrowRight";
         var isLeft  = e.key === "ArrowLeft";
@@ -2692,7 +3008,10 @@
       }
 
       var html = "";
-      if (vars.length === 0) {
+      var _cats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
+        ? AFF.state.config[self._cfg.catKey] : [];
+      var _sortHasSubs = _cats.some(function (c) { return c.parent_id === catId; });
+      if (vars.length === 0 && !_sortHasSubs) {
         html = '<p class="aff-colors-empty">No variables in this category.</p>';
       } else {
         for (var j = 0; j < vars.length; j++) {
@@ -2776,6 +3095,109 @@
             document.getElementById("aff-edit-content"),
           );
         });
+    },
+
+    /**
+     * Drag-and-drop reordering for subcategory blocks within their parent category.
+     * Keeps drops constrained to siblings (same parent_id); uses the same
+     * _onDropCat / aff_reorder_categories path as top-level category drag.
+     *
+     * @param {HTMLElement} container The #aff-edit-content element.
+     */
+    _initSubcatDrag: function (container) {
+      var self = this;
+      var d = { active: false, catId: null, parentCatId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+
+      container.addEventListener('mousedown', function (e) {
+        var handle = e.target.closest('.aff-subcat-drag-handle');
+        if (!handle) { return; }
+        e.preventDefault();
+
+        var block = handle.closest('.aff-category-block[data-depth="1"]');
+        if (!block) { return; }
+
+        var parentBlock = block.parentElement ? block.parentElement.closest('.aff-category-block') : null;
+        d.catId      = block.getAttribute('data-category-id');
+        d.parentCatId = parentBlock ? parentBlock.getAttribute('data-category-id') : null;
+        if (!d.catId) { return; }
+
+        d.active = true;
+        d.startY = e.clientY;
+
+        var blockRect = block.getBoundingClientRect();
+        var ghost = block.cloneNode(true);
+        ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;'
+          + 'width:' + block.offsetWidth + 'px;'
+          + 'top:' + blockRect.top + 'px;left:' + blockRect.left + 'px;'
+          + 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:8px;';
+        ghost.className += ' aff-drag-ghost';
+        document.body.appendChild(ghost);
+        d.ghost = ghost;
+
+        var indicator = document.createElement('div');
+        indicator.className = 'aff-drop-indicator';
+        indicator.style.display = 'none';
+        indicator.style.pointerEvents = 'none';
+        var _appEl  = document.getElementById('aff-app');
+        var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
+        if (!_accent) { _accent = '#f4c542'; }
+        indicator.style.background = 'linear-gradient(to right, transparent, ' + _accent + ' 15%, ' + _accent + ' 85%, transparent)';
+        document.body.appendChild(indicator);
+        d.indicator = indicator;
+
+        block.style.opacity = '0.3';
+      });
+
+      document.addEventListener('mousemove', function (e) {
+        if (!d.active || !d.ghost) { return; }
+        d.ghost.style.transform = 'translateY(' + (e.clientY - d.startY) + 'px)';
+
+        d.ghost.style.display = 'none';
+        var elBelow = document.elementFromPoint(e.clientX, e.clientY);
+        d.ghost.style.display = '';
+
+        // Only allow drops onto sibling subcategory blocks (same parent).
+        var targetBlock = elBelow ? elBelow.closest('.aff-category-block[data-depth="1"]') : null;
+        if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
+          var tParentBlock = targetBlock.parentElement ? targetBlock.parentElement.closest('.aff-category-block') : null;
+          var tParentId    = tParentBlock ? tParentBlock.getAttribute('data-category-id') : null;
+          if (tParentId === d.parentCatId) {
+            var tbRect = targetBlock.getBoundingClientRect();
+            var above  = e.clientY < tbRect.top + tbRect.height / 2;
+            d.indicator.style.display = '';
+            d.indicator.style.left    = tbRect.left + 'px';
+            d.indicator.style.width   = tbRect.width + 'px';
+            d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
+            d.indicator.style.height  = '4px';
+            d._dropTargetId = targetBlock.getAttribute('data-category-id');
+            d._dropAbove    = above;
+            return;
+          }
+        }
+        d.indicator.style.display = 'none';
+        d._dropTargetId = null;
+      });
+
+      document.addEventListener('mouseup', function () {
+        if (!d.active) { return; }
+        d.active = false;
+
+        if (d.ghost     && d.ghost.parentNode)     { d.ghost.parentNode.removeChild(d.ghost); }
+        if (d.indicator && d.indicator.parentNode) { d.indicator.parentNode.removeChild(d.indicator); }
+        d.ghost     = null;
+        d.indicator = null;
+
+        var draggingBlock = container.querySelector('.aff-category-block[data-category-id="' + d.catId + '"]');
+        if (draggingBlock) { draggingBlock.style.opacity = ''; }
+
+        if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
+          self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
+        }
+        d._dropTargetId = null;
+        d._dropAbove    = null;
+        d.catId         = null;
+        d.parentCatId   = null;
+      });
     },
 
     /**
@@ -3390,28 +3812,31 @@
       var tintsCatId  = null;
       var shadesCatId = null;
       var transCatId  = null;
-      var subPromises = [];
 
+      // Build subcategory creation as a sequential chain (not parallel) so each
+      // aff_save_category write completes before the next one reads the file,
+      // preventing the last write from stomping earlier subcategories.
+      var subChain = Promise.resolve();
       if (parentCatId && tintSteps > 0) {
-        subPromises.push(
-          self._findOrCreateSubcat(parentCatId, baseName + " Tints")
-            .then(function (id) { tintsCatId = id; })
-        );
+        subChain = subChain.then(function () {
+          return self._findOrCreateSubcat(parentCatId, baseName + " Tints")
+            .then(function (id) { tintsCatId = id; });
+        });
       }
       if (parentCatId && shadeSteps > 0) {
-        subPromises.push(
-          self._findOrCreateSubcat(parentCatId, baseName + " Shades")
-            .then(function (id) { shadesCatId = id; })
-        );
+        subChain = subChain.then(function () {
+          return self._findOrCreateSubcat(parentCatId, baseName + " Shades")
+            .then(function (id) { shadesCatId = id; });
+        });
       }
       if (parentCatId && transOn === "1") {
-        subPromises.push(
-          self._findOrCreateSubcat(parentCatId, baseName + " Transparencies")
-            .then(function (id) { transCatId = id; })
-        );
+        subChain = subChain.then(function () {
+          return self._findOrCreateSubcat(parentCatId, baseName + " Transparencies")
+            .then(function (id) { transCatId = id; });
+        });
       }
 
-      Promise.all(subPromises).then(function () {
+      return subChain.then(function () {
         var params = {
           filename:       AFF.state.currentFile,
           parent_id:      v.id,
@@ -3428,11 +3853,23 @@
           if (res.data.data && res.data.data.variables) {
             AFF.state.variables = res.data.data.variables;
           }
+          // Sync categories from the authoritative server response so subcats
+          // appear immediately without requiring a browser refresh.
+          if (res.data.data && res.data.data.config && res.data.data.config.categories) {
+            AFF.state.config.categories = res.data.data.config.categories;
+          }
           if (AFF.App) {
             AFF.App.setDirty(true);
             AFF.App.refreshCounts();
           }
+          // Start subcategories collapsed so they don't flood the view.
+          if (tintsCatId)  { self._collapsedIds[tintsCatId]  = true; }
+          if (shadesCatId) { self._collapsedIds[shadesCatId] = true; }
+          if (transCatId)  { self._collapsedIds[transCatId]  = true; }
           self._rerenderView();
+          if (AFF.PanelLeft && AFF.PanelLeft.refresh) {
+            AFF.PanelLeft.refresh();
+          }
         }
       }).catch(function () {
         console.warn("[AFF] AJAX error: generate children");
@@ -4483,6 +4920,26 @@
         g: Math.round((g + m) * 255),
         b: Math.round((b + m) * 255),
       };
+    },
+
+    /**
+     * Convert HSL (h: 0-360, s: 0-100, l: 0-100) to a hex color string (#RRGGBB).
+     *
+     * @param {number} h 0-360.
+     * @param {number} s 0-100.
+     * @param {number} l 0-100.
+     * @returns {string}
+     */
+    _hslToHex: function (h, s, l) {
+      s /= 100; l /= 100;
+      var a = s * Math.min(l, 1 - l);
+      function ch(n) {
+        var k = (n + h / 30) % 12;
+        var c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        var hex = Math.round(255 * c).toString(16);
+        return hex.length < 2 ? '0' + hex : hex;
+      }
+      return '#' + ch(0) + ch(8) + ch(16);
     },
 
     /**

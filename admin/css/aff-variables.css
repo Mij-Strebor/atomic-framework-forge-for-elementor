@@ -7,8 +7,8 @@
  * dot, drop indicator, collapse state, sort buttons, and icon buttons.
  *
  * This file adds:
- *   1. Grid column overrides per set (Fonts: 7 cols, Numbers: 6 cols)
- *   2. Shared .aff-var-* input/select styles (name, value, format, delete)
+ *   1. Grid column overrides per set (Fonts: 9 cols, Numbers: 8 cols)
+ *   2. Shared .aff-var-* input/select styles (name, notes, value, format, delete)
  *   3. Font preview cell (.aff-font-preview) — Fonts only
  *   4. Responsive breakpoints for both sets
  *
@@ -21,26 +21,27 @@
  */
 
 /* ==========================================================================
-   1. FONTS VIEW — 7-column grid
-   drag (24px) | status (8px) | preview (72px) | name (1fr) | value (28%) |
-   format (12%) | delete (28px)
+   1. FONTS VIEW — 9-column grid
+   drag (24px) | status (8px) | preview (72px) | name (1fr) | notes (5fr) |
+   value (19%) | format (220px) | delete (28px) | empty (28px)
    ========================================================================== */
 
-.aff-fonts-view .aff-color-row {
-	grid-template-columns: 24px 8px 72px 1fr 28% 12% 28px 28px;
+.aff-fonts-view .aff-color-row,
+.aff-fonts-view .aff-color-list-header {
+	grid-template-columns: 24px 8px 72px 1fr 5fr 19% 220px 28px 28px;
 	column-gap: 10px;
 }
 
 /* ==========================================================================
-   2. NUMBERS VIEW — 6-column grid (no preview column)
-   drag (24px) | status (8px) | name (1fr) | value (28%) |
-   format (12%) | delete (28px)
+   2. NUMBERS VIEW — 8-column grid (no preview column)
+   drag (24px) | status (8px) | name (1fr) | notes (5fr) |
+   value (42%) | format (220px) | delete (28px) | empty (28px)
    ========================================================================== */
 
 .aff-numbers-view .aff-color-row,
 .aff-numbers-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 1fr calc(28% + 72px) 12% 28px 28px;
-	column-gap: 16px;
+	grid-template-columns: 24px 8px 1fr 5fr 42% 220px 28px 28px;
+	column-gap: 10px;
 }
 
 /* ==========================================================================
@@ -95,6 +96,35 @@
 }
 
 .aff-var-name-input:focus {
+	outline: none;
+}
+
+/* Variable note — same style as name input; readonly by default, click to edit */
+.aff-var-notes-input {
+	width:         100%;
+	padding:       2px var(--sp-2);
+	background:    var(--aff-bg-card);
+	border:        none;
+	font-size:     var(--fs-xs);
+	color:         var(--aff-clr-secondary);
+	font-family:   monospace, monospace;
+	min-width:     0;
+	cursor:        default;
+	outline:       none;
+	border-radius: var(--aff-border-radius-sm);
+	box-shadow:
+		inset 0 3px 6px rgba(100, 100, 100, 0.22),
+		inset 0 1px 3px rgba(100, 100, 100, 0.14),
+		0 3px 6px rgba(100, 100, 100, 0.18),
+		0 1px 3px rgba(100, 100, 100, 0.10);
+}
+
+.aff-var-notes-input:not([readonly]) {
+	cursor:      text;
+	user-select: auto;
+}
+
+.aff-var-notes-input:focus {
 	outline: none;
 }
 
@@ -189,17 +219,21 @@
    ========================================================================== */
 
 @media (max-width: 600px) {
-	.aff-fonts-view .aff-color-row {
-		grid-template-columns: 24px 8px 60px 1fr 26% 0 28px;
+	.aff-fonts-view .aff-color-row,
+	.aff-fonts-view .aff-color-list-header {
+		grid-template-columns: 24px 8px 60px 1fr 0 26% 0 28px 28px;
 		column-gap: 6px;
 	}
 
-	.aff-numbers-view .aff-color-row {
-		grid-template-columns: 24px 8px 1fr calc(26% + 60px) 0 28px;
+	.aff-numbers-view .aff-color-row,
+	.aff-numbers-view .aff-color-list-header {
+		grid-template-columns: 24px 8px 1fr 0 26% 0 28px 28px;
 		column-gap: 6px;
 	}
 
-	/* Hide format selector when its column collapses to 0 */
+	/* Hide notes and format selector when their columns collapse to 0 */
+	.aff-fonts-view .aff-color-row .aff-var-notes-input,
+	.aff-numbers-view .aff-color-row .aff-var-notes-input,
 	.aff-fonts-view .aff-color-row .aff-var-format-sel,
 	.aff-numbers-view .aff-color-row .aff-var-format-sel {
 		visibility: hidden;

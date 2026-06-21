@@ -1,5 +1,5 @@
-# AFF Quick Start Guide
-## Atomic Framework Forge for Elementor — v1.1.0
+# Atomic Framework Forge Quick Start Guide
+## Atomic Framework Forge for Elementor — v1.4.0
 
 > This guide gets you from zero to your first organized variable set in about ten minutes.
 >
@@ -11,339 +11,241 @@
 
 You will need:
 
-- ✅ A working **WordPress** installation (local or live)
-- ✅ **Elementor** and **Elementor Pro** — installed and active
-- ✅ At least one **Elementor Kit** configured with Elementor Version 4 CSS variables
-- ✅ A non-production website with Elementor Version 4 active and one or more pages using atomic elements
-- ✅ A set of **Version 4 Variables** defined on those pages
----
+- A working **WordPress** installation (local or staging — not a live production site)
+- **Elementor**  installed and active
+- An active **Elementor Kit** (created automatically when Elementor is first installed)
 
-## How AFF Interacts with Elementor
-
-> **Read — Fetch Elementor Data:** AFF reads global variables from the active kit's `_elementor_global_variables` post meta. This is the same authoritative data store Elementor uses internally. The read is non-destructive — nothing in Elementor is changed.
->
-> **Write — Write to Elementor:** AFF writes modified variable values back to `_elementor_global_variables` on the kit post. This is the only write operation AFF performs on your Elementor installation. It is always user-triggered, always preceded by a confirmation dialog showing exactly what will change, and always limited to the variables you have managed in AFF.
->
->### **Important:** Use AFF on a staging site or local development environment only. Always export a project backup before writing to Elementor.
+Atomic Framework Forge works with both **Elementor V3** (Global Colors) and **Elementor V4** (CSS custom properties). You do not need to be on V4 to get started.
 
 ---
 
-## Step 1 — Install AFF
+## Step 1 — Install Atomic Framework Forge
 
-### Clone from GitHub
+### Download a ZIP
 
-Open a terminal and navigate to your WordPress plugins directory:
+Click **Code → Download ZIP** on the GitHub repository page, then go to **WordPress Admin → Plugins → Add Plugin → Upload Plugin** and install the zip.
+
+Or clone directly into your plugins directory:
 
 ```bash
 cd wp-content/plugins
 git clone https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor.git
 ```
 
-### Or download a ZIP (recommended)
-
-Click **Code → Download ZIP** on the GitHub repository page.
-You can go to **Plugins → Add Plugin → Upload Plugin → Choose file** in WordPress, then select and install **atomic-framework-forge-for-elementor-0.4.1-beta.zip**.
-
-Or unzip directly into `wp-content/plugins/atomic-framework-forge-for-elementor/`.
-
 ### Activate
 
-1. Go to **WordPress Admin → Plugins → Installed Plugins**.
-2. Find **Atomic Framework Forge for Elementor** and click **Activate**.
-3. **AFF** will appear in your WordPress admin sidebar.
-
-> If AFF shows an error about missing dependencies, make sure both Elementor and Elementor Pro are installed and active.
+Go to **WordPress Admin → Plugins → Installed Plugins**, find **Atomic Framework Forge for Elementor**, and click **Activate**. Atomic Framework Forge appears in the WordPress admin sidebar.
 
 ---
 
-## Step 2 — Open AFF
+## Step 2 — Open Atomic Framework Forge
 
-Click **AFF** in the WordPress admin sidebar. You will see the four-panel interface:
+Click **Atomic Framework Forge** in the WordPress admin sidebar.
 
-- **Top bar** — Preferences, Manage Project, Functions (left side); History, Search, Help (right side)
-- **Left panel** — Variable tree: Colors / Fonts / Numbers — with variable counts per class and category
-- **Center** — Edit space (variables and categories); shows a startup banner on first load
-- **Right panel** — All data management controls
+You will see the three-panel interface:
 
-On first load the edit space shows a startup banner with a reminder to read this guide. That is expected — nothing has been loaded yet.
-
----
-
-## Step 3 — Understand the Right Panel
-
-**All data operations live in the right panel.** There are no hidden menus. The right panel has four sections:
-
-| Section | What it does |
-|---------|-------------|
-| **Active Project** | Shows the current project name; Save Changes (update in place); Open/Switch Project |
-| **Save** | Save Project — creates a new timestamped backup snapshot |
-| **Elementor 4 Sync** | **Fetch Elementor** — pull variables from the active V4 kit · **Write to Elementor** — commit your changes back |
-| **Export / Import** | Download/upload the project as a portable `.aff.json` file |
-
-> **The only automatic operation is startup auto-load.** AFF reloads your last active project when you open the plugin. Everything else requires a deliberate action from you.
+| Area | Purpose |
+|------|---------|
+| **Top bar** | Logo, project name, and all action buttons |
+| **Left panel** | Variable tree — Colors / Fonts / Numbers — with counts |
+| **Center** | Edit space — category blocks, variable rows, inline editing |
 
 ---
 
-## Step 4 — Pull Your Variables from Elementor
+## Step 3 — The Top Menu Bar
 
-In the right panel under **Elementor 4 Sync**, click **Fetch Elementor**.
+The top bar gives you access to everything. All buttons are icons; hover anyone to see a tooltip.
 
-AFF will:
-1. Locate your active Elementor kit CSS file automatically.
-2. Read the `:root {}` block containing your V4 Variables.
-3. Classify each variable as **Color**, **Font**, or **Number** based on its value.
-4. Import all variables into your project.
-5. Run a usage scan to count how many Elementor widgets reference each variable. [*Not yet implemented*]
+**Center:** `Project:` The current project.
 
-A summary appears when the sync completes.
-
-> **If the sync finds 0 variables:** Your Elementor kit may not have custom CSS variables yet, or the kit CSS may not have been generated. Go to **Elementor → Site Settings → Save Changes** to regenerate it, then try again.
-
----
-
-## Step 5 — Explore Your Variables
-
-After syncing, your variables appear in the left panel under:
-
-- **Variables → Colors** — hex, rgb, hsl, and rgba values
-- **Variables → Fonts** — font family values (e.g., `'Inter', sans-serif`)
-- **Variables → Numbers** — sizes, spacing, clamp() values, and other numbers
-
-Each class (Colors, Fonts, Numbers) shows a total variable count next to its label. Each category inside a class shows a count of how many variables it contains.
-
-Click any category name in the left panel to open it in the center edit space. All categories will be available in the edit space and the selected category will be open with its contents ready for editing.
-
-Each variable row in the open category shows:
-
-- **⠿** Drag handle — reorder by dragging
-- **●** Status dot — color indicates sync state (see legend below the filter bar)
-- **Sample** — live preview (color swatch for Colors; "Aa" preview for Fonts)
-- **Variable name** — the CSS custom property; click to rename
-- **Value** — current value; click to edit directly
-- **Format** — HEX / RGB / HSL (Colors) or REM / PX / % / fₓ etc. (Numbers)
-- **›** Expand chevron — opens the expanded editor (Color variables: tints, shades, transparency modal)
-- **🗑** Delete button — appears on hover; confirms before removing
-
-A **status legend** (Synced / Modified / New / Orphaned / Conflict) is displayed directly under the filter bar as a quick color-to-meaning reference.
+**Right side (left to right):**
+| Button | Action |
+|--------|--------|
+| ⚙ Gear | Preferences — theme, density, tooltip settings |
+| ▦ Grid | Manage Projects — create, rename, open, or delete projects |
+| fₓ | Functions — variable utilities |
+| 💾 Save | Save Changes in place — glows red when unsaved changes exist |
+| History | Change history |
+| ⟳ Sync | Open the Sync modal — import from or export to Elementor |
+| ↓ Export | Download project as `.aff.json` |
+| ↑ Import | Upload a `.aff.json` file |
+| 🔍 Search | Search variables |
+| 🖨 Print | Generate a print/PDF reference sheet |
+| ? Help | Help |
 
 ---
 
-## Step 6 — Use the Color Picker
+## Step 4 — Create Your First Project
 
-You can edit the color manually, or us a color picker tool. Open the expanded view of a color and then click its **color swatch** to open the Pickr visual color picker.
+Click the **▦ Manage Projects** button.
 
-- Drag the color field and hue slider to choose a color
-- Use the opacity slider for semi-transparent colors
-- Click **Save** to apply
+In the picker that opens, type a project name in the **New project name** field and click **Create**. Atomic Framework Forge initializes an empty project. The project name appears in the toolbar center.
 
-The variable value, the swatch, and any tints/shades/transparencies all update immediately.
+Your project is saved under `wp-content/uploads/aff/<your-project>/`.
 
-> **Format shorthand:**
-> When editing colors manually, you have several shorthand options for entering a color.
-> - **HEX** — `#rrggbb`
--1. Immdiate alpha entry: `#FF5733` (opaque) or `#FF573380` (with alpha).
--2. You can omit the `#`or type it at the beginning of the HEX value. 
--3. Three or four digit shorthand expands: `fff` → `#FFFFFF`, `f00a` → `#FF0000AA`
-> - **RGB** — `rgb(r, g, b)`;
--1. alpha auto-switches to `rgba()` when opacity < 1.
- -2. Enter three or four integers as shorthand: `30, 37, 103` → `rgb(30, 37, 103)`
-> - **HSL** — `hsl(h, s%, l%)`; 
--1. alpha auto-switches to `hsla()` when opacity < 1. 
--2. Enter three or four integers as shorthand: `51, 100, 50` → `hsl(51, 100%, 50%)`
+---
+
+## Step 5 — Import Variables from Elementor
+
+Click the **⟳ Sync** button. The Sync modal opens and asks you to choose between Elementor versions 3 and 4. Version 3 has only the Elementor System Colors and any Custom Colors as variables; there are no classes or containers we can pull in from version 3. Version 4 provides all three atomic framework sets: variables, classes, and containers. Set the VERSION toggle to your source for loading into Atomic Framework forge.
+
+Leave the DIRECTION toggle set to Import.
+
+On a new project, the data sets are empty and it doesn't matter which IMPORT MODE is selected.
+
+Click **Synchronize**. Atomic Framework Forge reads the active Elementor kit CSS, extracts all properties.
+
+
+> **V3 → V4 migration:** Import your version three System Colors and Custom Colors and then push them out to V4. You can maintain the colors in Atomic Framework Forge.
+
+---
+
+## Step 6 — Explore Your Variables
+
+After syncing, variables appear in the left panel under:
+
+- **Variables → Colors**
+- **Variables → Fonts**
+- **Variables → Numbers**
+
+Each section shows a total count. Click any section or category name to open it in the edit space.
+
+Each variable row shows:
+
+| Column | Content |
+|--------|---------|
+| ⠿ | Drag handle |
+| ● | Status dot (color = sync state) |
+| **varies** | Depends on variable type |
+| 🗑 | Delete (appears on hover) |
+
+For Color Variables:
+| Column | Content |
+|--------|---------|
+| Swatch | Color preview; click to open the color picker |
+| Name | Variable property name |
+| Comment | Field for recording comments |
+| Value | Current value |
+| Format | HEX / RGB / HSL (Colors)|
+
+For Font Variables:
+| Column | Content |
+|--------|---------|
+| Sample Text | Very brief preview of font |
+| Name |Variable property name |
+| Comment | Field for recording comments |
+| Value | Font family name |
+| Format | System or Custom font family|
+
+For Numbers Variables:
+
+| Column | Content |
+|--------|---------|
+| Name | Variable property name |
+| Comment | Field for recording comments |
+| Value | Current value |
+| Format | - (none), PX, %, EM, REM, VW, VH, CH, fx (function)|
 
 ---
 
 ## Step 7 — Organize into Categories
 
-Variables arrive in **Uncategorized** by default. Organize them into categories that reflect your design system.
+Variables arrive in **Uncategorized**. Organize them into a structure that matches your design system.
 
-**Add a category** — click the **⊕** button in the filter bar (top of the edit space). New categories appear at the top of the list.
+A set of default categories is presented for your use. You can add new categories and sub-categories, rename them, or delete them to set up a meaningful grouping of the Elementor variables.
 
-**Move a variable** — drag it by the **⠿** handle and drop it into the target category.
-
-**Add a variable manually** — each category has an **⊕ Add Variable** button at its bottom-left.
-
-**Category actions** (buttons in each category header):
-- **Copy** — duplicate the category and all its variables
-- **Trash** — delete the category; variables move to Uncategorized
-- **Chevron** — collapse / expand the rows; collapsing a category also collapses all its sub-categories
-
-**Sub-categories** — each top-level category can have one level of sub-categories. Click the **⊕** circle at the bottom-left of any category panel to add a sub-category. Sub-categories are indented, show a distinct background, and display their own variable count. Tints, shades, and transparency families generated from the expand panel are automatically placed in named sub-categories (e.g., "brand-primary Tints").
-
-**Sort variables** — click the **A↑ A↓** buttons in the filter bar to sort alphabetically.
-
-**Collapse / expand all categories** — use the double-chevron button in the filter bar to toggle all category blocks.
+- **Rename a category** — click the category name text and type a new name
+- **Add a category** — click ⊕ in the filter bar at the bottom left of the variable type (Colors, Fonts, Numbers) header
+- **Move variables** — drag by the ⠿ handle and drop into place in a category
+- **Add a sub-category** — click ⊕ at the far right of a category header
+- **Clean a category** — click the 🧹 broom to delete all the variables in a category
+- **Duplicate a category** — click the 📋 copy icon to copy the category
+- **Delete a category** — click 🗑 to remove the category
 
 ---
 
-## Step 8 — Explore the Expand Panel (Colors)
+## Step 8 — Edit Variables
 
-Click the **›** chevron at the right of any color row.
+When working with Color variables, you can click any color **swatch** to open the Pickr visual color picker. Drag the color field and hue slider to choose, use the opacity slider for transparency, then click **Save**.
 
-Inside the expand panel:
-- **Header** — edit name, value, format; click the swatch for the color picker
-- **Tints** — generate up to 10 progressively lighter tints
-- **Shades** — generate up to 10 progressively darker shades
-- **Transparencies** — toggle on to generate 9 fixed-alpha transparency variants
+Click on the **name** field to change the name of the variable.
 
-All preview bars update live when you change the color.
+Click on the **comment** field to add any comments about the varaible.
 
----
+Click the **value field** directly in any row to type a value. 
 
-## Step 9 — Save Your Project (Create a Backup)
-
-In the right panel under **Save**, click **Save Project**.
-
-AFF creates a timestamped snapshot:
-
-```
-/wp-content/uploads/aff/my-project/my-project_2026-03-19_14-30-00.aff.json
-```
-
-Every **Save Project** adds a new snapshot — nothing is overwritten. You can accumulate up to 10 snapshots per project (configurable in Manage Project).
-
-**Save Changes** (in the Active Project section) updates the current snapshot in place — use this for quick saves between checkpoints.
-
-> AFF remembers your last active project and reloads it automatically on the next startup.
+>For Color variables, accepted value shorthands are:
+>  - :fff → #FFFFFF for type HEX,
+>  - 30, 37, 103 → rgb(30, 37, 103) for RGB, and
+  >- 51, 100, 50 → hsl(51, 100%, 50%) for HSL`
+>
+>Click the **›**, or right click anywhere on the Color line, to expand the color editor to generate tints, shades, transparency variants, dark and light mode variants from any base color.
 
 ---
 
-## Step 10 — Open a Project or Restore a Backup
+## Step 9 — Save Your Work
 
-Click **Open/Switch Project** in the right panel.
+The **💾 Save** icon in the toolbar glows red when you have unsaved changes. Click it to update your current project in place.
 
-**Level 1 — Projects:** shows all projects on this site. Click **Open** on any project.
+To create a **timestamped backup snapshot**, click **▦ Manage Projects** and use the Save action, or simply let Atomic Framework Forge auto-save on next project load.
 
-**Level 2 — Backups:** shows all snapshots for that project, newest first. Click **Load** to restore a snapshot. Click the trash icon to delete one.
-
-Click **←** to return to the project list without loading anything.
+> Atomic Framework Forge remembers your last active project and reloads it automatically on the next page load.
 
 ---
 
-## Step 11 — Write to Elementor (Optional)
+## Step 10 — Write Back to Elementor (V4)
 
-When you are ready to push your edited values back to Elementor:
+When you are ready to push your edited values to Elementor version 4:
 
-1. Edit a variable value in the edit space — the status dot turns orange (modified).
-2. Click **Write to Elementor** under **Elementor 4 Sync** in the right panel.
-3. A summary shows how many variables will be updated / added / deleted.
-4. Click **Commit** to write to Elementor's kit CSS.
-5. Open Elementor to see the updated values reflected site-wide.
+1. Click **⟳ Sync**, set Version to **V4** and Direction to **Export**.
+2. A commit summary appears — review the count of modified / new / deleted variables.
+3. Click **Synchronize** to write the values to your Elementor kit CSS.
+4. Open Elementor to see the updated values reflected site-wide.
 
-> **Important:** Writing to Elementor modifies your kit CSS. This is reversible by restoring a backup in AFF, but it is good practice to **Save Project** first so you have a clean snapshot before you commit.
+> Always save your project before committing to Elementor. Writing to Elementor modifies live kit data.
 
----
-
-## Print / PDF
-
-Click the **printer icon** in the top bar to open the Print dialog. Select which variable sets to include (Colors, Fonts, Numbers) and click **Print**. AFF generates a formatted variable list and opens the browser's native print dialog — use "Save as PDF" to export a portable reference sheet.
-
----
-
-## Export and Import
-
-**Export** — downloads the entire current project as a `.aff.json` file to your disk. Use this to share a project between WordPress sites or to keep an off-server copy.
-
-**Import** — uploads a `.aff.json` file and replaces the current project with its contents. You will be warned if the current project has unsaved changes.
-
-Export and import are **complete replacements**, not merges.
+> At present there is no push to version 3 Elementor. It is not considered necessary. If the feature is important to you, please contact the developer and we will add it.
 
 ---
 
 ## Preferences
 
-Click the **⚙ gear icon** in the top bar to open Preferences:
+Click **⚙ Gear** for:
 
 | Setting | What it does |
 |---------|-------------|
-| **Interface Theme** | Switch between Light and Dark mode |
-| **Layout Density** | Switch between Compact, Normal, and Comfortable spacing|
-| **Show Tooltips** | Enable / disable hover tooltips on all buttons |
-| **Extended Tooltips** | Show longer descriptions in tooltips |
-| **Default Storage File** | Path to AFF storage in WordPress |
-| **Typography & Contrast** | AFF font size and color contrast settings |
-| **Menu Buttons** | Size, contrast and style of menu button icons |
+| **Interface Theme** | Light / Dark mode |
+| **Layout Density** | Compact / Normal / Comfortable |
+| **Show Tooltips** | Enable / disable hover tooltips |
+| **Extended Tooltips** | Longer tooltip descriptions |
+| **Default Storage** | Location for project files |
+| **Font Size** | Select 14 - 18px font |
+| **Font Contrast** | Standard or High |
+| **Menu Buttons** | Icon size and contrast |
 | **Motion** | Reduce animations |
-
-## **Manage Project** (grid icon in top bar):
-| Setting | What it does |
-|---------|-------------|
-| **Project Name** | Rename the current project or switch to a different project |
-| **Color Categories** | Comma separated list of default categories |
-| **Font Categories** | Comma separated list of default categories |
-| **Number Categories** | Comma separated list of default categories |
-| **Max Backups** | Maximum number of backups for a project |
-| **Default Format** | Default variable type |
-
----
-
-## Interface Theme
-
-AFF ships with two themes built on the JimRForge brand palette:
-
-- **Light** — Deep brown on warm cream
-- **Dark** — Light cream on warm charcoal brown
-
-Your preference is saved to your WordPress user account.
-
----
-
-## Beta Status
-
-| Area | Status |
-|------|--------|
-| Classes panel | Navigation visible — content coming in Phase 3 |
-| Components panel | Navigation visible — content coming in Phase 4 |
-| Sync options dialog (Sync by name / Clear and replace) | ✅ Implemented |
-| Commit summary dialog | ✅ Implemented |
-| Mobile devices | Not supported (min 1024px screen required) |
-| Batch format conversion | Per-variable format change works; batch "convert all" planned for 1.0 |
-| Elementor V3 Global Colors import | UI button coming in a future beta |
 
 ---
 
 ## Troubleshooting
 
 **Sync finds 0 variables**
-→ Go to Elementor → Site Settings → click Save Changes to regenerate the kit CSS, then sync again.
+→ Go to **Elementor → Site Settings → Save Changes** to regenerate the kit CSS, then sync again.
 
-**Variables appear in the wrong set (e.g., a color in Numbers)**
-→ AFF uses value patterns to classify variables. Drag the variable to the correct category manually.
+**Variables appear in the wrong set**
+→ Atomic Framework Forge classifies by value pattern. Drag to the correct category manually.
 
-**Color picker swatch shows black**
-→ Try a hard refresh (Ctrl+Shift+R). If the issue persists, check the browser console for load errors and report them.
-
-**After committing, Elementor variables look wrong**
-→ Restore a backup in AFF, then commit again. If values look corrupted, report the issue on GitHub with the browser console log.
-
-**The panel looks broken or unstyled**
-→ Hard refresh (Ctrl+Shift+R). If the issue persists, clear your browser cache.
-
----
-
-## Giving Feedback
-
-Your testing feedback directly shapes AFF's development. When reporting:
-
-1. **What you were doing** — Which panel, which action
-2. **What you expected** — What you thought would happen
-3. **What happened** — What actually occurred (include browser console errors if possible)
-4. **Your setup** — WordPress version, Elementor version, AFF version, browser
-
-Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
+**Panel looks unstyled or broken**
+→ Hard refresh (`Ctrl+Shift+R`). If the issue persists, deactivate and reactivate the plugin.
 
 ---
 
 ## What's Next
 
-Once you're comfortable with the basics:
+- Use **Export** to download a `.aff.json` backup or share a project between sites
+- Use **Print** to generate a PDF variable reference sheet — enable "Print comments" in the options modal to include per-variable notes on the printout
+- Try **Manage Projects** to create multiple projects (e.g., per client, per theme)
+- Explore the **›** expand panel on any color for tints, shades, and transparency families
 
-- Click the **›** expand chevron on a Colors variable to generate tints, shades, and transparency variants
-- Use **Manage Project** to configure default category lists for your workflow
-- Try **Save Project** several times and practice **restoring an older backup** via Open/Switch Project
-- Try **Export** to download a portable copy of your project for a hard backup or to move your variables to another site
-- Use **Save Project** in your **blueprint** website to build a master set of variables, classes, and components. Export to a master json file and create copies for new projects.
-- 
 For everything else, see the **[User Manual →](USER-MANUAL.md)**
 
 ---

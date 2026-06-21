@@ -52,3 +52,9 @@
 	font-size:  var(--fs-xs);
 	font-style: italic;
 }
+
+.aff-print-select__sep {
+	border:     none;
+	border-top: 1px solid var(--aff-border-color, #ddd);
+	margin:     var(--sp-2) 0;
+}

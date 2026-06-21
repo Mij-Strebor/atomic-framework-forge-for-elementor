@@ -398,7 +398,6 @@
 			return '<button class="aff-icon-btn ' + (extraClass || '') + '"'
 				+ ' data-action="' + esc(action) + '"'
 				+ ' aria-label="' + esc(label) + '"'
-				+ ' title="' + esc(label) + '"'
 				+ ' data-aff-tooltip="' + esc(label) + '"'
 				+ (disabled ? ' disabled' : '')
 				+ '>'
@@ -524,6 +523,18 @@
 				+ '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>'
 				+ '<path d="M10 11v6"></path><path d="M14 11v6"></path>'
 				+ '<path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>'
+				+ '</svg>';
+		},
+
+		/** Brush-cleaning / clear category contents (Lucide brush-cleaning). */
+		broomSVG: function () {
+			return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+				+ ' fill="none" stroke="currentColor" stroke-width="2"'
+				+ ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+				+ '<path d="m16 22-1-4"></path>'
+				+ '<path d="M19 14a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2h-3a1 1 0 0 1-1-1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v1a1 1 0 0 0 1 1"></path>'
+				+ '<path d="M19 14H5l-1.973 6.767A1 1 0 0 0 4 22h16a1 1 0 0 0 .973-1.233z"></path>'
+				+ '<path d="m8 22 1-4"></path>'
 				+ '</svg>';
 		},
 
@@ -810,6 +821,14 @@
 			}, 50);
 
 			function handleDelCatKey(e) {
+				if (e.key === 'Enter') {
+					var focused = document.activeElement;
+					if (focused && (focused.id === 'aff-modal-del-ok' || focused.id === 'aff-modal-del-cancel')) {
+						e.preventDefault();
+						focused.click();
+					}
+					return;
+				}
 				var isTab   = e.key === 'Tab';
 				var isRight = e.key === 'ArrowRight';
 				var isLeft  = e.key === 'ArrowLeft';
@@ -884,6 +903,140 @@
 				}
 			}
 			document.addEventListener('click', handleClick);
+		},
+
+		/**
+		 * Clear a category: remove all sub-categories and variables inside it,
+		 * but keep the category shell itself.
+		 *
+		 * @param {string} catId Category ID.
+		 */
+		_clearCategory: function (catId) {
+			var self = this;
+			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+
+			var cats   = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
+				? AFF.state.config[self._cfg.catKey] : [];
+			var catObj = cats.find(function (c) { return c.id === catId; });
+				var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
+
+			// BFS to collect all descendant sub-categories.
+			var descCats = [];
+			var _bfsQ    = [catId];
+			while (_bfsQ.length) {
+				var _bfsCur = _bfsQ.shift();
+				for (var _bfsi = 0; _bfsi < cats.length; _bfsi++) {
+					if ((cats[_bfsi].parent_id || null) === _bfsCur) {
+						descCats.push(cats[_bfsi]);
+						_bfsQ.push(cats[_bfsi].id);
+					}
+				}
+			}
+
+			var directVars = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
+			var descVarCount = 0;
+			for (var _dci = 0; _dci < descCats.length; _dci++) {
+				var _dc = descCats[_dci];
+				descVarCount += AFF.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
+			}
+			var totalVars = directVars.length + descVarCount;
+
+			var bodyText = '<p>Clear category ' + catLabel + '?</p>'
+				+ '<p style="margin-top:var(--sp-2)">All variables'
+				+ (descCats.length > 0 ? ' and ' + descCats.length + ' nested sub-categor' + (descCats.length === 1 ? 'y' : 'ies') : '')
+				+ ' inside this category will be permanently deleted'
+				+ (totalVars > 0 ? ' (' + totalVars + ' variable' + (totalVars === 1 ? '' : 's') + ')' : '')
+				+ '. The category itself will remain.</p>';
+
+			AFF.Modal.open({
+				title:   'Clear Category',
+				body:    bodyText,
+				footer:  '<div style="display:flex;justify-content:flex-end;gap:8px">'
+					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-clr-cancel">Cancel</button>'
+					+ '<button class="aff-btn aff-btn--danger" id="aff-modal-clr-ok">Clear</button>'
+					+ '</div>',
+				onClose: function () {
+					document.removeEventListener('click', handleClrClick);
+					document.removeEventListener('keydown', handleClrKey);
+				},
+			});
+
+			setTimeout(function () {
+				var btn = document.getElementById('aff-modal-clr-ok');
+				if (btn) { btn.focus(); }
+			}, 50);
+
+			function handleClrKey(e) {
+				if (e.key === 'Enter') {
+					var focused = document.activeElement;
+					if (focused && (focused.id === 'aff-modal-clr-ok' || focused.id === 'aff-modal-clr-cancel')) {
+						e.preventDefault();
+						focused.click();
+					}
+					return;
+				}
+				var isTab = e.key === 'Tab', isRight = e.key === 'ArrowRight', isLeft = e.key === 'ArrowLeft';
+				if (!isTab && !isRight && !isLeft) { return; }
+				var ids = ['aff-modal-clr-cancel', 'aff-modal-clr-ok'];
+				var focused = document.activeElement;
+				var idx = ids.indexOf(focused ? focused.id : '');
+				if (isTab) { e.preventDefault(); e.stopImmediatePropagation(); }
+				else { if (idx === -1) { return; } e.preventDefault(); }
+				var backward = (isTab && e.shiftKey) || isLeft;
+				var next = idx === -1
+					? (backward ? ids.length - 1 : 0)
+					: (backward ? (idx - 1 + ids.length) % ids.length : (idx + 1) % ids.length);
+				var nextBtn = document.getElementById(ids[next]);
+				if (nextBtn) { nextBtn.focus(); }
+			}
+			document.addEventListener('keydown', handleClrKey);
+
+			function doClearCategory() {
+				AFF.Modal.close();
+				document.removeEventListener('click', handleClrClick);
+				document.removeEventListener('keydown', handleClrKey);
+				var _preCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
+					? AFF.state.config[self._cfg.catKey].slice() : null;
+				AFF.App.ajax('aff_clear_category', {
+					filename:    AFF.state.currentFile,
+					subgroup:    self._cfg.setName,
+					category_id: catId,
+				}).then(function (res) {
+					if (res.success && res.data) {
+						if (!AFF.state.config) { AFF.state.config = {}; }
+						var _descIds = descCats.map(function (c) { return c.id; });
+						// Remove descendant sub-categories but keep the target category.
+						AFF.state.config[self._cfg.catKey] = _preCats !== null
+							? _preCats.filter(function (c) { return _descIds.indexOf(c.id) === -1; })
+							: res.data.categories;
+						if (res.data.variables) {
+							AFF.state.variables = res.data.variables;
+						}
+						for (var _ddi = 0; _ddi < descCats.length; _ddi++) {
+							delete self._collapsedIds[descCats[_ddi].id];
+						}
+						if (AFF.App) { AFF.App.setDirty(true); }
+						self._rerenderView();
+						if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+					} else if (!res.success) {
+						var errMsg = (res.data && res.data.message) ? res.data.message : 'Clear failed.';
+						AFF.Modal.open({ title: 'Clear failed', body: '<p>' + errMsg + '</p>' });
+					}
+				}).catch(function () {
+					AFF.Modal.open({ title: 'Connection error', body: '<p>Connection error during clear.</p>' });
+				});
+			}
+
+			function handleClrClick(e) {
+				if (e.target.id === 'aff-modal-clr-cancel') {
+					AFF.Modal.close();
+					document.removeEventListener('click', handleClrClick);
+					document.removeEventListener('keydown', handleClrKey);
+				} else if (e.target.id === 'aff-modal-clr-ok') {
+					doClearCategory();
+				}
+			}
+			document.addEventListener('click', handleClrClick);
 		},
 
 		/**
@@ -1964,21 +2117,6 @@
 
 		// 7. Initial counts (all zero until a file is loaded)
 		AFF.App.refreshCounts();
-
-		// Title fade — fades the brand name as the center edit space scrolls,
-		// keeping the top bar compact with just the action buttons visible.
-		// #aff-edit-space is the scroll container (overflow-y: auto); its child
-		// #aff-edit-content has no overflow of its own.
-		(function () {
-			var brandName  = document.querySelector('.aff-brand-name');
-			var editSpace  = document.getElementById('aff-edit-space');
-			if (brandName && editSpace) {
-				editSpace.addEventListener('scroll', function () {
-					var y = editSpace.scrollTop;
-					brandName.style.opacity = String(Math.max(0, 1 - y / 80));
-				}, { passive: true });
-			}
-		}());
 
 		// 8. Warn on page unload with unsaved or uncommitted changes
 		window.addEventListener('beforeunload', function (e) {

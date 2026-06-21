@@ -22,6 +22,24 @@ class AFF_Admin {
 	public function register_hooks(): void {
 		add_action( 'admin_menu',            array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_filter( 'admin_body_class',      array( $this, 'add_body_class' ) );
+	}
+
+	/**
+	 * Add aff-fullscreen to body class on the AFF admin page.
+	 * Used by CSS to undo WordPress's body { height:100% } which, combined
+	 * with html { padding-top:32px }, makes the document 32px taller than
+	 * the viewport and creates a page scrollbar.
+	 *
+	 * @param string $classes Space-separated body class string.
+	 * @return string
+	 */
+	public function add_body_class( string $classes ): string {
+		$screen = get_current_screen();
+		if ( $screen && 'toplevel_page_' . self::MENU_SLUG === $screen->id ) {
+			$classes .= ' aff-fullscreen';
+		}
+		return $classes;
 	}
 
 	/**
@@ -48,6 +66,11 @@ class AFF_Admin {
 		if ( 'toplevel_page_' . self::MENU_SLUG !== $hook ) {
 			return;
 		}
+
+		// Remove the WP admin footer text and version string so the AFF full-height
+		// layout is not pushed by the footer bar.
+		add_filter( 'admin_footer_text', '__return_empty_string' );
+		add_filter( 'update_footer', '__return_empty_string', 11 );
 
 		// Theme CSS: font-face, custom properties, light/dark mode, base styles.
 		wp_enqueue_style(
@@ -228,31 +251,37 @@ class AFF_Admin {
 	 * @return string CSS string.
 	 */
 	private function get_grid_override_css(): string {
+		// Column order:
+		//   Colors:  drag(24) | dot(8) | swatch(100) | name(300px) | notes(4fr) | value(11%) | format(100px) | delete(28) | empty(28)
+		//   Fonts:   drag(24) | dot(8) | preview(72)  | name(300px) | notes(5fr) | value(19%) | format(150px) | delete(28) | empty(28)
+		//   Numbers: drag(24) | dot(8) | name(300px)  | notes(5fr)  | value(4fr) | format(100px) | delete(28) | empty(28)
 		return '
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
+	grid-template-columns: 24px 8px 100px 300px 4fr 11% 100px 28px 28px;
 }
-.aff-fonts-view .aff-color-row {
-	grid-template-columns: 24px 8px 100px 1fr 16% 12% 28px 28px;
+.aff-fonts-view .aff-color-row,
+.aff-fonts-view .aff-color-list-header {
+	grid-template-columns: 24px 8px 72px 300px 5fr 19% 150px 28px 28px;
 	column-gap: 10px;
 }
 .aff-numbers-view .aff-color-row,
 .aff-numbers-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 1fr calc(28% + 100px) 12% 28px 28px;
-	column-gap: 16px;
+	grid-template-columns: 24px 8px 300px 5fr 4fr 100px 28px 28px;
+	column-gap: 10px;
 }
 @media (max-width: 600px) {
 	.aff-color-list-header,
 	.aff-color-row {
-		grid-template-columns: 24px 8px 80px 1fr 16% 0 28px 28px;
+		grid-template-columns: 24px 8px 80px 120px 0 16% 0 28px 28px;
 	}
-	.aff-fonts-view .aff-color-row {
-		grid-template-columns: 24px 8px 80px 1fr 16% 0 28px 28px;
+	.aff-fonts-view .aff-color-row,
+	.aff-fonts-view .aff-color-list-header {
+		grid-template-columns: 24px 8px 60px 120px 0 20% 0 28px 28px;
 	}
 	.aff-numbers-view .aff-color-row,
 	.aff-numbers-view .aff-color-list-header {
-		grid-template-columns: 24px 8px 1fr calc(24% + 80px) 0 28px 28px;
+		grid-template-columns: 24px 8px 120px 0 3fr 0 28px 28px;
 	}
 }';
 	}

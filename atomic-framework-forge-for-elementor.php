@@ -3,7 +3,7 @@
  * Plugin Name:       Atomic Framework Forge for Elementor
  * Plugin URI:        https://jimrforge.com/plugins/atomic-framework-forge-for-elementor
  * Description:       Professional management interface for Elementor Version 4 (atomic widget architecture) assets — Variables, Classes, and Components.
- * Version:           1.2.0
+ * Version:           1.4.0
  * Requires at least: 5.8
  * Requires PHP:      8.2
  * Author:            Jim Roberts
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'AFF_VERSION',    '1.2.0' );
+define( 'AFF_VERSION',    '1.4.0' );
 define( 'AFF_PLUGIN_FILE', __FILE__ );
 define( 'AFF_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'AFF_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
@@ -32,8 +32,8 @@ define( 'AFF_USER_META_THEME', 'aff_theme_preference' );
 // Elementor versions this build was developed and tested against.
 // Update these constants whenever AFF is re-validated on a new Elementor release.
 // A mismatch at runtime triggers a pre-commit safety warning to the user.
-define( 'AFF_DEV_ELEMENTOR_VERSION',     '4.0.8' );
-define( 'AFF_DEV_ELEMENTOR_PRO_VERSION', '4.0.4' );
+define( 'AFF_DEV_ELEMENTOR_VERSION',     '4.1.3' );
+define( 'AFF_DEV_ELEMENTOR_PRO_VERSION', '4.1.1' );
 
 /**
  * Check that required plugins (Elementor + Elementor Pro) are active.

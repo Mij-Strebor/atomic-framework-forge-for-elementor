@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.2.0
+Stable tag:        1.4.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,11 +34,11 @@ Every write is user-triggered (no background or automatic writes, ever), precede
 
 === Key Features ===
 
-* **Sync from Elementor** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
+* **V3 → V4 Color Migration** — Import all Elementor V3 Global Colors (system and custom) into AFF with a single click. The four Elementor system colors (Primary, Secondary, Text, Accent) are automatically annotated with their standard usage roles so you never lose track of what each color controls. Use AFF to map V3 colors to their V4 equivalents side-by-side as you rebuild pages.
+* **Sync from Elementor V4** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
+* **Commit to Elementor V4** — Write modified variable values back to the active kit CSS. Commit summary shows modified / new / deleted counts before writing.
 * **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
 * **Multi-project support** — Multiple independent named projects per WordPress site.
-* **Commit to Elementor** — Write modified variable values back to the active kit CSS. Commit summary shows modified / new / deleted counts before writing.
-* **Elementor V3 Global Colors import** — Import V3 system and custom colors into AFF as color variables.
 * **Export / Import** — Download the current project as a portable `.aff.json` file; import on any WordPress site running AFF.
 * **Four-panel interface** — Top menu bar, collapsible left navigation tree, center edit space, right data management panel.
 * **Project organization** — Variables organized into Colors / Fonts / Numbers. Categories are user-configurable per set.
@@ -72,6 +72,13 @@ In your WordPress uploads directory under `/uploads/aff/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 1.3.0 =
+* Added: V3 import result modal — shows import count, Close button, auto-closes after 4 seconds.
+* Added: System color auto-notes — first four V3 imports receive a "System Colors: ..." description automatically.
+* Changed: Color expand modal restructured to two-row header (Row 1: controls; Row 2: notes field).
+* Changed: Sticky group header — filter bar and status legend now pin together as one unit when scrolling.
+* Fixed: App top bar scrolled off screen due to WordPress padding on #wpbody-content.
 
 = 1.2.0 =
 * Added: Sub-categories — one level of sub-categories under any top-level category, with full CRUD and cascade collapse.
