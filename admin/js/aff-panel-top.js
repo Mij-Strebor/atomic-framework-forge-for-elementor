@@ -282,7 +282,6 @@
         "aff-btn-export": self._openExport.bind(self),
         "aff-btn-import": self._openImport.bind(self),
         "aff-btn-history": self._openHistory.bind(self),
-        "aff-btn-search": self._openSearch.bind(self),
         "aff-btn-help": self._openHelp.bind(self),
       };
 
@@ -294,6 +293,7 @@
       });
 
       this._bindFunctionsBtn();
+      this._bindMoreBtn();
     },
 
     // ------------------------------------------------------------------
@@ -318,6 +318,7 @@
         e.stopPropagation();
         var isOpen = dropdown.classList.contains("is-open");
         self._closeFunctionsDropdown();
+        self._closeMoreDropdown();
         if (!isOpen) {
           dropdown.classList.add("is-open");
           btn.setAttribute("aria-expanded", "true");
@@ -353,6 +354,63 @@
     _closeFunctionsDropdown: function () {
       var btn = document.getElementById("aff-btn-functions");
       var dropdown = document.getElementById("aff-dropdown-functions");
+      if (dropdown) {
+        dropdown.classList.remove("is-open");
+      }
+      if (btn) {
+        btn.setAttribute("aria-expanded", "false");
+      }
+    },
+
+    // ------------------------------------------------------------------
+    // "MORE" DROPDOWN — Print, Export, Import
+    // ------------------------------------------------------------------
+
+    /**
+     * Bind the "More" dropdown toggle. The Print / Export / Import buttons
+     * inside it keep their own existing click handlers (bound elsewhere in
+     * this file and in aff-print.js) — this only opens/closes the panel and
+     * closes it after any item inside is clicked.
+     * @private
+     */
+    _bindMoreBtn: function () {
+      var self = this;
+      var btn = document.getElementById("aff-btn-more");
+      var dropdown = document.getElementById("aff-dropdown-more");
+
+      if (!btn || !dropdown) {
+        return;
+      }
+
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var isOpen = dropdown.classList.contains("is-open");
+        self._closeMoreDropdown();
+        self._closeFunctionsDropdown();
+        if (!isOpen) {
+          dropdown.classList.add("is-open");
+          btn.setAttribute("aria-expanded", "true");
+        }
+      });
+
+      document.addEventListener("click", function () {
+        self._closeMoreDropdown();
+      });
+
+      dropdown.addEventListener("click", function (e) {
+        if (e.target.closest(".aff-dropdown__item")) {
+          self._closeMoreDropdown();
+        }
+      });
+    },
+
+    /**
+     * Close the "More" dropdown.
+     * @private
+     */
+    _closeMoreDropdown: function () {
+      var btn = document.getElementById("aff-btn-more");
+      var dropdown = document.getElementById("aff-dropdown-more");
       if (dropdown) {
         dropdown.classList.remove("is-open");
       }
@@ -1033,75 +1091,6 @@
             body: "<p>Network error while saving config.</p>",
           });
         });
-    },
-
-    // ------------------------------------------------------------------
-    // MODAL CONTENT — Search
-    // ------------------------------------------------------------------
-
-    _openSearch: function () {
-      var body =
-        '<input type="text" class="aff-field-input" id="aff-search-input" ' +
-        'placeholder="Search variables, classes, components..." autocomplete="off" />' +
-        '<div id="aff-search-results" style="margin-top:16px;min-height:40px"></div>';
-
-      AFF.Modal.open({
-        title: "Search",
-        body: body,
-      });
-
-      requestAnimationFrame(function () {
-        var input = document.getElementById("aff-search-input");
-        var results = document.getElementById("aff-search-results");
-
-        if (!input) {
-          return;
-        }
-
-        input.focus();
-
-        input.addEventListener("input", function () {
-          var query = input.value.trim().toLowerCase();
-          if (!results) {
-            return;
-          }
-
-          if (query.length < 2) {
-            results.innerHTML =
-              '<p class="aff-text-muted" style="font-size:13px">Type at least 2 characters to search.</p>';
-            return;
-          }
-
-          var matches = AFF.state.variables.filter(function (v) {
-            return (
-              v.name.toLowerCase().includes(query) ||
-              v.value.toLowerCase().includes(query)
-            );
-          });
-
-          if (!matches.length) {
-            results.innerHTML =
-              '<p class="aff-text-muted" style="font-size:13px">No results found.</p>';
-            return;
-          }
-
-          var html =
-            '<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px">';
-          matches.forEach(function (v) {
-            html +=
-              '<li style="display:flex;justify-content:space-between;padding:4px 8px;border-radius:4px;background:var(--aff-bg-panel)">' +
-              '<code style="font-size:12px;color:var(--aff-clr-primary)">' +
-              v.name +
-              "</code>" +
-              '<span style="font-size:12px;color:var(--aff-clr-muted)">' +
-              v.value +
-              "</span>" +
-              "</li>";
-          });
-          html += "</ul>";
-          results.innerHTML = html;
-        });
-      });
     },
 
     // ------------------------------------------------------------------

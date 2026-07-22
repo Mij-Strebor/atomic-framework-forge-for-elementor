@@ -454,6 +454,13 @@
 	display: block;
 }
 
+/* "More" dropdown sits at the far right of the top bar - anchor to the
+   trigger's right edge instead of its left, or it runs off the viewport. */
+.aff-app #aff-dropdown-more {
+	left:  auto;
+	right: 0;
+}
+
 /* Dropdown item */
 .aff-app .aff-dropdown__item {
 	display:         flex;
@@ -470,6 +477,39 @@
 
 .aff-app .aff-dropdown__item:hover {
 	background: var(--aff-icon-btn-hover-bg);
+}
+
+/* Dropdown items that are real <button> elements (e.g. the "More" menu,
+   which reuses existing icon-button actions) need browser button defaults
+   reset — <li>-based items like Functions don't need this. */
+button.aff-app .aff-dropdown__item,
+.aff-app button.aff-dropdown__item {
+	width:      100%;
+	background: none;
+	border:     none;
+	font:       inherit;
+	text-align: left;
+}
+
+/* Icon slot inside a dropdown item — pairs icon with visible label so
+   items relegated to an overflow menu (lower recognition frequency)
+   don't rely on icon-only recall. */
+.aff-app .aff-dropdown__icon {
+	display:     flex;
+	align-items: center;
+	flex-shrink: 0;
+	width:       18px;
+	height:      18px;
+	color:       var(--aff-clr-secondary);
+}
+
+.aff-app .aff-dropdown__icon svg {
+	width:  18px;
+	height: 18px;
+}
+
+.aff-app .aff-dropdown__label {
+	flex: 1;
 }
 
 /* "Soon" badge on dropdown items */

@@ -129,6 +129,15 @@
 	margin-left:           var(--sp-4);
 }
 
+/* Utility — app-level actions (Preferences, Functions, Help), left of Project name */
+.aff-top-bar__utility {
+	display:     flex;
+	align-items: center;
+	gap:         2px;
+	flex-shrink: 0;
+	padding-left: var(--sp-2);
+}
+
 /* Project — label + editable input, centered */
 .aff-top-bar__project {
 	display:     flex;

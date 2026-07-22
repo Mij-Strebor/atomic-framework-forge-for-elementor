@@ -50,32 +50,14 @@ function aff_icon( string $name ): string {
 			<span class="aff-brand-name">Atomic Framework Forge</span>
 		</div>
 
-		<!-- Editable project name -->
-		<div class="aff-top-bar__project">
-			<span class="aff-project-label"><?php esc_html_e( 'Project:', 'atomic-framework-forge-for-elementor' ); ?></span>
-			<input type="text"
-			       class="aff-project-input"
-			       id="aff-filename"
-			       name="aff-filename"
-			       placeholder="<?php esc_attr_e( 'Project name', 'atomic-framework-forge-for-elementor' ); ?>"
-			       autocomplete="off"
-			       spellcheck="false" />
-		</div>
-
-		<!-- All toolbar actions -->
-		<div class="aff-top-bar__actions">
+		<!-- App-level utility actions: Preferences, Functions, Help — left of Project name -->
+		<div class="aff-top-bar__utility">
 
 			<button class="aff-icon-btn" id="aff-btn-preferences"
 			        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-aff-tooltip="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-aff-tooltip-long="<?php esc_attr_e( 'Open Preferences — change theme, configure tooltips, and set file defaults', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php echo aff_icon( 'gear' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
-			<button class="aff-icon-btn" id="aff-btn-manage-project"
-			        aria-label="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip-long="<?php esc_attr_e( 'Manage Projects — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'grid' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</button>
 			<div class="aff-dropdown-wrap" id="aff-dropdown-wrap-functions">
 				<button class="aff-icon-btn" id="aff-btn-functions"
@@ -96,6 +78,35 @@ function aff_icon( string $name ): string {
 					</li>
 				</ul>
 			</div>
+			<button class="aff-icon-btn" id="aff-btn-help"
+			        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-aff-tooltip="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php echo aff_icon( 'help' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			</button>
+
+		</div>
+
+		<!-- Editable project name -->
+		<div class="aff-top-bar__project">
+			<span class="aff-project-label"><?php esc_html_e( 'Project:', 'atomic-framework-forge-for-elementor' ); ?></span>
+			<input type="text"
+			       class="aff-project-input"
+			       id="aff-filename"
+			       name="aff-filename"
+			       placeholder="<?php esc_attr_e( 'Project name', 'atomic-framework-forge-for-elementor' ); ?>"
+			       autocomplete="off"
+			       spellcheck="false" />
+		</div>
+
+		<!-- Project-scoped actions -->
+		<div class="aff-top-bar__actions">
+
+			<button class="aff-icon-btn" id="aff-btn-manage-project"
+			        aria-label="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-aff-tooltip="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-aff-tooltip-long="<?php esc_attr_e( 'Manage Projects — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php echo aff_icon( 'grid' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			</button>
 
 			<span class="aff-toolbar-sep" aria-hidden="true"></span>
 
@@ -119,38 +130,43 @@ function aff_icon( string $name ): string {
 			        data-aff-tooltip-long="<?php esc_attr_e( 'Sync — import variables from Elementor or export AFF data back to Elementor (V3 and V4)', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php echo aff_icon( 'sync' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</button>
-			<button class="aff-icon-btn" id="aff-btn-export"
-			        aria-label="<?php esc_attr_e( 'Export project as .aff.json', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Export', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip-long="<?php esc_attr_e( 'Export — download the entire project as a portable .aff.json file', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'export' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
-			<button class="aff-icon-btn" id="aff-btn-import"
-			        aria-label="<?php esc_attr_e( 'Import project from .aff.json', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Import', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip-long="<?php esc_attr_e( 'Import — upload a .aff.json file to replace the current project', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'import' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
 
 			<span class="aff-toolbar-sep" aria-hidden="true"></span>
 
-			<button class="aff-icon-btn" id="aff-btn-search"
-			        aria-label="<?php esc_attr_e( 'Search', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Search', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip-long="<?php esc_attr_e( 'Search — find variables, classes, and components by name or value', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
-			<button class="aff-icon-btn" id="aff-btn-print"
-			        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip-long="<?php esc_attr_e( 'Print / PDF — print or save variables as a PDF reference sheet', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'print' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
-			<button class="aff-icon-btn" id="aff-btn-help"
-			        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'help' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
+			<!-- More — infrequent / backup-ish actions: Print, Export, Import -->
+			<div class="aff-dropdown-wrap" id="aff-dropdown-wrap-more">
+				<button class="aff-icon-btn" id="aff-btn-more"
+				        aria-label="<?php esc_attr_e( 'More actions', 'atomic-framework-forge-for-elementor' ); ?>"
+				        aria-haspopup="true"
+				        aria-expanded="false"
+				        data-aff-tooltip="<?php esc_attr_e( 'More', 'atomic-framework-forge-for-elementor' ); ?>"
+				        data-aff-tooltip-long="<?php esc_attr_e( 'More — print, export, and import actions', 'atomic-framework-forge-for-elementor' ); ?>">
+					<?php echo aff_icon( 'more' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				</button>
+				<ul class="aff-dropdown" id="aff-dropdown-more" role="menu" aria-labelledby="aff-btn-more">
+					<li role="none">
+						<button class="aff-dropdown__item" id="aff-btn-print" role="menuitem"
+						        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>">
+							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'print' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="aff-dropdown__label"><?php esc_html_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="aff-dropdown__item" id="aff-btn-export" role="menuitem"
+						        aria-label="<?php esc_attr_e( 'Export project as .aff.json', 'atomic-framework-forge-for-elementor' ); ?>">
+							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'export' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="aff-dropdown__label"><?php esc_html_e( 'Export', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="aff-dropdown__item" id="aff-btn-import" role="menuitem"
+						        aria-label="<?php esc_attr_e( 'Import project from .aff.json', 'atomic-framework-forge-for-elementor' ); ?>">
+							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'import' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="aff-dropdown__label"><?php esc_html_e( 'Import', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+				</ul>
+			</div>
 
 		</div>
 
