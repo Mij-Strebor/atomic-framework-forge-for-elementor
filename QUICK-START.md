@@ -54,24 +54,25 @@ You will see the three-panel interface:
 
 ## Step 3 — The Top Menu Bar
 
-The top bar gives you access to everything. All buttons are icons; hover anyone to see a tooltip.
+The top bar gives you access to everything. All buttons are icons; hover anyone to see a tooltip. It's split into two groups either side of the project name: app-level settings on the left, project actions on the right.
+
+**Left side, next to the logo (app-level, not tied to a project):**
+| Button | Action |
+|--------|--------|
+| ⚙ Gear | Preferences — theme, density, tooltip settings |
+| fₓ | Functions — variable utilities |
+| ? Help | Help |
 
 **Center:** `Project:` The current project.
 
 **Right side (left to right):**
 | Button | Action |
 |--------|--------|
-| ⚙ Gear | Preferences — theme, density, tooltip settings |
 | ▦ Grid | Manage Projects — create, rename, open, or delete projects |
-| fₓ | Functions — variable utilities |
 | 💾 Save | Save Changes in place — glows red when unsaved changes exist |
 | History | Change history |
 | ⟳ Sync | Open the Sync modal — import from or export to Elementor |
-| ↓ Export | Download project as `.aff.json` |
-| ↑ Import | Upload a `.aff.json` file |
-| 🔍 Search | Search variables |
-| 🖨 Print | Generate a print/PDF reference sheet |
-| ? Help | Help |
+| ⋯ More | Dropdown — Print / PDF, Export, Import |
 
 ---
 

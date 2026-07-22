@@ -77,11 +77,21 @@ AFF requires a minimum screen width of 1024px. Below that, a restriction overlay
 
 ## 2. Top Bar
 
-The top bar spans the full width of the AFF panel. All buttons are icon-only; hover any icon to see a tooltip. Long-hover shows an extended description.
+The top bar spans the full width of the AFF panel and is split into two clusters, either side of the Project name field — app-level settings on the left, project-scoped actions on the right. Icon buttons show a tooltip on hover; long-hover shows an extended description. Items inside the "More" dropdown also show a visible text label, since overflow-menu items are used rarely enough that an icon alone isn't a reliable memory aid.
 
-### Brand (left)
+### Brand (far left)
 
 The JimRForge logo and "Atomic Framework Forge" title. No interactive controls.
+
+### Utility buttons (left, next to brand)
+
+App-level actions — not tied to any particular project:
+
+| Icon | ID | Action |
+|------|----|--------|
+| ⚙ Gear | Preferences | Open the Preferences modal |
+| fₓ | Functions | Dropdown: Change Variable Types · Diagnose & Clean Up |
+| ? | Help | Quick reference *(placeholder)* |
 
 ### Project name (center)
 
@@ -89,24 +99,20 @@ A text input pre-filled with the current project name. Edit the name and save yo
 
 ### Action buttons (right)
 
-Buttons from left to right:
+Project-scoped actions, left to right:
 
 | Icon | ID | Action |
 |------|----|--------|
-| ⚙ Gear | Preferences | Open the Preferences modal |
 | ▦ Grid | Manage Projects | Open the Project Picker (create, open, rename, delete) |
-| fₓ | Functions | Dropdown: Change Variable Types · Diagnose & Clean Up |
 | — | Separator | — |
 | 💾 Save | Save Changes | Update current project in place — glows red when dirty |
 | ⏱ | Change History | Per-session change log *(placeholder)* |
 | — | Separator | — |
 | ⟳ Sync | Sync | Open the Sync modal — all Elementor import/export operations |
-| ↓ | Export | Download project as `.aff.json` |
-| ↑ | Import | Upload a `.aff.json` file |
 | — | Separator | — |
-| 🔍 | Search | Find variables by name or value *(placeholder)* |
-| 🖨 | Print / PDF | Generate a formatted reference sheet |
-| ? | Help | Quick reference *(placeholder)* |
+| ⋯ | More | Dropdown: Print / PDF · Export · Import |
+
+**Search has been removed from the top bar.** It duplicated the Filter bar's search input already available in the [Center Edit Space](#4-center-edit-space) for the active category; when Classes ships its own local search, the same pattern applies there too.
 
 #### Save Changes glow behavior
 
@@ -783,7 +789,6 @@ AFF meets WCAG 2.1 AA contrast standards:
 | V3 Export (write back to Elementor V3) | Not currently planned — contact developer if needed |
 | Fonts value preview | Value editing works; live "Aa" font render is a placeholder |
 | Change History | Button present; history log not yet built |
-| Search | Button present; search not yet built |
 | Auto-save | Not implemented; save manually with the Save icon |
 | Batch format conversion | Per-variable format change works; no bulk "convert all" tool yet |
 | Usage scan size | Scans up to 500 posts; large sites may show incomplete counts |
