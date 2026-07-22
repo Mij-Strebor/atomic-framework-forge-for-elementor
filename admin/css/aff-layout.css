@@ -128,29 +128,20 @@
 	margin-left:           var(--sp-4);
 }
 
-/* Utility — app-level actions (Preferences, Functions, Help), left of Project name.
-   margin-left:auto absorbs the leftover flex space, pulling this cluster (and
-   everything after it) toward the right edge instead of leaving Project
-   centered with large empty margins on both sides. margin-right is 40px, not
-   48px — .aff-top-bar's own `gap: var(--sp-2)` (8px) already applies between
-   every child, so 40px margin + 8px gap nets the intended 48px total. */
-.aff-top-bar__utility {
-	display:      flex;
-	align-items:  center;
-	gap:          2px;
-	flex-shrink:  0;
-	margin-left:  auto;
-	margin-right: 40px;
-}
-
 /* Project — label + editable input. No longer flex:1 / centered — sized to
-   content, positioned by fixed 48px total gaps to its neighbors on each side
-   (40px margin + .aff-top-bar's 8px gap — see .aff-top-bar__utility above). */
+   content. margin-left:auto absorbs the leftover flex space, pulling Project
+   (and Actions after it) toward the right edge instead of leaving it centered
+   with large empty margins on both sides. margin-right is 40px, not 48px —
+   .aff-top-bar's own `gap: var(--sp-2)` (8px) already applies between every
+   child, so 40px margin + 8px gap nets the intended 48px total to Manage
+   Projects. Preferences/Functions/Help moved into the "More" dropdown, so
+   there's no longer a left-hand cluster to gap against. */
 .aff-top-bar__project {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
 	flex-shrink: 0;
+	margin-left: auto;
 	margin-right: 40px;
 	min-width:   0;
 }

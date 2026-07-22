@@ -313,12 +313,13 @@
         return;
       }
 
-      // Toggle dropdown on button click.
+      // Toggle dropdown on button click. Functions now nests inside the
+      // More dropdown (a submenu, not a sibling) — must NOT close More here,
+      // or opening this submenu would instantly hide its own parent panel.
       btn.addEventListener("click", function (e) {
         e.stopPropagation();
         var isOpen = dropdown.classList.contains("is-open");
         self._closeFunctionsDropdown();
-        self._closeMoreDropdown();
         if (!isOpen) {
           dropdown.classList.add("is-open");
           btn.setAttribute("aria-expanded", "true");
@@ -330,7 +331,10 @@
         self._closeFunctionsDropdown();
       });
 
-      // Item clicks.
+      // Item clicks. stopPropagation() here means these clicks never reach
+      // #aff-dropdown-more's own item-click listener, so the parent "More"
+      // panel is closed explicitly too — completing a nested action should
+      // collapse the whole thing, not just the submenu.
       dropdown.addEventListener("click", function (e) {
         var item = e.target.closest(".aff-dropdown__item");
         if (!item) {
@@ -338,6 +342,7 @@
         }
         e.stopPropagation();
         self._closeFunctionsDropdown();
+        self._closeMoreDropdown();
         var action = item.getAttribute("data-action");
         if (action === "change-types") {
           self._openChangeTypes();
@@ -363,14 +368,16 @@
     },
 
     // ------------------------------------------------------------------
-    // "MORE" DROPDOWN — Print, Export, Import
+    // "MORE" DROPDOWN — Preferences, Functions, Print, Export, Import, Help
     // ------------------------------------------------------------------
 
     /**
-     * Bind the "More" dropdown toggle. The Print / Export / Import buttons
-     * inside it keep their own existing click handlers (bound elsewhere in
-     * this file and in aff-print.js) — this only opens/closes the panel and
-     * closes it after any item inside is clicked.
+     * Bind the "More" dropdown toggle. Preferences / Print / Export / Import /
+     * Help keep their own existing click handlers (bound elsewhere in this
+     * file and in aff-print.js) — this only opens/closes the panel and closes
+     * it after any of those items is clicked. Functions is a nested submenu
+     * (see _bindFunctionsBtn) and manages its own open/close state, reset
+     * here on every fresh open so it never starts pre-expanded.
      * @private
      */
     _bindMoreBtn: function () {

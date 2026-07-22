@@ -50,42 +50,6 @@ function aff_icon( string $name ): string {
 			<span class="aff-brand-name">Atomic Framework Forge</span>
 		</div>
 
-		<!-- App-level utility actions: Preferences, Functions, Help — left of Project name -->
-		<div class="aff-top-bar__utility">
-
-			<button class="aff-icon-btn" id="aff-btn-preferences"
-			        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip-long="<?php esc_attr_e( 'Open Preferences — change theme, configure tooltips, and set file defaults', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'gear' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
-			<div class="aff-dropdown-wrap" id="aff-dropdown-wrap-functions">
-				<button class="aff-icon-btn" id="aff-btn-functions"
-				        aria-label="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>"
-				        aria-haspopup="true"
-				        aria-expanded="false"
-				        data-aff-tooltip="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-aff-tooltip-long="<?php esc_attr_e( 'Functions — variable conversion and transformation tools', 'atomic-framework-forge-for-elementor' ); ?>">
-					<?php echo aff_icon( 'function' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				</button>
-				<ul class="aff-dropdown" id="aff-dropdown-functions" role="menu" aria-labelledby="aff-btn-functions">
-					<li class="aff-dropdown__item" data-action="change-types" role="menuitem">
-						<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
-						<span class="aff-badge aff-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
-					</li>
-					<li class="aff-dropdown__item" data-action="diagnose" role="menuitem">
-						<?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>
-					</li>
-				</ul>
-			</div>
-			<button class="aff-icon-btn" id="aff-btn-help"
-			        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-aff-tooltip="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo aff_icon( 'help' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			</button>
-
-		</div>
-
 		<!-- Editable project name -->
 		<div class="aff-top-bar__project">
 			<span class="aff-project-label"><?php esc_html_e( 'Project:', 'atomic-framework-forge-for-elementor' ); ?></span>
@@ -145,6 +109,32 @@ function aff_icon( string $name ): string {
 				</button>
 				<ul class="aff-dropdown" id="aff-dropdown-more" role="menu" aria-labelledby="aff-btn-more">
 					<li role="none">
+						<button class="aff-dropdown__item" id="aff-btn-preferences" role="menuitem"
+						        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>">
+							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'gear' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="aff-dropdown__label"><?php esc_html_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li class="aff-dropdown-wrap" id="aff-dropdown-wrap-functions" role="none">
+						<button class="aff-dropdown__item" id="aff-btn-functions" role="menuitem"
+						        aria-haspopup="true"
+						        aria-expanded="false"
+						        aria-label="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>">
+							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'function' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="aff-dropdown__label"><?php esc_html_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?></span>
+							<span class="aff-dropdown__icon aff-dropdown__submenu-arrow" aria-hidden="true"><?php echo aff_icon( 'chevron-right' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+						</button>
+						<ul class="aff-dropdown aff-dropdown--nested" id="aff-dropdown-functions" role="menu" aria-labelledby="aff-btn-functions">
+							<li class="aff-dropdown__item" data-action="change-types" role="menuitem">
+								<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
+								<span class="aff-badge aff-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
+							</li>
+							<li class="aff-dropdown__item" data-action="diagnose" role="menuitem">
+								<?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>
+							</li>
+						</ul>
+					</li>
+					<li role="none">
 						<button class="aff-dropdown__item" id="aff-btn-print" role="menuitem"
 						        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>">
 							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'print' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
@@ -163,6 +153,13 @@ function aff_icon( string $name ): string {
 						        aria-label="<?php esc_attr_e( 'Import project from .aff.json', 'atomic-framework-forge-for-elementor' ); ?>">
 							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'import' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 							<span class="aff-dropdown__label"><?php esc_html_e( 'Import', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="aff-dropdown__item" id="aff-btn-help" role="menuitem"
+						        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>">
+							<span class="aff-dropdown__icon" aria-hidden="true"><?php echo aff_icon( 'help' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="aff-dropdown__label"><?php esc_html_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 				</ul>

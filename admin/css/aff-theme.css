@@ -461,6 +461,27 @@
 	right: 0;
 }
 
+/* Functions is now nested inside the More dropdown (a submenu, not a
+   sibling). Its trigger sits inside an already right-anchored panel, so
+   anchor the nested list to ITS right edge too, for the same reason. */
+.aff-app .aff-dropdown--nested {
+	left:  auto;
+	right: 0;
+}
+
+/* Submenu arrow (Functions row inside More) — smaller and muted, distinct
+   from the row's leading icon. */
+.aff-app .aff-dropdown__submenu-arrow {
+	width:  14px;
+	height: 14px;
+	color:  var(--aff-clr-muted);
+}
+
+.aff-app .aff-dropdown__submenu-arrow svg {
+	width:  14px;
+	height: 14px;
+}
+
 /* Dropdown item */
 .aff-app .aff-dropdown__item {
 	display:         flex;
