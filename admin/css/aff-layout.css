@@ -38,6 +38,34 @@
 }
 
 /*
+ * #adminmenuback is WP core's fixed-position hover-highlight layer behind the
+ * left admin menu, sized to the full menu item count — taller than the
+ * viewport once enough plugins are installed. Because it's position:fixed,
+ * that excess height still inflates document scrollHeight past the viewport,
+ * forcing a page-level scroll that carries .aff-top-bar off screen with it.
+ * The real #adminmenu list already scrolls independently when it overflows,
+ * so capping this decorative layer doesn't affect menu usability.
+ */
+#adminmenuback {
+	max-height: 100vh;
+	overflow: hidden;
+}
+
+/*
+ * #adminmenuwrap is the real, clickable WP admin menu list — a plain block
+ * sibling of #wpcontent inside #wpwrap, not a flex/grid item. #wpwrap's own
+ * height naturally grows to fit its tallest child, so once the menu has more
+ * items than fit the viewport (as it does here), #wpwrap — and with it the
+ * whole document — exceeds the viewport regardless of .aff-app's own fixed
+ * height and overflow:hidden. Capping and scrolling the menu independently
+ * keeps every item reachable while stopping it from inflating page height.
+ */
+#adminmenuwrap {
+	max-height: calc(100vh - 32px);
+	overflow-y: auto;
+}
+
+/*
  * Remove WP default padding so #wpbody-content adds no height.
  */
 #wpbody-content {
@@ -58,7 +86,8 @@
    ========================================================================== */
 
 .aff-top-bar {
-	position:        relative;
+	position:        sticky;
+	top:             0;
 	display:         flex;
 	align-items:     center;
 	justify-content: space-between;
