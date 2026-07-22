@@ -154,7 +154,7 @@ class AFF_CSS_Parser {
 
 		// Walk blocks from last to first; return first block that has user vars.
 		foreach ( array_reverse( $blocks ) as $block ) {
-			$all_vars = $this->parse_variables_from_block( $block );
+			$all_vars  = $this->parse_variables_from_block( $block );
 			$user_vars = array_values(
 				array_filter( $all_vars, array( $this, 'is_user_variable' ) )
 			);
@@ -163,8 +163,8 @@ class AFF_CSS_Parser {
 				// Strip exactly one -- AFTER filtering (is_user_variable needs the full
 				// CSS name intact for its prefix checks). EV4 adds one -- when writing
 				// CSS, so removing one -- recovers the label the user originally typed:
-				//   --purple    → purple   (user typed 'purple')
-				//   ----purple  → --purple (user typed '--purple')
+				// --purple    → purple   (user typed 'purple')
+				// ----purple  → --purple (user typed '--purple')
 				// A second strip removes any user-typed leading -- so labels are always
 				// stored without a -- prefix regardless of how the user entered them.
 				foreach ( $user_vars as &$v ) {

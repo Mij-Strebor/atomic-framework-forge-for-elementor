@@ -20,9 +20,9 @@ class AFF_Admin {
 	 * Register all WordPress hooks.
 	 */
 	public function register_hooks(): void {
-		add_action( 'admin_menu',            array( $this, 'register_admin_menu' ) );
+		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-		add_filter( 'admin_body_class',      array( $this, 'add_body_class' ) );
+		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
 	}
 
 	/**
@@ -175,15 +175,15 @@ class AFF_Admin {
 			'aff-app',
 			'AFFData',
 			array(
-				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-				'nonce'     => wp_create_nonce( AFF_NONCE_ACTION ),
-				'theme'     => $this->get_user_theme(),
-				'version'   => AFF_VERSION,
-				'uploadUrl' => $this->get_aff_upload_dir_url(),
-				'pluginUrl' => AFF_PLUGIN_URL,
-				'siteName'  => get_bloginfo( 'name' ),
+				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+				'nonce'           => wp_create_nonce( AFF_NONCE_ACTION ),
+				'theme'           => $this->get_user_theme(),
+				'version'         => AFF_VERSION,
+				'uploadUrl'       => $this->get_aff_upload_dir_url(),
+				'pluginUrl'       => AFF_PLUGIN_URL,
+				'siteName'        => get_bloginfo( 'name' ),
 				// Elementor version data for runtime safety check.
-				'elVersion'       => defined( 'ELEMENTOR_VERSION' )     ? ELEMENTOR_VERSION     : null,
+				'elVersion'       => defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : null,
 				'elProVersion'    => defined( 'ELEMENTOR_PRO_VERSION' ) ? ELEMENTOR_PRO_VERSION : null,
 				'elDevVersion'    => AFF_DEV_ELEMENTOR_VERSION,
 				'elProDevVersion' => AFF_DEV_ELEMENTOR_PRO_VERSION,
@@ -252,9 +252,9 @@ class AFF_Admin {
 	 */
 	private function get_grid_override_css(): string {
 		// Column order:
-		//   Colors:  drag(24) | dot(8) | swatch(100) | name(300px) | notes(4fr) | value(11%) | format(100px) | delete(28) | empty(28)
-		//   Fonts:   drag(24) | dot(8) | preview(72)  | name(300px) | notes(5fr) | value(19%) | format(150px) | delete(28) | empty(28)
-		//   Numbers: drag(24) | dot(8) | name(300px)  | notes(5fr)  | value(4fr) | format(100px) | delete(28) | empty(28)
+		// Colors:  drag(24) | dot(8) | swatch(100) | name(300px) | notes(4fr) | value(11%) | format(100px) | delete(28) | empty(28)
+		// Fonts:   drag(24) | dot(8) | preview(72)  | name(300px) | notes(5fr) | value(19%) | format(150px) | delete(28) | empty(28)
+		// Numbers: drag(24) | dot(8) | name(300px)  | notes(5fr)  | value(4fr) | format(100px) | delete(28) | empty(28)
 		return '
 .aff-color-list-header,
 .aff-color-row {

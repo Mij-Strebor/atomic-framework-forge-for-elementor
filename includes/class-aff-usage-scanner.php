@@ -46,19 +46,21 @@ class AFF_Usage_Scanner {
 		// Initialise all requested variables at 0
 		$counts = array_fill_keys( $variable_names, 0 );
 
-		$post_ids = get_posts( array(
-			'post_type'      => 'any',
-			'post_status'    => 'any',
-			'posts_per_page' => self::MAX_POSTS,
-			'fields'         => 'ids',
-			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		$post_ids = get_posts(
+			array(
+				'post_type'      => 'any',
+				'post_status'    => 'any',
+				'posts_per_page' => self::MAX_POSTS,
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				array(
 					'key'     => '_elementor_data',
 					'compare' => 'EXISTS',
 				),
-			),
-			'no_found_rows'  => true,
-		) );
+				),
+				'no_found_rows'  => true,
+			)
+		);
 
 		if ( empty( $post_ids ) ) {
 			return $counts;
