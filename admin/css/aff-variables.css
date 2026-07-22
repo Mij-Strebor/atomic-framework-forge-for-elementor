@@ -22,25 +22,25 @@
 
 /* ==========================================================================
    1. FONTS VIEW — 9-column grid
-   drag (24px) | status (8px) | preview (72px) | name (1fr) | notes (5fr) |
+   drag (24px) | status (8px) | preview (72px) | name (200px) | notes (5fr) |
    value (19%) | format (220px) | delete (28px) | empty (28px)
    ========================================================================== */
 
 .aff-fonts-view .aff-color-row,
 .aff-fonts-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 72px 1fr 5fr 19% 220px 28px 28px;
+	grid-template-columns: 24px 8px 72px 200px 5fr 19% 220px 28px 28px;
 	column-gap: 10px;
 }
 
 /* ==========================================================================
    2. NUMBERS VIEW — 8-column grid (no preview column)
-   drag (24px) | status (8px) | name (1fr) | notes (5fr) |
+   drag (24px) | status (8px) | name (200px) | notes (5fr) |
    value (42%) | format (220px) | delete (28px) | empty (28px)
    ========================================================================== */
 
 .aff-numbers-view .aff-color-row,
 .aff-numbers-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 1fr 5fr 42% 220px 28px 28px;
+	grid-template-columns: 24px 8px 200px 5fr 42% 220px 28px 28px;
 	column-gap: 10px;
 }
 

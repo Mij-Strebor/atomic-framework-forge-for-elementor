@@ -483,7 +483,7 @@
 
 .aff-color-list-header {
 	display:               grid;
-	grid-template-columns: 24px 8px 100px 1fr 5fr 11% 220px 28px 28px;
+	grid-template-columns: 24px 8px 100px 200px 5fr 11% 220px 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
@@ -500,7 +500,7 @@
 /* Single color variable row */
 .aff-color-row {
 	display:               grid;
-	grid-template-columns: 24px 8px 100px 1fr 5fr 11% 220px 28px 28px;
+	grid-template-columns: 24px 8px 100px 200px 5fr 11% 220px 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       6px var(--sp-3) 6px var(--sp-4);
@@ -1202,7 +1202,7 @@ button.aff-pickr-btn:focus-visible {
 /* Section-12 override kept for specificity safety — mirrors base rule */
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 100px 1fr 5fr 11% 220px 28px 28px;
+	grid-template-columns: 24px 8px 100px 200px 5fr 11% 220px 28px 28px;
 }
 
 /* Delete button — trash icon, danger variant on hover */
