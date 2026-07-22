@@ -252,22 +252,22 @@ class AFF_Admin {
 	 */
 	private function get_grid_override_css(): string {
 		// Column order:
-		// Colors:  drag(24) | dot(8) | swatch(100) | name(300px) | notes(4fr) | value(11%) | format(100px) | delete(28) | empty(28)
-		// Fonts:   drag(24) | dot(8) | preview(72)  | name(300px) | notes(5fr) | value(19%) | format(150px) | delete(28) | empty(28)
-		// Numbers: drag(24) | dot(8) | name(300px)  | notes(5fr)  | value(4fr) | format(100px) | delete(28) | empty(28)
+		// Colors:  drag(24) | dot(8) | swatch(100) | name(200px) | notes(4fr) | value(11%) | format(100px) | delete(28) | empty(28)
+		// Fonts:   drag(24) | dot(8) | preview(72)  | name(200px) | notes(5fr) | value(19%) | format(150px) | delete(28) | empty(28)
+		// Numbers: drag(24) | dot(8) | name(200px)  | notes(5fr)  | value(4fr) | format(100px) | delete(28) | empty(28)
 		return '
 .aff-color-list-header,
 .aff-color-row {
-	grid-template-columns: 24px 8px 100px 300px 4fr 11% 100px 28px 28px;
+	grid-template-columns: 24px 8px 100px 200px 4fr 11% 100px 28px 28px;
 }
 .aff-fonts-view .aff-color-row,
 .aff-fonts-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 72px 300px 5fr 19% 150px 28px 28px;
+	grid-template-columns: 24px 8px 72px 200px 5fr 19% 150px 28px 28px;
 	column-gap: 10px;
 }
 .aff-numbers-view .aff-color-row,
 .aff-numbers-view .aff-color-list-header {
-	grid-template-columns: 24px 8px 300px 5fr 4fr 100px 28px 28px;
+	grid-template-columns: 24px 8px 200px 5fr 4fr 100px 28px 28px;
 	column-gap: 10px;
 }
 @media (max-width: 600px) {
