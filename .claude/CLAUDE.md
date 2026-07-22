@@ -294,7 +294,7 @@ AFF.state = {
 | Phase | Scope | Status |
 |-------|-------|--------|
 | **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Current — 1.3.0** |
-| **v2.0** | Classes management | Planned |
+| **v2.0** | Classes management; Change History log (currently a placeholder button, no log behind it) | Planned |
 | **v3.0** | Components registry; Elementor Kit Manager API write-back | Planned |
 | **Future** | Standalone Windows/Mac desktop application | Roadmap |
 
