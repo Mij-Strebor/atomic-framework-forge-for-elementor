@@ -66,7 +66,7 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Status
 
-Version **1.0.0** — first stable release. The complete Variables workflow is fully functional. Classes and Components management are planned for future phases.
+Version **1.3.0**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional. Classes management is planned for v3; Components registry for v4.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
@@ -124,7 +124,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 | Requirement | Version |
 |-------------|---------|
 | WordPress | 5.8 or later |
-| PHP | 7.4 or later |
+| PHP | 8.2 or later |
 | Elementor (free) | Latest recommended |
 | Elementor Pro | Latest recommended |
 
