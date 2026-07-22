@@ -133,6 +133,7 @@
 			var reduced     = !!settings.reduced_motion;
 			var showTips    = settings.show_tooltips       !== false;
 			var extTips     = !!settings.extended_tooltips;
+			var confirmDel  = settings.confirm_delete_variables !== false;
 			var filePath    = AFF.Utils.escHtml(settings.default_file_path || '');
 
 			function choiceBtn(pref, value, current, label) {
@@ -201,6 +202,18 @@
 				+ (extTips ? ' checked' : '') + (showTips ? '' : ' disabled') + '>'
 				+ '<span>Extended mode — show detailed descriptions</span>'
 				+ '</label>'
+				+ '</div>'
+				+ '</section>'
+
+				// ── 2b. Confirmations ───────────────────────────────────────
+				+ '<section class="aff-prefs-section">'
+				+ '<h2 class="aff-prefs-section__title">Confirmations</h2>'
+				+ '<div class="aff-prefs-field">'
+				+ '<label class="aff-prefs-check-label">'
+				+ '<input type="checkbox" id="aff-pref-confirm-delete"' + (confirmDel ? ' checked' : '') + '>'
+				+ '<span>Confirm before deleting variables</span>'
+				+ '</label>'
+				+ '<p class="aff-prefs-hint">Turn back on if you previously chose &ldquo;Don&rsquo;t ask me again&rdquo; on a delete dialog.</p>'
 				+ '</div>'
 				+ '</section>'
 
@@ -418,6 +431,14 @@
 				extChk.addEventListener('change', function () {
 					if (AFF.PanelTop) { AFF.PanelTop._extendedTooltips = extChk.checked; }
 					self._savePreference({ extended_tooltips: extChk.checked });
+				});
+			}
+
+			// ── Confirm before deleting variables ────────────────────────────
+			var confirmDelChk = document.getElementById('aff-pref-confirm-delete');
+			if (confirmDelChk) {
+				confirmDelChk.addEventListener('change', function () {
+					AFF.Utils.setConfirmDeleteVariablesEnabled(confirmDelChk.checked);
 				});
 			}
 

@@ -2813,6 +2813,7 @@
         ? "<p>This variable has " + children.length + " child variable(s).</p>"
         : "<p>Delete <strong>" + AFF.Utils.escHtml(variable.name || varId) + "</strong>?</p>"
           + "<p>This cannot be undone.</p>";
+      body += AFF.Utils.dontAskAgainCheckboxHtml();
 
       var footer = hasChildren
         ? '<div style="display:flex;justify-content:flex-end;gap:8px">'
@@ -2828,6 +2829,13 @@
       var delVarBtnIds = hasChildren
         ? ["aff-del-var-cancel", "aff-del-var-only", "aff-del-var-with-children"]
         : ["aff-del-var-cancel", "aff-del-var-confirm"];
+
+      // Skip the dialog entirely when the user has suppressed delete confirmations.
+      // Defaults to the non-destructive choice (variable only, children preserved).
+      if (!AFF.Utils.confirmDeleteVariablesEnabled()) {
+        doDelete(false);
+        return;
+      }
 
       AFF.Modal.open({
         title: "Delete variable",
@@ -2877,6 +2885,10 @@
       document.addEventListener("keydown", handleDelVarKey);
 
       function doDelete(deleteChildren) {
+        var dontAskChk = document.getElementById("aff-del-dont-ask-again");
+        if (dontAskChk && dontAskChk.checked) {
+          AFF.Utils.setConfirmDeleteVariablesEnabled(false);
+        }
         AFF.Modal.close();
         document.removeEventListener("click", handleDelClick);
         document.removeEventListener("keydown", handleDelVarKey);
@@ -4245,10 +4257,49 @@
         return;
       }
 
+      function doDeleteAll() {
+        // Remove selected vars from state; collect saved IDs for server delete.
+        var savedIds = [];
+        AFF.state.variables = AFF.state.variables.filter(function (v) {
+          var rk = AFF.Utils.rowKey(v);
+          if (!_selectedKeys[rk]) {
+            return true;
+          } // keep
+          if (v.id) {
+            savedIds.push(v.id);
+          } // mark for server delete
+          return false; // remove from state
+        });
+
+        _selectedKeys = {};
+        _lastSelectKey = null;
+
+        // Fire server deletes for saved vars (fire-and-forget; state already cleaned).
+        savedIds.forEach(function (vid) {
+          AFF.App.ajax("aff_delete_color", {
+            filename: AFF.state.currentFile,
+            variable_id: vid,
+            delete_children: "0",
+          });
+        });
+
+        if (AFF.App) {
+          AFF.App.setDirty(true);
+          AFF.App.refreshCounts();
+        }
+        self._rerenderView();
+      }
+
+      // Skip the dialog entirely when the user has suppressed delete confirmations.
+      if (!AFF.Utils.confirmDeleteVariablesEnabled()) {
+        doDeleteAll();
+        return;
+      }
+
       var handler;
       AFF.Modal.open({
         title: "Delete " + count + " variable" + (count !== 1 ? "s" : "") + "?",
-        body: "<p>This cannot be undone.</p>",
+        body: "<p>This cannot be undone.</p>" + AFF.Utils.dontAskAgainCheckboxHtml(),
         footer:
           '<div style="display:flex;justify-content:flex-end;gap:8px">' +
           '<button class="aff-btn aff-btn--secondary" id="aff-msdel-cancel">Cancel</button>' +
@@ -4264,39 +4315,13 @@
           AFF.Modal.close();
           document.removeEventListener("click", handler);
         } else if (e.target.id === "aff-msdel-confirm") {
+          var dontAskChk = document.getElementById("aff-del-dont-ask-again");
+          if (dontAskChk && dontAskChk.checked) {
+            AFF.Utils.setConfirmDeleteVariablesEnabled(false);
+          }
           AFF.Modal.close();
           document.removeEventListener("click", handler);
-
-          // Remove selected vars from state; collect saved IDs for server delete.
-          var savedIds = [];
-          AFF.state.variables = AFF.state.variables.filter(function (v) {
-            var rk = AFF.Utils.rowKey(v);
-            if (!_selectedKeys[rk]) {
-              return true;
-            } // keep
-            if (v.id) {
-              savedIds.push(v.id);
-            } // mark for server delete
-            return false; // remove from state
-          });
-
-          _selectedKeys = {};
-          _lastSelectKey = null;
-
-          // Fire server deletes for saved vars (fire-and-forget; state already cleaned).
-          savedIds.forEach(function (vid) {
-            AFF.App.ajax("aff_delete_color", {
-              filename: AFF.state.currentFile,
-              variable_id: vid,
-              delete_children: "0",
-            });
-          });
-
-          if (AFF.App) {
-            AFF.App.setDirty(true);
-            AFF.App.refreshCounts();
-          }
-          self._rerenderView();
+          doDeleteAll();
         }
       };
       document.addEventListener("click", handler);

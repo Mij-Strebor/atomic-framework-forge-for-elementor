@@ -1143,10 +1143,32 @@
 			// Use the resolved UUID for the AJAX call; varId may be a stale __n_ key.
 			var resolvedId = variable.id || varId;
 
+			function doDelete() {
+				AFF.App.ajax('aff_delete_color', {
+					filename:    AFF.state.currentFile,
+					variable_id: resolvedId,
+				}).then(function (res) {
+					if (res.success && res.data && res.data.data) {
+						AFF.state.variables = res.data.data.variables;
+						if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
+						self._rerenderView();
+					}
+				}).catch(function () {
+					AFF.Modal.open({ title: 'Connection error', body: '<p>Delete failed. Please try again.</p>' });
+				});
+			}
+
+			// Skip the dialog entirely when the user has suppressed delete confirmations.
+			if (!AFF.Utils.confirmDeleteVariablesEnabled()) {
+				doDelete();
+				return;
+			}
+
 			AFF.Modal.open({
 				title: 'Delete variable',
 				body:  '<p>Delete <strong>' + AFF.Utils.escHtml(variable.name || varId) + '</strong>?</p>'
-					+ '<p>This cannot be undone.</p>',
+					+ '<p>This cannot be undone.</p>'
+					+ AFF.Utils.dontAskAgainCheckboxHtml(),
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
 					+ '<button class="aff-btn aff-btn--secondary" id="aff-del-var-cancel">Cancel</button>'
 					+ '<button class="aff-btn aff-btn--danger" id="aff-del-var-confirm">Delete</button>'
@@ -1175,21 +1197,14 @@
 					document.removeEventListener('click', handleClick);
 					document.removeEventListener('keydown', handleDelKey);
 				} else if (e.target.id === 'aff-del-var-confirm') {
+					var dontAskChk = document.getElementById('aff-del-dont-ask-again');
+					if (dontAskChk && dontAskChk.checked) {
+						AFF.Utils.setConfirmDeleteVariablesEnabled(false);
+					}
 					AFF.Modal.close();
 					document.removeEventListener('click', handleClick);
 					document.removeEventListener('keydown', handleDelKey);
-					AFF.App.ajax('aff_delete_color', {
-						filename:    AFF.state.currentFile,
-						variable_id: resolvedId,
-					}).then(function (res) {
-						if (res.success && res.data && res.data.data) {
-							AFF.state.variables = res.data.data.variables;
-							if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
-							self._rerenderView();
-						}
-					}).catch(function () {
-						AFF.Modal.open({ title: 'Connection error', body: '<p>Delete failed. Please try again.</p>' });
-					});
+					doDelete();
 				}
 			}
 			document.addEventListener('click', handleClick);

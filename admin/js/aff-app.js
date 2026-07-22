@@ -104,6 +104,42 @@
 		},
 
 		/**
+		 * Whether delete-confirmation dialogs should be shown for variables.
+		 * Defaults to true; false only once the user unchecks it in Preferences
+		 * or ticks "Don't ask me again" on a delete dialog.
+		 *
+		 * @returns {boolean}
+		 */
+		confirmDeleteVariablesEnabled: function () {
+			return !(AFF.state.settings && AFF.state.settings.confirm_delete_variables === false);
+		},
+
+		/**
+		 * Persist the confirm-delete-variables preference and update cached state.
+		 *
+		 * @param {boolean} enabled
+		 */
+		setConfirmDeleteVariablesEnabled: function (enabled) {
+			if (AFF.state.settings) {
+				AFF.state.settings.confirm_delete_variables = enabled;
+			}
+			AFF.App.ajax('aff_save_settings', { settings: JSON.stringify({ confirm_delete_variables: enabled }) });
+		},
+
+		/**
+		 * HTML for the "Don't ask me again" checkbox used in variable delete dialogs.
+		 * Shares .aff-prefs-check-label styling with the Preferences panel.
+		 *
+		 * @returns {string}
+		 */
+		dontAskAgainCheckboxHtml: function () {
+			return '<label class="aff-prefs-check-label" style="margin-top:var(--sp-3);font-weight:normal;">'
+				+ '<input type="checkbox" id="aff-del-dont-ask-again">'
+				+ '<span>Don&rsquo;t ask me again</span>'
+				+ '</label>';
+		},
+
+		/**
 		 * CSS custom-property color for a variable status value.
 		 *
 		 * @param {string} status

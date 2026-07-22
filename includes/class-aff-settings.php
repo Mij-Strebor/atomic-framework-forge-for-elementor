@@ -40,6 +40,7 @@ class AFF_Settings {
 		'layout_density'             => 'normal',   // 'compact' | 'normal' | 'comfortable'
 		'show_tooltips'              => true,
 		'extended_tooltips'          => false,
+		'confirm_delete_variables'   => true,
 	);
 
 	/**
