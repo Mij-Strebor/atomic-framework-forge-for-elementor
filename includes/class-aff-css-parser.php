@@ -169,7 +169,7 @@ class AFF_CSS_Parser {
 				// stored without a -- prefix regardless of how the user entered them.
 				foreach ( $user_vars as &$v ) {
 					$v['name'] = substr( $v['name'], 2 );
-					if ( str_starts_with( $v['name'], '--' ) ) {
+					if ( 0 === strpos( $v['name'], '--' ) ) {
 						$v['name'] = substr( $v['name'], 2 );
 					}
 				}
@@ -244,7 +244,7 @@ class AFF_CSS_Parser {
 		$name = $var['name'] ?? '';
 
 		foreach ( self::SYSTEM_PREFIXES as $prefix ) {
-			if ( str_starts_with( $name, $prefix ) ) {
+			if ( 0 === strpos( $name, $prefix ) ) {
 				return false;
 			}
 		}
@@ -317,7 +317,7 @@ class AFF_CSS_Parser {
 			}
 
 			$label = sanitize_text_field( $variable['label'] ?? '' );
-			if ( str_starts_with( $label, '--' ) ) {
+			if ( 0 === strpos( $label, '--' ) ) {
 				$label = substr( $label, 2 );
 			}
 			if ( '' === $label ) {
