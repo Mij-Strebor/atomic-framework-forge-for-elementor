@@ -42,10 +42,7 @@
 		config:                   {},
 		usageCounts:              {}, // { '--varname': count } — populated by fetchUsageCounts()
 		settings:                 {}, // cached from aff_get_settings on startup
-		// NOTE: metadata is intentionally absent here. It is added dynamically by
-		// _loadFile() and _autoLoadFile() when a project file loads. All code that
-		// reads it guards with: AFF.state.metadata && ...
-		// Tech debt A-03: add metadata: {} here for consistency with all other fields.
+		metadata:                 {}, // { elementor_snapshot, ... } — populated by _loadFile()/_autoLoadFile()
 	};
 
 	// -----------------------------------------------------------------------
@@ -1855,12 +1852,9 @@
 			var app = document.getElementById('aff-app');
 			if (!app || !settings) { return; }
 
-			// Font size: treat absent attribute as the default size. The sentinel value
-			// here is 16 — but the PHP default in AFF_Settings::$defaults is 14, not 16.
-			// On a fresh install fs=14, 14!==16 is always true, so data-aff-font-size="14"
-			// is always set and the "absent = use CSS default" branch never fires.
-			// Tech debt C-04: align the sentinel — either change PHP default to 16, or
-			// change this check to fs !== 14.
+			// Font size: treat absent attribute as the default size (16px), matching
+			// both the base CSS (aff-preferences.css has no override rule for 16) and
+			// AFF_Settings::$defaults['ui_font_size'] (see tech debt C-04, fixed 2026-08-02).
 			var fs = parseInt(settings.ui_font_size, 10) || 16;
 			if (fs !== 16) {
 				app.setAttribute('data-aff-font-size', String(fs));
