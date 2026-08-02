@@ -17,6 +17,20 @@
 
   window.AFF = window.AFF || {};
 
+  // Number-format → CSS unit map. Single source of truth for both the
+  // conflict-check preview (_openCommitSummaryDialog) and the actual commit
+  // payload (_executeCommit) — previously duplicated as _FMT and FORMAT_UNIT
+  // (tech debt DP-02, consolidated 2026-08-02).
+  var AFF_FORMAT_UNITS = {
+    PX: "px",
+    "%": "%",
+    EM: "em",
+    REM: "rem",
+    VW: "vw",
+    VH: "vh",
+    CH: "ch",
+  };
+
   AFF.PanelRight = {
     /** @type {HTMLInputElement|null} */
     _filenameInput: null,
@@ -679,12 +693,12 @@
       modalBody.innerHTML =
         '<div style="margin-bottom:12px">' +
         '<p style="margin-bottom:8px">Copy <strong>' +
-        self._escHtml(srcName) +
+        AFF.Utils.escHtml(srcName) +
         "</strong> as:</p>" +
         '<div style="display:flex;gap:8px;align-items:center">' +
         '<input type="text" class="aff-field-input" id="aff-picker-copy-name"' +
         ' value="' +
-        self._escAttr(srcName + " (copy)") +
+        AFF.Utils.escAttr(srcName + " (copy)") +
         '" autocomplete="off" style="flex:1">' +
         '<button class="aff-btn" id="aff-picker-copy-confirm">Copy</button>' +
         '<button class="aff-btn" id="aff-picker-copy-cancel">Cancel</button>' +
@@ -910,49 +924,49 @@
           var p = projects[i];
           html +=
             '<div class="aff-picker-row" data-slug="' +
-            self._escAttr(p.slug) +
+            AFF.Utils.escAttr(p.slug) +
             '">' +
             '<input type="text" class="aff-field-input aff-picker-name-edit"' +
             ' value="' +
-            self._escAttr(p.name) +
+            AFF.Utils.escAttr(p.name) +
             '"' +
             ' data-original="' +
-            self._escAttr(p.name) +
+            AFF.Utils.escAttr(p.name) +
             '"' +
             ' data-slug="' +
-            self._escAttr(p.slug) +
+            AFF.Utils.escAttr(p.slug) +
             '"' +
             ' aria-label="Project name">' +
             '<span class="aff-picker-row__saves">' +
-            self._escHtml(String(p.backup_count)) +
+            AFF.Utils.escHtml(String(p.backup_count)) +
             "</span>" +
             '<span class="aff-picker-row__date">' +
-            self._escHtml(p.latest_modified_ts ? self._fmtTs(p.latest_modified_ts) : (p.latest_modified || '')) +
+            AFF.Utils.escHtml(p.latest_modified_ts ? self._fmtTs(p.latest_modified_ts) : (p.latest_modified || '')) +
             "</span>" +
             '<div class="aff-picker-row__actions">' +
             '<button class="aff-icon-btn aff-picker-open-project"' +
             ' data-slug="' +
-            self._escAttr(p.slug) +
+            AFF.Utils.escAttr(p.slug) +
             '"' +
             ' aria-label="Open project" data-aff-tooltip="Open project">' +
             openSvg +
             "</button>" +
             '<button class="aff-icon-btn aff-picker-copy-project"' +
             ' data-slug="' +
-            self._escAttr(p.slug) +
+            AFF.Utils.escAttr(p.slug) +
             '"' +
             ' data-name="' +
-            self._escAttr(p.name) +
+            AFF.Utils.escAttr(p.name) +
             '"' +
             ' aria-label="Copy project" data-aff-tooltip="Copy project">' +
             copySvg +
             "</button>" +
             '<button class="aff-icon-btn aff-picker-delete-project"' +
             ' data-slug="' +
-            self._escAttr(p.slug) +
+            AFF.Utils.escAttr(p.slug) +
             '"' +
             ' data-name="' +
-            self._escAttr(p.name) +
+            AFF.Utils.escAttr(p.name) +
             '"' +
             ' aria-label="Delete project" data-aff-tooltip="Delete all saves">' +
             trashSvg +
@@ -1005,7 +1019,7 @@
         '<div class="aff-picker-back-bar">' +
         '<button class="aff-icon-btn aff-picker-back" aria-label="Back to projects">\u2190</button>' +
         "<span>" +
-        self._escHtml(slug) +
+        AFF.Utils.escHtml(slug) +
         "</span>" +
         "</div>";
 
@@ -1025,22 +1039,22 @@
           html +=
             '<div class="aff-picker-backup-row">' +
             '<span class="aff-picker-backup-row__date">' +
-            self._escHtml(b.modified_ts ? self._fmtTs(b.modified_ts) : (b.modified || '')) +
+            AFF.Utils.escHtml(b.modified_ts ? self._fmtTs(b.modified_ts) : (b.modified || '')) +
             "</span>" +
             '<span class="aff-picker-backup-row__vars">' +
-            (varCount !== "" ? self._escHtml(String(varCount)) : "") +
+            (varCount !== "" ? AFF.Utils.escHtml(String(varCount)) : "") +
             "</span>" +
             '<div class="aff-picker-row__actions">' +
             '<button class="aff-btn aff-btn--xs aff-picker-load"' +
             ' data-name="' +
-            self._escAttr(b.name) +
+            AFF.Utils.escAttr(b.name) +
             '"' +
             ' data-file="' +
-            self._escAttr(b.filename) +
+            AFF.Utils.escAttr(b.filename) +
             '">Load</button>' +
             '<button class="aff-icon-btn aff-picker-delete"' +
             ' data-filename="' +
-            self._escAttr(b.filename) +
+            AFF.Utils.escAttr(b.filename) +
             '"' +
             ' aria-label="Delete backup" data-aff-tooltip="Delete this backup">' +
             trashSvg +
@@ -1410,24 +1424,13 @@
           // Normalize Number values to their CSS form (e.g. '9' + 'rem' → '9rem') so
           // the comparison matches what AFF will write to Elementor — preventing false
           // conflicts when the user stored a bare numeric value with a separate format.
-          // Tech debt DP-02: this map is defined identically as FORMAT_UNIT inside
-          // _executeCommit below. Adding a new CSS unit requires updating both places.
-          var _FMT = {
-            PX: "px",
-            "%": "%",
-            EM: "em",
-            REM: "rem",
-            VW: "vw",
-            VH: "vh",
-            CH: "ch",
-          };
           var candidateVars = AFF.state.variables
             .filter(function (v) {
               return v.status !== "new";
             })
             .map(function (v) {
               if (v.subgroup === "Numbers" && v.format !== "FX") {
-                var unit = _FMT[v.format] || "";
+                var unit = AFF_FORMAT_UNITS[v.format] || "";
                 var m = (v.value || "").match(/^(-?[\d.]+)/);
                 var css = m ? m[1] + unit : v.value;
                 // Return a shallow copy with the CSS value — do not mutate state.
@@ -1599,21 +1602,10 @@
       // payload. FX values (function expressions) are sent as-is.
       // Legacy values that already include the unit are handled by extracting
       // only the numeric prefix before re-appending the unit.
-      // Tech debt DP-02: this map is defined identically as _FMT inside
-      // _openCommitSummaryDialog above. Adding a new CSS unit requires updating both places.
-      var FORMAT_UNIT = {
-        PX: "px",
-        "%": "%",
-        EM: "em",
-        REM: "rem",
-        VW: "vw",
-        VH: "vh",
-        CH: "ch",
-      };
       var variables = source.map(function (v) {
         var cssValue = v.value;
         if (v.subgroup === "Numbers" && v.format !== "FX") {
-          var unit = FORMAT_UNIT[v.format] || "";
+          var unit = AFF_FORMAT_UNITS[v.format] || "";
           var numMatch = (v.value || "").match(/^(-?[\d.]+)/);
           cssValue = numMatch ? numMatch[1] + unit : v.value;
         }
@@ -1953,24 +1945,6 @@
     // HELPERS
     // ------------------------------------------------------------------
 
-    // These two local helpers predate AFF.Utils.escHtml / AFF.Utils.escAttr (aff-app.js).
-    // Tech debt DP-01/C-03: they should be deleted and all call sites in this file
-    // updated to use AFF.Utils.escHtml() and AFF.Utils.escAttr() instead.
-
-    /**
-     * Escape a string for safe insertion into HTML text content.
-     * WARNING: escapes only &, <, >. Does NOT escape " or ' — unsafe inside
-     * attribute values. Use _escAttr() for attributes, but see its own warning.
-     * @param {string} str
-     * @returns {string}
-     */
-    _escHtml: function (str) {
-      return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    },
-
     /** Format a Unix timestamp (seconds) using the browser's local timezone. */
     _fmtTs: function (ts) {
       try {
@@ -1981,20 +1955,6 @@
       } catch (e) {
         return '';
       }
-    },
-
-    /**
-     * Escape a string for safe use in an HTML attribute value (double-quoted).
-     * WARNING: escapes & and " only — missing single-quote means this is only
-     * safe inside double-quoted attributes. AFF.Utils.escAttr() covers &<>"'
-     * and should be used here once DP-01 is resolved.
-     * @param {string} str
-     * @returns {string}
-     */
-    _escAttr: function (str) {
-      return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;");
     },
 
     /**
