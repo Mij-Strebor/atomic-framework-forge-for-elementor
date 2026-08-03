@@ -19,7 +19,7 @@
 	AFF.Notify = {
 
 		/** @type {number} Milliseconds the sign stays settled before leaving. */
-		HOLD_MS: 4000,
+		HOLD_MS: 6000,
 
 		/** @type {HTMLElement|null} */
 		_el: null,

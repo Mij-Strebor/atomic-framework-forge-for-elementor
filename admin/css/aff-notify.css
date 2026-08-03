@@ -28,7 +28,7 @@
 	/* Resting position: below its final spot, fully hidden beneath the
 	   bottom edge — rises straight up, no horizontal drift, no rotation. */
 	transform: translateY(140%);
-	transition: transform 1.4s ease-out;
+	transition: transform 2s ease-out;
 }
 
 .aff-notify-sign--visible {
