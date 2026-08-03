@@ -34,6 +34,7 @@
 			}
 
 			this._el.addEventListener('click', this._dismiss.bind(this));
+			this._positionPastSidebar();
 
 			// Count this as a display immediately — the animation itself has no
 			// meaningful failure mode the count should wait on.
@@ -59,6 +60,18 @@
 			this._holdTimer = setTimeout(function () {
 				self._dismiss();
 			}, this.HOLD_MS);
+		},
+
+		/**
+		 * Set the --aff-notify-left custom property from the left nav panel's
+		 * actual rendered width, so the sign parks just past the sidebar
+		 * whether it's expanded (220px) or collapsed (48px) — rather than a
+		 * hardcoded value that would either overlap the panel or leave a gap.
+		 */
+		_positionPastSidebar: function () {
+			var panel = document.querySelector('.aff-panel-left');
+			var panelWidth = panel ? panel.getBoundingClientRect().width : 0;
+			this._el.style.setProperty('--aff-notify-left', (panelWidth + 24) + 'px');
 		},
 
 		/**

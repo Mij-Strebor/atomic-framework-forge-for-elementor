@@ -2111,9 +2111,6 @@
 		if (AFF.Print) {
 			AFF.Print.init();
 		}
-		if (AFF.Notify) {
-			AFF.Notify.init();
-		}
 		if (AFF.PanelTop) {
 			AFF.PanelTop.init();
 			// Auto-sync from Elementor on page load (silent — no modal, no dirty flag).
@@ -2129,6 +2126,13 @@
 			// loadColors() after the file's config is already in AFF.state.
 			if (AFF.PanelLeft) {
 				AFF.PanelLeft.init();
+			}
+
+			// Notify sign reads the left panel's rendered width to park past
+			// the sidebar — must run after PanelLeft.init() has restored any
+			// persisted collapsed state, not before.
+			if (AFF.Notify) {
+				AFF.Notify.init();
 			}
 
 			// Auto-load last used file and cache settings.
