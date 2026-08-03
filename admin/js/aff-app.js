@@ -2111,6 +2111,9 @@
 		if (AFF.Print) {
 			AFF.Print.init();
 		}
+		if (AFF.Notify) {
+			AFF.Notify.init();
+		}
 		if (AFF.PanelTop) {
 			AFF.PanelTop.init();
 			// Auto-sync from Elementor on page load (silent — no modal, no dirty flag).

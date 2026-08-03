@@ -29,6 +29,7 @@ class AFF_Ajax_Handler {
 			'aff_load_file',
 			'aff_sync_from_elementor',
 			'aff_save_user_theme',
+			'aff_increment_notify_count',
 			'aff_get_config',
 			'aff_save_config',
 			'aff_save_settings',
@@ -324,6 +325,29 @@ class AFF_Ajax_Handler {
 		update_user_meta( $user_id, AFF_USER_META_THEME, $theme );
 
 		wp_send_json_success( array( 'theme' => $theme ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Increment "take a look" notify sign shown-count
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Increment the current user's notify-sign shown count by one.
+	 * Called once per display, fire-and-forget from the client — the server
+	 * is the single source of truth for the cap (AFF_NOTIFY_MAX_SHOWS), and
+	 * this endpoint has no meaningful failure mode the client needs to react to.
+	 */
+	public function ajax_aff_increment_notify_count(): void {
+		$this->verify_request();
+
+		$user_id = get_current_user_id();
+		$count   = get_user_meta( $user_id, AFF_USER_META_NOTIFY_COUNT, true );
+		$count   = is_numeric( $count ) ? (int) $count : 0;
+		++$count;
+
+		update_user_meta( $user_id, AFF_USER_META_NOTIFY_COUNT, $count );
+
+		wp_send_json_success( array( 'count' => $count ) );
 	}
 
 	// -----------------------------------------------------------------------

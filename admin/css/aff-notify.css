@@ -1,0 +1,56 @@
+/**
+ * AFF Notify Sign — "Take a look" rising notification
+ *
+ * Rises from the bottom-left corner at an angle, settles into the corner,
+ * holds briefly, then slides back out. Display cap (AFF_NOTIFY_MAX_SHOWS)
+ * is enforced server-side — this file only owns the animation, not the count.
+ *
+ * @package AtomicFrameworkForge
+ */
+
+.aff-notify-sign {
+	position: fixed;
+	left: 24px;
+	bottom: 24px;
+	width: 260px;
+	max-width: 40vw;
+	height: auto;
+	z-index: 100000; /* Above WP admin bar and AFF panels, below native modal overlays. */
+	pointer-events: none; /* Re-enabled only while visible, see .aff-notify-sign--visible. */
+	filter: drop-shadow(var(--aff-shadow-lg));
+
+	/* Resting position: off-screen, low-left, rotated as if leaning against
+	   the corner from outside the viewport. */
+	transform: translate(-120%, 60%) rotate(-18deg);
+	transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.aff-notify-sign--visible {
+	pointer-events: auto;
+	cursor: pointer;
+	/* Settled position: parked in the corner at a slight jaunty angle. */
+	transform: translate(0, 0) rotate(-6deg);
+}
+
+.aff-notify-sign--leaving {
+	/* Reuses the resting (off-screen) transform above; a faster, simpler
+	   ease is enough for the exit since nothing needs to "land." */
+	transition-timing-function: ease-in;
+	transition-duration: 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aff-notify-sign {
+		transition: opacity 0.3s ease;
+		transform: translate(0, 0) rotate(-6deg);
+		opacity: 0;
+	}
+
+	.aff-notify-sign--visible {
+		opacity: 1;
+	}
+
+	.aff-notify-sign--leaving {
+		opacity: 0;
+	}
+}

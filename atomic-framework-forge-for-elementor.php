@@ -28,6 +28,8 @@ define( 'AFF_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
 define( 'AFF_SLUG',           'atomic-framework-forge' );
 define( 'AFF_NONCE_ACTION',   'aff_admin_nonce' );
 define( 'AFF_USER_META_THEME', 'aff_theme_preference' );
+define( 'AFF_USER_META_NOTIFY_COUNT', 'aff_notify_shown_count' );
+define( 'AFF_NOTIFY_MAX_SHOWS', 3 );
 
 // Elementor versions this build was developed and tested against.
 // Update these constants whenever AFF is re-validated on a new Elementor release.

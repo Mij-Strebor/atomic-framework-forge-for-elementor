@@ -124,6 +124,14 @@ class AFF_Admin {
 			$this->asset_version( 'admin/css/aff-print.css' )
 		);
 
+		// Notify sign CSS: rise-in/settle/rise-out animation for the "take a look" tip.
+		wp_enqueue_style(
+			'aff-notify',
+			AFF_PLUGIN_URL . 'admin/css/aff-notify.css',
+			array( 'aff-print' ),
+			$this->asset_version( 'admin/css/aff-notify.css' )
+		);
+
 		// Pickr color picker — local vendor copy (no CDN dependency).
 		wp_enqueue_style(
 			'pickr-classic',
@@ -152,6 +160,7 @@ class AFF_Admin {
 			'aff-variables'   => 'admin/js/aff-variables.js',  // Phase 3 — must load before aff-app.
 			'aff-app'         => 'admin/js/aff-app.js',
 			'aff-print'       => 'admin/js/aff-print.js',    // Print / PDF — must load after aff-app.
+			'aff-notify'      => 'admin/js/aff-notify.js',   // Must load after aff-app (uses AFF.App.ajax).
 		);
 
 		$deps = array();
@@ -199,7 +208,8 @@ class AFF_Admin {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'atomic-framework-forge-for-elementor' ) );
 		}
 
-		$theme = $this->get_user_theme();
+		$theme               = $this->get_user_theme();
+		$show_notify_sign    = $this->get_notify_count() < AFF_NOTIFY_MAX_SHOWS;
 		require_once AFF_PLUGIN_DIR . 'admin/views/page-aff-main.php';
 	}
 
@@ -212,6 +222,19 @@ class AFF_Admin {
 		$user_id = get_current_user_id();
 		$theme   = get_user_meta( $user_id, AFF_USER_META_THEME, true );
 		return in_array( $theme, array( 'light', 'dark' ), true ) ? $theme : 'light';
+	}
+
+	/**
+	 * Get the number of times the "take a look" notify sign has been shown
+	 * to the current user. Capped display is enforced by the caller against
+	 * AFF_NOTIFY_MAX_SHOWS — this method only reports the raw count.
+	 *
+	 * @return int
+	 */
+	public function get_notify_count(): int {
+		$user_id = get_current_user_id();
+		$count   = get_user_meta( $user_id, AFF_USER_META_NOTIFY_COUNT, true );
+		return is_numeric( $count ) ? (int) $count : 0;
 	}
 
 	/**

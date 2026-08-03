@@ -12,7 +12,9 @@
  *  - Right status panel (file management + counts)
  *
  * @package AtomicFrameworkForge
- * @var string $theme 'light' or 'dark'
+ * @var string $theme            'light' or 'dark'
+ * @var bool   $show_notify_sign Whether the "take a look" notify sign has not yet
+ *                                reached its display cap for the current user.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,6 +39,15 @@ function aff_icon( string $name ): string {
 </div>
 
 <div class="aff-app" data-aff-theme="<?php echo esc_attr( $theme ); ?>" id="aff-app">
+
+	<?php if ( $show_notify_sign ) : ?>
+	<!-- "Take a look" notify sign — rises from bottom-left corner once per
+	     page load, up to AFF_NOTIFY_MAX_SHOWS times per user (see AFF.Notify). -->
+	<img src="<?php echo esc_url( AFF_PLUGIN_URL . 'assets/images/take-a-look.png' ); ?>"
+	     class="aff-notify-sign"
+	     id="aff-notify-sign"
+	     alt="<?php esc_attr_e( 'New? Take a look at our Quick-Start manual.', 'atomic-framework-forge-for-elementor' ); ?>" />
+	<?php endif; ?>
 
 	<!-- ================================================================
 	     TOP MENU BAR
