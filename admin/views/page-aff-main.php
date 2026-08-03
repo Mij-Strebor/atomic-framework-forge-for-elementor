@@ -56,7 +56,7 @@ function aff_icon( string $name ): string {
 
 		<!-- Logo + title -->
 		<div class="aff-top-bar__brand">
-			<img src="<?php echo esc_url( AFF_PLUGIN_URL . 'assets/logo/logo.webp' ); ?>"
+			<img src="<?php echo esc_url( AFF_PLUGIN_URL . 'assets/logo/logo.png' ); ?>"
 			     class="aff-logo" alt="JimRForge" />
 			<span class="aff-brand-name">Atomic Framework Forge</span>
 		</div>
