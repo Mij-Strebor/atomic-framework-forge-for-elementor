@@ -34,7 +34,7 @@
 			}
 
 			this._el.addEventListener('click', this._dismiss.bind(this));
-			this._positionPastSidebar();
+			this._positionInEditSpace();
 
 			// Count this as a display immediately — the animation itself has no
 			// meaningful failure mode the count should wait on.
@@ -63,15 +63,16 @@
 		},
 
 		/**
-		 * Set the --aff-notify-left custom property from the left nav panel's
-		 * actual rendered width, so the sign parks just past the sidebar
-		 * whether it's expanded (220px) or collapsed (48px) — rather than a
-		 * hardcoded value that would either overlap the panel or leave a gap.
+		 * Set the --aff-notify-left custom property from the center edit
+		 * space's own actual left edge — anchors the sign to that section
+		 * specifically, whether the left nav panel is expanded (220px) or
+		 * collapsed (48px), rather than computing the offset indirectly
+		 * from the panel's width.
 		 */
-		_positionPastSidebar: function () {
-			var panel = document.querySelector('.aff-panel-left');
-			var panelWidth = panel ? panel.getBoundingClientRect().width : 0;
-			this._el.style.setProperty('--aff-notify-left', (panelWidth + 24) + 'px');
+		_positionInEditSpace: function () {
+			var editSpace = document.getElementById('aff-edit-space');
+			var left = editSpace ? editSpace.getBoundingClientRect().left : 24;
+			this._el.style.setProperty('--aff-notify-left', (left + 24) + 'px');
 		},
 
 		/**

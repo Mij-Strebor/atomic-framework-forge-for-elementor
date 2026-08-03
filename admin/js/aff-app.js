@@ -2128,9 +2128,9 @@
 				AFF.PanelLeft.init();
 			}
 
-			// Notify sign reads the left panel's rendered width to park past
-			// the sidebar — must run after PanelLeft.init() has restored any
-			// persisted collapsed state, not before.
+			// Notify sign reads #aff-edit-space's rendered left edge, which
+			// shifts with the left panel's width — must run after
+			// PanelLeft.init() has restored any persisted collapsed state.
 			if (AFF.Notify) {
 				AFF.Notify.init();
 			}

@@ -1,16 +1,16 @@
 /**
  * AFF Notify Sign — "Take a look" rising notification
  *
- * Rises from the bottom-left, past the left nav panel (not overlapping it),
- * at an angle, settles into the corner, holds briefly, then slides back out.
+ * Rises slowly straight up from the bottom-left corner of the center edit
+ * space (not the whole viewport), holds briefly, then sinks back down. No
+ * horizontal movement or rotation — a plain vertical rise, not a swing-in.
  * Display cap (AFF_NOTIFY_MAX_SHOWS) is enforced server-side — this file
  * only owns the animation, not the count.
  *
  * The left offset is set at show-time by aff-notify.js as the
- * --aff-notify-left custom property, computed from the left panel's actual
- * rendered width (it can be 220px expanded or 48px collapsed) — this file
- * only supplies the 24px fallback for the (unreachable in practice) case
- * where JS hasn't set it yet.
+ * --aff-notify-left custom property, computed from #aff-edit-space's actual
+ * rendered left edge — this file only supplies the 24px fallback for the
+ * (unreachable in practice) case where JS hasn't set it yet.
  */
 
 .aff-notify-sign {
@@ -25,30 +25,28 @@
 	pointer-events: none; /* Re-enabled only while visible, see .aff-notify-sign--visible. */
 	filter: drop-shadow(var(--aff-shadow-lg));
 
-	/* Resting position: off-screen, low-left, rotated as if leaning against
-	   the corner from outside the viewport. */
-	transform: translate(-120%, 60%) rotate(-18deg);
-	transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+	/* Resting position: below its final spot, fully hidden beneath the
+	   bottom edge — rises straight up, no horizontal drift, no rotation. */
+	transform: translateY(140%);
+	transition: transform 1.4s ease-out;
 }
 
 .aff-notify-sign--visible {
 	pointer-events: auto;
 	cursor: pointer;
-	/* Settled position: parked past the sidebar at a slight jaunty angle. */
-	transform: translate(0, 0) rotate(-6deg);
+	transform: translateY(0);
 }
 
 .aff-notify-sign--leaving {
-	/* Reuses the resting (off-screen) transform above; a faster, simpler
-	   ease is enough for the exit since nothing needs to "land." */
+	/* Sinks back down slightly faster than it rose. */
 	transition-timing-function: ease-in;
-	transition-duration: 0.4s;
+	transition-duration: 0.8s;
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.aff-notify-sign {
 		transition: opacity 0.3s ease;
-		transform: translate(0, 0) rotate(-6deg);
+		transform: translateY(0);
 		opacity: 0;
 	}
 
