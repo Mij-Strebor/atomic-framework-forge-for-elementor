@@ -17,8 +17,8 @@
 	position: fixed;
 	left: var(--aff-notify-left, 24px);
 	bottom: 24px;
-	width: 260px;
-	max-width: 40vw;
+	width: 390px;
+	max-width: 60vw;
 	height: auto;
 	background: transparent;
 	z-index: 100000; /* Above WP admin bar and AFF panels, below native modal overlays. */
@@ -28,7 +28,7 @@
 	/* Resting position: below its final spot, fully hidden beneath the
 	   bottom edge — rises straight up, no horizontal drift, no rotation. */
 	transform: translateY(140%);
-	transition: transform 2s ease-out;
+	transition: transform 0.9s ease-out;
 }
 
 .aff-notify-sign--visible {
