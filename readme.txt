@@ -26,7 +26,7 @@ ATFRFO allows developers to organize, edit, and persist the three core asset typ
 
 **Read:** ATFRFO reads global variables directly from the active Elementor kit's _elementor_global_variables post meta -- the same authoritative data store Elementor itself uses. This happens only when you click "Fetch Elementor Data". It is purely read-only; nothing in Elementor is touched.
 
-**Write:** When you click "Write to Elementor", ATFRFO writes the current variable values back to _elementor_global_variables on the kit post. Elementor rebuilds its CSS from this meta on the next page load. This is the only write operation ATFRFO performs on Elementor data.
+**Write:** When you click "Write to Elementor", ATFRFO writes the current variable values back to _elementor_global_variables on the kit post -- the same authoritative data store, updated the same way Elementor itself updates it. This is the primary and authoritative write. As a secondary, best-effort step, ATFRFO also patches the active kit's generated CSS file directly, so the page reflects the change immediately instead of waiting for Elementor's own regeneration on next load; if this secondary step is skipped or fails for any reason, Elementor's own cache-clear and regeneration (triggered by the post meta update) still produces the correct CSS. ATFRFO writes to no other Elementor data.
 
 Every write is user-triggered (no background or automatic writes, ever), preceded by a confirmation dialog showing exactly what will change, and limited to variables you have managed in ATFRFO. ATFRFO does not touch anything else in your Elementor configuration.
 

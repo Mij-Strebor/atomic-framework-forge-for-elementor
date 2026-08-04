@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // phpcs:disable WordPress.Security.NonceVerification.Missing -- All handlers call $this->verify_request() which performs nonce verification via check_ajax_referer().
-// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON payloads are validated via $this->safe_json_decode(); scalar values are sanitized per-field inside each handler.
+// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON payloads are decoded and sanitized as a whole via $this->safe_json_decode(), which recursively runs sanitize_text_field() over every string leaf before returning.
 
 class ATFRFO_Ajax_Handler {
 
@@ -1342,7 +1342,7 @@ class ATFRFO_Ajax_Handler {
 		if ( $css_file ) {
 			$fs = $this->get_wp_filesystem();
 			if ( $fs && $fs->is_writable( $css_file ) ) {
-				$css = @file_get_contents( $css_file );
+				$css = $fs->get_contents( $css_file );
 				if ( false !== $css ) {
 					foreach ( $variables as $v ) {
 						if ( ! is_array( $v ) || ! isset( $v['name'] ) || ! $this->is_valid_css_var( $v['name'] ) ) {
@@ -1389,7 +1389,7 @@ class ATFRFO_Ajax_Handler {
 					}
 
 					if ( ! empty( $css_committed ) ) {
-						@file_put_contents( $css_file, $css );
+						$fs->put_contents( $css_file, $css, FS_CHMOD_FILE );
 					}
 				}
 			}
@@ -1840,7 +1840,33 @@ class ATFRFO_Ajax_Handler {
 		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $decoded ) ) {
 			wp_send_json_error( array( 'message' => $error_message ) );
 		}
-		return $decoded;
+		return $this->sanitize_deep( $decoded );
+	}
+
+	/**
+	 * Recursively sanitize every string value in a decoded JSON structure.
+	 *
+	 * json_decode() does not sanitize — a decoded payload can still carry
+	 * HTML/script content in any string leaf. Applied centrally here (the
+	 * single point all 11 safe_json_decode() call sites funnel through)
+	 * rather than at each individual endpoint. Only string values are
+	 * touched; array keys, and non-string leaves (bool/int/float/null —
+	 * e.g. `locked`, usage counts, `order`) pass through unchanged so
+	 * downstream strict-type checks keep working.
+	 *
+	 * @param array $data Decoded JSON as a PHP array (possibly nested).
+	 * @return array Same structure, every string value run through sanitize_text_field().
+	 */
+	private function sanitize_deep( array $data ): array {
+		foreach ( $data as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$data[ $key ] = $this->sanitize_deep( $value );
+			} elseif ( is_string( $value ) ) {
+				$data[ $key ] = sanitize_text_field( $value );
+			}
+			// bool/int/float/null: left as-is.
+		}
+		return $data;
 	}
 
 	/**
