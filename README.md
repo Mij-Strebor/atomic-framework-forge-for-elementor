@@ -305,7 +305,7 @@ All endpoints require `manage_options` capability and a valid `atfrfo_admin_nonc
 - **PHP** — WordPress hooks, AJAX handlers, CSS parsing, post meta scanning
 - **Vanilla JavaScript (ES5)** — No jQuery for ATFRFO UI logic; `fetch()` for all AJAX; no build step
 - **CSS Custom Properties** — Full design token system; light/dark mode via `[data-atfrfo-theme]`
-- **Pickr v1.9.0** — Visual color picker (CDN); classic theme; HEX / RGB / HSL + alpha
+- **Pickr v1.10.1** — Visual color picker (vendored locally, not CDN-loaded); classic theme; HEX / RGB / HSL + alpha
 - **Inter** — Loaded locally from `assets/fonts/` (WOFF2, Latin subset, no CDN)
 - **SVG icons** — `stroke="currentColor"`, no icon font
 

@@ -262,7 +262,7 @@ Grab the **⠿** drag handle and drag the row to a new position within the same 
 
 ## 6. The Color Picker
 
-ATFRFO uses the [Pickr](https://github.com/Simonwep/pickr) visual color picker (v1.9.0, classic theme).
+ATFRFO uses the [Pickr](https://github.com/Simonwep/pickr) visual color picker (v1.10.1, classic theme, vendored locally — not loaded from a CDN).
 
 ### Opening the picker
 
@@ -832,7 +832,7 @@ ATFRFO meets WCAG 2.1 AA contrast standards:
 → ATFRFO classifies variables by value pattern. Drag misclassified variables to the correct category manually.
 
 **Color picker swatch shows black or wrong color**
-→ Hard refresh (`Ctrl+Shift+R`). The Pickr library loads from a CDN — check the browser Network tab for load failures.
+→ Hard refresh (`Ctrl+Shift+R`). Pickr is a locally vendored copy (`assets/vendor/pickr/`), not loaded from a CDN — check the browser Network tab for a 404 on that local file path.
 
 **After exporting, Elementor values look wrong or unchanged**
 → Refresh the browser page — Elementor's Variables Manager reads from meta on page load, not live. If values are still wrong, go to **Elementor → Site Settings → Save Changes** to regenerate the CSS. If the kit data is corrupted, restore from a WordPress backup and report the issue.

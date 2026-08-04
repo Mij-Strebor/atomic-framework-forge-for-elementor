@@ -137,13 +137,13 @@ class ATFRFO_Admin {
 			'pickr-classic',
 			ATFRFO_PLUGIN_URL . 'assets/vendor/pickr/classic.min.css',
 			array( 'atfrfo-colors' ),
-			'1.9.0'
+			'1.10.1'
 		);
 		wp_enqueue_script(
 			'pickr',
 			ATFRFO_PLUGIN_URL . 'assets/vendor/pickr/pickr.min.js',
 			array(),
-			'1.9.0',
+			'1.10.1',
 			true
 		);
 
@@ -312,15 +312,77 @@ class ATFRFO_Admin {
 	/**
 	 * Safely inline an SVG icon file.
 	 *
+	 * Escaped via wp_kses() with an allow-list matching exactly the tags/
+	 * attributes actually present in assets/icons/*.svg (verified directly
+	 * against every file in that directory, not a generic broad SVG list) —
+	 * defense-in-depth even though the source files are plugin-bundled, not
+	 * user input.
+	 *
 	 * @param string $name Icon filename without .svg extension.
-	 * @return string SVG markup or empty string if file not found.
+	 * @return string Escaped SVG markup, or empty string if file not found.
 	 */
 	public static function get_icon( string $name ): string {
 		$file = ATFRFO_PLUGIN_DIR . 'assets/icons/' . $name . '.svg';
-		if ( file_exists( $file ) ) {
-			return file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( ! file_exists( $file ) ) {
+			return '';
 		}
-		return '';
+
+		$svg = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+		$allowed_svg = array(
+			'svg'      => array(
+				'xmlns'   => true,
+				'viewbox' => true,
+				'width'   => true,
+				'height'  => true,
+				'fill'    => true,
+				'stroke'  => true,
+				'style'   => true,
+			),
+			'path'     => array(
+				'd'                => true,
+				'fill'             => true,
+				'stroke'           => true,
+				'stroke-width'     => true,
+				'stroke-linecap'   => true,
+				'stroke-linejoin'  => true,
+			),
+			'circle'   => array(
+				'cx'     => true,
+				'cy'     => true,
+				'r'      => true,
+				'fill'   => true,
+				'stroke' => true,
+			),
+			'rect'     => array(
+				'x'      => true,
+				'y'      => true,
+				'width'  => true,
+				'height' => true,
+				'rx'     => true,
+				'fill'   => true,
+				'stroke' => true,
+			),
+			'line'     => array(
+				'x1'             => true,
+				'y1'             => true,
+				'x2'             => true,
+				'y2'             => true,
+				'stroke'         => true,
+				'stroke-width'   => true,
+				'stroke-linecap' => true,
+			),
+			'polyline' => array(
+				'points'          => true,
+				'fill'            => true,
+				'stroke'          => true,
+				'stroke-width'    => true,
+				'stroke-linecap'  => true,
+				'stroke-linejoin' => true,
+			),
+		);
+
+		return wp_kses( $svg, $allowed_svg );
 	}
 
 	/**

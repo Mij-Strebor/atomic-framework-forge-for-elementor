@@ -6,6 +6,7 @@
  * Version:           1.4.0
  * Requires at least: 5.8
  * Requires PHP:      8.2
+ * Requires Plugins:  elementor
  * Author:            Jim Roberts
  * Author URI:        https://jimrforge.com
  * License:           GPL-2.0-or-later
