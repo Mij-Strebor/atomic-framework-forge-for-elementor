@@ -101,21 +101,18 @@ restructure (see git log), which appears to have carried this fix along.
 
 ## 2. High — Dead Code
 
-### D-01 — `_patch_panel_right.js` committed to the repo — OPEN
+### D-01 — `_patch_panel_right.js` committed to the repo — FIXED
 
-**File:** `admin/js/_patch_panel_right.js`
-
-A Node.js script that modifies `aff-panel-right.js` using regex string
-replacement. It is not enqueued, not documented, and not part of any build
-process. Its presence implies that at some point source files were being
-modified by running a patching script rather than by direct editing.
-
-This file has no place in a production plugin repo. It is dead weight, confuses
-any future reader, and its regex patterns are fragile — a whitespace change in
-the target file would silently produce a non-patched output.
-
-**Fix:** Delete the file. If the edits it describes were intended as a guide for
-future changes, move the description to a HANDOFF or RECOVERY-LOG entry.
+**Status: FIXED (2026-08-03).** Deleted, along with a second, previously
+undocumented dead patch script found in the same pass —
+`admin/js/_patch.ps1` (a PowerShell equivalent, even older: its one hardcoded
+path referenced the pre-rename `eff` project directory). Both were found via
+WordPress Plugin Check flagging "illegal files" ahead of the WordPress.org
+submission — real, ship-blocking findings, not false positives. Also added
+`vendor/`, `tests/`, `composer.json`, `composer.lock` to `.distignore` as a
+defense-in-depth measure (the actual `vendor/` false-positive Plugin Check
+also flagged was already `.gitignore`d and never shipped, but hadn't been
+excluded from a raw-directory zip build either).
 
 ---
 
@@ -433,7 +430,7 @@ describes a legacy file that can still be read (backward compat).
 | C-04 | **Critical** | FIXED | Bug | `class-aff-settings.php` | PHP default changed 14→16 to match CSS/JS (16 confirmed correct) |
 | C-05 | **Critical** | FIXED | Bug | `aff-colors.js`, `aff-panel-top.js` | `.eff.json` generation replaced with `.aff.json` |
 | C-06 | **Critical** | FIXED | Bug | `aff-panel-right.js` | Missing spaces in sync dialog — fixed, likely as part of dialog rewrite |
-| D-01 | **High** | OPEN | Dead code | `_patch_panel_right.js` | Node.js patch script committed to plugin repo |
+| D-01 | **High** | FIXED | Dead code | `_patch_panel_right.js`, `_patch.ps1` | Both dead patch scripts deleted; found via real Plugin Check "illegal files" flag |
 | D-02 | **High** | FIXED | Dead code | `class-aff-data-store.php` | `list_projects()` v1 removed; v2 renamed to `list_projects` |
 | D-03 | **High** | FIXED | Dead code | `aff-panel-right.js` | `_getFilename()` deleted; stale doc comment fixed (L-08) |
 | D-04 | **High** | STUBBED | Feature stub | `aff-panel-right.js` | `_bindV3ColorsBtn()` dormant — intentional V3 feature stub |
@@ -460,18 +457,17 @@ describes a legacy file that can still be read (backward compat).
 
 ---
 
-## Recommended Fix Order (updated 2026-08-02)
+## Recommended Fix Order (updated 2026-08-03)
 
-~~C-02, C-03, C-04, C-06, DP-01, DP-02, A-01, A-03, A-06, D-02, D-03, L-02,
-L-03, L-07, L-08~~ — all confirmed FIXED. Remaining, in priority order:
+~~C-02, C-03, C-04, C-06, DP-01, DP-02, D-01, A-01, A-03, A-06, D-02, D-03,
+L-02, L-03, L-07, L-08~~ — all confirmed FIXED. Remaining, in priority order:
 
-1. **D-01** — Delete `_patch_panel_right.js`
-2. **DP-05** — Trace all 4 current `aff_get_settings` call sites first (this grew
+1. **DP-05** — Trace all 4 current `aff_get_settings` call sites first (this grew
    since the original audit — re-scope before assuming a simple 2-call merge fixes it)
-3. **A-04** — Fix backup filename collision (add microseconds, remove sleep)
-4. **DP-03** — Extract `_applyLoadedData` helper
-5. **A-02** — Deep-clone `globalConfig`; document in PATTERNS.md
-6. **L-01**, **L-04**, **L-05**, **L-06** — Cosmetic fixes in a single cleanup commit
+2. **A-04** — Fix backup filename collision (add microseconds, remove sleep)
+3. **DP-03** — Extract `_applyLoadedData` helper
+4. **A-02** — Deep-clone `globalConfig`; document in PATTERNS.md
+5. **L-01**, **L-04**, **L-05**, **L-06** — Cosmetic fixes in a single cleanup commit
 
 Items A-05 and A-07, and DP-04, still require more careful design decisions
 before implementing and should be discussed first.

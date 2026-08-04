@@ -7,3 +7,7 @@ QUICK-START.md
 RECOVERY-LOG.md
 USER-MANUAL.md
 docs/
+vendor/
+tests/
+composer.json
+composer.lock
