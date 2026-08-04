@@ -1,6 +1,7 @@
 .claude/
 .distignore
 .gitignore
+.phpcs.xml
 CLAUDE.md
 PATTERNS.md
 QUICK-START.md
