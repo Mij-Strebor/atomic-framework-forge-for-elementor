@@ -1,10 +1,10 @@
 /**
- * AFF Print — Variable Print / PDF Feature
+ * ATFRFO Print — Variable Print / PDF Feature
  *
- * Renders a print-ready document from AFF.state.variables for Colors,
+ * Renders a print-ready document from ATFRFO.state.variables for Colors,
  * Fonts, and Numbers. Opens a selection modal; user chooses which sets
  * to include and presses Print (or Enter). The document is injected into
- * a hidden #aff-print-container div; @media print CSS hides the AFF UI
+ * a hidden #atfrfo-print-container div; @media print CSS hides the ATFRFO UI
  * and shows only that container.
  *
  * @package AtomicFrameworkForge
@@ -13,9 +13,9 @@
 (function () {
 	'use strict';
 
-	window.AFF = window.AFF || {};
+	window.ATFRFO = window.ATFRFO || {};
 
-	AFF.Print = {
+	ATFRFO.Print = {
 
 		// -------------------------------------------------------------------
 		// INIT
@@ -25,7 +25,7 @@
 		_enterHandlerEl: null,
 
 		init: function () {
-			var btn = document.getElementById('aff-btn-print');
+			var btn = document.getElementById('atfrfo-btn-print');
 			if (btn) {
 				btn.addEventListener('click', this._openModal.bind(this));
 			}
@@ -38,7 +38,7 @@
 
 		_openModal: function () {
 			var self  = this;
-			var vars  = AFF.state.variables || [];
+			var vars  = ATFRFO.state.variables || [];
 			var hasColors  = vars.some(function (v) { return v.type === 'color'  && v.status !== 'deleted'; });
 			var hasFonts   = vars.some(function (v) { return v.type === 'font'   && v.status !== 'deleted'; });
 			var hasNumbers = vars.some(function (v) { return v.type === 'number' && v.status !== 'deleted'; });
@@ -49,22 +49,22 @@
 				numbers: vars.filter(function (v) { return v.type === 'number' && v.status !== 'deleted'; }).length,
 			};
 
-			var body = '<div class="aff-print-select">'
-				+ '<p class="aff-print-select__hint">Select which variable sets to include:</p>'
-				+ self._chk('aff-pchk-colors',  'Colors',  counts.colors,  hasColors)
-				+ self._chk('aff-pchk-fonts',   'Fonts',   counts.fonts,   hasFonts)
-				+ self._chk('aff-pchk-numbers', 'Numbers', counts.numbers, hasNumbers)
-				+ '<hr class="aff-print-select__sep">'
-				+ '<label class="aff-print-chk-row">'
-				+ '<input type="checkbox" id="aff-pchk-comments">'
+			var body = '<div class="atfrfo-print-select">'
+				+ '<p class="atfrfo-print-select__hint">Select which variable sets to include:</p>'
+				+ self._chk('atfrfo-pchk-colors',  'Colors',  counts.colors,  hasColors)
+				+ self._chk('atfrfo-pchk-fonts',   'Fonts',   counts.fonts,   hasFonts)
+				+ self._chk('atfrfo-pchk-numbers', 'Numbers', counts.numbers, hasNumbers)
+				+ '<hr class="atfrfo-print-select__sep">'
+				+ '<label class="atfrfo-print-chk-row">'
+				+ '<input type="checkbox" id="atfrfo-pchk-comments">'
 				+ ' Print comments'
 				+ '</label>'
 				+ '</div>';
 
-			var footer = '<button class="aff-btn" id="aff-print-cancel">Cancel</button>'
-				+ '<button class="aff-btn aff-btn--primary" id="aff-print-go">Print</button>';
+			var footer = '<button class="atfrfo-btn" id="atfrfo-print-cancel">Cancel</button>'
+				+ '<button class="atfrfo-btn atfrfo-btn--primary" id="atfrfo-print-go">Print</button>';
 
-			AFF.Modal.open({
+			ATFRFO.Modal.open({
 				title:   'Print Variables',
 				body:    body,
 				footer:  footer,
@@ -73,8 +73,8 @@
 
 			// Wire footer buttons after Modal has injected them
 			requestAnimationFrame(function () {
-				var goBtn     = document.getElementById('aff-print-go');
-				var cancelBtn = document.getElementById('aff-print-cancel');
+				var goBtn     = document.getElementById('atfrfo-print-go');
+				var cancelBtn = document.getElementById('atfrfo-print-cancel');
 
 				if (goBtn) {
 					goBtn.addEventListener('click', function () {
@@ -83,13 +83,13 @@
 				}
 				if (cancelBtn) {
 					cancelBtn.addEventListener('click', function () {
-						AFF.Modal.close();
+						ATFRFO.Modal.close();
 					});
 				}
 
 				// Enter key triggers Print only while the print modal is open.
 				// Stored on self so _removeEnterHandler() can clean it up.
-				var modalEl = document.getElementById('aff-modal');
+				var modalEl = document.getElementById('atfrfo-modal');
 				if (modalEl) {
 					self._enterHandler = function (e) {
 						if (e.key === 'Enter') {
@@ -106,8 +106,8 @@
 		_chk: function (id, label, count, enabled) {
 			var disabledAttr = enabled ? '' : ' disabled';
 			var checkedAttr  = enabled ? ' checked' : '';
-			var countStr     = enabled ? ' <span class="aff-print-chk-count">(' + count + ')</span>' : ' <span class="aff-print-chk-empty">(none loaded)</span>';
-			return '<label class="aff-print-chk-row' + (enabled ? '' : ' aff-print-chk-row--disabled') + '">'
+			var countStr     = enabled ? ' <span class="atfrfo-print-chk-count">(' + count + ')</span>' : ' <span class="atfrfo-print-chk-empty">(none loaded)</span>';
+			return '<label class="atfrfo-print-chk-row' + (enabled ? '' : ' atfrfo-print-chk-row--disabled') + '">'
 				+ '<input type="checkbox" id="' + id + '"' + checkedAttr + disabledAttr + '>'
 				+ ' ' + label + countStr
 				+ '</label>';
@@ -129,15 +129,15 @@
 			this._removeEnterHandler();
 
 			var selection = {
-				colors:   this._isChecked('aff-pchk-colors'),
-				fonts:    this._isChecked('aff-pchk-fonts'),
-				numbers:  this._isChecked('aff-pchk-numbers'),
-				comments: this._isChecked('aff-pchk-comments'),
+				colors:   this._isChecked('atfrfo-pchk-colors'),
+				fonts:    this._isChecked('atfrfo-pchk-fonts'),
+				numbers:  this._isChecked('atfrfo-pchk-numbers'),
+				comments: this._isChecked('atfrfo-pchk-comments'),
 			};
 
-			AFF.Modal.close();
+			ATFRFO.Modal.close();
 
-			var cssUrl  = (typeof AFFData !== 'undefined' ? AFFData.pluginUrl : '') + 'admin/css/aff-print-page.css';
+			var cssUrl  = (typeof ATFRFOData !== 'undefined' ? ATFRFOData.pluginUrl : '') + 'admin/css/atfrfo-print-page.css';
 			var docHtml = this._buildDoc(selection);
 
 			// Open a clean new window — no WP admin DOM or styles, so no blank
@@ -149,7 +149,7 @@
 				'<!DOCTYPE html>'
 				+ '<html><head>'
 				+ '<meta charset="utf-8">'
-				+ '<title>AFF Variables</title>'
+				+ '<title>ATFRFO Variables</title>'
 				+ '<link rel="stylesheet" href="' + cssUrl + '">'
 				+ '</head><body>'
 				+ docHtml
@@ -173,8 +173,8 @@
 		// -------------------------------------------------------------------
 
 		_buildDoc: function (selection) {
-			var vars    = AFF.state.variables || [];
-			var project = (typeof AFFData !== 'undefined' && AFFData.siteName) ? AFFData.siteName : '';
+			var vars    = ATFRFO.state.variables || [];
+			var project = (typeof ATFRFOData !== 'undefined' && ATFRFOData.siteName) ? ATFRFOData.siteName : '';
 			var date    = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
 			var active = vars.filter(function (v) { return v.status !== 'deleted'; });
@@ -183,14 +183,14 @@
 			if (selection.fonts)   { total += active.filter(function (v) { return v.type === 'font'; }).length; }
 			if (selection.numbers) { total += active.filter(function (v) { return v.type === 'number'; }).length; }
 
-			var html = '<div class="aff-print-doc">';
+			var html = '<div class="atfrfo-print-doc">';
 
 			// Document header
-			html += '<header class="aff-print-doc-header">'
-				+ '<div class="aff-print-doc-header__title">Atomic Framework Forge for Elementor</div>'
-				+ '<div class="aff-print-doc-header__project">Website: ' + this._esc(project) + '</div>'
-				+ '<div class="aff-print-doc-header__date">Printed: ' + this._esc(date) + '</div>'
-				+ '<div class="aff-print-doc-header__count">Count: ' + total + ' variable' + (total !== 1 ? 's' : '') + '</div>'
+			html += '<header class="atfrfo-print-doc-header">'
+				+ '<div class="atfrfo-print-doc-header__title">Atomic Framework Forge for Elementor</div>'
+				+ '<div class="atfrfo-print-doc-header__project">Website: ' + this._esc(project) + '</div>'
+				+ '<div class="atfrfo-print-doc-header__date">Printed: ' + this._esc(date) + '</div>'
+				+ '<div class="atfrfo-print-doc-header__count">Count: ' + total + ' variable' + (total !== 1 ? 's' : '') + '</div>'
 				+ '</header>';
 
 			if (selection.colors) {
@@ -212,26 +212,26 @@
 			if (!vars.length) { return ''; }
 
 			var catKeyMap  = { color: 'categories', font: 'fontCategories', number: 'numberCategories' };
-			var allCats    = (AFF.state.config && AFF.state.config[catKeyMap[type]]) || [];
+			var allCats    = (ATFRFO.state.config && ATFRFO.state.config[catKeyMap[type]]) || [];
 			var cats       = allCats.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 			var topCats    = cats.filter(function (c) { return !c.parent_id; });
 			var placed     = {};
 			var hasPreview = (type === 'color' || type === 'font');
 			var colCount   = hasPreview ? 4 : 3;
 
-			var html = '<section class="aff-print-section aff-print-section--' + type + '">'
-				+ '<h2 class="aff-print-section-title">'
-				+ '<span class="aff-print-section-badge aff-print-section-badge--' + type + '">'
+			var html = '<section class="atfrfo-print-section atfrfo-print-section--' + type + '">'
+				+ '<h2 class="atfrfo-print-section-title">'
+				+ '<span class="atfrfo-print-section-badge atfrfo-print-section-badge--' + type + '">'
 				+ this._esc(label)
-				+ '<span class="aff-print-section-count">' + vars.length + ' variable' + (vars.length !== 1 ? 's' : '') + '</span>'
+				+ '<span class="atfrfo-print-section-count">' + vars.length + ' variable' + (vars.length !== 1 ? 's' : '') + '</span>'
 				+ '</span>'
 				+ '</h2>'
-				+ '<table class="aff-print-table">'
+				+ '<table class="atfrfo-print-table">'
 				+ '<thead><tr>'
-				+ (hasPreview ? '<th class="aff-ptcol-preview" scope="col"></th>' : '')
-				+ '<th class="aff-ptcol-name" scope="col">Name</th>'
-				+ '<th class="aff-ptcol-val" scope="col">Value</th>'
-				+ '<th class="aff-ptcol-fmt" scope="col">Format</th>'
+				+ (hasPreview ? '<th class="atfrfo-ptcol-preview" scope="col"></th>' : '')
+				+ '<th class="atfrfo-ptcol-name" scope="col">Name</th>'
+				+ '<th class="atfrfo-ptcol-val" scope="col">Value</th>'
+				+ '<th class="atfrfo-ptcol-fmt" scope="col">Format</th>'
 				+ '</tr></thead>'
 				+ '<tbody>';
 
@@ -271,12 +271,12 @@
 				}
 				if (!hasContent) { continue; }
 
-				html += '<tr class="aff-print-cat-row"><td colspan="' + colCount + '">' + this._esc(topCat.name) + '</td></tr>';
+				html += '<tr class="atfrfo-print-cat-row"><td colspan="' + colCount + '">' + this._esc(topCat.name) + '</td></tr>';
 
 				// Sub-categories first, indented
 				for (var sgi = 0; sgi < subGroups.length; sgi++) {
 					if (!subGroups[sgi].vars.length) { continue; }
-					html += '<tr class="aff-print-subcat-row"><td colspan="' + colCount + '">' + this._esc(subGroups[sgi].name) + '</td></tr>';
+					html += '<tr class="atfrfo-print-subcat-row"><td colspan="' + colCount + '">' + this._esc(subGroups[sgi].name) + '</td></tr>';
 					for (var ri = 0; ri < subGroups[sgi].vars.length; ri++) {
 						html += rowFn(subGroups[sgi].vars[ri], printComments, true);
 					}
@@ -293,7 +293,7 @@
 			for (var ui = 0; ui < vars.length; ui++) {
 				if (!placed[vars[ui].id]) {
 					if (!uncatStarted) {
-						html += '<tr class="aff-print-cat-row"><td colspan="' + colCount + '">Uncategorized</td></tr>';
+						html += '<tr class="atfrfo-print-cat-row"><td colspan="' + colCount + '">Uncategorized</td></tr>';
 						uncatStarted = true;
 					}
 					html += rowFn(vars[ui], printComments);
@@ -305,76 +305,76 @@
 		},
 
 		_colorsRow: function (v, printComments, isSubCat) {
-			var cmtClass = isSubCat ? 'aff-print-subcat-var aff-print-comment-row' : 'aff-print-comment-row';
+			var cmtClass = isSubCat ? 'atfrfo-print-subcat-var atfrfo-print-comment-row' : 'atfrfo-print-comment-row';
 			var html;
 			if (isSubCat) {
-				html = '<tr class="aff-print-subcat-var">'
-					+ '<td class="aff-ptcol-preview"></td>'
-					+ '<td class="aff-ptcol-name aff-print-varname">'
-					+ '<span class="aff-print-swatch aff-print-swatch--inline" style="background:' + this._esc(v.value || '') + '"></span>'
+				html = '<tr class="atfrfo-print-subcat-var">'
+					+ '<td class="atfrfo-ptcol-preview"></td>'
+					+ '<td class="atfrfo-ptcol-name atfrfo-print-varname">'
+					+ '<span class="atfrfo-print-swatch atfrfo-print-swatch--inline" style="background:' + this._esc(v.value || '') + '"></span>'
 					+ ' ' + this._esc(v.name || '')
 					+ '</td>'
-					+ '<td class="aff-ptcol-val aff-print-monospace">' + this._esc(v.value || '') + '</td>'
-					+ '<td class="aff-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-val atfrfo-print-monospace">' + this._esc(v.value || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
 					+ '</tr>';
 			} else {
 				html = '<tr>'
-					+ '<td class="aff-ptcol-preview"><span class="aff-print-swatch" style="background:' + this._esc(v.value || '') + '"></span></td>'
-					+ '<td class="aff-ptcol-name aff-print-varname">' + this._esc(v.name || '') + '</td>'
-					+ '<td class="aff-ptcol-val aff-print-monospace">' + this._esc(v.value || '') + '</td>'
-					+ '<td class="aff-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-preview"><span class="atfrfo-print-swatch" style="background:' + this._esc(v.value || '') + '"></span></td>'
+					+ '<td class="atfrfo-ptcol-name atfrfo-print-varname">' + this._esc(v.name || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-val atfrfo-print-monospace">' + this._esc(v.value || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
 					+ '</tr>';
 			}
 			if (printComments && v.notes) {
 				html += '<tr class="' + cmtClass + '">'
-					+ '<td class="aff-ptcol-preview"></td>'
-					+ '<td colspan="3" class="aff-print-comment">' + this._esc(v.notes) + '</td>'
+					+ '<td class="atfrfo-ptcol-preview"></td>'
+					+ '<td colspan="3" class="atfrfo-print-comment">' + this._esc(v.notes) + '</td>'
 					+ '</tr>';
 			}
 			return html;
 		},
 
 		_fontsRow: function (v, printComments, isSubCat) {
-			var cmtClass = isSubCat ? 'aff-print-subcat-var aff-print-comment-row' : 'aff-print-comment-row';
+			var cmtClass = isSubCat ? 'atfrfo-print-subcat-var atfrfo-print-comment-row' : 'atfrfo-print-comment-row';
 			var html;
 			if (isSubCat) {
-				html = '<tr class="aff-print-subcat-var">'
-					+ '<td class="aff-ptcol-preview"></td>'
-					+ '<td class="aff-ptcol-name aff-print-varname">'
-					+ '<span class="aff-print-font-preview aff-print-font-preview--inline" style="font-family:' + this._esc(v.value || '') + '">ABCabc</span>'
+				html = '<tr class="atfrfo-print-subcat-var">'
+					+ '<td class="atfrfo-ptcol-preview"></td>'
+					+ '<td class="atfrfo-ptcol-name atfrfo-print-varname">'
+					+ '<span class="atfrfo-print-font-preview atfrfo-print-font-preview--inline" style="font-family:' + this._esc(v.value || '') + '">ABCabc</span>'
 					+ ' ' + this._esc(v.name || '')
 					+ '</td>'
-					+ '<td class="aff-ptcol-val">' + this._esc(v.value || '') + '</td>'
-					+ '<td class="aff-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-val">' + this._esc(v.value || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
 					+ '</tr>';
 			} else {
 				html = '<tr>'
-					+ '<td class="aff-ptcol-preview"><span class="aff-print-font-preview" style="font-family:' + this._esc(v.value || '') + '">ABCabc</span></td>'
-					+ '<td class="aff-ptcol-name aff-print-varname">' + this._esc(v.name || '') + '</td>'
-					+ '<td class="aff-ptcol-val">' + this._esc(v.value || '') + '</td>'
-					+ '<td class="aff-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-preview"><span class="atfrfo-print-font-preview" style="font-family:' + this._esc(v.value || '') + '">ABCabc</span></td>'
+					+ '<td class="atfrfo-ptcol-name atfrfo-print-varname">' + this._esc(v.name || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-val">' + this._esc(v.value || '') + '</td>'
+					+ '<td class="atfrfo-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
 					+ '</tr>';
 			}
 			if (printComments && v.notes) {
 				html += '<tr class="' + cmtClass + '">'
-					+ '<td class="aff-ptcol-preview"></td>'
-					+ '<td colspan="3" class="aff-print-comment">' + this._esc(v.notes) + '</td>'
+					+ '<td class="atfrfo-ptcol-preview"></td>'
+					+ '<td colspan="3" class="atfrfo-print-comment">' + this._esc(v.notes) + '</td>'
 					+ '</tr>';
 			}
 			return html;
 		},
 
 		_numbersRow: function (v, printComments, isSubCat) {
-			var trClass = isSubCat ? ' class="aff-print-subcat-var"' : '';
-			var cmtClass = isSubCat ? 'aff-print-subcat-var aff-print-comment-row' : 'aff-print-comment-row';
+			var trClass = isSubCat ? ' class="atfrfo-print-subcat-var"' : '';
+			var cmtClass = isSubCat ? 'atfrfo-print-subcat-var atfrfo-print-comment-row' : 'atfrfo-print-comment-row';
 			var html = '<tr' + trClass + '>'
-				+ '<td class="aff-ptcol-name aff-print-varname">' + this._esc(v.name || '') + '</td>'
-				+ '<td class="aff-ptcol-val aff-print-monospace">' + this._esc(v.value || '') + '</td>'
-				+ '<td class="aff-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
+				+ '<td class="atfrfo-ptcol-name atfrfo-print-varname">' + this._esc(v.name || '') + '</td>'
+				+ '<td class="atfrfo-ptcol-val atfrfo-print-monospace">' + this._esc(v.value || '') + '</td>'
+				+ '<td class="atfrfo-ptcol-fmt">' + this._esc(v.format || '') + '</td>'
 				+ '</tr>';
 			if (printComments && v.notes) {
 				html += '<tr class="' + cmtClass + '">'
-					+ '<td colspan="3" class="aff-print-comment">' + this._esc(v.notes) + '</td>'
+					+ '<td colspan="3" class="atfrfo-print-comment">' + this._esc(v.notes) + '</td>'
 					+ '</tr>';
 			}
 			return html;

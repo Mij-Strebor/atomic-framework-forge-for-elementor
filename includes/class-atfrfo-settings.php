@@ -1,10 +1,10 @@
 <?php
 /**
- * AFF Settings — Plugin Preferences Storage
+ * ATFRFO Settings — Plugin Preferences Storage
  *
  * Thin WordPress adapter for plugin-level preferences.
  * Scoped to developer preferences (default file path, sync options).
- * User-level preferences (theme) are stored in usermeta via AFF_Admin.
+ * User-level preferences (theme) are stored in usermeta via ATFRFO_Admin.
  *
  * @package AtomicFrameworkForge
  */
@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AFF_Settings {
+class ATFRFO_Settings {
 
-	const OPTION_KEY = 'aff_settings';
+	const OPTION_KEY = 'atfrfo_settings';
 
 	/**
 	 * @var array Default setting values.

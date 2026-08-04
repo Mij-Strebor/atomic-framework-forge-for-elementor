@@ -16,13 +16,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - **Brand assets** — Logo and favicon replaced with new blacksmith-hammer artwork (was a carpenter's/claw hammer).
-- **Help panel** — Media Inventory Forge now shows as available on WordPress.org (was GitHub-only); added Fluid Button Forge as "In Development"; renamed "Elementor Color Inventory" to "Color Inventory Forge" to match branding used elsewhere; corrected stale `.eff.json` references to `.aff.json`; Development Phase section rewritten to match actually-shipped v1.x capabilities; Project Hub section updated now that jimrforge.com is live, with real Quick-Start/User's Manual links.
+- **Help panel** — Media Inventory Forge now shows as available on WordPress.org (was GitHub-only); added Fluid Button Forge as "In Development"; renamed "Elementor Color Inventory" to "Color Inventory Forge" to match branding used elsewhere; corrected stale `.eff.json` references to `.atfrfo.json`; Development Phase section rewritten to match actually-shipped v1.x capabilities; Project Hub section updated now that jimrforge.com is live, with real Quick-Start/User's Manual links.
 - **Version** — Bumped to 1.4.0.
 
 ### Fixed
 
-- **Weak HTML-escape functions** (security) — `aff-panel-right.js` had local `_escHtml`/`_escAttr` helpers missing `"`/`'` escaping; consolidated to the canonical `AFF.Utils.escHtml()`/`escAttr()` everywhere.
-- **Font-size default mismatch** — `AFF_Settings::$defaults['ui_font_size']` said 14 but the CSS baseline was actually 16 (no override rule existed for 16), so the "no override" branch never fired on a fresh install. Corrected the PHP default to 16.
+- **Weak HTML-escape functions** (security) — `atfrfo-panel-right.js` had local `_escHtml`/`_escAttr` helpers missing `"`/`'` escaping; consolidated to the canonical `ATFRFO.Utils.escHtml()`/`escAttr()` everywhere.
+- **Font-size default mismatch** — `ATFRFO_Settings::$defaults['ui_font_size']` said 14 but the CSS baseline was actually 16 (no override rule existed for 16), so the "no override" branch never fired on a fresh install. Corrected the PHP default to 16.
 - **Two dead patch scripts removed** (`_patch_panel_right.js`, `_patch.ps1`) — found via WordPress Plugin Check flagging them as illegal files ahead of the first WordPress.org submission; neither was enqueued or part of any build process.
 - Assorted tech-debt cleanup: duplicated format-unit map hoisted to one constant, undeclared `metadata` state field added, several stale doc/comment corrections.
 
@@ -43,13 +43,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Sticky Group Header** — Scrolling within a variable group (Colors, Fonts, Numbers) now keeps the filter bar and the status legend pinned together as one sticky unit.
 - **Print: document title** — Removed "V4" from the printed document header. Title now reads "Atomic Framework Forge for Elementor".
 - **Comment field placeholder** — Notes input in the Colors and Variables expand panels shows "Comment" instead of "Add a note…".
-- **Informational modals** — "Fetch complete", "Clean Up Complete", and "V3 Import complete" success modals now auto-close after 4 seconds and include an explicit Close button. The three separate timer/handler implementations replaced with a single `AFF.Modal.info()` helper.
-- **Elementor Dev Versions** — Updated `AFF_DEV_ELEMENTOR_VERSION` to 4.1.3 and `AFF_DEV_ELEMENTOR_PRO_VERSION` to 4.1.1.
+- **Informational modals** — "Fetch complete", "Clean Up Complete", and "V3 Import complete" success modals now auto-close after 4 seconds and include an explicit Close button. The three separate timer/handler implementations replaced with a single `ATFRFO.Modal.info()` helper.
+- **Elementor Dev Versions** — Updated `ATFRFO_DEV_ELEMENTOR_VERSION` to 4.1.3 and `ATFRFO_DEV_ELEMENTOR_PRO_VERSION` to 4.1.1.
 - **Version** — Bumped to 1.3.0.
 
 ### Fixed
 
-- **App Top Bar Scrolls Off Screen** — WordPress default padding on `#wpbody-content` (65 px footer reserve plus unmapped screen-meta elements) created a browser scrollbar that scrolled the AFF top bar out of view. Fixed by zeroing the padding, hiding unused WP screen-meta elements, and adding a `max-height` clamp so no WP injected content can grow the document past the viewport.
+- **App Top Bar Scrolls Off Screen** — WordPress default padding on `#wpbody-content` (65 px footer reserve plus unmapped screen-meta elements) created a browser scrollbar that scrolled the ATFRFO top bar out of view. Fixed by zeroing the padding, hiding unused WP screen-meta elements, and adding a `max-height` clamp so no WP injected content can grow the document past the viewport.
 - **Brand name fades on scroll** — The "Atomic Framework Forge" title in the top bar faded to invisible when the center panel was scrolled down. The fade animation has been removed; the title remains visible at all times.
 
 ---
@@ -92,12 +92,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Tints / Shades / Transparencies as Sub-Categories** — Generating tints, shades, or transparencies from a color's expand panel now creates a named sub-category (e.g., "text-sec Tints") inside the parent category rather than adding generated variables directly to the parent. Each type gets its own sub-category; repeated generation finds the existing sub-category and updates it.
 - **Delete Variable Button** — A trash icon appears on hover at the right of every variable row (Colors, Fonts, Numbers). Clicking it opens a confirmation modal before removal.
 - **Status Legend** — A compact dot-and-label row (Synced / Modified / New / Orphaned / Conflict) is shown under the filter bar in the Colors and Variables views, providing an always-visible color-status key.
-- **Print / PDF** — A print button in the top bar opens a selection modal letting the user choose which variable sets (Colors, Fonts, Numbers) to include. The resulting print-ready document is injected into the page and the browser's native print dialog is opened; `@media print` CSS hides the AFF UI and shows only the formatted variable list.
+- **Print / PDF** — A print button in the top bar opens a selection modal letting the user choose which variable sets (Colors, Fonts, Numbers) to include. The resulting print-ready document is injected into the page and the browser's native print dialog is opened; `@media print` CSS hides the ATFRFO UI and shows only the formatted variable list.
 - **New Category Appears at Top** — When a new category is added it is inserted at the top of the category list rather than the bottom.
 
 ### Fixed
 
-- **Delete Button Column Overflow** — The delete button was wrapping to a second grid row because inline CSS generated by `get_grid_override_css()` in `class-aff-admin.php` was outputting a 7-column template after the static CSS file, overriding the intended 8-column definition. The PHP output now defines 8 columns for all views.
+- **Delete Button Column Overflow** — The delete button was wrapping to a second grid row because inline CSS generated by `get_grid_override_css()` in `class-atfrfo-admin.php` was outputting a 7-column template after the static CSS file, overriding the intended 8-column definition. The PHP output now defines 8 columns for all views.
 
 ### Changed
 
@@ -114,7 +114,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- **Elementor version constants** — Updated `AFF_DEV_ELEMENTOR_VERSION` to 4.0.8 and `AFF_DEV_ELEMENTOR_PRO_VERSION` to 4.0.4.
+- **Elementor version constants** — Updated `ATFRFO_DEV_ELEMENTOR_VERSION` to 4.0.8 and `ATFRFO_DEV_ELEMENTOR_PRO_VERSION` to 4.0.4.
 - **Version** — Bumped to 1.0.0 — first stable release.
 
 ---
@@ -131,7 +131,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **`.aff.json` Filename** — All export, import, and dialog references updated from `.eff.json` to `.aff.json` (C-05).
+- **`.atfrfo.json` Filename** — All export, import, and dialog references updated from `.eff.json` to `.atfrfo.json` (C-05).
 
 ### Changed
 
@@ -147,20 +147,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **CSS Variable Names on Commit** — Variable names are now normalized to the `--` prefix when committing to Elementor. Bare identifiers stored in AFF (e.g. `sp-s`) are written as valid CSS custom properties (`--sp-s`).
-- **CSS Variable Storage** — AFF now stores bare identifiers internally without the `--` prefix, preventing a double-prefix (`----sp-s`) on round-trip commit and re-import.
+- **CSS Variable Names on Commit** — Variable names are now normalized to the `--` prefix when committing to Elementor. Bare identifiers stored in ATFRFO (e.g. `sp-s`) are written as valid CSS custom properties (`--sp-s`).
+- **CSS Variable Storage** — ATFRFO now stores bare identifiers internally without the `--` prefix, preventing a double-prefix (`----sp-s`) on round-trip commit and re-import.
 - **Elementor V4 Import** — EV4 variable labels are preserved unchanged on import; only a single `--` prefix is stripped per name to avoid mangling variable names that contain double hyphens.
 - **Category Rename Hides Variables** — Renaming a category no longer causes its variables to disappear from the edit view. The per-variable `category` field is now synced whenever a category is renamed.
 - **Add Category — Fonts/Numbers** — Add Category now works correctly in Fonts and Numbers panels; the modal click handler was not removed on close, causing duplicate fires on subsequent attempts.
-- **Delete Project** — Deleting a project now correctly clears the active display. Native browser `confirm()` replaced with the AFF modal dialog for consistency.
+- **Delete Project** — Deleting a project now correctly clears the active display. Native browser `confirm()` replaced with the ATFRFO modal dialog for consistency.
 - **Auto-save After Clear/Replace Sync** — Project file is saved to disk automatically after Clear and Replace sync operations, preventing unsaved state from being silently discarded.
 - **Left Panel Count Badges** — Category count badges in the left panel now match variables by `category_id` in addition to `category` name, fixing blank counts for Numbers and Fonts categories whose variables were saved with an ID reference.
 - **Placeholder Sign Image** — Take-a-look sign converted to a true PNG; the previous file had an opaque white background that blocked the page theme colour.
 
 ### Changed
 
-- **Shared Utilities — Phase 1** — Duplicate utility methods across Colors and Variables extracted into shared `AFF.Utils` and `AFF.Icons` objects, removing ~520 lines of duplication.
-- **Shared Category Mixin — Phase 2** — Six category-management methods (`_addCategory`, `_saveCategoryName`, `_deleteCategory`, `_duplicateCategory`, `_ajaxReorderCategories`, `_jumpToCategory`) consolidated into `AFF.CatMixin` and applied to both Colors and Variables via `Object.assign`, removing a further ~290 lines of duplication.
+- **Shared Utilities — Phase 1** — Duplicate utility methods across Colors and Variables extracted into shared `ATFRFO.Utils` and `ATFRFO.Icons` objects, removing ~520 lines of duplication.
+- **Shared Category Mixin — Phase 2** — Six category-management methods (`_addCategory`, `_saveCategoryName`, `_deleteCategory`, `_duplicateCategory`, `_ajaxReorderCategories`, `_jumpToCategory`) consolidated into `ATFRFO.CatMixin` and applied to both Colors and Variables via `Object.assign`, removing a further ~290 lines of duplication.
 - **Version** — Bumped to 0.4.2-beta.
 
 ---
@@ -190,8 +190,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - **Drag/drop broken on Numbers and Fonts** — `setLower` was referenced but never declared in `_initDrag` and `_initCatDrag` prototype methods, causing a silent `ReferenceError` in strict mode that killed all mousedown drag handlers. Each method now declares `setLower` locally from `self._cfg.setName`.
-- **Scroll-to-top on Add Variable** — `_rerenderView` was saving/restoring `aff-edit-content.scrollTop` (always 0); the real scroll container is `aff-edit-space` (`overflow-y: auto`). Now saves/restores both `aff-edit-space.scrollTop` and `window.pageYOffset`. Also changed `nameInp.focus()` to `focus({ preventScroll: true })` to prevent a second scroll jump after the new row is focused.
-- **Numbers sort header misalignment** — `.aff-color-list-header` inside `.aff-numbers-view` was inheriting the 7-column Colors grid. Added explicit 6-column grid override to match `.aff-color-row`.
+- **Scroll-to-top on Add Variable** — `_rerenderView` was saving/restoring `atfrfo-edit-content.scrollTop` (always 0); the real scroll container is `atfrfo-edit-space` (`overflow-y: auto`). Now saves/restores both `atfrfo-edit-space.scrollTop` and `window.pageYOffset`. Also changed `nameInp.focus()` to `focus({ preventScroll: true })` to prevent a second scroll jump after the new row is focused.
+- **Numbers sort header misalignment** — `.atfrfo-color-list-header` inside `.atfrfo-numbers-view` was inheriting the 7-column Colors grid. Added explicit 6-column grid override to match `.atfrfo-color-row`.
 
 ### Changed
 
@@ -213,18 +213,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **Cross-module event contamination** — Colors, Variables, and Numbers all share `#aff-edit-content` as their delegated event container. Click, focusout, and mousedown drag handlers now guard against firing when their own view is not present, preventing Colors events from triggering in Numbers and vice versa.
+- **Cross-module event contamination** — Colors, Variables, and Numbers all share `#atfrfo-edit-content` as their delegated event container. Click, focusout, and mousedown drag handlers now guard against firing when their own view is not present, preventing Colors events from triggering in Numbers and vice versa.
 - **Drag snap-back in Numbers** — Variables dragged in Numbers snapped back to their original position because Colors' drag `mouseup` handler was firing on the same gesture. The view-presence guard on mousedown prevents Colors' drag state from activating when Numbers is shown.
 - **Drag cross-module switch** — Dragging in Numbers no longer unexpectedly activates a Colors drag. Root cause was the same shared container; resolved by the view-presence guard on both modules' mousedown handlers.
 - **Write to Elementor — kit CSS file not found** — `ajax_aff_commit_to_elementor` now calls `try_regenerate_elementor_kit_css()` when `find_kit_css_file()` returns null, instead of immediately returning an error. Prevents failures on fresh installs or after Elementor clears its CSS cache.
 - **Duplicate variable names** — Renaming a variable to an existing name is now blocked in JS (client-side field error, value reverted) and PHP (`variable_name_exists()` check in `ajax_aff_save_color()`).
-- **Forced `--` prefix while typing** — Three live `input` event handlers in `aff-colors.js` and `aff-variables.js` were re-inserting `--` as the user typed a variable name. All three removed; the prefix is added only when the name is saved.
+- **Forced `--` prefix while typing** — Three live `input` event handlers in `atfrfo-colors.js` and `atfrfo-variables.js` were re-inserting `--` as the user typed a variable name. All three removed; the prefix is added only when the name is saved.
 - **Missing nonce verification** — `ajax_aff_save_category()` and `ajax_aff_delete_color()` were missing `$this->verify_request()` calls added.
 - **category_id validation** — New variables with a `category_id` are now validated against the existing categories for their subgroup before being saved.
 
 ### Changed
 
-- **Dead code removed** — `_moveCategoryUp`, `_moveCategoryDown`, `_sortCategories`, and the `move-up` / `move-down` switch cases in `aff-colors.js` were unreachable and removed (~100 lines).
+- **Dead code removed** — `_moveCategoryUp`, `_moveCategoryDown`, `_sortCategories`, and the `move-up` / `move-down` switch cases in `atfrfo-colors.js` were unreachable and removed (~100 lines).
 - **Version** — Bumped to 0.3.5-beta.
 
 ---
@@ -233,14 +233,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- **Plugin renamed EFF → AFF** — Renamed from *Elementor Framework Forge* to *Atomic Framework Forge for Elementor* for WordPress.org compatibility (WordPress.org prohibits plugin names starting with "Elementor"). Main plugin file renamed to `atomic-framework-forge-for-elementor.php`; all internal prefixes updated: `eff_` → `aff_`, `EFF_` → `AFF_`, `eff-` → `aff-`, `EFF.` → `AFF.`.
-- **Sync reads Elementor kit meta directly** — `AFF_CSS_Parser::read_from_kit_meta()` now reads `_elementor_global_variables` post meta directly instead of requiring a parsed CSS file. `ajax_aff_sync_from_elementor()` uses this as the primary sync path; CSS file parsing is retained as a fallback.
+- **Plugin renamed EFF → ATFRFO** — Renamed from *Elementor Framework Forge* to *Atomic Framework Forge for Elementor* for WordPress.org compatibility (WordPress.org prohibits plugin names starting with "Elementor"). Main plugin file renamed to `atomic-framework-forge-for-elementor.php`; all internal prefixes updated: `eff_` → `atfrfo_`, `EFF_` → `ATFRFO_`, `eff-` → `atfrfo-`, `EFF.` → `ATFRFO.`.
+- **Sync reads Elementor kit meta directly** — `ATFRFO_CSS_Parser::read_from_kit_meta()` now reads `_elementor_global_variables` post meta directly instead of requiring a parsed CSS file. `ajax_aff_sync_from_elementor()` uses this as the primary sync path; CSS file parsing is retained as a fallback.
 - **Version** — Bumped to 0.3.4-beta.
 
 ### Fixed
 
 - **Font and Number category defaults on first load** — `loadConfig()` now normalises `groups.Variables.*` string arrays from the defaults file into the `fontCategories` / `numberCategories` object arrays expected by the edit space, preventing empty category panels on fresh installs.
-- **AJAX action names after rename** — Two call sites in `aff-panel-top.js` were still sending `eff_sync_from_elementor`; corrected to `aff_sync_from_elementor`.
+- **AJAX action names after rename** — Two call sites in `atfrfo-panel-top.js` were still sending `eff_sync_from_elementor`; corrected to `atfrfo_sync_from_elementor`.
 
 ---
 
@@ -248,7 +248,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Elementor kit CSS auto-regeneration** — When `aff_sync_from_elementor` is called and the kit CSS file does not exist on disk, AFF now attempts to regenerate it via Elementor's `CSS\Post` API before returning an error. This prevents the 0-variable result that occurred on fresh installs or after Elementor clears its CSS cache, eliminating the need to load a page in the browser first.
+- **Elementor kit CSS auto-regeneration** — When `atfrfo_sync_from_elementor` is called and the kit CSS file does not exist on disk, ATFRFO now attempts to regenerate it via Elementor's `CSS\Post` API before returning an error. This prevents the 0-variable result that occurred on fresh installs or after Elementor clears its CSS cache, eliminating the need to load a page in the browser first.
 
 ### Changed
 
@@ -260,7 +260,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **Drag-and-drop color reorder** — `aff_save_file` calls in `aff-colors.js` used the old `filename` parameter after the versioned backup refactor changed the PHP handler to require `project_name`. All four call-sites updated; fallback paths now correctly create an `aff-temp` project and set `AFF.state.currentFile` from the server response.
+- **Drag-and-drop color reorder** — `atfrfo_save_file` calls in `atfrfo-colors.js` used the old `filename` parameter after the versioned backup refactor changed the PHP handler to require `project_name`. All four call-sites updated; fallback paths now correctly create an `atfrfo-temp` project and set `ATFRFO.state.currentFile` from the server response.
 - **Column sort lost on tab switch** — Switching from Colors to Numbers and back rebuilt the DOM from state (sorted by `order` field), discarding the display-only `_catSortState`. The sort is now reapplied at the end of every `_renderAll` call.
 - **`resolve_file()` rejecting non-existent directories** — When a versioned path was stored in `last_file` but the project directory had been deleted, `realpath()` returned `false` causing a hard JSON error instead of falling through to the create-on-load path. The helper now only uses `realpath` for the traversal check when the directory actually exists; a `..` component check guards against traversal regardless.
 
@@ -274,7 +274,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- **Drag-and-drop color reorder** — `aff_save_file` calls in `aff-colors.js` used the old `filename` parameter after the versioned backup refactor changed the PHP handler to require `project_name`. All four call-sites updated; fallback paths now correctly create an `aff-temp` project and set `AFF.state.currentFile` from the server response.
+- **Drag-and-drop color reorder** — `atfrfo_save_file` calls in `atfrfo-colors.js` used the old `filename` parameter after the versioned backup refactor changed the PHP handler to require `project_name`. All four call-sites updated; fallback paths now correctly create an `atfrfo-temp` project and set `ATFRFO.state.currentFile` from the server response.
 - **Column sort lost on tab switch** — Switching from Colors to Numbers and back rebuilt the DOM from state (sorted by `order` field), discarding the display-only `_catSortState`. The sort is now reapplied at the end of every `_renderAll` call.
 - **`resolve_file()` rejecting non-existent directories** — When a versioned path was stored in `last_file` but the project directory had been deleted, `realpath()` returned `false` causing a hard JSON error instead of falling through to the create-on-load path. The helper now only uses `realpath` for the traversal check when the directory actually exists; a `..` component check guards against traversal regardless.
 
@@ -288,26 +288,26 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Versioned backup system** — Every "Save Project" creates a timestamped snapshot file instead of overwriting a single file. Storage layout: `uploads/aff/{slug}/{slug}_YYYY-MM-DD_HH-II-SS.aff.json`.
+- **Versioned backup system** — Every "Save Project" creates a timestamped snapshot file instead of overwriting a single file. Storage layout: `uploads/atfrfo/{slug}/{slug}_YYYY-MM-DD_HH-II-SS.atfrfo.json`.
 - **Two-level project / backup picker** — "Open / Switch Project" modal shows Level 1 (all projects: name · backup count · latest date) and Level 2 (all backups for a project: timestamp · Load · Delete). Back arrow returns to Level 1.
 - **Auto-prune** — Oldest backups are silently removed when the per-project count exceeds the limit.
 - **Max backups setting** — Configurable per project in the Manage Project modal (default 10, max 50).
 - **Multi-project support** — Multiple independent named projects per WordPress site.
 - **Create = blank project** — The "Create" button in the picker now clears all state before saving, producing a genuinely empty project.
 - **Right panel reorganized** — Five named sections replace the old flat layout: Active Project · Save & Backups · Elementor Sync · Elementor V3 Import · Export / Import.
-- **Sync moved to right panel** — The **↓ Variables** button (Elementor Sync section) replaces the top-bar Sync icon. Before syncing, a **Sync Options dialog** prompts: "Sync by name" (add new variables, preserve existing AFF edits) or "Clear and replace" (wipe all variables and reimport fresh from Elementor).
+- **Sync moved to right panel** — The **↓ Variables** button (Elementor Sync section) replaces the top-bar Sync icon. Before syncing, a **Sync Options dialog** prompts: "Sync by name" (add new variables, preserve existing ATFRFO edits) or "Clear and replace" (wipe all variables and reimport fresh from Elementor).
 - **Commit moved to right panel** — The **↑ Variables** button (Elementor Sync section) replaces the old unsynced-indicator Commit button. Before writing to Elementor, a **commit summary dialog** shows counts of modified / new / deleted variables; shows "nothing to commit" when zero changes are pending. Highlights with accent color when uncommitted changes exist.
 - **Export / Import moved to right panel** — Buttons relocated from top bar to the Export / Import section. Behavior unchanged.
-- **Elementor V3 Global Colors import** — New **↓ V3 Colors** button (Elementor V3 Import section) reads `system_colors` and `custom_colors` from the active Elementor kit post meta (`_elementor_page_settings`) and imports them as AFF color variables (skipping names that already exist).
-- **`aff_sync_v3_global_colors` AJAX endpoint** — Server-side handler returns `{ name, value, title }` for each V3 Global Color found in the kit.
-- **Data management specification** — `docs/specification/AFF-Spec-Data-Management.md` documents all four data channels (Elementor V4 Sync, Elementor V3 Import, Backup/Restore, Export/Import).
+- **Elementor V3 Global Colors import** — New **↓ V3 Colors** button (Elementor V3 Import section) reads `system_colors` and `custom_colors` from the active Elementor kit post meta (`_elementor_page_settings`) and imports them as ATFRFO color variables (skipping names that already exist).
+- **`atfrfo_sync_v3_global_colors` AJAX endpoint** — Server-side handler returns `{ name, value, title }` for each V3 Global Color found in the kit.
+- **Data management specification** — `docs/specification/ATFRFO-Spec-Data-Management.md` documents all four data channels (Elementor V4 Sync, Elementor V3 Import, Backup/Restore, Export/Import).
 
 ### Changed
 
 - **README.md** — Updated to Beta 0.3.0; data management model section; updated feature table and roadmap.
 - **QUICK-START.md** — Rewritten to reflect the versioned backup workflow, right-panel-centric data management, and Beta status. Removed stale Alpha limitations.
 - **USER-MANUAL.md** — Revised to Beta 0.3.0; right panel section rewritten; new Elementor V3 Import section; sync and commit sections updated; known limitations updated.
-- **Version** — Bumped to 0.3.0-beta across plugin header and `AFF_VERSION` constant.
+- **Version** — Bumped to 0.3.0-beta across plugin header and `ATFRFO_VERSION` constant.
 
 ---
 
@@ -320,7 +320,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - **Elementor sync — lowercase variable names** — Variables imported via Sync from Elementor now have their names lowercased (`--PrimaryColor` → `--primarycolor`) for consistent naming.
-- **Stacked `.aff` suffix in filenames** — Projects with legacy `.aff` or `.aff.json` in their stored name no longer produce filenames like `demo-aff-aff.aff.json`. All paths that store or display the project name now strip stacked `.aff[.json]` suffixes before use.
+- **Stacked `.atfrfo` suffix in filenames** — Projects with legacy `.atfrfo` or `.atfrfo.json` in their stored name no longer produce filenames like `demo-atfrfo-aff.atfrfo.json`. All paths that store or display the project name now strip stacked `.atfrfo[.json]` suffixes before use.
 
 ---
 
@@ -328,22 +328,22 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Export project** — Export button downloads the current project as a portable `.aff.json` file
+- **Export project** — Export button downloads the current project as a portable `.atfrfo.json` file
   (name derived from project name). Works client-side with no server involvement.
-- **Import project** — Import button opens a modal with a file picker; reads a `.aff.json` file,
+- **Import project** — Import button opens a modal with a file picker; reads a `.atfrfo.json` file,
   populates all state (variables, classes, components, config, project name), refreshes all panels,
   and marks the project dirty so the user can save it under a local name.
 - **Storage path in project picker** — Project picker modal footer now shows the server path
-  where `.aff.json` files are stored (relative URL to `wp-content/uploads/aff/`).
+  where `.atfrfo.json` files are stored (relative URL to `wp-content/uploads/atfrfo/`).
 
 ### Fixed
 
 - **Save Changes button contrast** — Glowing Save Changes button now uses dark text
   (`#2a1a0e !important`) so it is readable against the gold accent background.
-- **FONTS categories lost on file load** — When loading a `.aff.json` that predates Phase 2
+- **FONTS categories lost on file load** — When loading a `.atfrfo.json` that predates Phase 2
   category arrays, `fontCategories` and `numberCategories` are now copied from `globalConfig`
   so nav items are preserved.
-- **`-aff` suffix on project name** — `_getFilename()` now strips `.aff` / `.aff.json` before
+- **`-aff` suffix on project name** — `_getFilename()` now strips `.atfrfo` / `.atfrfo.json` before
   slugifying, preventing double-extension saves.
 - **Category CRUD wipes globalConfig categories** — Add, rename, delete, duplicate, and reorder
   operations on font/number categories now merge into local state instead of replacing it with
@@ -404,15 +404,15 @@ Initial Alpha release.
 
 ### Added — Variables Module
 
-- **AFF.Variables factory** (`aff-variables.js`) — Generic prototype-based factory
+- **ATFRFO.Variables factory** (`atfrfo-variables.js`) — Generic prototype-based factory
   instantiated three times (Colors, Fonts, Numbers). Replaces would-be duplicated code
   with a single shared module driven by per-set configuration objects.
-- **Colors variable set** (`aff-colors.js`) — Full edit space: filter bar, category blocks,
+- **Colors variable set** (`atfrfo-colors.js`) — Full edit space: filter bar, category blocks,
   color swatch preview, inline value editing, drag-and-drop reorder, collapse/expand.
 - **Fonts variable set** — Font family values with preview; same category management as Colors.
 - **Numbers variable set** — Numeric/unit values (px, rem, clamp, calc, etc.); same workflow.
 - **Per-set category arrays** — `colorCategories`, `fontCategories`, `numberCategories` in
-  `AFF.state.config`. Each set manages its own independent category list.
+  `ATFRFO.state.config`. Each set manages its own independent category list.
 - **Revision 4 UI** — Set name header aligned with category labels; drag handles on category
   headers; column sort buttons (Name ↑↓, Value ↑↓) per category block; collapse/expand fixed.
 - **Add Variable button always visible** — Remains visible even when a category is collapsed.
@@ -429,12 +429,12 @@ Initial Alpha release.
 
 - Add, rename, delete, duplicate categories per variable set.
 - Drag-and-drop reorder of categories.
-- `aff_add_category`, `aff_rename_category`, `aff_delete_category`,
-  `aff_reorder_categories`, `aff_duplicate_category` AJAX endpoints (all accept `subgroup` param).
+- `atfrfo_add_category`, `atfrfo_rename_category`, `atfrfo_delete_category`,
+  `atfrfo_reorder_categories`, `atfrfo_duplicate_category` AJAX endpoints (all accept `subgroup` param).
 
 ### Added — File Management
 
-- Save and load `.aff.json` project files (`/wp-content/uploads/aff/`).
+- Save and load `.atfrfo.json` project files (`/wp-content/uploads/atfrfo/`).
 - Portable JSON format; designed for future desktop application compatibility.
 
 ### Added — Colors Expand Panel
@@ -446,13 +446,13 @@ Initial Alpha release.
 
 ### Added — Usage Count
 
-- `AFF_Usage_Scanner` scans `_elementor_data` post meta (up to 500 posts) for `var()` references.
+- `ATFRFO_Usage_Scanner` scans `_elementor_data` post meta (up to 500 posts) for `var()` references.
 - Usage badges on each variable row (gold pill = used, gray = unused).
 - Auto-triggered after file load and after Sync.
 
 ### Added — Dark Mode
 
-- Full dark palette on `[data-aff-theme="dark"]` attribute.
+- Full dark palette on `[data-atfrfo-theme="dark"]` attribute.
 - Dark mode component overrides: tooltip contrast, category panel border/shadow,
   lighter category background, drag handle opacity, input field backgrounds,
   button text contrast, color swatch shadow.
@@ -481,7 +481,7 @@ Initial Alpha release.
 | **0.1.0** | Preferences: default categories per set; auto-load last project on startup |
 | **0.2.0** | Pickr color picker; value format conversion (HEX ↔ RGB ↔ HSL) |
 | **0.2.2** | Export/Import; Save Changes contrast fix; category CRUD merge fix |
-| **0.2.3** | Elementor sync lowercase names; Manage Project select-all; stacked `.aff` suffix fix |
+| **0.2.3** | Elementor sync lowercase names; Manage Project select-all; stacked `.atfrfo` suffix fix |
 | **0.3.0-beta** | Versioned backup system; multi-project; two-level picker; right panel reorganization; sync options dialog; commit summary dialog; V3 Global Colors import |
 | **0.3.5-beta** | Load Project modal improvements; cross-module event fix; drag fixes; Write to Elementor kit CSS auto-regeneration; duplicate variable name prevention; removed forced `--` prefix |
 | **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |

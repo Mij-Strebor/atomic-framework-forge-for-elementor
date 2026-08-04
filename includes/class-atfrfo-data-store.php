@@ -1,18 +1,18 @@
 <?php
 
 /**
- * AFF Data Store — Platform-Portable Data Management Layer
+ * ATFRFO Data Store — Platform-Portable Data Management Layer
  *
  * Contains all business logic for variable/class/component CRUD and
  * JSON file persistence. This class has NO WordPress dependencies in
  * its core logic section — only in the clearly-marked WP adapter section
  * at the bottom.
  *
- * This separation is intentional: AFF may be ported to a standalone
+ * This separation is intentional: ATFRFO may be ported to a standalone
  * Windows or Mac application in the future. The core logic must remain
  * portable; WordPress-specific code is isolated in adapter methods only.
  *
- * Storage format: .aff.json files in the WordPress uploads/aff/ directory
+ * Storage format: .atfrfo.json files in the WordPress uploads/atfrfo/ directory
  * (or a user-specified path). The JSON format is platform-agnostic.
  *
  * @package AtomicFrameworkForge
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AFF_Data_Store {
+class ATFRFO_Data_Store {
 
 
 	/**
@@ -61,7 +61,7 @@ class AFF_Data_Store {
 	/**
 	 * Load project data from a JSON file.
 	 *
-	 * @param string $file_path Absolute path to .aff.json file.
+	 * @param string $file_path Absolute path to .atfrfo.json file.
 	 * @return bool True on success.
 	 */
 	public function load_from_file( string $file_path ): bool {
@@ -118,7 +118,7 @@ class AFF_Data_Store {
 	 * New variables (by name) are added. Existing variables are NOT
 	 * overwritten, preserving any manual edits the developer has made.
 	 *
-	 * @param array $parsed_vars Array of { name, value } pairs from AFF_CSS_Parser.
+	 * @param array $parsed_vars Array of { name, value } pairs from ATFRFO_CSS_Parser.
 	 * @return int Number of new variables imported.
 	 */
 	public function import_parsed_variables( array $parsed_vars ): int {
@@ -231,7 +231,7 @@ class AFF_Data_Store {
 	/**
 	 * Delete a variable by name only if it has an empty ID.
 	 *
-	 * Used to remove the placeholder empty-id copy that aff_save_file writes
+	 * Used to remove the placeholder empty-id copy that atfrfo_save_file writes
 	 * for synced variables, before add_variable creates the real UUID copy.
 	 *
 	 * @param string $name CSS custom property name (e.g., '--primary').
@@ -630,7 +630,7 @@ class AFF_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// CLASSES CRUD (v1 placeholder — Classes support arrives in AFF v3)
+	// CLASSES CRUD (v1 placeholder — Classes support arrives in ATFRFO v3)
 	// -----------------------------------------------------------------------
 
 	/**
@@ -641,7 +641,7 @@ class AFF_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// COMPONENTS CRUD (v1 placeholder — Components support arrives in AFF v4)
+	// COMPONENTS CRUD (v1 placeholder — Components support arrives in ATFRFO v4)
 	// -----------------------------------------------------------------------
 
 	/**
@@ -1014,33 +1014,33 @@ class AFF_Data_Store {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Return the absolute path to the AFF file storage directory,
+	 * Return the absolute path to the ATFRFO file storage directory,
 	 * creating it if it does not exist.
 	 *
 	 * @return string Absolute path with trailing slash.
 	 */
 	public static function get_wp_storage_dir(): string {
 		$upload_dir = wp_upload_dir();
-		$dir        = $upload_dir['basedir'] . '/aff/';
+		$dir        = $upload_dir['basedir'] . '/atfrfo/';
 		wp_mkdir_p( $dir );
 		return $dir;
 	}
 
 	/**
-	 * Sanitize a filename and enforce the .aff.json extension.
+	 * Sanitize a filename and enforce the .atfrfo.json extension.
 	 *
 	 * @param string $filename Raw input filename.
-	 * @return string Safe filename with .aff.json extension.
+	 * @return string Safe filename with .atfrfo.json extension.
 	 */
 	public static function sanitize_filename( string $filename ): string {
 		$filename = sanitize_file_name( $filename );
 
-		// Strip existing extension and enforce .aff.json.
+		// Strip existing extension and enforce .atfrfo.json.
 		$base = pathinfo( $filename, PATHINFO_FILENAME );
-		// Handle double-extension like "my-project.aff" → "my-project".
-		$base = preg_replace( '/(\.aff)+$/', '', $base );
+		// Handle double-extension like "my-project.atfrfo" → "my-project".
+		$base = preg_replace( '/(\.atfrfo)+$/', '', $base );
 
-		return $base . '.aff.json';
+		return $base . '.atfrfo.json';
 	}
 
 	// -----------------------------------------------------------------------
@@ -1049,38 +1049,38 @@ class AFF_Data_Store {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Retrieve the Elementor baseline snapshot for a given .aff.json file.
+	 * Retrieve the Elementor baseline snapshot for a given .atfrfo.json file.
 	 *
 	 * The baseline is a flat array of { name, value } pairs representing
 	 * Elementor's variable values at the time of the last Sync.
 	 *
-	 * @param string $filename Sanitized .aff.json filename (e.g., 'my-project.aff.json').
+	 * @param string $filename Sanitized .atfrfo.json filename (e.g., 'my-project.atfrfo.json').
 	 * @return array Baseline variable array, or empty array if not yet set.
 	 */
 	public static function get_baseline( string $filename ): array {
-		$key  = 'aff_elementor_baseline_' . md5( $filename );
+		$key  = 'atfrfo_elementor_baseline_' . md5( $filename );
 		$data = get_option( $key, array() );
 		return is_array( $data ) ? $data : array();
 	}
 
 	/**
-	 * Save the Elementor baseline snapshot for a given .aff.json file.
+	 * Save the Elementor baseline snapshot for a given .atfrfo.json file.
 	 *
-	 * @param string $filename  Sanitized .aff.json filename.
+	 * @param string $filename  Sanitized .atfrfo.json filename.
 	 * @param array  $variables Array of { name, value } pairs from Elementor.
 	 */
 	public static function save_baseline( string $filename, array $variables ): void {
-		$key = 'aff_elementor_baseline_' . md5( $filename );
+		$key = 'atfrfo_elementor_baseline_' . md5( $filename );
 		update_option( $key, $variables, false ); // autoload=false: only needed on demand.
 	}
 
 	/**
-	 * Delete the Elementor baseline snapshot for a given .aff.json file.
+	 * Delete the Elementor baseline snapshot for a given .atfrfo.json file.
 	 *
-	 * @param string $filename Sanitized .aff.json filename.
+	 * @param string $filename Sanitized .atfrfo.json filename.
 	 */
 	public static function delete_baseline( string $filename ): void {
-		$key = 'aff_elementor_baseline_' . md5( $filename );
+		$key = 'atfrfo_elementor_baseline_' . md5( $filename );
 		delete_option( $key );
 	}
 
@@ -1136,10 +1136,10 @@ class AFF_Data_Store {
 	 * Generate a timestamped backup filename.
 	 *
 	 * @param string $project_slug Slug.
-	 * @return string e.g. "my-demo_2026-03-18_14-30-00.aff.json"
+	 * @return string e.g. "my-demo_2026-03-18_14-30-00.atfrfo.json"
 	 */
 	public static function generate_backup_filename( string $project_slug ): string {
-		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.aff.json';
+		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.atfrfo.json';
 	}
 
 	/**
@@ -1171,7 +1171,7 @@ class AFF_Data_Store {
 		}
 
 		// Sort newest-first by the backup filename, which encodes the original
-		// creation timestamp (slug_YYYY-MM-DD_HH-II-SS.aff.json). This is stable —
+		// creation timestamp (slug_YYYY-MM-DD_HH-II-SS.atfrfo.json). This is stable —
 		// CRUD saves overwrite the file but never rename it, so the sort order
 		// does not change when a user edits categories or variables.
 		usort(
@@ -1195,13 +1195,13 @@ class AFF_Data_Store {
 	 *
 	 * @param string $base_dir    Absolute path with trailing slash.
 	 * @param string $project_slug Slug.
-	 * @return array[] Each item: { filename (relative: slug/file.aff.json), name, modified }.
+	 * @return array[] Each item: { filename (relative: slug/file.atfrfo.json), name, modified }.
 	 */
 	public static function list_project_backups( string $base_dir, string $project_slug ): array {
 		$dir   = $base_dir . $project_slug . '/';
-		$files = glob( $dir . '*.aff.json' ) ?: array();
+		$files = glob( $dir . '*.atfrfo.json' ) ?: array();
 		// Sort by filename descending — filenames encode the original creation
-		// timestamp (slug_YYYY-MM-DD_HH-II-SS.aff.json), so this order is stable
+		// timestamp (slug_YYYY-MM-DD_HH-II-SS.atfrfo.json), so this order is stable
 		// and is not affected by CRUD saves that update filemtime.
 		usort(
 			$files,
@@ -1217,7 +1217,7 @@ class AFF_Data_Store {
 			$vars   = isset( $raw['variables'] ) && is_array( $raw['variables'] ) ? $raw['variables'] : array();
 			$list[] = array(
 				'filename'       => $project_slug . '/' . basename( $f ),
-				'name'           => isset( $raw['name'] ) ? preg_replace( '/(\.aff)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
+				'name'           => isset( $raw['name'] ) ? preg_replace( '/(\.atfrfo)+(?:\.json)?$/i', '', $raw['name'] ) : $project_slug,
 				'modified'       => wp_date( 'M j, g:i a', $ts ),
 				'modified_ts'    => $ts,
 				'variable_count' => count(
@@ -1244,7 +1244,7 @@ class AFF_Data_Store {
 		if ( $max < 1 ) {
 			return;
 		}
-		$files = glob( $project_dir . '*.aff.json' ) ?: array();
+		$files = glob( $project_dir . '*.atfrfo.json' ) ?: array();
 		if ( count( $files ) <= $max ) {
 			return;
 		}

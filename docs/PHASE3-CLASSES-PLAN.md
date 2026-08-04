@@ -1,4 +1,4 @@
-# AFF Phase 3 — Global Classes Management
+# ATFRFO Phase 3 — Global Classes Management
 ## Implementation Plan
 
 **Date:** 2026-06-14
@@ -12,8 +12,8 @@
 
 1. [Elementor V4 Classes — Technical Architecture](#1-elementor-v4-classes--technical-architecture)
 2. [Critical Discovery: Props Are Typed Objects, Not CSS Strings](#2-critical-discovery-props-are-typed-objects-not-css-strings)
-3. [AFF Strategy Decision: Two Editing Modes](#3-aff-strategy-decision-two-editing-modes)
-4. [AFF Data Model](#4-aff-data-model)
+3. [ATFRFO Strategy Decision: Two Editing Modes](#3-atfrfo-strategy-decision-two-editing-modes)
+4. [ATFRFO Data Model](#4-atfrfo-data-model)
 5. [Left Column Changes](#5-left-column-changes)
 6. [Edit Space — Class List View](#6-edit-space--class-list-view)
 7. [Edit Space — Class Expand Panel](#7-edit-space--class-expand-panel)
@@ -39,7 +39,7 @@ Each global class is **its own WordPress post** of type `e_global_class` (not ki
 The kit post holds only the index.
 
 > **Warning:** Pre-4.1.0 sites stored classes in kit meta `_elementor_global_classes` as a
-> single JSON blob. AFF must detect the DB version and handle both. DB version is stored in
+> single JSON blob. ATFRFO must detect the DB version and handle both. DB version is stored in
 > WP option `elementor_global_classes_db_version` (current = 3).
 
 **CPT post meta per class:**
@@ -137,7 +137,7 @@ Valid values for `meta.state` (from `style-states.php`):
 
 When `true`, the class participates in Elementor's V3↔V4 design system bridge.
 Only affects published/frontend context. Most classes do not need this.
-AFF exposes it as a simple toggle per class.
+ATFRFO exposes it as a simple toggle per class.
 
 ---
 
@@ -170,7 +170,7 @@ with `Utils::encode_string`). It is **not** validated against the schema.
 
 ---
 
-## 3. AFF Strategy Decision: Two Editing Modes
+## 3. ATFRFO Strategy Decision: Two Editing Modes
 
 The typed props system requires deep knowledge of every prop-type schema to build a full
 structured editor. That is a large, fragile surface area tied to Elementor internals.
@@ -179,12 +179,12 @@ structured editor. That is a large, fragile surface area tied to Elementor inter
 
 ### Mode A: Raw CSS Editor (Phase 3)
 Edit via `custom_css.raw` only. User writes CSS declarations in a textarea-like editor.
-AFF stores the raw CSS, encodes it on commit, decodes it on sync.
+ATFRFO stores the raw CSS, encodes it on commit, decodes it on sync.
 
 - Pros: Works for any CSS property, no schema dependency, implementable in Phase 3
 - Cons: No type-aware controls (no color pickers, no unit selectors for this mode)
-- AFF never reads or writes `props` — it preserves whatever `props` arrived from Elementor but
-  does not allow AFF to modify them. If a class has existing `props`, they are shown as
+- ATFRFO never reads or writes `props` — it preserves whatever `props` arrived from Elementor but
+  does not allow ATFRFO to modify them. If a class has existing `props`, they are shown as
   read-only, and the user edits via `custom_css.raw`.
 
 ### Mode B: Structured Props Editor (Phase 4 or later)
@@ -196,11 +196,11 @@ Type-aware editing for each prop — color picker for `$$type: color`, size+unit
 
 ---
 
-## 4. AFF Data Model
+## 4. ATFRFO Data Model
 
-### 4.1 How AFF Stores Class Data
+### 4.1 How ATFRFO Stores Class Data
 
-AFF stores a project `.aff.json` snapshot that extends the existing format:
+ATFRFO stores a project `.atfrfo.json` snapshot that extends the existing format:
 
 ```json
 {
@@ -233,17 +233,17 @@ AFF stores a project `.aff.json` snapshot that extends the existing format:
 }
 ```
 
-All `_aff` fields are AFF-only metadata — they are stripped before committing to Elementor.
+All `_aff` fields are ATFRFO-only metadata — they are stripped before committing to Elementor.
 The `status` and `syncedHash` fields track sync state, same pattern as variables.
 
 ### 4.2 Status Model
 
 | Status | Meaning |
 |---|---|
-| `synced` | AFF matches what Elementor has |
-| `modified` | AFF differs from last synced state |
-| `new` | Created in AFF, not yet committed |
-| `orphaned` | In AFF but deleted from Elementor since last sync |
+| `synced` | ATFRFO matches what Elementor has |
+| `modified` | ATFRFO differs from last synced state |
+| `new` | Created in ATFRFO, not yet committed |
+| `orphaned` | In ATFRFO but deleted from Elementor since last sync |
 
 Hash is computed from the serialized variants (excluding `_aff`). Status dots appear
 in the class list row, same as variable rows.
@@ -270,10 +270,10 @@ The existing Classes nav item becomes a real expandable tree:
 - Clicking any node opens that class list in the edit space
 - Tag filtering is in the edit-space filter bar, not the left column
 
-**Left column tree changes in `aff-panel-left.js`:**
+**Left column tree changes in `atfrfo-panel-left.js`:**
 - Activate the Classes section with real data
 - Render category sub-nodes under Classes
-- Wire click → `AFF.EditSpace.openClasses(categoryId)`
+- Wire click → `ATFRFO.EditSpace.openClasses(categoryId)`
 
 ---
 
@@ -302,7 +302,7 @@ The class list view is similar to the variable category block but with different
 Grid: `24px 8px 20px 1fr 80px 80px 48px 28px 28px` (9 columns).
 
 **Lock behaviour:** A locked class can be applied to elements but cannot be renamed, edited,
-reordered, or deleted within AFF. The expand panel opens read-only. Lock state is AFF-only
+reordered, or deleted within ATFRFO. The expand panel opens read-only. Lock state is ATFRFO-only
 metadata — it is not sent to Elementor on commit.
 
 ### 6.2 Filter Bar
@@ -345,7 +345,7 @@ The expand panel is where classes are actually edited.
 │  │ padding: 12px 24px;                       │  │
 │  │ border-radius: 4px;                       │  │
 │  └───────────────────────────────────────────┘  │
-├─── AFF Notes ───────────────────────────────────┤
+├─── ATFRFO Notes ───────────────────────────────────┤
 │  [optional developer notes field]               │
 ├─── Category / Tags ─────────────────────────────┤
 │  Category: [Buttons ▾]                         │
@@ -363,17 +363,17 @@ If not, the editor is empty — saving non-empty CSS creates the variant.
 Clearing a variant's CSS (save empty) removes that variant.
 
 Breakpoints shown: only enabled breakpoints from the Elementor configuration.
-AFF reads the enabled breakpoint set from Elementor's breakpoints config on sync.
+ATFRFO reads the enabled breakpoint set from Elementor's breakpoints config on sync.
 
 ### 7.3 Existing `props` Handling
 
 If Elementor has `props` data in a variant (from editing in the Elementor editor):
 - Display a read-only summary: "Elementor-structured props present (read only)"
 - List the prop keys as a chip row so the user can see what's there
-- AFF preserves these `props` as-is on commit — never overwrites or strips them
+- ATFRFO preserves these `props` as-is on commit — never overwrites or strips them
 - User can add `custom_css` on top; both `props` and `custom_css` are sent together
 
-This prevents AFF from destroying structured props written by the Elementor editor.
+This prevents ATFRFO from destroying structured props written by the Elementor editor.
 
 ### 7.4 CSS Editor Component
 
@@ -383,7 +383,7 @@ bonus — plain textarea is acceptable for Phase 3), auto-resize.
 Validation on save: strip the selector wrapper if the user accidentally included it
 (e.g. if they pasted `.myclass { … }`, strip to just the declarations). Warn in UI.
 
-Encoding: AFF stores decoded CSS in memory and in `.aff.json`. Encoding for Elementor
+Encoding: ATFRFO stores decoded CSS in memory and in `.atfrfo.json`. Encoding for Elementor
 (`Utils::encode_string`) is applied only on commit.
 
 ---
@@ -409,7 +409,7 @@ $order  = /* read _elementor_global_classes_order kit meta */;
 
 ### 8.2 Sync AJAX Endpoint
 
-New AJAX action: `aff_sync_from_elementor_classes`
+New AJAX action: `atfrfo_sync_from_elementor_classes`
 
 Returns:
 ```json
@@ -423,13 +423,13 @@ Returns:
 ### 8.3 Sync Options
 
 Reuse the existing sync options modal:
-- **Sync by name** — match incoming classes to AFF classes by label; preserve category/tag assignments
-- **Clear and replace** — replace all AFF class data with Elementor's current state
+- **Sync by name** — match incoming classes to ATFRFO classes by label; preserve category/tag assignments
+- **Clear and replace** — replace all ATFRFO class data with Elementor's current state
 
 ### 8.4 Status After Sync
 
 Compute hash of incoming variant data; compare to stored `syncedHash`.
-Set status: `synced` if matching, `modified` if AFF has changes, update `syncedHash`.
+Set status: `synced` if matching, `modified` if ATFRFO has changes, update `syncedHash`.
 
 ---
 
@@ -458,8 +458,8 @@ Before calling `put()`:
 ### 9.3 Commit Summary Dialog
 
 Show before writing:
-- Classes being added (new in AFF, not in Elementor)
-- Classes being modified (variants changed in AFF)
+- Classes being added (new in ATFRFO, not in Elementor)
+- Classes being modified (variants changed in ATFRFO)
 - Classes being deleted (orphaned, with confirmation)
 - Classes unchanged (status: synced)
 
@@ -468,7 +468,7 @@ User must confirm before `put()` is called.
 ### 9.4 Capability Check
 
 Before the AJAX handler proceeds, verify the requesting user has:
-- `manage_options` (AFF's standard check)
+- `manage_options` (ATFRFO's standard check)
 - `elementor_global_classes_update_class` (Elementor's specific cap)
 
 If the second cap is missing, show a clear error: "Your user role does not have permission
@@ -480,8 +480,8 @@ to update Elementor Global Classes."
 
 Single-level categories only (no sub-categories in Phase 3).
 
-**Stored in:** `.aff.json` under `classes.categories[]`
-**Not sent to Elementor** — categories are AFF metadata only.
+**Stored in:** `.atfrfo.json` under `classes.categories[]`
+**Not sent to Elementor** — categories are ATFRFO metadata only.
 
 ### 10.1 Category CRUD
 
@@ -489,26 +489,26 @@ Same as variable categories:
 - Add category (button at bottom of category list in left nav)
 - Rename inline
 - Delete with count warning ("This category contains 8 classes. Classes will move to Uncategorized.")
-- Drag to reorder categories in left nav (reorders `.aff.json` categories array)
+- Drag to reorder categories in left nav (reorders `.atfrfo.json` categories array)
 
 ### 10.2 Auto-Categorization on Sync
 
-When classes are synced from Elementor and are new to AFF, offer auto-categorization.
+When classes are synced from Elementor and are new to ATFRFO, offer auto-categorization.
 Heuristic (suggest only, user confirms):
 - Has `color`, `background-color`, `font-*` props or custom CSS → suggest "Typography"
 - Has `padding`, `margin`, `display`, `flex-*` → suggest "Layout"
 - Has `border`, `box-shadow`, `opacity` → suggest "Visual"
 - Anything else → "Uncategorized"
 
-AFF presents a pre-categorized list in the sync modal. User can adjust before accepting.
+ATFRFO presents a pre-categorized list in the sync modal. User can adjust before accepting.
 
 ---
 
 ## 11. Tag System
 
-Tags are AFF-only metadata — not sent to Elementor.
+Tags are ATFRFO-only metadata — not sent to Elementor.
 
-**Stored in:** `_aff.tags` array on each class in `.aff.json`
+**Stored in:** `_aff.tags` array on each class in `.atfrfo.json`
 
 ### 11.1 Tag UI
 
@@ -531,7 +531,7 @@ Tags do **not** appear in the left column tree (categories only in left nav).
 
 ### 12.1 Export
 
-**Extend `.aff.json` format** — existing export already writes the full project file.
+**Extend `.atfrfo.json` format** — existing export already writes the full project file.
 Classes are included automatically when the `classes` block is populated.
 
 **CSS export** (new option):
@@ -543,12 +543,12 @@ Classes are included automatically when the `classes` block is populated.
   .g-8091449:hover { background-color: #0052a3; }
   @media (max-width: 1024px) { .g-8091449 { padding: 10px 20px; } }
   ```
-  Breakpoint → media query mapping is stored in AFF at sync time from Elementor's config.
+  Breakpoint → media query mapping is stored in ATFRFO at sync time from Elementor's config.
 - CSS export does not import back into Elementor — it is for reference/portability only.
 
 ### 12.2 Import
 
-Import from `.aff.json` — same as variables. If the file contains a `classes` block, those
+Import from `.atfrfo.json` — same as variables. If the file contains a `classes` block, those
 classes are loaded. Merge or replace options (same sync modal pattern).
 
 ---
@@ -557,7 +557,7 @@ classes are loaded. Merge or replace options (same sync modal pattern).
 
 Elementor already tracks usage via `_elementor_used_global_class` post meta on pages/posts.
 
-AFF AJAX: `aff_get_class_usage_counts`
+ATFRFO AJAX: `atfrfo_get_class_usage_counts`
 
 PHP handler queries:
 ```php
@@ -580,16 +580,16 @@ Same "run scan" button pattern as variables.
 
 ### Milestone 3.1 — Foundation and Read-Only Display (no editing)
 
-- PHP: `aff_sync_from_elementor_classes` AJAX endpoint (read via Repository)
-- PHP: `aff_get_class_usage_counts` AJAX endpoint
+- PHP: `atfrfo_sync_from_elementor_classes` AJAX endpoint (read via Repository)
+- PHP: `atfrfo_get_class_usage_counts` AJAX endpoint
 - PHP: DB version detection (`elementor_global_classes_db_version`)
-- JS: `aff-classes.js` module — class list render, left nav activation
+- JS: `atfrfo-classes.js` module — class list render, left nav activation
 - JS: Left column — Classes section with category nodes and counts
 - JS: Edit space — class list view (rows: status, label, variant count, breakpoints, usage, expand, delete)
 - JS: Filter bar — search, status filter, tag filter (no tags yet, just the infrastructure)
 - JS: Sync modal extension — add Classes sync option
-- CSS: `aff-classes.css` — class row grid, expand panel shell
-- Data: `.aff.json` schema extended with `classes` block
+- CSS: `atfrfo-classes.css` — class row grid, expand panel shell
+- Data: `.atfrfo.json` schema extended with `classes` block
 - No commit, no editing — display and organize only
 
 ### Milestone 3.2 — Category, Tag, and Lock Management
@@ -599,10 +599,10 @@ Same "run scan" button pattern as variables.
 - Auto-categorization suggestion on sync
 - Tag add/remove in expand panel
 - Tag filter in filter bar
-- Category/tag data persisted in `.aff.json`
+- Category/tag data persisted in `.atfrfo.json`
 - Lock toggle on class row and in expand panel header
 - Locked class: row read-only, drag hidden, delete hidden, expand panel read-only
-- Lock state persisted in `_aff.locked` in `.aff.json`; stripped on commit
+- Lock state persisted in `_aff.locked` in `.atfrfo.json`; stripped on commit
 
 ### Milestone 3.3 — Class Editing and Commit
 
@@ -612,7 +612,7 @@ Same "run scan" button pattern as variables.
 - `sync_to_v3` toggle
 - Notes field
 - Status tracking (modified/synced/new/orphaned)
-- PHP: `aff_commit_classes_to_elementor` AJAX endpoint (write via Repository)
+- PHP: `atfrfo_commit_classes_to_elementor` AJAX endpoint (write via Repository)
 - Capability check for `elementor_global_classes_update_class`
 - Pre-commit encoding of `custom_css.raw`
 - Commit summary dialog
@@ -621,7 +621,7 @@ Same "run scan" button pattern as variables.
 ### Milestone 3.4 — Polish and Integration
 
 - CSS export for classes
-- Import from `.aff.json` (classes block merge/replace)
+- Import from `.atfrfo.json` (classes block merge/replace)
 - Print/PDF — extend to include classes view
 - Responsive class row (hide breakpoint chips, collapse variant count on narrow viewport)
 - Existing `props` read-only display in expand panel
@@ -637,28 +637,28 @@ New files:
 ```
 admin/
   css/
-    aff-classes.css            # Class list view, expand panel, variant editor
+    atfrfo-classes.css            # Class list view, expand panel, variant editor
   js/
-    aff-classes.js             # Classes module (mirrors aff-colors.js structure)
+    atfrfo-classes.js             # Classes module (mirrors atfrfo-colors.js structure)
 ```
 
 Modified files:
 ```
 admin/js/
-  aff-app.js                   # Register Classes module, extend init
-  aff-edit-space.js            # Route Classes nav clicks to aff-classes.js
-  aff-panel-left.js            # Activate Classes section, render category nodes
-  aff-panel-right.js           # Extend sync panel to include Classes sync
-  aff-panel-top.js             # Extend print modal to include Classes view option
+  atfrfo-app.js                   # Register Classes module, extend init
+  atfrfo-edit-space.js            # Route Classes nav clicks to atfrfo-classes.js
+  atfrfo-panel-left.js            # Activate Classes section, render category nodes
+  atfrfo-panel-right.js           # Extend sync panel to include Classes sync
+  atfrfo-panel-top.js             # Extend print modal to include Classes view option
 admin/css/
-  aff-colors.css               # Minor: extract any shared expand-panel CSS to shared file
+  atfrfo-colors.css               # Minor: extract any shared expand-panel CSS to shared file
 includes/
-  class-aff-admin.php          # Enqueue aff-classes.css + aff-classes.js
-  class-aff-ajax-handler.php   # Add: aff_sync_from_elementor_classes,
-                               #      aff_commit_classes_to_elementor,
-                               #      aff_get_class_usage_counts
+  class-atfrfo-admin.php          # Enqueue atfrfo-classes.css + atfrfo-classes.js
+  class-atfrfo-ajax-handler.php   # Add: atfrfo_sync_from_elementor_classes,
+                               #      atfrfo_commit_classes_to_elementor,
+                               #      atfrfo_get_class_usage_counts
 data/
-  aff-defaults.json            # Add default class categories list
+  atfrfo-defaults.json            # Add default class categories list
 ```
 
 ---
@@ -666,15 +666,15 @@ data/
 ## 16. Known Risks and Gotchas
 
 ### Storage version drift
-Pre-4.1.0 sites have classes in kit meta; 4.1.0+ use CPT. AFF must check
+Pre-4.1.0 sites have classes in kit meta; 4.1.0+ use CPT. ATFRFO must check
 `elementor_global_classes_db_version` before deciding how to read. If < 3, fall back to
 reading the legacy `_elementor_global_classes` kit meta key.
 
 ### Preview vs. frontend duality
 Every store has a `_preview` twin. The Elementor editor reads/writes preview context.
-AFF operates in frontend context only. If a user has the Elementor editor open while
-AFF commits, the editor may show stale preview data. Document this as a known limitation.
-Workaround: close Elementor editor before committing from AFF.
+ATFRFO operates in frontend context only. If a user has the Elementor editor open while
+ATFRFO commits, the editor may show stale preview data. Document this as a known limitation.
+Workaround: close Elementor editor before committing from ATFRFO.
 
 ### `$repo->all()` is dangerous
 Explicitly flagged in Elementor source. Never call it. Always use `all_labels()` + `get_by_ids()`.
@@ -682,41 +682,41 @@ Explicitly flagged in Elementor source. Never call it. Always use `all_labels()`
 ### Post-ID map can drift
 If a class post is created by bypassing the repository, the post-ID map in kit meta can
 get out of sync. The repository self-heals by re-querying, but it also prunes duplicate posts
-(keeps lowest post ID). AFF must always write through the repository, never create `e_global_class`
+(keeps lowest post ID). ATFRFO must always write through the repository, never create `e_global_class`
 posts directly.
 
 ### Breakpoints not server-validated
 Elementor does not yet validate the breakpoint slug against the registered set (TODO EDS-528).
-A bad slug is stored silently and never renders. AFF must validate against the enabled breakpoint
+A bad slug is stored silently and never renders. ATFRFO must validate against the enabled breakpoint
 list it received at sync time before allowing a variant to be saved.
 
 ### Encode/decode for `custom_css.raw`
 Elementor encodes raw CSS using `Utils::encode_string()` before storage and decodes with
-`Utils::decode_string()` on read. AFF must use the same utility (call via PHP) when committing.
-The `.aff.json` stores decoded (human-readable) CSS. Encoding is applied only at commit time.
+`Utils::decode_string()` on read. ATFRFO must use the same utility (call via PHP) when committing.
+The `.atfrfo.json` stores decoded (human-readable) CSS. Encoding is applied only at commit time.
 
 ### Label naming rules
 Labels are validated: `[a-zA-Z0-9_-]` only, 2–50 chars, no spaces, cannot start with digit
-or `--`. Duplicate labels are auto-renamed by Elementor with `DUP_` prefix. AFF should validate
+or `--`. Duplicate labels are auto-renamed by Elementor with `DUP_` prefix. ATFRFO should validate
 labels client-side before commit and warn on duplicates rather than letting Elementor silently rename.
 
 ### Editor-count limit
 The Elementor editor enforces a class count limit (community reports ~100, server constant is 1000).
-AFF does not enforce this limit, but the user should be warned if their project contains >100 classes.
+ATFRFO does not enforce this limit, but the user should be warned if their project contains >100 classes.
 
 ### Capability: `elementor_global_classes_update_class`
 This capability is granted to `administrator` role only by Elementor's migration.
 Lower-privileged admin users (Editor role with `manage_options`) may lack it.
-AFF must check for it explicitly and surface a useful error, not a silent failure.
+ATFRFO must check for it explicitly and surface a useful error, not a silent failure.
 
 ### `custom_css` vs `props` coexistence
-A class can have both `props` and `custom_css` in the same variant. AFF reads but does not
+A class can have both `props` and `custom_css` in the same variant. ATFRFO reads but does not
 modify `props`; it reads and writes `custom_css`. Both must be preserved on round-trip.
-Never overwrite the `props` key when committing AFF changes.
+Never overwrite the `props` key when committing ATFRFO changes.
 
 ### Experiment gates
 Global Classes require two Elementor experiments active: `e_classes` and atomic widgets.
-AFF should detect whether these experiments are enabled and show a clear message if they are not,
+ATFRFO should detect whether these experiments are enabled and show a clear message if they are not,
 rather than showing an empty class list.
 
 ---

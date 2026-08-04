@@ -1,5 +1,5 @@
 /**
- * AFF Font Picker — Combo-box dropdown for Font variable rows.
+ * ATFRFO Font Picker — Combo-box dropdown for Font variable rows.
  *
  * Opens on focus/click of any [data-font-picker] input. Shows a search box
  * and a grouped list (Custom Fonts from Elementor, System web-safe fonts).
@@ -11,14 +11,14 @@
 (function () {
 	'use strict';
 
-	window.AFF = window.AFF || {};
+	window.ATFRFO = window.ATFRFO || {};
 
-	AFF.FontPicker = {
+	ATFRFO.FontPicker = {
 
 		_fonts:       null,   // { custom: string[], system: string[] } — cached
-		_dropdown:    null,   // current .aff-fp-dropdown in the DOM
+		_dropdown:    null,   // current .atfrfo-fp-dropdown in the DOM
 		_activeInput: null,   // <input> that owns the open dropdown
-		_activeRow:   null,   // .aff-color-row that contains activeInput
+		_activeRow:   null,   // .atfrfo-color-row that contains activeInput
 		_ignoreOpen:  false,  // blocks reopening for 300 ms after a selection
 
 		init: function () {
@@ -30,7 +30,7 @@
 			document.addEventListener('focusin', function (e) {
 				if (self._ignoreOpen) { return; }
 				var input = e.target;
-				if (!input || !input.matches('input.aff-var-value-input[data-font-picker]')) { return; }
+				if (!input || !input.matches('input.atfrfo-var-value-input[data-font-picker]')) { return; }
 				if (self._activeInput === input) { return; }
 				self._openDropdown(input);
 			});
@@ -39,7 +39,7 @@
 			document.addEventListener('click', function (e) {
 				if (self._ignoreOpen) { return; }
 				var input = e.target;
-				if (!input || !input.matches('input.aff-var-value-input[data-font-picker]')) { return; }
+				if (!input || !input.matches('input.atfrfo-var-value-input[data-font-picker]')) { return; }
 				if (self._activeInput === input) { return; }
 				self._openDropdown(input);
 			});
@@ -89,13 +89,13 @@
 			var self = this;
 			self._closeDropdown();
 			self._activeInput = input;
-			self._activeRow   = input.closest('.aff-color-row');
+			self._activeRow   = input.closest('.atfrfo-color-row');
 
 			self._fetchFonts(function (fonts) {
 				if (!document.contains(input) || !self._activeRow) { return; }
 
 				var dropdown      = document.createElement('div');
-				dropdown.className = 'aff-fp-dropdown';
+				dropdown.className = 'atfrfo-fp-dropdown';
 				dropdown.innerHTML = self._buildHtml(fonts, input.value);
 				// Insert immediately after the row — flows in the DOM, no positioning math.
 				self._activeRow.insertAdjacentElement('afterend', dropdown);
@@ -108,7 +108,7 @@
 				self._dropdown = dropdown;
 
 				// Search filter — wired on the input element.
-				var searchInput = dropdown.querySelector('.aff-fp-search');
+				var searchInput = dropdown.querySelector('.atfrfo-fp-search');
 				if (searchInput) {
 					searchInput.addEventListener('input', function () {
 						self._filterList(searchInput.value.trim().toLowerCase());
@@ -119,7 +119,7 @@
 				// them moves focus into the dropdown (keeping it open per the focusin
 				// close-guard), then _selectItem refocuses the value input.
 				dropdown.addEventListener('click', function (e) {
-					var item = e.target.closest('.aff-fp-item');
+					var item = e.target.closest('.atfrfo-fp-item');
 					if (!item) { return; }
 					self._selectItem(item);
 				});
@@ -137,10 +137,10 @@
 
 		_buildHtml: function (fonts, currentValue) {
 			var cv   = (currentValue || '').toLowerCase();
-			var html = '<div class="aff-fp-search-wrap">'
-				+ '<input type="text" class="aff-fp-search" placeholder="Search fonts\u2026" autocomplete="off">'
+			var html = '<div class="atfrfo-fp-search-wrap">'
+				+ '<input type="text" class="atfrfo-fp-search" placeholder="Search fonts\u2026" autocomplete="off">'
 				+ '</div>'
-				+ '<div class="aff-fp-list">';
+				+ '<div class="atfrfo-fp-list">';
 
 			var groups = [
 				{ label: 'Custom Fonts', type: 'Custom', items: fonts.custom || [] },
@@ -150,18 +150,18 @@
 			for (var gi = 0; gi < groups.length; gi++) {
 				var g = groups[gi];
 				if (!g.items.length) { continue; }
-				html += '<div class="aff-fp-group" data-group-type="' + g.type + '">'
-					+ '<div class="aff-fp-group-heading">' + AFF.Utils.escHtml(g.label) + '</div>';
+				html += '<div class="atfrfo-fp-group" data-group-type="' + g.type + '">'
+					+ '<div class="atfrfo-fp-group-heading">' + ATFRFO.Utils.escHtml(g.label) + '</div>';
 				for (var fi = 0; fi < g.items.length; fi++) {
 					var font     = g.items[fi];
 					var isActive = font.toLowerCase() === cv;
-					html += '<div class="aff-fp-item'
-						+ (isActive ? ' aff-fp-item--active' : '') + '"'
+					html += '<div class="atfrfo-fp-item'
+						+ (isActive ? ' atfrfo-fp-item--active' : '') + '"'
 						+ ' tabindex="-1"'
-						+ ' data-font="' + AFF.Utils.escAttr(font) + '"'
+						+ ' data-font="' + ATFRFO.Utils.escAttr(font) + '"'
 						+ ' data-type="' + g.type + '"'
-						+ ' style="font-family:' + AFF.Utils.escAttr(font) + '">'
-						+ AFF.Utils.escHtml(font)
+						+ ' style="font-family:' + ATFRFO.Utils.escAttr(font) + '">'
+						+ ATFRFO.Utils.escHtml(font)
 						+ '</div>';
 				}
 				html += '</div>';
@@ -175,10 +175,10 @@
 			var dropdown = this._dropdown;
 			if (!dropdown) { return; }
 
-			var groups = dropdown.querySelectorAll('.aff-fp-group');
+			var groups = dropdown.querySelectorAll('.atfrfo-fp-group');
 			for (var gi = 0; gi < groups.length; gi++) {
 				var group      = groups[gi];
-				var items      = group.querySelectorAll('.aff-fp-item');
+				var items      = group.querySelectorAll('.atfrfo-fp-item');
 				var anyVisible = false;
 				for (var fi = 0; fi < items.length; fi++) {
 					var item    = items[fi];
@@ -194,31 +194,31 @@
 			var dropdown = this._dropdown;
 			if (!dropdown) { return; }
 
-			var allItems = dropdown.querySelectorAll('.aff-fp-item');
+			var allItems = dropdown.querySelectorAll('.atfrfo-fp-item');
 			var visible  = [];
 			for (var i = 0; i < allItems.length; i++) {
 				if (allItems[i].style.display !== 'none') { visible.push(allItems[i]); }
 			}
 			if (!visible.length) { return; }
 
-			var current = dropdown.querySelector('.aff-fp-item--active');
+			var current = dropdown.querySelector('.atfrfo-fp-item--active');
 			var idx     = -1;
 			for (var j = 0; j < visible.length; j++) {
 				if (visible[j] === current) { idx = j; break; }
 			}
 
-			if (current) { current.classList.remove('aff-fp-item--active'); }
+			if (current) { current.classList.remove('atfrfo-fp-item--active'); }
 
 			var next = idx + dir;
 			if (next < 0)               { next = visible.length - 1; }
 			if (next >= visible.length) { next = 0; }
 
-			visible[next].classList.add('aff-fp-item--active');
+			visible[next].classList.add('atfrfo-fp-item--active');
 			visible[next].scrollIntoView({ block: 'nearest' });
 		},
 
 		_selectActive: function () {
-			var active = this._dropdown && this._dropdown.querySelector('.aff-fp-item--active');
+			var active = this._dropdown && this._dropdown.querySelector('.atfrfo-fp-item--active');
 			if (active) { this._selectItem(active); }
 		},
 
@@ -238,14 +238,14 @@
 			input.style.fontFamily = fontFamily;
 			input.setAttribute('data-original', fontFamily);
 
-			var fmtSel = row.querySelector('.aff-var-format-sel');
+			var fmtSel = row.querySelector('.atfrfo-var-format-sel');
 			if (fmtSel) { fmtSel.value = fontType; }
 
-			var preview = row.querySelector('.aff-font-preview');
+			var preview = row.querySelector('.atfrfo-font-preview');
 			if (preview) { preview.style.fontFamily = fontFamily; }
 
 			// Persist via the Fonts Variables instance.
-			var inst = AFF.Variables && AFF.Variables._sets && AFF.Variables._sets['Fonts'];
+			var inst = ATFRFO.Variables && ATFRFO.Variables._sets && ATFRFO.Variables._sets['Fonts'];
 			if (inst) {
 				inst._saveVarValue(varId, fontFamily, input, fontType);
 			}
@@ -267,7 +267,7 @@
 				return;
 			}
 
-			AFF.App.ajax('aff_get_font_list', {}).then(function (res) {
+			ATFRFO.App.ajax('atfrfo_get_font_list', {}).then(function (res) {
 				var data    = (res && res.success && res.data) ? res.data : {};
 				self._fonts = {
 					custom: Array.isArray(data.custom) ? data.custom : [],

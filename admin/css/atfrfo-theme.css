@@ -1,12 +1,12 @@
 /**
- * AFF Theme CSS — Font Loading, Design Tokens, Light/Dark Mode, Base Styles
+ * ATFRFO Theme CSS — Font Loading, Design Tokens, Light/Dark Mode, Base Styles
  *
  * All color, typography, and spacing values are expressed as CSS custom
- * properties so the entire theme responds to a single data-aff-theme
- * attribute change on .aff-app.
+ * properties so the entire theme responds to a single data-atfrfo-theme
+ * attribute change on .atfrfo-app.
  *
- * Scoping: All font overrides and base styles are scoped within .aff-app
- * to avoid bleeding into WordPress admin chrome outside the AFF panel.
+ * Scoping: All font overrides and base styles are scoped within .atfrfo-app
+ * to avoid bleeding into WordPress admin chrome outside the ATFRFO panel.
  *
  * @package AtomicFrameworkForge
  * @version 1.0.0
@@ -86,363 +86,363 @@
 	--sp-18: 72px;   /* Double padding for inset notices */
 
 	/* Layout */
-	--aff-panel-left-width:      220px;
-	--aff-panel-left-collapsed:   48px;
-	--aff-panel-right-width:     220px;
-	--aff-top-bar-height:         56px;
-	--aff-border-radius:           8px;
-	--aff-border-radius-sm:        4px;
-	--aff-border-radius-md:        6px;
+	--atfrfo-panel-left-width:      220px;
+	--atfrfo-panel-left-collapsed:   48px;
+	--atfrfo-panel-right-width:     220px;
+	--atfrfo-top-bar-height:         56px;
+	--atfrfo-border-radius:           8px;
+	--atfrfo-border-radius-sm:        4px;
+	--atfrfo-border-radius-md:        6px;
 
 	/* Transitions */
-	--aff-transition:     0.15s ease;
-	--aff-transition-md:  0.25s ease;
+	--atfrfo-transition:     0.15s ease;
+	--atfrfo-transition-md:  0.25s ease;
 }
 
 /* ==========================================================================
    3. LIGHT MODE THEME TOKENS
    ========================================================================== */
 
-[data-aff-theme="light"],
-.aff-app[data-aff-theme="light"] {
+[data-atfrfo-theme="light"],
+.atfrfo-app[data-atfrfo-theme="light"] {
 
 	/* Backgrounds — 4-level hierarchy */
-	--aff-bg-page:    #faf6f0;   /* Level 1: Page/panel background */
-	--aff-bg-card:    #ffffff;   /* Level 2: Card/container background */
-	--aff-bg-panel:   #faf9f6;   /* Level 3: Sub-panel background */
-	--aff-bg-field:   #ffffff;   /* Level 4: Input field background */
+	--atfrfo-bg-page:    #faf6f0;   /* Level 1: Page/panel background */
+	--atfrfo-bg-card:    #ffffff;   /* Level 2: Card/container background */
+	--atfrfo-bg-panel:   #faf9f6;   /* Level 3: Sub-panel background */
+	--atfrfo-bg-field:   #ffffff;   /* Level 4: Input field background */
 
 	/* Primary text colors — deep/medium brown */
-	--aff-clr-primary:    #3d2f1f;   /* Deep brown — headings, button text */
-	--aff-clr-secondary:  #6d4c2f;   /* Medium brown — body text */
-	--aff-clr-tertiary:   #86400e;   /* Accent brown */
-	--aff-clr-muted:      #64748b;   /* Muted/disabled text */
+	--atfrfo-clr-primary:    #3d2f1f;   /* Deep brown — headings, button text */
+	--atfrfo-clr-secondary:  #6d4c2f;   /* Medium brown — body text */
+	--atfrfo-clr-tertiary:   #86400e;   /* Accent brown */
+	--atfrfo-clr-muted:      #64748b;   /* Muted/disabled text */
 
 	/* Gold accent */
-	--aff-clr-accent:     #f4c542;   /* Primary accent — buttons, highlights */
-	--aff-clr-accent-hov: #dda824;   /* Accent hover (15% darker) */
+	--atfrfo-clr-accent:     #f4c542;   /* Primary accent — buttons, highlights */
+	--atfrfo-clr-accent-hov: #dda824;   /* Accent hover (15% darker) */
 
 	/* Links */
-	--aff-clr-link:       #ce6565;   /* Coral red */
-	--aff-clr-link-hov:   #b54545;   /* Darker coral */
+	--atfrfo-clr-link:       #ce6565;   /* Coral red */
+	--atfrfo-clr-link-hov:   #b54545;   /* Darker coral */
 
 	/* Borders */
-	--aff-clr-border:     #c9b89a;
+	--atfrfo-clr-border:     #c9b89a;
 
 	/* Shadows */
-	--aff-shadow-sm: 0 1px 2px rgba(61, 47, 31, 0.08);
-	--aff-shadow-md: 0 4px 6px rgba(61, 47, 31, 0.12);
-	--aff-shadow-lg: 0 10px 20px rgba(61, 47, 31, 0.15);
-	--aff-shadow-xl: 0 20px 30px rgba(61, 47, 31, 0.18);
+	--atfrfo-shadow-sm: 0 1px 2px rgba(61, 47, 31, 0.08);
+	--atfrfo-shadow-md: 0 4px 6px rgba(61, 47, 31, 0.12);
+	--atfrfo-shadow-lg: 0 10px 20px rgba(61, 47, 31, 0.15);
+	--atfrfo-shadow-xl: 0 20px 30px rgba(61, 47, 31, 0.18);
 
 	/* Semantic / status */
-	--aff-clr-success:    #059669;
-	--aff-clr-success-bg: #ecfdf5;
-	--aff-clr-error:      #dc2626;
-	--aff-clr-error-bg:   #fee2e2;
-	--aff-clr-warning:    #f59e0b;
-	--aff-clr-warning-bg: #fef3c7;
-	--aff-clr-info:       #3b82f6;
-	--aff-clr-info-bg:    #dbeafe;
+	--atfrfo-clr-success:    #059669;
+	--atfrfo-clr-success-bg: #ecfdf5;
+	--atfrfo-clr-error:      #dc2626;
+	--atfrfo-clr-error-bg:   #fee2e2;
+	--atfrfo-clr-warning:    #f59e0b;
+	--atfrfo-clr-warning-bg: #fef3c7;
+	--atfrfo-clr-info:       #3b82f6;
+	--atfrfo-clr-info-bg:    #dbeafe;
 
 	/* Nav active state */
-	--aff-nav-active-bg:    rgba(244, 197, 66, 0.15);
-	--aff-nav-active-color: #3d2f1f;
-	--aff-nav-hover-bg:     rgba(61, 47, 31, 0.05);
+	--atfrfo-nav-active-bg:    rgba(244, 197, 66, 0.15);
+	--atfrfo-nav-active-color: #3d2f1f;
+	--atfrfo-nav-hover-bg:     rgba(61, 47, 31, 0.05);
 
 	/* Icon button hover */
-	--aff-icon-btn-hover-bg: rgba(61, 47, 31, 0.08);
+	--atfrfo-icon-btn-hover-bg: rgba(61, 47, 31, 0.08);
 
 	/* Top bar */
-	--aff-top-bar-bg:     #ffffff;
-	--aff-top-bar-border: #e8ddd0;
+	--atfrfo-top-bar-bg:     #ffffff;
+	--atfrfo-top-bar-border: #e8ddd0;
 
 	/* Modal overlay */
-	--aff-overlay-bg: rgba(61, 47, 31, 0.45);
+	--atfrfo-overlay-bg: rgba(61, 47, 31, 0.45);
 
 	/* Phase 2 — Colors */
-	--aff-clr-bg-hover:   rgba(61, 47, 31, 0.04);  /* Row hover / expand panel background */
-	--aff-swatch-shadow:  inset 0 1px 3px rgba(61, 47, 31, 0.25);  /* Recessed swatch */
-	--aff-field-shadow:   inset 0 1px 3px rgba(61, 47, 31, 0.20);  /* Recessed value field */
+	--atfrfo-clr-bg-hover:   rgba(61, 47, 31, 0.04);  /* Row hover / expand panel background */
+	--atfrfo-swatch-shadow:  inset 0 1px 3px rgba(61, 47, 31, 0.25);  /* Recessed swatch */
+	--atfrfo-field-shadow:   inset 0 1px 3px rgba(61, 47, 31, 0.20);  /* Recessed value field */
 	/* Status dot colors */
-	--aff-status-synced:   #059669;
-	--aff-status-modified: #f59e0b;
-	--aff-status-conflict: #dc2626;
-	--aff-status-orphaned: #94a3b8;
-	--aff-status-new:      #3b82f6;
-	--aff-status-deleted:  #dc2626;
+	--atfrfo-status-synced:   #059669;
+	--atfrfo-status-modified: #f59e0b;
+	--atfrfo-status-conflict: #dc2626;
+	--atfrfo-status-orphaned: #94a3b8;
+	--atfrfo-status-new:      #3b82f6;
+	--atfrfo-status-deleted:  #dc2626;
 }
 
 /* ==========================================================================
    4. DARK MODE THEME TOKENS
    ========================================================================== */
 
-[data-aff-theme="dark"],
-.aff-app[data-aff-theme="dark"] {
+[data-atfrfo-theme="dark"],
+.atfrfo-app[data-atfrfo-theme="dark"] {
 
 	/* Backgrounds */
-	--aff-bg-page:    #1a1510;   /* Very dark warm brown */
-	--aff-bg-card:    #231c16;   /* Dark brown card */
-	--aff-bg-panel:   #2a211a;   /* Slightly lighter panel */
-	--aff-bg-field:   #1a1510;   /* Input field */
+	--atfrfo-bg-page:    #1a1510;   /* Very dark warm brown */
+	--atfrfo-bg-card:    #231c16;   /* Dark brown card */
+	--atfrfo-bg-panel:   #2a211a;   /* Slightly lighter panel */
+	--atfrfo-bg-field:   #1a1510;   /* Input field */
 
 	/* Text */
-	--aff-clr-primary:    #f0e6d8;   /* Light cream — headings */
-	--aff-clr-secondary:  #c8a98a;   /* Medium tan — body text */
-	--aff-clr-tertiary:   #e07a40;   /* Warm orange accent */
-	--aff-clr-muted:      #6b7280;   /* Muted/disabled */
+	--atfrfo-clr-primary:    #f0e6d8;   /* Light cream — headings */
+	--atfrfo-clr-secondary:  #c8a98a;   /* Medium tan — body text */
+	--atfrfo-clr-tertiary:   #e07a40;   /* Warm orange accent */
+	--atfrfo-clr-muted:      #6b7280;   /* Muted/disabled */
 
 	/* Gold accent — same in dark mode */
-	--aff-clr-accent:     #f4c542;
-	--aff-clr-accent-hov: #dda824;
+	--atfrfo-clr-accent:     #f4c542;
+	--atfrfo-clr-accent-hov: #dda824;
 
 	/* Links */
-	--aff-clr-link:       #e08080;   /* Lighter coral for dark bg */
-	--aff-clr-link-hov:   #f09090;
+	--atfrfo-clr-link:       #e08080;   /* Lighter coral for dark bg */
+	--atfrfo-clr-link-hov:   #f09090;
 
 	/* Borders */
-	--aff-clr-border:     #3d2f1f;
+	--atfrfo-clr-border:     #3d2f1f;
 
 	/* Shadows */
-	--aff-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
-	--aff-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.40);
-	--aff-shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.50);
-	--aff-shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.60);
+	--atfrfo-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+	--atfrfo-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.40);
+	--atfrfo-shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.50);
+	--atfrfo-shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.60);
 
 	/* Semantic / status — same hues, slightly brighter for dark bg */
-	--aff-clr-success:    #10b981;
-	--aff-clr-success-bg: #064e3b;
-	--aff-clr-error:      #ef4444;
-	--aff-clr-error-bg:   #7f1d1d;
-	--aff-clr-warning:    #f59e0b;
-	--aff-clr-warning-bg: #78350f;
-	--aff-clr-info:       #60a5fa;
-	--aff-clr-info-bg:    #1e3a5f;
+	--atfrfo-clr-success:    #10b981;
+	--atfrfo-clr-success-bg: #064e3b;
+	--atfrfo-clr-error:      #ef4444;
+	--atfrfo-clr-error-bg:   #7f1d1d;
+	--atfrfo-clr-warning:    #f59e0b;
+	--atfrfo-clr-warning-bg: #78350f;
+	--atfrfo-clr-info:       #60a5fa;
+	--atfrfo-clr-info-bg:    #1e3a5f;
 
 	/* Nav */
-	--aff-nav-active-bg:    rgba(244, 197, 66, 0.18);
-	--aff-nav-active-color: #f0e6d8;
-	--aff-nav-hover-bg:     rgba(240, 230, 216, 0.06);
+	--atfrfo-nav-active-bg:    rgba(244, 197, 66, 0.18);
+	--atfrfo-nav-active-color: #f0e6d8;
+	--atfrfo-nav-hover-bg:     rgba(240, 230, 216, 0.06);
 
 	/* Icon button hover */
-	--aff-icon-btn-hover-bg: rgba(240, 230, 216, 0.08);
+	--atfrfo-icon-btn-hover-bg: rgba(240, 230, 216, 0.08);
 
 	/* Top bar */
-	--aff-top-bar-bg:     #231c16;
-	--aff-top-bar-border: #3d2f1f;
+	--atfrfo-top-bar-bg:     #231c16;
+	--atfrfo-top-bar-border: #3d2f1f;
 
 	/* Modal overlay */
-	--aff-overlay-bg: rgba(0, 0, 0, 0.65);
+	--atfrfo-overlay-bg: rgba(0, 0, 0, 0.65);
 
 	/* Phase 2 — Colors */
-	--aff-clr-bg-hover:   rgba(240, 230, 216, 0.05);
-	--aff-swatch-shadow:  inset 0 1px 3px rgba(0, 0, 0, 0.40);
-	--aff-field-shadow:   inset 0 1px 3px rgba(0, 0, 0, 0.35);
+	--atfrfo-clr-bg-hover:   rgba(240, 230, 216, 0.05);
+	--atfrfo-swatch-shadow:  inset 0 1px 3px rgba(0, 0, 0, 0.40);
+	--atfrfo-field-shadow:   inset 0 1px 3px rgba(0, 0, 0, 0.35);
 	/* Status dot colors — slightly brighter for dark bg */
-	--aff-status-synced:   #10b981;
-	--aff-status-modified: #f59e0b;
-	--aff-status-conflict: #ef4444;
-	--aff-status-orphaned: #6b7280;
-	--aff-status-new:      #60a5fa;
-	--aff-status-deleted:  #ef4444;
+	--atfrfo-status-synced:   #10b981;
+	--atfrfo-status-modified: #f59e0b;
+	--atfrfo-status-conflict: #ef4444;
+	--atfrfo-status-orphaned: #6b7280;
+	--atfrfo-status-new:      #60a5fa;
+	--atfrfo-status-deleted:  #ef4444;
 }
 
 /* ==========================================================================
-   5. BASE ELEMENT STYLES (scoped to .aff-app)
+   5. BASE ELEMENT STYLES (scoped to .atfrfo-app)
    ========================================================================== */
 
 /**
- * Font override — scoped to .aff-app only to avoid bleeding into WP admin.
+ * Font override — scoped to .atfrfo-app only to avoid bleeding into WP admin.
  * !important is intentional to override any WP admin font declarations.
  */
-.aff-app,
-.aff-app * {
+.atfrfo-app,
+.atfrfo-app * {
 	font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 	box-sizing: border-box;
 }
 
-.aff-app {
-	background-color: var(--aff-bg-page);
-	color:            var(--aff-clr-secondary);
+.atfrfo-app {
+	background-color: var(--atfrfo-bg-page);
+	color:            var(--atfrfo-clr-secondary);
 	font-size:        var(--fs-md);
 	font-weight:      var(--fw-normal);
 	line-height:      var(--fl-lg);
 }
 
 /* Headings */
-.aff-app h1 {
-	color:       var(--aff-clr-primary);
+.atfrfo-app h1 {
+	color:       var(--atfrfo-clr-primary);
 	font-size:   var(--fs-xxxl);
 	font-weight: var(--fw-bold);
 	line-height: var(--fl-md);
 	text-transform: capitalize;
 }
 
-.aff-app h2 {
-	color:       var(--aff-clr-primary);
+.atfrfo-app h2 {
+	color:       var(--atfrfo-clr-primary);
 	font-size:   var(--fs-xxl);
 	font-weight: var(--fw-bold);
 	line-height: var(--fl-md);
 	text-transform: capitalize;
 }
 
-.aff-app h3,
-.aff-app h4,
-.aff-app h5,
-.aff-app h6 {
-	color:       var(--aff-clr-secondary);
+.atfrfo-app h3,
+.atfrfo-app h4,
+.atfrfo-app h5,
+.atfrfo-app h6 {
+	color:       var(--atfrfo-clr-secondary);
 	font-size:   var(--fs-xl);
 	font-weight: var(--fw-bold);
 	line-height: var(--fl-lg);
 	text-transform: capitalize;
 }
 
-.aff-app p {
-	color:       var(--aff-clr-secondary);
+.atfrfo-app p {
+	color:       var(--atfrfo-clr-secondary);
 	font-size:   var(--fs-md);
 	font-weight: var(--fw-normal);
 	line-height: var(--fl-lg);
 }
 
-.aff-app a {
-	color:           var(--aff-clr-link);
+.atfrfo-app a {
+	color:           var(--atfrfo-clr-link);
 	font-size:       var(--fs-sm);
 	font-weight:     var(--fw-normal);
 	line-height:     var(--fl-lg);
 	font-style:      italic;
 	text-transform:  lowercase;
 	text-decoration: underline;
-	transition:      color var(--aff-transition);
+	transition:      color var(--atfrfo-transition);
 }
 
-.aff-app a:hover {
-	color: var(--aff-clr-link-hov);
+.atfrfo-app a:hover {
+	color: var(--atfrfo-clr-link-hov);
 }
 
 /* ==========================================================================
    6. FOCUS STATES (WCAG 2.1 AA/AAA — gold outline)
    ========================================================================== */
 
-.aff-app :focus,
-.aff-app :focus-visible {
-	outline:        2px solid var(--aff-clr-accent) !important;
+.atfrfo-app :focus,
+.atfrfo-app :focus-visible {
+	outline:        2px solid var(--atfrfo-clr-accent) !important;
 	outline-offset: 2px !important;
 	border-radius:  2px;
 }
 
-.aff-app :focus:not(:focus-visible) {
+.atfrfo-app :focus:not(:focus-visible) {
 	outline: none !important;
 }
 
 /* ==========================================================================
-   7. PRIMARY BUTTON (.aff-btn — gold, brown text)
+   7. PRIMARY BUTTON (.atfrfo-btn — gold, brown text)
    ========================================================================== */
 
-.aff-app .aff-btn {
+.atfrfo-app .atfrfo-btn {
 	display:       inline-flex;
 	align-items:   center;
 	gap:           var(--sp-2);
-	background:    var(--aff-clr-accent);
-	color:         var(--aff-clr-primary);
+	background:    var(--atfrfo-clr-accent);
+	color:         var(--atfrfo-clr-primary);
 	border:        none;
-	border-radius: var(--aff-border-radius);
+	border-radius: var(--atfrfo-border-radius);
 	font-size:     var(--fs-sm);
 	font-weight:   var(--fw-semibold);
 	padding:       var(--sp-2) var(--sp-4);
 	cursor:        pointer;
-	transition:    transform var(--aff-transition), background var(--aff-transition);
-	box-shadow:    var(--aff-shadow-sm);
+	transition:    transform var(--atfrfo-transition), background var(--atfrfo-transition);
+	box-shadow:    var(--atfrfo-shadow-sm);
 	white-space:   nowrap;
 }
 
-.aff-app .aff-btn:hover {
-	background:  var(--aff-clr-accent-hov);
+.atfrfo-app .atfrfo-btn:hover {
+	background:  var(--atfrfo-clr-accent-hov);
 	transform:   translate(-2px, -2px);
-	box-shadow:  var(--aff-shadow-md);
+	box-shadow:  var(--atfrfo-shadow-md);
 }
 
-.aff-app .aff-btn:active {
+.atfrfo-app .atfrfo-btn:active {
 	transform: translate(0, 0);
 }
 
-.aff-app .aff-btn svg {
+.atfrfo-app .atfrfo-btn svg {
 	margin-top: 2px;
 	flex-shrink: 0;
 }
 
 /* ==========================================================================
-   8. ICON-ONLY BUTTON (.aff-icon-btn)
+   8. ICON-ONLY BUTTON (.atfrfo-icon-btn)
    ========================================================================== */
 
-.aff-app .aff-icon-btn {
+.atfrfo-app .atfrfo-icon-btn {
 	display:         inline-flex;
 	align-items:     center;
 	justify-content: center;
 	background:      transparent;
 	border:          none;
-	color:           var(--aff-clr-secondary);
+	color:           var(--atfrfo-clr-secondary);
 	padding:         var(--sp-2);
-	border-radius:   var(--aff-border-radius-md);
+	border-radius:   var(--atfrfo-border-radius-md);
 	cursor:          pointer;
-	transition:      background var(--aff-transition), color var(--aff-transition);
+	transition:      background var(--atfrfo-transition), color var(--atfrfo-transition);
 	width:           36px;
 	height:          36px;
 	flex-shrink:     0;
 }
 
-.aff-app .aff-icon-btn svg {
+.atfrfo-app .atfrfo-icon-btn svg {
 	width:  20px;
 	height: 20px;
 	display: block;
 }
 
-.aff-app .aff-icon-btn:hover {
-	background: var(--aff-icon-btn-hover-bg);
-	color:      var(--aff-clr-primary);
+.atfrfo-app .atfrfo-icon-btn:hover {
+	background: var(--atfrfo-icon-btn-hover-bg);
+	color:      var(--atfrfo-clr-primary);
 }
 
-.aff-app .aff-icon-btn:disabled,
-.aff-app .aff-icon-btn[aria-disabled="true"] {
-	color:   var(--aff-clr-muted);
+.atfrfo-app .atfrfo-icon-btn:disabled,
+.atfrfo-app .atfrfo-icon-btn[aria-disabled="true"] {
+	color:   var(--atfrfo-clr-muted);
 	cursor:  not-allowed;
 	opacity: 0.5;
 }
 
-.aff-app .aff-icon-btn:disabled:hover,
-.aff-app .aff-icon-btn[aria-disabled="true"]:hover {
+.atfrfo-app .atfrfo-icon-btn:disabled:hover,
+.atfrfo-app .atfrfo-icon-btn[aria-disabled="true"]:hover {
 	background: transparent;
-	color:      var(--aff-clr-muted);
+	color:      var(--atfrfo-clr-muted);
 }
 
 /* Save Changes icon — 0.4s pulse, then ~10s silence, repeat */
-@keyframes aff-save-pulse {
-	0%   { box-shadow: 0 0 0    0   transparent; color: var(--aff-clr-accent); }
-	2%   { box-shadow: 0 0 10px 3px color-mix(in srgb, var(--aff-clr-accent) 55%, transparent); color: var(--aff-clr-accent); }
-	4%   { box-shadow: 0 0 0    0   transparent; color: var(--aff-clr-accent); }
-	100% { box-shadow: 0 0 0    0   transparent; color: var(--aff-clr-accent); }
+@keyframes atfrfo-save-pulse {
+	0%   { box-shadow: 0 0 0    0   transparent; color: var(--atfrfo-clr-accent); }
+	2%   { box-shadow: 0 0 10px 3px color-mix(in srgb, var(--atfrfo-clr-accent) 55%, transparent); color: var(--atfrfo-clr-accent); }
+	4%   { box-shadow: 0 0 0    0   transparent; color: var(--atfrfo-clr-accent); }
+	100% { box-shadow: 0 0 0    0   transparent; color: var(--atfrfo-clr-accent); }
 }
 
-.aff-app .aff-icon-btn--dirty {
-	color:     var(--aff-clr-accent);
-	animation: aff-save-pulse 10.4s ease-in-out infinite;
+.atfrfo-app .atfrfo-icon-btn--dirty {
+	color:     var(--atfrfo-clr-accent);
+	animation: atfrfo-save-pulse 10.4s ease-in-out infinite;
 }
 
 /* Dropdown wrapper — positions the panel relative to the trigger button */
-.aff-app .aff-dropdown-wrap {
+.atfrfo-app .atfrfo-dropdown-wrap {
 	position: relative;
 	display:  inline-flex;
 }
 
 /* Dropdown panel */
-.aff-app .aff-dropdown {
+.atfrfo-app .atfrfo-dropdown {
 	display:          none;
 	position:         absolute;
 	top:              calc(100% + 4px);
 	left:             0;
 	min-width:        200px;
-	background:       var(--aff-bg-panel);
-	border:           1px solid var(--aff-clr-border);
-	border-radius:    var(--aff-border-radius-md);
+	background:       var(--atfrfo-bg-panel);
+	border:           1px solid var(--atfrfo-clr-border);
+	border-radius:    var(--atfrfo-border-radius-md);
 	box-shadow:       0 4px 16px rgba(0, 0, 0, 0.18);
 	list-style:       none;
 	margin:           0;
@@ -450,13 +450,13 @@
 	z-index:          200;
 }
 
-.aff-app .aff-dropdown.is-open {
+.atfrfo-app .atfrfo-dropdown.is-open {
 	display: block;
 }
 
 /* "More" dropdown sits at the far right of the top bar - anchor to the
    trigger's right edge instead of its left, or it runs off the viewport. */
-.aff-app #aff-dropdown-more {
+.atfrfo-app #atfrfo-dropdown-more {
 	left:  auto;
 	right: 0;
 }
@@ -464,47 +464,47 @@
 /* Functions is now nested inside the More dropdown (a submenu, not a
    sibling). Its trigger sits inside an already right-anchored panel, so
    anchor the nested list to ITS right edge too, for the same reason. */
-.aff-app .aff-dropdown--nested {
+.atfrfo-app .atfrfo-dropdown--nested {
 	left:  auto;
 	right: 0;
 }
 
 /* Submenu arrow (Functions row inside More) — smaller and muted, distinct
    from the row's leading icon. */
-.aff-app .aff-dropdown__submenu-arrow {
+.atfrfo-app .atfrfo-dropdown__submenu-arrow {
 	width:  14px;
 	height: 14px;
-	color:  var(--aff-clr-muted);
+	color:  var(--atfrfo-clr-muted);
 }
 
-.aff-app .aff-dropdown__submenu-arrow svg {
+.atfrfo-app .atfrfo-dropdown__submenu-arrow svg {
 	width:  14px;
 	height: 14px;
 }
 
 /* Dropdown item */
-.aff-app .aff-dropdown__item {
+.atfrfo-app .atfrfo-dropdown__item {
 	display:         flex;
 	align-items:     center;
 	justify-content: space-between;
 	gap:             var(--sp-3);
 	padding:         var(--sp-2) var(--sp-4);
 	font-size:       var(--fs-sm);
-	color:           var(--aff-clr-primary);
+	color:           var(--atfrfo-clr-primary);
 	cursor:          pointer;
 	user-select:     none;
-	transition:      background var(--aff-transition);
+	transition:      background var(--atfrfo-transition);
 }
 
-.aff-app .aff-dropdown__item:hover {
-	background: var(--aff-icon-btn-hover-bg);
+.atfrfo-app .atfrfo-dropdown__item:hover {
+	background: var(--atfrfo-icon-btn-hover-bg);
 }
 
 /* Dropdown items that are real <button> elements (e.g. the "More" menu,
    which reuses existing icon-button actions) need browser button defaults
    reset — <li>-based items like Functions don't need this. */
-button.aff-app .aff-dropdown__item,
-.aff-app button.aff-dropdown__item {
+button.atfrfo-app .atfrfo-dropdown__item,
+.atfrfo-app button.atfrfo-dropdown__item {
 	width:      100%;
 	background: none;
 	border:     none;
@@ -515,26 +515,26 @@ button.aff-app .aff-dropdown__item,
 /* Icon slot inside a dropdown item — pairs icon with visible label so
    items relegated to an overflow menu (lower recognition frequency)
    don't rely on icon-only recall. */
-.aff-app .aff-dropdown__icon {
+.atfrfo-app .atfrfo-dropdown__icon {
 	display:     flex;
 	align-items: center;
 	flex-shrink: 0;
 	width:       18px;
 	height:      18px;
-	color:       var(--aff-clr-secondary);
+	color:       var(--atfrfo-clr-secondary);
 }
 
-.aff-app .aff-dropdown__icon svg {
+.atfrfo-app .atfrfo-dropdown__icon svg {
 	width:  18px;
 	height: 18px;
 }
 
-.aff-app .aff-dropdown__label {
+.atfrfo-app .atfrfo-dropdown__label {
 	flex: 1;
 }
 
 /* "Soon" badge on dropdown items */
-.aff-app .aff-badge--soon {
+.atfrfo-app .atfrfo-badge--soon {
 	display:          inline-flex;
 	align-items:      center;
 	font-size:        10px;
@@ -542,8 +542,8 @@ button.aff-app .aff-dropdown__item,
 	line-height:      1;
 	padding:          2px 6px;
 	border-radius:    999px;
-	color:            var(--aff-clr-accent);
-	border:           1px solid var(--aff-clr-accent);
+	color:            var(--atfrfo-clr-accent);
+	border:           1px solid var(--atfrfo-clr-accent);
 	opacity:          0.75;
 	white-space:      nowrap;
 	flex-shrink:      0;
@@ -553,36 +553,36 @@ button.aff-app .aff-dropdown__item,
    9. FORM FIELDS
    ========================================================================== */
 
-.aff-app .aff-field-label {
+.atfrfo-app .atfrfo-field-label {
 	display:     block;
 	font-size:   var(--fs-lg);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	margin-bottom: var(--sp-1);
 	text-transform: capitalize;
 	letter-spacing: 0.05em;
 }
 
-.aff-app .aff-field-input {
+.atfrfo-app .atfrfo-field-input {
 	display:          block;
 	width:            100%;
-	background:       var(--aff-bg-field);
-	border:           1px solid var(--aff-clr-border);
-	border-radius:    var(--aff-border-radius-sm);
-	color:            var(--aff-clr-primary);
+	background:       var(--atfrfo-bg-field);
+	border:           1px solid var(--atfrfo-clr-border);
+	border-radius:    var(--atfrfo-border-radius-sm);
+	color:            var(--atfrfo-clr-primary);
 	font-size:        var(--fs-sm);
 	padding:          var(--sp-2) var(--sp-3);
-	transition:       border-color var(--aff-transition), box-shadow var(--aff-transition);
+	transition:       border-color var(--atfrfo-transition), box-shadow var(--atfrfo-transition);
 }
 
-.aff-app .aff-field-input:focus {
-	border-color: var(--aff-clr-accent);
+.atfrfo-app .atfrfo-field-input:focus {
+	border-color: var(--atfrfo-clr-accent);
 	box-shadow:   0 0 0 3px rgba(244, 197, 66, 0.2);
 	outline:      none !important;
 }
 
-.aff-app .aff-field-input::placeholder {
-	color:   var(--aff-clr-muted);
+.atfrfo-app .atfrfo-field-input::placeholder {
+	color:   var(--atfrfo-clr-muted);
 	opacity: 0.7;
 }
 
@@ -590,24 +590,24 @@ button.aff-app .aff-dropdown__item,
    10. TOOLTIP
    ========================================================================== */
 
-.aff-app .aff-tooltip {
+.atfrfo-app .atfrfo-tooltip {
 	position:         fixed;
 	z-index:          99999;
-	background:       var(--aff-clr-primary);
+	background:       var(--atfrfo-clr-primary);
 	color:            #faf6f0;
 	font-size:        var(--fs-xs);
 	font-weight:      var(--fw-medium);
 	padding:          var(--sp-1) var(--sp-2);
-	border-radius:    var(--aff-border-radius-sm);
+	border-radius:    var(--atfrfo-border-radius-sm);
 	pointer-events:   none;
 	white-space:      nowrap;
 	opacity:          0;
 	transform:        translateX(4px);
 	transition:       opacity 0.12s ease, transform 0.12s ease;
-	box-shadow:       var(--aff-shadow-sm);
+	box-shadow:       var(--atfrfo-shadow-sm);
 }
 
-.aff-app .aff-tooltip.is-visible {
+.atfrfo-app .atfrfo-tooltip.is-visible {
 	opacity:   1;
 	transform: translateX(0);
 }
@@ -616,74 +616,74 @@ button.aff-app .aff-dropdown__item,
    11. MODAL
    ========================================================================== */
 
-.aff-app .aff-modal-overlay {
+.atfrfo-app .atfrfo-modal-overlay {
 	position:        fixed;
 	inset:           0;
 	z-index:         9000;
-	background:      var(--aff-overlay-bg);
+	background:      var(--atfrfo-overlay-bg);
 	display:         flex;
 	align-items:     center;
 	justify-content: center;
 	opacity:         0;
 	pointer-events:  none;
-	transition:      opacity var(--aff-transition-md);
+	transition:      opacity var(--atfrfo-transition-md);
 }
 
-.aff-app .aff-modal-overlay.is-open {
+.atfrfo-app .atfrfo-modal-overlay.is-open {
 	opacity:        1;
 	pointer-events: auto;
 }
 
-.aff-app .aff-modal {
-	background:    var(--aff-bg-card);
-	border-radius: var(--aff-border-radius);
-	box-shadow:    var(--aff-shadow-lg);
+.atfrfo-app .atfrfo-modal {
+	background:    var(--atfrfo-bg-card);
+	border-radius: var(--atfrfo-border-radius);
+	box-shadow:    var(--atfrfo-shadow-lg);
 	width:         min(560px, 90vw);
 	max-height:    80vh;
 	display:       flex;
 	flex-direction: column;
 	transform:     scale(0.96) translateY(-8px);
-	transition:    transform var(--aff-transition-md);
+	transition:    transform var(--atfrfo-transition-md);
 }
 
-.aff-app .aff-modal-overlay.is-open .aff-modal {
+.atfrfo-app .atfrfo-modal-overlay.is-open .atfrfo-modal {
 	transform: scale(1) translateY(0);
 }
 
-.aff-app .aff-modal.aff-modal--wide {
+.atfrfo-app .atfrfo-modal.atfrfo-modal--wide {
 	width: min(780px, 90vw);
 }
 
-.aff-app .aff-modal__header {
+.atfrfo-app .atfrfo-modal__header {
 	display:         flex;
 	align-items:     center;
 	justify-content: space-between;
 	padding:         var(--sp-4) var(--sp-5);
-	border-bottom:   1px solid var(--aff-clr-border);
+	border-bottom:   1px solid var(--atfrfo-clr-border);
 }
 
-.aff-app .aff-modal__title {
+.atfrfo-app .atfrfo-modal__title {
 	font-size:   var(--fs-lg);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	margin:      0;
 }
 
-.aff-app .aff-modal__body {
+.atfrfo-app .atfrfo-modal__body {
 	padding:    var(--sp-5);
 	overflow-y: auto;
 	flex:       1;
 }
 
-.aff-app .aff-modal__footer {
+.atfrfo-app .atfrfo-modal__footer {
 	padding:      var(--sp-4) var(--sp-5);
-	border-top:   1px solid var(--aff-clr-border);
+	border-top:   1px solid var(--atfrfo-clr-border);
 	display:      flex;
 	justify-content: flex-end;
 	gap:          var(--sp-2);
 }
 
-.aff-app .aff-modal__footer:empty {
+.atfrfo-app .atfrfo-modal__footer:empty {
 	display: none;
 }
 
@@ -691,7 +691,7 @@ button.aff-app .aff-dropdown__item,
    12. UTILITY CLASSES
    ========================================================================== */
 
-.aff-app .aff-sr-only {
+.atfrfo-app .atfrfo-sr-only {
 	position:   absolute;
 	width:      1px;
 	height:     1px;
@@ -703,13 +703,13 @@ button.aff-app .aff-dropdown__item,
 	border:     0;
 }
 
-.aff-app .aff-text-muted {
-	color: var(--aff-clr-muted);
+.atfrfo-app .atfrfo-text-muted {
+	color: var(--atfrfo-clr-muted);
 }
 
-.aff-app .aff-nav-coming-soon {
+.atfrfo-app .atfrfo-nav-coming-soon {
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	font-style:  italic;
 	padding:     var(--sp-2) var(--sp-4);
 	margin:      0;
@@ -719,56 +719,56 @@ button.aff-app .aff-dropdown__item,
    13. DARK MODE COMPONENT OVERRIDES
    ========================================================================== */
 
-/* Tooltip — in dark mode --aff-clr-primary is light cream, so we override
+/* Tooltip — in dark mode --atfrfo-clr-primary is light cream, so we override
    with a dark background to keep the tooltip readable. */
-[data-aff-theme="dark"] .aff-tooltip,
-.aff-app[data-aff-theme="dark"] .aff-tooltip {
+[data-atfrfo-theme="dark"] .atfrfo-tooltip,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-tooltip {
 	background: #3d2f1f;
 	color:      #f0e6d8;
 }
 
 /* Category panels — lighten background and add border/shadow so panels
    stand out clearly against the dark page background. */
-[data-aff-theme="dark"] .aff-category-inner,
-.aff-app[data-aff-theme="dark"] .aff-category-inner {
+[data-atfrfo-theme="dark"] .atfrfo-category-inner,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-category-inner {
 	background: #3a2d20;
-	border:     1px solid var(--aff-clr-border);
+	border:     1px solid var(--atfrfo-clr-border);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 /* Primary button — gold background with light-cream text in dark mode is low contrast;
    override to a dark warm brown text for readability. */
-[data-aff-theme="dark"] .aff-btn,
-.aff-app[data-aff-theme="dark"] .aff-btn {
+[data-atfrfo-theme="dark"] .atfrfo-btn,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-btn {
 	color: #2a1a0e;
 }
 
 /* Drag handles — opacity:0.45 with muted gray is invisible in dark mode. */
-[data-aff-theme="dark"] .aff-drag-handle,
-[data-aff-theme="dark"] .aff-cat-drag-handle,
-[data-aff-theme="dark"] .aff-subcat-drag-handle,
-.aff-app[data-aff-theme="dark"] .aff-drag-handle,
-.aff-app[data-aff-theme="dark"] .aff-cat-drag-handle,
-.aff-app[data-aff-theme="dark"] .aff-subcat-drag-handle {
-	color:   var(--aff-clr-secondary);
+[data-atfrfo-theme="dark"] .atfrfo-drag-handle,
+[data-atfrfo-theme="dark"] .atfrfo-cat-drag-handle,
+[data-atfrfo-theme="dark"] .atfrfo-subcat-drag-handle,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-drag-handle,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-cat-drag-handle,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-subcat-drag-handle {
+	color:   var(--atfrfo-clr-secondary);
 	opacity: 0.7;
 }
 
 /* Variable name/value inputs — WP admin overrides input[type=text] backgrounds to
    white/light; force dark backgrounds and readable text in dark mode. */
-[data-aff-theme="dark"] .aff-color-name-input,
-[data-aff-theme="dark"] .aff-var-value-input,
-.aff-app[data-aff-theme="dark"] .aff-color-name-input,
-.aff-app[data-aff-theme="dark"] .aff-var-value-input {
-	background: var(--aff-bg-card) !important;
-	color:      var(--aff-clr-primary) !important;
+[data-atfrfo-theme="dark"] .atfrfo-color-name-input,
+[data-atfrfo-theme="dark"] .atfrfo-var-value-input,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-color-name-input,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-var-value-input {
+	background: var(--atfrfo-bg-card) !important;
+	color:      var(--atfrfo-clr-primary) !important;
 }
 
 /* Color swatches — in dark mode the gray drop-shadow disappears against dark
    backgrounds. Replace with a light outer ring + deep drop shadow to match
    the lifted appearance swatches have in light mode. */
-[data-aff-theme="dark"] .aff-color-swatch,
-.aff-app[data-aff-theme="dark"] .aff-color-swatch {
+[data-atfrfo-theme="dark"] .atfrfo-color-swatch,
+.atfrfo-app[data-atfrfo-theme="dark"] .atfrfo-color-swatch {
 	border-color: rgba(255, 255, 255, 0.22);
 	box-shadow:   0 0 0 1px rgba(255, 255, 255, 0.10),
 	              0 3px 8px rgba(0, 0, 0, 0.55),

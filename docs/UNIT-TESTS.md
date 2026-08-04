@@ -1,9 +1,9 @@
-# AFF Unit Tests — Comprehensive Test Plan
+# ATFRFO Unit Tests — Comprehensive Test Plan
 # Atomic Framework Forge for Elementor — v0.4.1-beta
 
-> **Purpose:** Define every unit, integration, and regression test for AFF. The
+> **Purpose:** Define every unit, integration, and regression test for ATFRFO. The
 > primary risk is silent breakage when Elementor updates — this document treats
-> Elementor compatibility as a first-class testing concern alongside AFF's own logic.
+> Elementor compatibility as a first-class testing concern alongside ATFRFO's own logic.
 >
 > **Framework:** PHPUnit (PHP), Jest (JS — future). See Setup section.
 > **Location for test files:** `aff/tests/`
@@ -13,16 +13,16 @@
 ## Contents
 
 1. [Test Infrastructure Setup](#1-test-infrastructure-setup)
-2. [PHP — AFF_CSS_Parser](#2-php--aff_css_parser)
-3. [PHP — AFF_Data_Store](#3-php--aff_data_store)
-4. [PHP — AFF_Ajax_Handler (unit-testable methods)](#4-php--aff_ajax_handler-unit-testable-methods)
-5. [PHP — AFF_Settings](#5-php--aff_settings)
-6. [PHP — AFF_Usage_Scanner](#6-php--aff_usage_scanner)
+2. [PHP — ATFRFO_CSS_Parser](#2-php--atfrfo_css_parser)
+3. [PHP — ATFRFO_Data_Store](#3-php--atfrfo_data_store)
+4. [PHP — ATFRFO_Ajax_Handler (unit-testable methods)](#4-php--atfrfo_ajax_handler-unit-testable-methods)
+5. [PHP — ATFRFO_Settings](#5-php--atfrfo_settings)
+6. [PHP — ATFRFO_Usage_Scanner](#6-php--atfrfo_usage_scanner)
 7. [PHP — Plugin Bootstrap](#7-php--plugin-bootstrap)
-8. [JavaScript — AFF.Modal](#8-javascript--affmodal)
-9. [JavaScript — AFF.Theme](#9-javascript--afftheme)
-10. [JavaScript — AFF.Variables factory](#10-javascript--affvariables-factory)
-11. [JavaScript — AFF.Colors module](#11-javascript--affcolors-module)
+8. [JavaScript — ATFRFO.Modal](#8-javascript--affmodal)
+9. [JavaScript — ATFRFO.Theme](#9-javascript--afftheme)
+10. [JavaScript — ATFRFO.Variables factory](#10-javascript--affvariables-factory)
+11. [JavaScript — ATFRFO.Colors module](#11-javascript--affcolors-module)
 12. [Elementor Integration — Meta Structures](#12-elementor-integration--meta-structures)
 13. [Elementor Integration — CSS File Format](#13-elementor-integration--css-file-format)
 14. [Elementor Integration — Plugin API Surface](#14-elementor-integration--plugin-api-surface)
@@ -36,7 +36,7 @@
 
 ### PHP — PHPUnit
 
-AFF has no build step and no Composer autoloader. PHPUnit must be installed
+ATFRFO has no build step and no Composer autoloader. PHPUnit must be installed
 globally or via a standalone phar.
 
 **Recommended setup:**
@@ -58,7 +58,7 @@ aff/
 **bootstrap.php requirements:**
 
 ```php
-// Must define before requiring any AFF class:
+// Must define before requiring any ATFRFO class:
 define( 'ABSPATH', '/tmp/wp/' );
 
 // Stub all WP functions used by non-WP core logic:
@@ -69,24 +69,24 @@ define( 'ABSPATH', '/tmp/wp/' );
 // wp_delete_file(), wp_mkdir_p(), current_time()
 
 // Require the class under test — do NOT bootstrap the full plugin.
-require_once dirname(__DIR__) . '/includes/class-aff-css-parser.php';
+require_once dirname(__DIR__) . '/includes/class-atfrfo-css-parser.php';
 ```
 
-> Rule: `AFF_Data_Store` is designed to have no WP dependencies in its core
+> Rule: `ATFRFO_Data_Store` is designed to have no WP dependencies in its core
 > logic section. The WP adapter methods (`get_wp_storage_dir`, `get_baseline`,
 > etc.) must be stubbed or excluded from pure unit tests. Test them separately
 > with integration coverage.
 
 ### JavaScript — Jest
 
-Since AFF has no build process, Jest must be configured to consume the plain JS
+Since ATFRFO has no build process, Jest must be configured to consume the plain JS
 files via JSDOM. Future setup only — document manual test scenarios until then.
 
 ---
 
-## 2. PHP — AFF_CSS_Parser
+## 2. PHP — ATFRFO_CSS_Parser
 
-File: `includes/class-aff-css-parser.php`
+File: `includes/class-atfrfo-css-parser.php`
 
 ### 2.1 `normalize_value(string $value): string`
 
@@ -110,7 +110,7 @@ File: `includes/class-aff-css-parser.php`
 | 3 | One `:root` block with only `--e-global-*` system variables | Returns `[]` — no user vars found |
 | 4 | No `:root` block | Returns `[]` |
 | 5 | Empty string | Returns `[]` |
-| 6 | `:root` block with `----user-var: #abc;` (double-dashed user label) | Returns `[{ name: '--user-var', value: '#abc' }]` — EV4 adds one `--`, AFF strips one |
+| 6 | `:root` block with `----user-var: #abc;` (double-dashed user label) | Returns `[{ name: '--user-var', value: '#abc' }]` — EV4 adds one `--`, ATFRFO strips one |
 | 7 | `:root` block with `--lamp-thing: lamp(1rem, 2rem, 4rem);` | `lamp()` normalized to `clamp()` in returned value |
 | 8 | Multiple `:root` blocks; only last contains user vars | Returns variables from the LAST user-var block |
 | 9 | `:root` block with `--kit-color: #abc;` | Excluded — `--kit-` is a system prefix |
@@ -144,7 +144,7 @@ block containing only that prefix → `extract_v4_variables` must return `[]`.
 
 > **Why this matters:** Elementor adds new system variables in each release.
 > When a new prefix is added to Elementor and NOT to `SYSTEM_PREFIXES`, that
-> variable leaks into AFF's sync results. This test set must be expanded whenever
+> variable leaks into ATFRFO's sync results. This test set must be expanded whenever
 > a new prefix is added.
 
 ### 2.4 `extract_meta_value(mixed $raw): string`
@@ -204,9 +204,9 @@ Requires stubbed `get_option()` and `get_post_meta()`.
 
 ---
 
-## 3. PHP — AFF_Data_Store
+## 3. PHP — ATFRFO_Data_Store
 
-File: `includes/class-aff-data-store.php`
+File: `includes/class-atfrfo-data-store.php`
 
 ### 3.1 `load_from_file()` / `save_to_file()` — Round-trip
 
@@ -346,17 +346,17 @@ File: `includes/class-aff-data-store.php`
 
 | # | Input | Expected |
 |---|-------|----------|
-| 1 | `'my-project'` | `'my-project.aff.json'` |
-| 2 | `'my-project.aff.json'` | `'my-project.aff.json'` |
-| 3 | `'my-project.aff'` | `'my-project.aff.json'` |
-| 4 | `'my-project.aff.aff'` | `'my-project.aff.json'` (strips repeated `.aff`) |
+| 1 | `'my-project'` | `'my-project.atfrfo.json'` |
+| 2 | `'my-project.atfrfo.json'` | `'my-project.atfrfo.json'` |
+| 3 | `'my-project.atfrfo'` | `'my-project.atfrfo.json'` |
+| 4 | `'my-project.atfrfo.atfrfo'` | `'my-project.atfrfo.json'` (strips repeated `.atfrfo`) |
 | 5 | `'../traversal'` | Safe sanitized name (no `..`) |
 
 ### 3.15 `generate_backup_filename()`
 
 | # | Input | Constraint |
 |---|-------|------------|
-| 1 | `'my-project'` | Matches `/^my-project_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.aff\.json$/` |
+| 1 | `'my-project'` | Matches `/^my-project_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.atfrfo\.json$/` |
 | 2 | Two calls one second apart | Different filenames |
 
 ### 3.16 `prune_backups()`
@@ -370,9 +370,9 @@ File: `includes/class-aff-data-store.php`
 
 ---
 
-## 4. PHP — AFF_Ajax_Handler (unit-testable methods)
+## 4. PHP — ATFRFO_Ajax_Handler (unit-testable methods)
 
-File: `includes/class-aff-ajax-handler.php`
+File: `includes/class-atfrfo-ajax-handler.php`
 
 These are private methods tested by exposing them via a test subclass or reflection.
 
@@ -405,9 +405,9 @@ Pattern: `/^(--)?[A-Za-z_][A-Za-z0-9_-]*$/`
 | 5 | Case-insensitive: `'Primary'` vs `'primary'` | `true` — names are compared lowercase |
 | 6 | `exclude_id = null` and name matches | `true` |
 
-### 4.3 `build_elementor_meta_value(string $css_value, string $aff_type, string $subgroup, string $format): array`
+### 4.3 `build_elementor_meta_value(string $css_value, string $atfrfo_type, string $subgroup, string $format): array`
 
-| # | css_value | aff_type | subgroup | format | Expected `$$type` | Expected `value` |
+| # | css_value | atfrfo_type | subgroup | format | Expected `$$type` | Expected `value` |
 |---|-----------|----------|----------|--------|---------------------|------------------|
 | 1 | `'#f4c542'` | `'color'` | `'Colors'` | `'HEX'` | `'color'` | `'#f4c542'` |
 | 2 | `'rgba(61,47,31,0.5)'` | `'color'` | `'Colors'` | `'RGBA'` | `'color'` | `'rgba(61,47,31,0.5)'` |
@@ -441,7 +441,7 @@ Pattern: `/^(--)?[A-Za-z_][A-Za-z0-9_-]*$/`
 | 4 | `'000000'` | [0, 0, 0] | exact |
 | 5 | `'ffffff'` | [0, 0, 100] | exact |
 | 6 | `'808080'` | [0, 0, ~50.2] | ±0.5 |
-| 7 | `'f4c542'` (AFF gold) | ~[46, ~88, ~61] | ±1.0 |
+| 7 | `'f4c542'` (ATFRFO gold) | ~[46, ~88, ~61] | ±1.0 |
 
 ### 4.6 `hsl_to_hex(float $h, float $s, float $l): string`
 
@@ -482,10 +482,10 @@ This tests the naming convention from spec §15.7.
 
 | # | Input | Expected |
 |---|-------|----------|
-| 1 | `'my-project/my-project_2026-04-01_10-00-00.aff.json'` | Returns absolute path inside uploads dir |
+| 1 | `'my-project/my-project_2026-04-01_10-00-00.atfrfo.json'` | Returns absolute path inside uploads dir |
 | 2 | `'../../../wp-config.php'` | JSON error sent (contains `..`) |
 | 3 | `'/etc/passwd'` | JSON error sent (outside uploads dir after realpath) |
-| 4 | `'my-project.aff.json'` (old flat format) | Resolved via `sanitize_filename()` |
+| 4 | `'my-project.atfrfo.json'` (old flat format) | Resolved via `sanitize_filename()` |
 | 5 | Leading slash stripped | Works correctly |
 
 ### 4.9 `find_user_root_close_pos(string $css): int|false`
@@ -512,9 +512,9 @@ This tests the naming convention from spec §15.7.
 
 ---
 
-## 5. PHP — AFF_Settings
+## 5. PHP — ATFRFO_Settings
 
-File: `includes/class-aff-settings.php`
+File: `includes/class-atfrfo-settings.php`
 
 | # | Test | Expected |
 |---|------|----------|
@@ -531,9 +531,9 @@ File: `includes/class-aff-settings.php`
 
 ---
 
-## 6. PHP — AFF_Usage_Scanner
+## 6. PHP — ATFRFO_Usage_Scanner
 
-File: `includes/class-aff-usage-scanner.php`
+File: `includes/class-atfrfo-usage-scanner.php`
 
 | # | Scenario | Expected |
 |---|----------|----------|
@@ -556,28 +556,28 @@ File: `atomic-framework-forge-for-elementor.php`
 
 | # | Scenario | Expected |
 |---|----------|----------|
-| 1 | `ELEMENTOR_VERSION` not defined | `aff_check_dependencies()` returns non-empty array |
-| 2 | `ELEMENTOR_PRO_VERSION` not defined | `aff_check_dependencies()` returns non-empty array |
-| 3 | Both defined | `aff_check_dependencies()` returns `[]` |
+| 1 | `ELEMENTOR_VERSION` not defined | `atfrfo_check_dependencies()` returns non-empty array |
+| 2 | `ELEMENTOR_PRO_VERSION` not defined | `atfrfo_check_dependencies()` returns non-empty array |
+| 3 | Both defined | `atfrfo_check_dependencies()` returns `[]` |
 | 4 | Both missing | Two error messages returned |
-| 5 | `aff_init()` with missing deps | Adds `admin_notices` hook; does NOT require loader |
-| 6 | `AFF_VERSION` constant defined | Equals `'0.4.1-beta'` |
-| 7 | All required constants defined | `AFF_VERSION`, `AFF_PLUGIN_FILE`, `AFF_PLUGIN_DIR`, `AFF_PLUGIN_URL`, `AFF_SLUG`, `AFF_NONCE_ACTION`, `AFF_USER_META_THEME` |
-| 8 | `AFF_NONCE_ACTION` value | `'aff_admin_nonce'` |
+| 5 | `atfrfo_init()` with missing deps | Adds `admin_notices` hook; does NOT require loader |
+| 6 | `ATFRFO_VERSION` constant defined | Equals `'0.4.1-beta'` |
+| 7 | All required constants defined | `ATFRFO_VERSION`, `ATFRFO_PLUGIN_FILE`, `ATFRFO_PLUGIN_DIR`, `ATFRFO_PLUGIN_URL`, `ATFRFO_SLUG`, `ATFRFO_NONCE_ACTION`, `ATFRFO_USER_META_THEME` |
+| 8 | `ATFRFO_NONCE_ACTION` value | `'atfrfo_admin_nonce'` |
 
 ---
 
-## 8. JavaScript — AFF.Modal
+## 8. JavaScript — ATFRFO.Modal
 
-File: `admin/js/aff-modal.js`
+File: `admin/js/atfrfo-modal.js`
 
 ### 8.1 Basic open/close
 
 | # | Action | Expected |
 |---|--------|----------|
-| 1 | `AFF.Modal.open({ title: 'T', body: 'B', footer: 'F' })` | Modal element appears in DOM |
+| 1 | `ATFRFO.Modal.open({ title: 'T', body: 'B', footer: 'F' })` | Modal element appears in DOM |
 | 2 | Backdrop appears | Backdrop element visible |
-| 3 | `AFF.Modal.close()` | Modal removed from DOM |
+| 3 | `ATFRFO.Modal.close()` | Modal removed from DOM |
 | 4 | Backdrop click | Modal closes |
 | 5 | ESC key press while open | Modal closes |
 | 6 | ESC key press while no modal open | No crash |
@@ -587,7 +587,7 @@ File: `admin/js/aff-modal.js`
 | # | Action | Expected |
 |---|--------|----------|
 | 7 | Open modal A then open modal B | Only modal B visible; modal A removed |
-| 8 | After second open, only one modal in DOM | `document.querySelectorAll('.aff-modal').length === 1` |
+| 8 | After second open, only one modal in DOM | `document.querySelectorAll('.atfrfo-modal').length === 1` |
 
 ### 8.3 Focus management
 
@@ -609,28 +609,28 @@ File: `admin/js/aff-modal.js`
 
 | # | Action | Expected |
 |---|--------|----------|
-| 15 | Backdrop is scoped to `#aff-app`, not `document.body` | Backdrop parent is inside `#aff-app` |
+| 15 | Backdrop is scoped to `#atfrfo-app`, not `document.body` | Backdrop parent is inside `#atfrfo-app` |
 
 ---
 
-## 9. JavaScript — AFF.Theme
+## 9. JavaScript — ATFRFO.Theme
 
-File: `admin/js/aff-theme.js`
+File: `admin/js/atfrfo-theme.js`
 
 | # | Action | Expected |
 |---|--------|----------|
-| 1 | `AFF.Theme.set('dark')` | `#aff-app` gets `data-aff-theme="dark"` |
-| 2 | `AFF.Theme.set('light')` | `#aff-app` gets `data-aff-theme="light"` |
-| 3 | `AFF.Theme.toggle()` from light | Becomes `dark` |
-| 4 | `AFF.Theme.toggle()` from dark | Becomes `light` |
-| 5 | `AFF.Theme.set('dark')` fires AJAX to `aff_save_user_theme` | Request body contains `theme=dark` |
+| 1 | `ATFRFO.Theme.set('dark')` | `#atfrfo-app` gets `data-atfrfo-theme="dark"` |
+| 2 | `ATFRFO.Theme.set('light')` | `#atfrfo-app` gets `data-atfrfo-theme="light"` |
+| 3 | `ATFRFO.Theme.toggle()` from light | Becomes `dark` |
+| 4 | `ATFRFO.Theme.toggle()` from dark | Becomes `light` |
+| 5 | `ATFRFO.Theme.set('dark')` fires AJAX to `atfrfo_save_user_theme` | Request body contains `theme=dark` |
 | 6 | Invalid theme value `'blue'` | Defaults to `'light'` |
 
 ---
 
-## 10. JavaScript — AFF.Variables factory
+## 10. JavaScript — ATFRFO.Variables factory
 
-File: `admin/js/aff-variables.js`
+File: `admin/js/atfrfo-variables.js`
 
 ### 10.1 `_rowKey(v)`
 
@@ -653,8 +653,8 @@ File: `admin/js/aff-variables.js`
 
 | # | Scenario | Expected |
 |---|----------|----------|
-| 1 | Fonts view is active; click event fires on `#aff-edit-content` | Colors handler does NOT fire (`.aff-colors-view` absent) |
-| 2 | Colors view is active; Fonts instance click handler fires | Fonts handler does NOT fire (`.aff-fonts-view` absent) |
+| 1 | Fonts view is active; click event fires on `#atfrfo-edit-content` | Colors handler does NOT fire (`.atfrfo-colors-view` absent) |
+| 2 | Colors view is active; Fonts instance click handler fires | Fonts handler does NOT fire (`.atfrfo-fonts-view` absent) |
 | 3 | Correct view is active; click fires | Handler executes |
 
 ### 10.4 Re-bind guard (per PATTERNS.md)
@@ -673,9 +673,9 @@ File: `admin/js/aff-variables.js`
 
 ---
 
-## 11. JavaScript — AFF.Colors module
+## 11. JavaScript — ATFRFO.Colors module
 
-File: `admin/js/aff-colors.js`
+File: `admin/js/atfrfo-colors.js`
 
 | # | Action | Expected |
 |---|--------|----------|
@@ -683,15 +683,15 @@ File: `admin/js/aff-colors.js`
 | 2 | View-presence guard on mousedown | Guard applied to drag start |
 | 3 | `_drag` object scoped to module level | Does not bleed into Fonts/Numbers drag state |
 | 4 | Expand modal opens for a color row | Modal shown with correct variable data |
-| 5 | Inline edit commits on Enter key | `aff_save_color` AJAX called |
+| 5 | Inline edit commits on Enter key | `atfrfo_save_color` AJAX called |
 | 6 | Inline edit cancels on Escape key | No AJAX call; original value restored |
 
 ---
 
 ## 12. Elementor Integration — Meta Structures
 
-> These tests verify that Elementor's data structures match what AFF expects.
-> **Run these after every Elementor update** — structure changes will break AFF.
+> These tests verify that Elementor's data structures match what ATFRFO expects.
+> **Run these after every Elementor update** — structure changes will break ATFRFO.
 > Tests require a live WordPress install with Elementor active.
 
 ### 12.1 `_elementor_global_variables` post meta
@@ -730,7 +730,7 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 | 6 | Version field is `2` | `$meta['version'] === 2` |
 | 7 | Meta stored as JSON string, not PHP array | `is_string(get_post_meta(...))` is `true` |
 
-**Failure impact:** If any of these fail, `read_from_kit_meta()` will return `null` and sync will fall back to the CSS file parser. AFF will not crash but sync will silently degrade.
+**Failure impact:** If any of these fail, `read_from_kit_meta()` will return `null` and sync will fall back to the CSS file parser. ATFRFO will not crash but sync will silently degrade.
 
 ### 12.2 `_elementor_page_settings` (V3 Global Colors)
 
@@ -756,7 +756,7 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 
 ## 13. Elementor Integration — CSS File Format
 
-> These tests verify that the kit CSS file format matches what `AFF_CSS_Parser` expects.
+> These tests verify that the kit CSS file format matches what `ATFRFO_CSS_Parser` expects.
 
 ### 13.1 File location
 
@@ -788,7 +788,7 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 
 ## 14. Elementor Integration — Plugin API Surface
 
-> These tests verify that the Elementor PHP API AFF depends on still exists.
+> These tests verify that the Elementor PHP API ATFRFO depends on still exists.
 
 | # | Check | Code | Failure impact |
 |---|-------|------|----------------|
@@ -812,7 +812,7 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 ### 15.1 Sync → Verify
 
 1. Ensure at least one variable exists in Elementor Site Settings → Global Variables
-2. Run `aff_sync_from_elementor` AJAX call
+2. Run `atfrfo_sync_from_elementor` AJAX call
 3. **Verify:** Response `success` is `true`
 4. **Verify:** `variables` array is non-empty
 5. **Verify:** `source` field is `'elementor_kit_meta'` (not CSS fallback)
@@ -821,15 +821,15 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 
 1. Sync variables
 2. Change one variable's value (e.g. `--primary` to a new hex)
-3. Run `aff_save_file` AJAX call
-4. **Verify:** File created in `uploads/aff/{slug}/` directory
-5. Run `aff_load_file` with the returned filename
+3. Run `atfrfo_save_file` AJAX call
+4. **Verify:** File created in `uploads/atfrfo/{slug}/` directory
+5. Run `atfrfo_load_file` with the returned filename
 6. **Verify:** Loaded data contains the edited value
 
 ### 15.3 Commit → Elementor
 
 1. Sync and change a variable value
-2. Run `aff_commit_to_elementor` AJAX call
+2. Run `atfrfo_commit_to_elementor` AJAX call
 3. **Verify:** Response `success` is `true`
 4. **Verify:** `committed` array contains the variable name
 5. Check `_elementor_global_variables` post meta directly (via WP-CLI or var_dump):
@@ -840,24 +840,24 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 ### 15.4 Commit deletion
 
 1. Sync; note variable `--primary` exists
-2. Remove `--primary` from AFF; rebuild elementor_snapshot without it
-3. Run `aff_commit_to_elementor` with `elementor_snapshot` containing `'primary'`
+2. Remove `--primary` from ATFRFO; rebuild elementor_snapshot without it
+3. Run `atfrfo_commit_to_elementor` with `elementor_snapshot` containing `'primary'`
 4. **Verify:** Response `deleted` array contains `'primary'`
 5. Check EV4 meta — **Verify:** `--primary` entry removed from `data` array
 
 ### 15.5 New variable creation
 
-1. Add a new variable in AFF that does NOT exist in Elementor
-2. Run `aff_commit_to_elementor`
+1. Add a new variable in ATFRFO that does NOT exist in Elementor
+2. Run `atfrfo_commit_to_elementor`
 3. **Verify:** Response `created` array contains the new variable name
 4. Check EV4 meta — **Verify:** New entry present with `e-gv-xxxxxxx` ID
 
 ### 15.6 CSS file fallback path
 
 1. Delete `post-{id}.css` manually
-2. Run `aff_sync_from_elementor`
+2. Run `atfrfo_sync_from_elementor`
 3. **Verify:** Sync succeeds (reads from meta — primary path)
-4. Run `aff_commit_to_elementor`
+4. Run `atfrfo_commit_to_elementor`
 5. **Verify:** CSS file is regenerated by `try_regenerate_elementor_kit_css()` or commit still succeeds without the file
 
 ---
@@ -879,7 +879,7 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 |---|-------|----------|
 | 1 | `filename = '../../../wp-config.php'` | Rejected — `..` detected |
 | 2 | `filename = '/etc/passwd'` | Rejected — outside uploads dir |
-| 3 | `filename = 'slug/slug_2026-01-01_00-00-00.aff.json'` followed by `..` | Rejected |
+| 3 | `filename = 'slug/slug_2026-01-01_00-00-00.atfrfo.json'` followed by `..` | Rejected |
 | 4 | `css_file_path` outside `uploads/elementor/css/` | Rejected with error |
 | 5 | `css_file_path` not ending in `.css` | Rejected with error |
 
@@ -896,15 +896,15 @@ Expected structure (verified against EV4 source, current as of Elementor 3.x →
 
 | # | Scenario | Expected |
 |---|----------|----------|
-| 1 | `aff_commit_to_elementor` only writes to Elementor's own meta and CSS file | Does NOT modify any other post meta or option |
-| 2 | `AFF_CSS_Parser` methods never write to any file | Verified by code review: all file writes are in AJAX handler only |
+| 1 | `atfrfo_commit_to_elementor` only writes to Elementor's own meta and CSS file | Does NOT modify any other post meta or option |
+| 2 | `ATFRFO_CSS_Parser` methods never write to any file | Verified by code review: all file writes are in AJAX handler only |
 
 ---
 
 ## 17. Regression Checklist — Run After Every Elementor Update
 
 > This is the most important section. Elementor updates are the primary source of
-> undetected AFF breakage. Run this checklist whenever Elementor or Elementor Pro
+> undetected ATFRFO breakage. Run this checklist whenever Elementor or Elementor Pro
 > is updated, before confirming the update to production.
 
 **Instructions:** Work through each item top to bottom. Stop at the first failure and
@@ -946,15 +946,15 @@ it must be explicitly verified.
 [ ] B1. wp-content/uploads/elementor/css/post-{kit_id}.css exists after saving in Elementor.
 
 [ ] B2. File contains a :root block whose variables do NOT start with --e-global-*.
-         This is the user variable block that AFF reads.
+         This is the user variable block that ATFRFO reads.
 
 [ ] B3. No new :root block structure that wraps variables in @media or @supports.
 
 [ ] B4. Variable names in the user :root block still match what is visible in
          Elementor's Variables Manager UI.
 
-[ ] B5. No new system variable prefixes that could leak into AFF sync results.
-         Compare SYSTEM_PREFIXES list in AFF_CSS_Parser against all prefixes in post-{id}.css.
+[ ] B5. No new system variable prefixes that could leak into ATFRFO sync results.
+         Compare SYSTEM_PREFIXES list in ATFRFO_CSS_Parser against all prefixes in post-{id}.css.
 ```
 
 ---
@@ -980,9 +980,9 @@ it must be explicitly verified.
 ### Part D — Functional Smoke Tests (10 minutes, requires browser)
 
 ```
-[ ] D1. Sync from Elementor succeeds. (AFF → Sync button shows correct variable count.)
+[ ] D1. Sync from Elementor succeeds. (ATFRFO → Sync button shows correct variable count.)
 
-[ ] D2. Sync source is 'elementor_kit_meta' (shown in AFF sync log or browser console).
+[ ] D2. Sync source is 'elementor_kit_meta' (shown in ATFRFO sync log or browser console).
          If source is CSS file, meta path is broken — investigate A1–A7.
 
 [ ] D3. Edit one variable value; save project file; reload from file.
@@ -994,10 +994,10 @@ it must be explicitly verified.
 [ ] D5. Load a front-end page. CSS var() reflects the committed value.
          (Inspect element → Computed styles → find --varname.)
 
-[ ] D6. Add a NEW variable in AFF (not yet in Elementor); commit.
+[ ] D6. Add a NEW variable in ATFRFO (not yet in Elementor); commit.
          New variable appears in Elementor's Variables Manager.
 
-[ ] D7. Delete a variable in AFF that previously existed in Elementor; commit.
+[ ] D7. Delete a variable in ATFRFO that previously existed in Elementor; commit.
          Variable is removed from Elementor's Variables Manager.
 ```
 
@@ -1006,15 +1006,15 @@ it must be explicitly verified.
 ### Part E — If Any Check Fails
 
 1. Do NOT update Elementor on the production site.
-2. Identify which AFF class/method is affected:
-   - A1–A4: `AFF_CSS_Parser::read_from_kit_meta()` and `ajax_aff_commit_to_elementor()`
-   - A5–A7: `AFF_CSS_Parser::extract_meta_value()`
-   - B1–B5: `AFF_CSS_Parser::extract_v4_variables()` and `find_kit_css_file()`
+2. Identify which ATFRFO class/method is affected:
+   - A1–A4: `ATFRFO_CSS_Parser::read_from_kit_meta()` and `ajax_aff_commit_to_elementor()`
+   - A5–A7: `ATFRFO_CSS_Parser::extract_meta_value()`
+   - B1–B5: `ATFRFO_CSS_Parser::extract_v4_variables()` and `find_kit_css_file()`
    - C1–C5: `try_regenerate_elementor_kit_css()` and `clear_elementor_css_cache()`
    - D1–D7: End-to-end path
 3. Create a feature branch: `fix/elementor-{version}-compat`
 4. Fix the affected method and add a test case documenting the new structure.
-5. Update `SYSTEM_PREFIXES` in `AFF_CSS_Parser` if new system prefixes appeared.
+5. Update `SYSTEM_PREFIXES` in `ATFRFO_CSS_Parser` if new system prefixes appeared.
 6. Update this checklist to reflect the new expected structure.
 7. Run full regression before re-enabling the Elementor update.
 
@@ -1024,13 +1024,13 @@ it must be explicitly verified.
 
 | Test Group | Priority | Run frequency |
 |------------|----------|---------------|
-| §2 AFF_CSS_Parser — parsing logic | Critical | Every commit touching parser |
-| §3 AFF_Data_Store — CRUD + migration | Critical | Every commit touching data layer |
+| §2 ATFRFO_CSS_Parser — parsing logic | Critical | Every commit touching parser |
+| §3 ATFRFO_Data_Store — CRUD + migration | Critical | Every commit touching data layer |
 | §4.2 Path traversal (resolve_file) | Critical | Every commit |
 | §4.5–4.6 Color math round-trip | High | Before any generate_children change |
 | §4.7 Child naming conventions | High | Before any generate_children change |
-| §5 AFF_Settings defaults | Medium | When adding/removing settings |
-| §6 AFF_Usage_Scanner | Medium | When scanner logic changes |
+| §5 ATFRFO_Settings defaults | Medium | When adding/removing settings |
+| §6 ATFRFO_Usage_Scanner | Medium | When scanner logic changes |
 | §12–14 Elementor structure | Critical | After every Elementor update |
 | §15 Write-back round-trips | Critical | After any commit path change |
 | §16 Security | Critical | Every commit touching AJAX handlers |
@@ -1042,18 +1042,18 @@ it must be explicitly verified.
 
 1. **Double-dashed user variable names:** A user who names a variable `--purple` in EV4
    will see `----purple` in the CSS file. `extract_v4_variables()` strips one `--`, giving
-   `--purple` back to AFF. The commit path adds `--` again for CSS output. This must
+   `--purple` back to ATFRFO. The commit path adds `--` again for CSS output. This must
    not be "fixed" without tracing the full round-trip.
 
 2. **Empty Elementor install (no variables defined):** All sync paths must return
    empty results without error — not a fatal.
 
-3. **Kit CSS file deleted (cache clear):** `find_kit_css_file()` returns `null`. AFF
+3. **Kit CSS file deleted (cache clear):** `find_kit_css_file()` returns `null`. ATFRFO
    must fall through to `try_regenerate_elementor_kit_css()` rather than showing an
    error. The primary meta path makes this survivable.
 
-4. **Elementor Pro deactivated while AFF active:** `aff_check_dependencies()` adds
-   an admin notice. AFF loader never initializes. No fatal errors.
+4. **Elementor Pro deactivated while ATFRFO active:** `atfrfo_check_dependencies()` adds
+   an admin notice. ATFRFO loader never initializes. No fatal errors.
 
 5. **Variable name collision on rename:** `save_color` endpoint checks
    `variable_name_exists()` before committing a rename. Ensure the `exclude_id`

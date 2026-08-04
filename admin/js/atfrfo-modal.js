@@ -1,8 +1,8 @@
 /**
- * AFF Modal — Single-Instance Modal Dialog System
+ * ATFRFO Modal — Single-Instance Modal Dialog System
  *
- * All modals in AFF use one shared overlay + modal container.
- * Content is injected via AFF.Modal.open({ title, body, footer }).
+ * All modals in ATFRFO use one shared overlay + modal container.
+ * Content is injected via ATFRFO.Modal.open({ title, body, footer }).
  *
  * Accessibility:
  *  - Focus is trapped while the modal is open
@@ -16,9 +16,9 @@
 (function () {
 	'use strict';
 
-	window.AFF = window.AFF || {};
+	window.ATFRFO = window.ATFRFO || {};
 
-	AFF.Modal = {
+	ATFRFO.Modal = {
 
 		/** @type {HTMLElement|null} */
 		_overlay: null,
@@ -43,12 +43,12 @@
 		 * Initialize modal DOM references and bind events.
 		 */
 		init: function () {
-			this._overlay  = document.getElementById('aff-modal-overlay');
-			this._modal    = document.getElementById('aff-modal');
-			this._title    = document.getElementById('aff-modal-title');
-			this._body     = document.getElementById('aff-modal-body');
-			this._footer   = document.getElementById('aff-modal-footer');
-			this._closeBtn = document.getElementById('aff-modal-close');
+			this._overlay  = document.getElementById('atfrfo-modal-overlay');
+			this._modal    = document.getElementById('atfrfo-modal');
+			this._title    = document.getElementById('atfrfo-modal-title');
+			this._body     = document.getElementById('atfrfo-modal-body');
+			this._footer   = document.getElementById('atfrfo-modal-footer');
+			this._closeBtn = document.getElementById('atfrfo-modal-close');
 
 			if (!this._overlay) {
 				return;
@@ -88,8 +88,8 @@
 
 			options = options || {};
 
-			// Apply optional extra CSS class (e.g. aff-modal--wide); reset between calls.
-			this._modal.className = 'aff-modal';
+			// Apply optional extra CSS class (e.g. atfrfo-modal--wide); reset between calls.
+			this._modal.className = 'atfrfo-modal';
 			if (options.className) {
 				this._modal.classList.add(options.className);
 			}
@@ -173,7 +173,7 @@
 		/**
 		 * Open an informational modal that auto-closes after 4 seconds.
 		 * A Close button is added to the footer; either it or the timer
-		 * calls AFF.Modal.close(). Use for success/info messages that
+		 * calls ATFRFO.Modal.close(). Use for success/info messages that
 		 * require no user decision.
 		 *
 		 * @param {string} title
@@ -181,14 +181,14 @@
 		 */
 		info: function (title, bodyHtml) {
 			var self    = this;
-			var closeId = 'aff-modal-info-close';
+			var closeId = 'atfrfo-modal-info-close';
 			var timer;
 
 			self.open({
 				title:  title,
 				body:   bodyHtml,
 				footer: '<div style="text-align:right">'
-					+ '<button class="aff-btn" id="' + closeId + '">Close</button>'
+					+ '<button class="atfrfo-btn" id="' + closeId + '">Close</button>'
 					+ '</div>',
 				onClose: function () {
 					clearTimeout(timer);

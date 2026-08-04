@@ -1,5 +1,5 @@
 /**
- * AFF Colors CSS — Phase 2 Colors Edit Space Styles
+ * ATFRFO Colors CSS — Phase 2 Colors Edit Space Styles
  *
  * Styles the Colors subgroup edit space: filter bar, category blocks,
  * color variable rows (swatch + name + value + format + expand),
@@ -14,7 +14,7 @@
  *   Top:    [Name (bold) + count] ... [duplicate | ↑ | ↓ | delete | chevron]
  *   Bottom: ⊕ add-variable button (left-aligned)
  *
- * Depends on: aff-theme.css (design tokens), aff-layout.css (base layout)
+ * Depends on: atfrfo-theme.css (design tokens), atfrfo-layout.css (base layout)
  *
  * @package AtomicFrameworkForge
  * @version 2.1.0
@@ -24,13 +24,13 @@
    1. COLORS CONTAINER
    ========================================================================== */
 
-.aff-colors-view {
+.atfrfo-colors-view {
 	display:        flex;
 	flex-direction: column;
-	/* overflow-y intentionally not set here — #aff-edit-space (the parent scroll
+	/* overflow-y intentionally not set here — #atfrfo-edit-space (the parent scroll
 	   container) handles scrolling. Setting overflow-y:auto here would create a
-	   nested scroll context that prevents position:sticky on .aff-colors-filter-bar
-	   from working relative to #aff-edit-space. */
+	   nested scroll context that prevents position:sticky on .atfrfo-colors-filter-bar
+	   from working relative to #atfrfo-edit-space. */
 }
 
 /* ==========================================================================
@@ -43,102 +43,102 @@
  * The negative margin-top + top cancel out the edit space's padding-top
  * (--sp-9 = 36px) so the header appears flush with the top edge.
  */
-.aff-group-sticky-header {
+.atfrfo-group-sticky-header {
 	position:    sticky;
 	top:         calc(-1 * var(--sp-9));
 	margin-top:  calc(-1 * var(--sp-9));
 	z-index:     10;
 	flex-shrink: 0;
-	background:  var(--aff-bg-page);
+	background:  var(--atfrfo-bg-page);
 	padding-bottom: 8px;
 }
 
-.aff-colors-filter-bar {
+.atfrfo-colors-filter-bar {
 	display:        flex;
 	flex-direction: column;
 	border:         none;
 	border-radius:  12px;
 	margin-bottom:  16px;
-	background:     var(--aff-clr-primary);
-	position:       relative; /* containing block for .aff-filter-bar-add-cat-wrap */
+	background:     var(--atfrfo-clr-primary);
+	position:       relative; /* containing block for .atfrfo-filter-bar-add-cat-wrap */
 }
 
 /* Top row: COLORS title + search + close btn + collapse toggle */
-.aff-filter-bar-top {
+.atfrfo-filter-bar-top {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
 	padding:     var(--sp-2) var(--sp-4);
 }
 
-/* Set name label (replaces .aff-colors-view-title in the top row) */
-.aff-filter-bar-set-name {
+/* Set name label (replaces .atfrfo-colors-view-title in the top row) */
+.atfrfo-filter-bar-set-name {
 	font-size:      var(--fs-xxl);
 	font-weight:    var(--fw-bold);
-	color:          var(--aff-bg-page);
+	color:          var(--atfrfo-bg-page);
 	text-transform: capitalize;
 	user-select:    none;
 	padding-left:   40px;
 }
 
 /* Count badge in the filter bar header — inverted colors for the dark background. */
-.aff-filter-bar-count {
+.atfrfo-filter-bar-count {
 	background: rgba(255, 255, 255, 0.2);
-	color:      var(--aff-bg-page);
+	color:      var(--atfrfo-bg-page);
 	margin-left: var(--sp-2);
 }
 
 /* Icon buttons inside the filter bar must read against the primary-color background. */
-.aff-colors-filter-bar .aff-icon-btn {
-	color: var(--aff-bg-page);
+.atfrfo-colors-filter-bar .atfrfo-icon-btn {
+	color: var(--atfrfo-bg-page);
 }
-.aff-colors-filter-bar .aff-icon-btn:hover {
-	color:   var(--aff-bg-page);
+.atfrfo-colors-filter-bar .atfrfo-icon-btn:hover {
+	color:   var(--atfrfo-bg-page);
 	opacity: 0.75;
 }
 
-/* Add Category button: circle on the bottom-left border of the set header (mirrors .aff-cat-add-btn-wrap) */
-.aff-filter-bar-add-cat-wrap {
+/* Add Category button: circle on the bottom-left border of the set header (mirrors .atfrfo-cat-add-btn-wrap) */
+.atfrfo-filter-bar-add-cat-wrap {
 	position: absolute;
 	bottom:   -14px;
 	left:     -4px;
 	z-index:  2;
 }
 
-.aff-filter-bar-add-cat-wrap .aff-icon-btn {
+.atfrfo-filter-bar-add-cat-wrap .atfrfo-icon-btn {
 	width:         28px;
 	height:        28px;
 	border-radius: 50%;
-	background:    var(--aff-bg-card);
-	color:         var(--aff-clr-primary);
-	border:        1px solid var(--aff-clr-border);
+	background:    var(--atfrfo-bg-card);
+	color:         var(--atfrfo-clr-primary);
+	border:        1px solid var(--atfrfo-clr-border);
 	padding:       0;
 }
 
-.aff-filter-bar-add-cat-wrap .aff-icon-btn svg {
+.atfrfo-filter-bar-add-cat-wrap .atfrfo-icon-btn svg {
 	width:  18px;
 	height: 18px;
 }
 
-.aff-filter-bar-add-cat-wrap .aff-icon-btn:hover {
+.atfrfo-filter-bar-add-cat-wrap .atfrfo-icon-btn:hover {
 	opacity:      1;
-	background:   var(--aff-clr-primary);
-	color:        var(--aff-clr-on-primary, #fff);
-	border-color: var(--aff-clr-primary);
+	background:   var(--atfrfo-clr-primary);
+	color:        var(--atfrfo-clr-on-primary, #fff);
+	border-color: var(--atfrfo-clr-primary);
 }
 
 /* Bottom row: + Category button, left-aligned */
-.aff-filter-bar-bottom {
+.atfrfo-filter-bar-bottom {
 	display:     flex;
 	align-items: center;
 	padding:     0 var(--sp-4) var(--sp-2);
 }
 
 /* COLORS section title */
-.aff-colors-view-title {
+.atfrfo-colors-view-title {
 	font-size:      var(--fs-xs);
 	font-weight:    var(--fw-semibold);
-	color:          var(--aff-clr-muted);
+	color:          var(--atfrfo-clr-muted);
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	flex-shrink:    0;
@@ -146,67 +146,67 @@
 }
 
 /* Search input — flex-grow to fill available space */
-.aff-colors-search {
+.atfrfo-colors-search {
 	flex:          1;
 	padding:       var(--sp-1) var(--sp-3);
-	background:    var(--aff-bg-field);
-	border:        1px solid var(--aff-clr-border);
-	border-radius: var(--aff-border-radius-sm);
+	background:    var(--atfrfo-bg-field);
+	border:        1px solid var(--atfrfo-clr-border);
+	border-radius: var(--atfrfo-border-radius-sm);
 	font-size:     var(--fs-sm);
-	color:         var(--aff-clr-secondary);
-	box-shadow:    var(--aff-field-shadow);
+	color:         var(--atfrfo-clr-secondary);
+	box-shadow:    var(--atfrfo-field-shadow);
 	min-width:     0;
 }
 
-.aff-colors-search::placeholder {
-	color: var(--aff-clr-muted);
+.atfrfo-colors-search::placeholder {
+	color: var(--atfrfo-clr-muted);
 }
 
 /* Back / close button */
-.aff-colors-back-btn {
+.atfrfo-colors-back-btn {
 	flex-shrink: 0;
 }
 
 /* + Category button (bottom-left of filter bar) */
-.aff-colors-add-cat-btn {
+.atfrfo-colors-add-cat-btn {
 	display:     inline-flex;
 	align-items: center;
 	gap:         var(--sp-1);
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	width:       auto;
 	height:      auto;
 	padding:     2px var(--sp-2);
 	border:      none;
 	background:  transparent;
 	cursor:      pointer;
-	border-radius: var(--aff-border-radius-sm);
-	transition:  background-color var(--aff-transition), color var(--aff-transition);
+	border-radius: var(--atfrfo-border-radius-sm);
+	transition:  background-color var(--atfrfo-transition), color var(--atfrfo-transition);
 }
 
-.aff-colors-add-cat-btn:hover {
-	background: var(--aff-icon-btn-hover-bg);
-	color:      var(--aff-clr-secondary);
+.atfrfo-colors-add-cat-btn:hover {
+	background: var(--atfrfo-icon-btn-hover-bg);
+	color:      var(--atfrfo-clr-secondary);
 }
 
 /* ==========================================================================
    3. CATEGORY BLOCK
    ========================================================================== */
 
-.aff-category-block {
+.atfrfo-category-block {
 	position:      relative;
 	margin-bottom: 32px;
 	border-radius: 12px;
 }
 
-.aff-category-block:last-child {
+.atfrfo-category-block:last-child {
 	margin-bottom: 16px; /* Leave room for the add-btn circle below */
 }
 
 /* Inner wrapper clips content to rounded corners */
-.aff-category-inner {
-	background:     var(--aff-bg-card);
-	border:         1px solid var(--aff-clr-border);
+.atfrfo-category-inner {
+	background:     var(--atfrfo-bg-card);
+	border:         1px solid var(--atfrfo-clr-border);
 	border-radius:  12px;
 	overflow:       hidden;
 	padding-top:    16px;
@@ -217,7 +217,7 @@
    Absolutely positioned so it straddles the bottom edge — half inside, half outside.
    bottom: -14px puts the circle center exactly on the panel's bottom border.
    left: 0 aligns the circle center ~14px from the panel left edge (rounded corner start). */
-.aff-cat-add-btn-wrap {
+.atfrfo-cat-add-btn-wrap {
 	position: absolute;
 	bottom:   -14px;
 	left:     -4px;
@@ -225,27 +225,27 @@
 }
 
 /* Add button: prominent circle with primary-color border and plus sign */
-.aff-cat-add-btn-wrap .aff-icon-btn {
+.atfrfo-cat-add-btn-wrap .atfrfo-icon-btn {
 	width:         28px;
 	height:        28px;
 	border-radius: 50%;
-	background:    var(--aff-bg-card);
-	color:         var(--aff-clr-primary);
+	background:    var(--atfrfo-bg-card);
+	color:         var(--atfrfo-clr-primary);
 	box-shadow:    none;
-	border:        1px solid var(--aff-clr-border);
+	border:        1px solid var(--atfrfo-clr-border);
 	padding:       0;
 }
 
-.aff-cat-add-btn-wrap .aff-icon-btn svg {
+.atfrfo-cat-add-btn-wrap .atfrfo-icon-btn svg {
 	width:  18px;
 	height: 18px;
 }
 
-.aff-cat-add-btn-wrap .aff-icon-btn:hover {
+.atfrfo-cat-add-btn-wrap .atfrfo-icon-btn:hover {
 	opacity:      1;
-	background:   var(--aff-clr-primary);
-	color:        var(--aff-clr-on-primary, #fff);
-	border-color: var(--aff-clr-primary);
+	background:   var(--atfrfo-clr-primary);
+	color:        var(--atfrfo-clr-on-primary, #fff);
+	border-color: var(--atfrfo-clr-primary);
 	box-shadow:   none;
 	transform:    none;
 }
@@ -254,19 +254,19 @@
    4. CATEGORY HEADER (two-row layout)
    ========================================================================== */
 
-/* Override aff-layout.css — no divider between header and variable list */
-.aff-category-block .aff-category-header {
+/* Override atfrfo-layout.css — no divider between header and variable list */
+.atfrfo-category-block .atfrfo-category-header {
 	padding-bottom: 0;
 	border-bottom:  none;
 }
 
-.aff-category-header {
+.atfrfo-category-header {
 	display:        flex;
 	flex-direction: column;
 }
 
 /* Top row: name + count left / action buttons right */
-.aff-cat-header-top {
+.atfrfo-cat-header-top {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -275,7 +275,7 @@
 }
 
 /* Left group: name + count (takes all available width) */
-.aff-cat-header-left {
+.atfrfo-cat-header-left {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -284,43 +284,43 @@
 }
 
 /* Category drag handle (six-dot, left side of category header) */
-.aff-cat-drag-handle,
-.aff-subcat-drag-handle {
+.atfrfo-cat-drag-handle,
+.atfrfo-subcat-drag-handle {
 	display:         flex;
 	align-items:     center;
 	justify-content: center;
 	cursor:          grab;
-	color:           var(--aff-clr-muted);
+	color:           var(--atfrfo-clr-muted);
 	opacity:         0.45;
 	user-select:     none;
 	padding:         0 4px;
 	flex-shrink:     0;
 }
 
-.aff-cat-drag-handle:hover,
-.aff-subcat-drag-handle:hover {
+.atfrfo-cat-drag-handle:hover,
+.atfrfo-subcat-drag-handle:hover {
 	opacity: 0.85;
-	color:   var(--aff-clr-primary);
+	color:   var(--atfrfo-clr-primary);
 }
 
-.aff-cat-drag-handle:active,
-.aff-subcat-drag-handle:active {
+.atfrfo-cat-drag-handle:active,
+.atfrfo-subcat-drag-handle:active {
 	cursor: grabbing;
 }
 
 /* Bottom row: ⊕ add-variable button, left-aligned */
-.aff-cat-header-bottom {
+.atfrfo-cat-header-bottom {
 	display:     flex;
 	align-items: center;
 	padding:     0 var(--sp-4) var(--sp-1);
 }
 
 /* Category name span — looks like a heading, no box whatsoever */
-.aff-category-name-input {
+.atfrfo-category-name-input {
 	padding:       2px var(--sp-2);
 	font-size:     24px;
 	font-weight:   700;
-	color:         var(--aff-clr-primary);
+	color:         var(--atfrfo-clr-primary);
 	cursor:        default;
 	outline:       none;
 	white-space:   nowrap;
@@ -329,24 +329,24 @@
 	min-width:     0;
 }
 
-.aff-category-name-input[contenteditable="true"] {
+.atfrfo-category-name-input[contenteditable="true"] {
 	cursor:  text;
 	outline: none;
 }
 
 /* Variable count badge (next to name) */
-.aff-category-count {
+.atfrfo-category-count {
 	font-size:  var(--fs-xs);
-	color:      var(--aff-clr-muted);
+	color:      var(--atfrfo-clr-muted);
 	padding:    2px var(--sp-2);
-	background: var(--aff-clr-bg-hover);
+	background: var(--atfrfo-clr-bg-hover);
 	border-radius: 100px;
 	white-space: nowrap;
 	flex-shrink: 0;
 }
 
 /* 5-button action group (right side of top row) */
-.aff-category-actions {
+.atfrfo-category-actions {
 	display:     flex;
 	align-items: center;
 	gap:         2px;
@@ -354,23 +354,23 @@
 }
 
 /* Add variable button (⊕, bottom-left of category header) */
-.aff-add-var-btn {
+.atfrfo-add-var-btn {
 	width:       auto;
 	height:      auto;
 	padding:     2px var(--sp-1);
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 }
 
-.aff-add-var-btn:hover {
-	color: var(--aff-clr-accent);
+.atfrfo-add-var-btn:hover {
+	color: var(--atfrfo-clr-accent);
 }
 
 /* ==========================================================================
    5. ICON BUTTONS (shared)
    ========================================================================== */
 
-.aff-icon-btn {
+.atfrfo-icon-btn {
 	display:         inline-flex;
 	align-items:     center;
 	justify-content: center;
@@ -379,51 +379,51 @@
 	padding:         0;
 	background:      transparent;
 	border:          none;
-	border-radius:   var(--aff-border-radius-sm);
-	color:           var(--aff-clr-muted);
+	border-radius:   var(--atfrfo-border-radius-sm);
+	color:           var(--atfrfo-clr-muted);
 	cursor:          pointer;
-	transition:      background-color var(--aff-transition), color var(--aff-transition);
+	transition:      background-color var(--atfrfo-transition), color var(--atfrfo-transition);
 	flex-shrink:     0;
 }
 
-.aff-icon-btn:hover {
-	background: var(--aff-icon-btn-hover-bg);
-	color:      var(--aff-clr-secondary);
+.atfrfo-icon-btn:hover {
+	background: var(--atfrfo-icon-btn-hover-bg);
+	color:      var(--atfrfo-clr-secondary);
 }
 
-.aff-icon-btn:disabled,
-.aff-icon-btn[disabled] {
+.atfrfo-icon-btn:disabled,
+.atfrfo-icon-btn[disabled] {
 	opacity: 0.4;
 	cursor:  not-allowed;
 }
 
 /* Collapse chevron — down when collapsed, up when expanded */
-.aff-category-collapse-btn svg {
-	transition: transform var(--aff-transition-md);
+.atfrfo-category-collapse-btn svg {
+	transition: transform var(--atfrfo-transition-md);
 	transform: rotate(180deg); /* expanded: chevron points up */
 }
 
-.aff-category-block[data-collapsed="true"] .aff-category-collapse-btn svg {
+.atfrfo-category-block[data-collapsed="true"] .atfrfo-category-collapse-btn svg {
 	transform: rotate(0deg); /* collapsed: chevron points down */
 }
 
 /* Danger variant (delete button on hover) */
-.aff-icon-btn--danger:hover {
-	background: var(--aff-clr-error-bg);
-	color:      var(--aff-clr-error);
+.atfrfo-icon-btn--danger:hover {
+	background: var(--atfrfo-clr-error-bg);
+	color:      var(--atfrfo-clr-error);
 }
 
 /* Warning variant (clear category button on hover) */
-.aff-icon-btn--warning:hover {
-	background: var(--aff-clr-warning-bg);
-	color:      var(--aff-clr-warning);
+.atfrfo-icon-btn--warning:hover {
+	background: var(--atfrfo-clr-warning-bg);
+	color:      var(--atfrfo-clr-warning);
 }
 
 /* ==========================================================================
    6. STATUS LEGEND
    ========================================================================== */
 
-.aff-status-legend {
+.atfrfo-status-legend {
 	display:         flex;
 	flex-wrap:       wrap;
 	justify-content: center;
@@ -431,16 +431,16 @@
 	padding:         5px 16px 7px;
 	margin-top:      -1rem;
 	font-size:       var(--fs-xs);
-	color:           var(--aff-clr-muted);
+	color:           var(--atfrfo-clr-muted);
 }
 
-.aff-legend-item {
+.atfrfo-legend-item {
 	display:     flex;
 	align-items: center;
 	gap:         5px;
 }
 
-.aff-legend-dot {
+.atfrfo-legend-dot {
 	width:         8px;
 	height:        8px;
 	border-radius: 50%;
@@ -451,7 +451,7 @@
    7. SUB-CATEGORY BLOCKS (depth 1)
    ========================================================================== */
 
-.aff-category-block[data-depth="1"] {
+.atfrfo-category-block[data-depth="1"] {
 	margin-left:   64px;
 	margin-right:  20px;
 	margin-top:    10px;
@@ -459,9 +459,9 @@
 	border-radius: 8px;
 }
 
-.aff-category-block[data-depth="1"] .aff-category-inner {
-	background:     var(--aff-bg-panel);
-	border:         1px solid var(--aff-clr-border);
+.atfrfo-category-block[data-depth="1"] .atfrfo-category-inner {
+	background:     var(--atfrfo-bg-panel);
+	border:         1px solid var(--atfrfo-clr-border);
 	border-radius:  8px;
 	padding-top:    12px;
 	padding-bottom: 8px;
@@ -471,9 +471,9 @@
    7. COLLAPSE STATE — hide list and add-var button when collapsed
    ========================================================================== */
 
-.aff-category-block[data-collapsed="true"] .aff-color-list,
-.aff-category-block[data-collapsed="true"] .aff-color-list-header,
-.aff-category-block[data-collapsed="true"] .aff-category-block[data-depth="1"] {
+.atfrfo-category-block[data-collapsed="true"] .atfrfo-color-list,
+.atfrfo-category-block[data-collapsed="true"] .atfrfo-color-list-header,
+.atfrfo-category-block[data-collapsed="true"] .atfrfo-category-block[data-depth="1"] {
 	display: none;
 }
 
@@ -481,51 +481,51 @@
    7. COLOR VARIABLE LIST (column headings + rows)
    ========================================================================== */
 
-.aff-color-list-header {
+.atfrfo-color-list-header {
 	display:               grid;
 	grid-template-columns: 24px 8px 100px 200px 5fr 11% 220px 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
 	font-size:     var(--fs-xs);
-	color:         var(--aff-clr-muted);
+	color:         var(--atfrfo-clr-muted);
 	font-weight:   var(--fw-medium);
 }
 
-.aff-color-list {
+.atfrfo-color-list {
 	display:        flex;
 	flex-direction: column;
 }
 
 /* Single color variable row */
-.aff-color-row {
+.atfrfo-color-row {
 	display:               grid;
 	grid-template-columns: 24px 8px 100px 200px 5fr 11% 220px 28px 28px;
 	column-gap:    10px;
 	align-items:   center;
 	padding:       6px var(--sp-3) 6px var(--sp-4);
-	transition:    background-color var(--aff-transition);
+	transition:    background-color var(--atfrfo-transition);
 }
 
-.aff-color-row:hover {
-	background: var(--aff-clr-bg-hover);
+.atfrfo-color-row:hover {
+	background: var(--atfrfo-clr-bg-hover);
 }
 
 /* Phase 2e: status dot (8px circle in first column) */
-.aff-status-dot {
+.atfrfo-status-dot {
 	width:         8px;
 	height:        8px;
 	border-radius: 50%;
 	flex-shrink:   0;
-	background:    var(--aff-clr-muted);
+	background:    var(--atfrfo-clr-muted);
 }
 
 /* Color swatch (second column) — wider for better color preview */
-.aff-color-swatch {
+.atfrfo-color-swatch {
 	display:       block;
 	width:         100%;
 	height:        32px;
-	border-radius: var(--aff-border-radius-sm);
+	border-radius: var(--atfrfo-border-radius-sm);
 	box-shadow:    0 3px 8px rgba(100, 100, 100, 0.30), 0 1px 4px rgba(100, 100, 100, 0.16);
 	cursor:        pointer;
 	border:        1px solid rgba(0, 0, 0, 0.08);
@@ -533,21 +533,21 @@
 
 /* Pickr trigger — swatch rendered as a button; reset browser button defaults.
    useAsButton:true adds .pcr-button to our element — override its size rules. */
-button.aff-pickr-btn {
+button.atfrfo-pickr-btn {
 	padding:            0;
 	font:               inherit;
 	-webkit-appearance: none;
 }
 
-button.aff-pickr-btn.pcr-button,
-button.aff-pickr-btn.pcr-button::before {
+button.atfrfo-pickr-btn.pcr-button,
+button.atfrfo-pickr-btn.pcr-button::before {
 	width:         100% !important;
 	height:        32px !important;
-	border-radius: var(--aff-border-radius-sm) !important;
+	border-radius: var(--atfrfo-border-radius-sm) !important;
 }
 
-button.aff-pickr-btn:focus-visible {
-	outline:        2px solid var(--aff-clr-accent);
+button.atfrfo-pickr-btn:focus-visible {
+	outline:        2px solid var(--atfrfo-clr-accent);
 	outline-offset: 2px;
 }
 
@@ -557,18 +557,18 @@ button.aff-pickr-btn:focus-visible {
 }
 
 /* Variable name — bare input, single-click to edit */
-.aff-color-name-input {
+.atfrfo-color-name-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
-	background:    var(--aff-bg-card);
+	background:    var(--atfrfo-bg-card);
 	border:        none;
 	font-size:     13px;
-	color:         var(--aff-clr-secondary);
+	color:         var(--atfrfo-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
 	cursor:        default;
 	outline:       none;
-	border-radius: var(--aff-border-radius-sm);
+	border-radius: var(--atfrfo-border-radius-sm);
 	box-shadow:
 		inset 0 3px 6px rgba(100, 100, 100, 0.22),
 		inset 0 1px 3px rgba(100, 100, 100, 0.14),
@@ -576,28 +576,28 @@ button.aff-pickr-btn:focus-visible {
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.aff-color-name-input:not([readonly]) {
+.atfrfo-color-name-input:not([readonly]) {
 	cursor:      text;
 	user-select: auto;
 }
 
-.aff-color-name-input:focus {
+.atfrfo-color-name-input:focus {
 	outline: none;
 }
 
 /* Variable note — same style as name input; readonly by default, click to edit */
-.aff-color-notes-input {
+.atfrfo-color-notes-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
-	background:    var(--aff-bg-card);
+	background:    var(--atfrfo-bg-card);
 	border:        none;
 	font-size:     13px;
-	color:         var(--aff-clr-secondary);
+	color:         var(--atfrfo-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
 	cursor:        default;
 	outline:       none;
-	border-radius: var(--aff-border-radius-sm);
+	border-radius: var(--atfrfo-border-radius-sm);
 	box-shadow:
 		inset 0 3px 6px rgba(100, 100, 100, 0.22),
 		inset 0 1px 3px rgba(100, 100, 100, 0.14),
@@ -605,27 +605,27 @@ button.aff-pickr-btn:focus-visible {
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.aff-color-notes-input:not([readonly]) {
+.atfrfo-color-notes-input:not([readonly]) {
 	cursor:      text;
 	user-select: auto;
 }
 
-.aff-color-notes-input:focus {
+.atfrfo-color-notes-input:focus {
 	outline: none;
 }
 
 /* Color value — bare input, always editable */
-.aff-color-value-input {
+.atfrfo-color-value-input {
 	width:         100%;
 	padding:       2px var(--sp-2);
-	background:    var(--aff-bg-card);
+	background:    var(--atfrfo-bg-card);
 	border:        none;
 	font-size:     13px;
-	color:         var(--aff-clr-secondary);
+	color:         var(--atfrfo-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
 	outline:       none;
-	border-radius: var(--aff-border-radius-sm);
+	border-radius: var(--atfrfo-border-radius-sm);
 	box-shadow:
 		inset 0 3px 6px rgba(100, 100, 100, 0.22),
 		inset 0 1px 3px rgba(100, 100, 100, 0.14),
@@ -633,25 +633,25 @@ button.aff-pickr-btn:focus-visible {
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.aff-color-value-input:focus {
+.atfrfo-color-value-input:focus {
 	outline: none;
 }
 
 /* Format selector — same shadow/border treatment as name + value inputs */
-.aff-color-format-sel {
+.atfrfo-color-format-sel {
 	width:              100%;
 	padding:            2px 20px 2px var(--sp-1);
-	background-color:   var(--aff-bg-card);
+	background-color:   var(--atfrfo-bg-card);
 	background-image:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
 	background-repeat:  no-repeat;
 	background-position: right 6px center;
 	background-size:    10px 6px;
 	border:             1px solid rgba(100, 100, 100, 0.28);
 	font-size:          var(--fs-xs);
-	color:              var(--aff-clr-muted);
+	color:              var(--atfrfo-clr-muted);
 	cursor:             pointer;
 	outline:            none;
-	border-radius:      var(--aff-border-radius-sm);
+	border-radius:      var(--atfrfo-border-radius-sm);
 	-webkit-appearance: none;
 	appearance:         none;
 	box-shadow:
@@ -661,62 +661,62 @@ button.aff-pickr-btn:focus-visible {
 		0 1px 3px rgba(100, 100, 100, 0.10);
 }
 
-.aff-color-format-sel:focus {
+.atfrfo-color-format-sel:focus {
 	outline: none;
 }
 
 /* Drag handle (first column — 24px) */
-.aff-drag-handle {
+.atfrfo-drag-handle {
 	display:         flex;
 	align-items:     center;
 	justify-content: center;
 	cursor:          grab;
-	color:           var(--aff-clr-muted);
+	color:           var(--atfrfo-clr-muted);
 	opacity:         0.45;
 	user-select:     none;
 	padding:         0 4px;
 }
 
-.aff-drag-handle:hover {
+.atfrfo-drag-handle:hover {
 	opacity: 0.85;
-	color:   var(--aff-clr-primary);
+	color:   var(--atfrfo-clr-primary);
 }
 
-.aff-drag-handle:active {
+.atfrfo-drag-handle:active {
 	cursor: grabbing;
 }
 
-.aff-row-dragging {
+.atfrfo-row-dragging {
 	opacity: 0.3;
 }
 
-.aff-drag-ghost {
+.atfrfo-drag-ghost {
 	/* ghost is a fixed clone with inline styles; ensure it looks clean */
 	border-radius: 4px;
 }
 
-.aff-drop-indicator {
+.atfrfo-drop-indicator {
 	position:      fixed;
 	height:        4px;
-	background:    var(--aff-clr-accent); /* overridden inline by JS gradient */
+	background:    var(--atfrfo-clr-accent); /* overridden inline by JS gradient */
 	z-index:       9998;
 	pointer-events: none;
 	border-radius: 2px;
-	box-shadow:    0 0 6px var(--aff-clr-accent);
+	box-shadow:    0 0 6px var(--atfrfo-clr-accent);
 }
 
 /* Expand chevron (seventh column — 28px, matches category collapse btn) */
-.aff-color-expand-btn {
+.atfrfo-color-expand-btn {
 	width:   28px;
 	height:  28px;
 	padding: 0;
 }
 
-.aff-color-expand-btn svg {
-	transition: transform var(--aff-transition-md);
+.atfrfo-color-expand-btn svg {
+	transition: transform var(--atfrfo-transition-md);
 }
 
-.aff-color-row[data-expanded="true"] .aff-color-expand-btn svg {
+.atfrfo-color-row[data-expanded="true"] .atfrfo-color-expand-btn svg {
 	transform: rotate(180deg);
 }
 
@@ -725,7 +725,7 @@ button.aff-pickr-btn:focus-visible {
    ========================================================================== */
 
 /* Full-viewport click-catcher */
-.aff-expand-backdrop {
+.atfrfo-expand-backdrop {
 	position:        fixed;
 	inset:           0;
 	background:      rgba(0, 0, 0, 0.50);
@@ -747,7 +747,7 @@ button.aff-pickr-btn:focus-visible {
  *   default  = closing  (fast ease-in, snaps back to row)
  *   .is-open = opening  (slow spring, flows out of the row)
  */
-.aff-expand-modal {
+.atfrfo-expand-modal {
 	position:      fixed;
 	z-index:       991;
 	left:          50%;
@@ -755,8 +755,8 @@ button.aff-pickr-btn:focus-visible {
 	width:         min(92vw, 860px);
 	transform:     translate(-50%, -50%) scale(0.04);
 	opacity:       0;
-	background:    var(--aff-bg-card);
-	color:         var(--aff-clr-primary);
+	background:    var(--atfrfo-bg-card);
+	color:         var(--atfrfo-clr-primary);
 	border-radius: 16px;
 	box-shadow:    0 32px 80px rgba(0, 0, 0, 0.40), 0 8px 24px rgba(0, 0, 0, 0.20);
 	overflow:      hidden;
@@ -765,7 +765,7 @@ button.aff-pickr-btn:focus-visible {
 	               transform 0.38s cubic-bezier(0.55, 0, 1, 0.45);
 }
 
-.aff-expand-modal.is-open {
+.atfrfo-expand-modal.is-open {
 	transform:  translate(-50%, -50%) scale(1);
 	opacity:    1;
 	/* Opening transition — slow spring, flows out of the row */
@@ -778,17 +778,17 @@ button.aff-pickr-btn:focus-visible {
  * Row 1: drag | dot | swatch | name | value | format | close
  * Row 2: full-width notes field
  */
-.aff-modal-header {
+.atfrfo-modal-header {
 	display:       flex;
 	flex-direction: column;
 	gap:            8px;
 	padding:        var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
-	border-bottom:  2px solid var(--aff-clr-border);
-	background:     var(--aff-bg-panel);
+	border-bottom:  2px solid var(--atfrfo-clr-border);
+	background:     var(--atfrfo-bg-panel);
 }
 
 /* Row 1 inner grid: drag(24) | dot(8) | swatch(100) | name(2fr) | value(11%) | format(100px) | close(28) */
-.aff-modal-header-row1 {
+.atfrfo-modal-header-row1 {
 	display:               grid;
 	grid-template-columns: 24px 8px 100px 2fr 11% 100px 28px;
 	column-gap:            10px;
@@ -797,13 +797,13 @@ button.aff-pickr-btn:focus-visible {
 }
 
 /* Row 2 full-width notes */
-.aff-modal-header .aff-modal-notes {
+.atfrfo-modal-header .atfrfo-modal-notes {
 	width:         100%;
 	box-sizing:    border-box;
 }
 
 /* Close button (rightmost column in header) */
-.aff-modal-close-btn {
+.atfrfo-modal-close-btn {
 	display:         flex;
 	align-items:     center;
 	justify-content: center;
@@ -820,59 +820,59 @@ button.aff-pickr-btn:focus-visible {
 	border-radius:   4px;
 	cursor:          pointer;
 	flex-shrink:     0;
-	color:           var(--aff-clr-secondary, #6b5c4e);
+	color:           var(--atfrfo-clr-secondary, #6b5c4e);
 	opacity:         0.7;
 }
 
-.aff-modal-close-btn:hover {
+.atfrfo-modal-close-btn:hover {
 	opacity: 1;
-	color:   var(--aff-clr-primary, #3d2f1f);
+	color:   var(--atfrfo-clr-primary, #3d2f1f);
 }
 
-/* In the always-light expand modal (appended to body, outside .aff-app) */
-.aff-expand-modal .aff-modal-close-btn {
+/* In the always-light expand modal (appended to body, outside .atfrfo-app) */
+.atfrfo-expand-modal .atfrfo-modal-close-btn {
 	color: #6b5c4e;
 }
 
-.aff-expand-modal .aff-modal-close-btn:hover {
+.atfrfo-expand-modal .atfrfo-modal-close-btn:hover {
 	color: #3d2f1f;
 }
 
 /*
  * Toggle track override — inside the always-light expand modal the default
- * track colour (--aff-clr-border: #e5e7eb) is invisible on white.
+ * track colour (--atfrfo-clr-border: #e5e7eb) is invisible on white.
  */
-.aff-expand-modal .aff-toggle-track {
+.atfrfo-expand-modal .atfrfo-toggle-track {
 	background: #9ca3af;
 }
 
 /* Modal body — stacked tints / shades / transparencies rows */
-.aff-modal-body {
+.atfrfo-modal-body {
 	display:        flex;
 	flex-direction: column;
 	padding:        var(--sp-1) 0;
 }
 
 /* Each generator row: label | fixed-width control | palette strip */
-.aff-modal-gen-row {
+.atfrfo-modal-gen-row {
 	display:       flex;
 	align-items:   center;
 	gap:           var(--sp-4);
 	padding:       var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-5);
-	border-bottom: 1px solid var(--aff-clr-border);
+	border-bottom: 1px solid var(--atfrfo-clr-border);
 }
 
-.aff-modal-gen-row:last-child {
+.atfrfo-modal-gen-row:last-child {
 	border-bottom: none;
 }
 
-.aff-modal-gen-label {
+.atfrfo-modal-gen-label {
 	min-width:      130px;
 	flex-shrink:    0;
 	white-space:    nowrap;
 	font-size:      var(--fs-xs);
 	font-weight:    var(--fw-semibold);
-	color:          var(--aff-clr-muted);
+	color:          var(--atfrfo-clr-muted);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	user-select:    none;
@@ -882,43 +882,43 @@ button.aff-pickr-btn:focus-visible {
  * Fixed-width control wrapper — ensures all three palette strips start at
  * the same horizontal position whether the control is a number input or toggle.
  */
-.aff-modal-gen-ctrl {
+.atfrfo-modal-gen-ctrl {
 	width:       72px;
 	flex-shrink: 0;
 	display:     flex;
 	align-items: center;
 }
 
-.aff-modal-gen-ctrl .aff-gen-num {
+.atfrfo-modal-gen-ctrl .atfrfo-gen-num {
 	width: 100%;
 }
 
 /* Toggle inside the ctrl cell — just the track, no text label */
-.aff-modal-gen-ctrl .aff-toggle-label {
+.atfrfo-modal-gen-ctrl .atfrfo-toggle-label {
 	gap: 0;
 }
 
 /* Swatch revealed in mode variant row after toggle is checked */
-.aff-mode-swatch {
+.atfrfo-mode-swatch {
 	display:       block;
 	width:         100px;
 	height:        20px;
 	border-radius: 4px;
 	flex-shrink:   0;
-	border:        1px solid var(--aff-clr-border);
+	border:        1px solid var(--atfrfo-clr-border);
 }
 
 /* Save / Cancel action bar at the bottom of the expand modal */
-.aff-modal-gen-actions {
+.atfrfo-modal-gen-actions {
 	display:         flex;
 	justify-content: flex-end;
 	gap:             var(--sp-3);
 	padding:         var(--sp-3) var(--sp-4);
-	border-top:      1px solid var(--aff-clr-border);
+	border-top:      1px solid var(--atfrfo-clr-border);
 }
 
 /* Delete Category — variable count + iOS toggle row */
-.aff-del-cat-vars {
+.atfrfo-del-cat-vars {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-3);
@@ -926,13 +926,13 @@ button.aff-pickr-btn:focus-visible {
 	flex-wrap:   wrap;
 }
 
-.aff-del-cat-vars-count {
+.atfrfo-del-cat-vars-count {
 	font-size:   var(--fs-sm);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	white-space: nowrap;
 }
 
-.aff-ios-toggle {
+.atfrfo-ios-toggle {
 	display:     inline-flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -940,28 +940,28 @@ button.aff-pickr-btn:focus-visible {
 	user-select: none;
 }
 
-.aff-ios-toggle input[type="checkbox"] {
+.atfrfo-ios-toggle input[type="checkbox"] {
 	position: absolute;
 	opacity:  0;
 	width:    0;
 	height:   0;
 }
 
-.aff-ios-track {
+.atfrfo-ios-track {
 	position:      relative;
 	width:         44px;
 	height:        24px;
 	border-radius: 12px;
-	background:    var(--aff-clr-muted, #9ca3af);
+	background:    var(--atfrfo-clr-muted, #9ca3af);
 	transition:    background 0.2s;
 	flex-shrink:   0;
 }
 
-.aff-ios-toggle input:checked + .aff-ios-track {
-	background: var(--aff-clr-accent, #f4c542);
+.atfrfo-ios-toggle input:checked + .atfrfo-ios-track {
+	background: var(--atfrfo-clr-accent, #f4c542);
 }
 
-.aff-ios-thumb {
+.atfrfo-ios-thumb {
 	position:      absolute;
 	top:           2px;
 	left:          2px;
@@ -973,34 +973,34 @@ button.aff-pickr-btn:focus-visible {
 	transition:    transform 0.2s;
 }
 
-.aff-ios-toggle input:checked + .aff-ios-track .aff-ios-thumb {
+.atfrfo-ios-toggle input:checked + .atfrfo-ios-track .atfrfo-ios-thumb {
 	transform: translateX(20px);
 }
 
-.aff-del-cat-action-label {
+.atfrfo-del-cat-action-label {
 	font-size:   var(--fs-sm);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-secondary);
+	color:       var(--atfrfo-clr-secondary);
 	min-width:   140px;
 }
 
 /* Horizontal palette strip — fills remaining row width */
-.aff-palette-strip {
+.atfrfo-palette-strip {
 	display:       flex;
 	gap:           2px;
 	height:        36px;
-	border-radius: var(--aff-border-radius-sm);
+	border-radius: var(--atfrfo-border-radius-sm);
 	overflow:      hidden;
 	flex:          1;
 	min-width:     0;
 }
 
 /* Hide strip when no swatches (steps = 0 or transparencies off) */
-.aff-palette-strip:empty {
+.atfrfo-palette-strip:empty {
 	display: none;
 }
 
-.aff-palette-swatch {
+.atfrfo-palette-swatch {
 	flex:     1;
 	height:   100%;
 	border:   none;
@@ -1010,32 +1010,32 @@ button.aff-pickr-btn:focus-visible {
 }
 
 /* Empty-state placeholder when steps = 0 */
-.aff-palette-empty {
+.atfrfo-palette-empty {
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	line-height: 36px;
 	flex:        1;
 }
 
 /* Number input (shared — gen rows in modal) */
-.aff-gen-num {
+.atfrfo-gen-num {
 	width:         64px;
 	padding:       3px var(--sp-1);
-	background:    var(--aff-bg-field);
-	border:        1px solid var(--aff-clr-border);
-	border-radius: var(--aff-border-radius-sm);
+	background:    var(--atfrfo-bg-field);
+	border:        1px solid var(--atfrfo-clr-border);
+	border-radius: var(--atfrfo-border-radius-sm);
 	font-size:     var(--fs-xs);
-	color:         var(--aff-clr-secondary);
+	color:         var(--atfrfo-clr-secondary);
 	text-align:    center;
 }
 
-.aff-gen-num:focus {
-	outline:        2px solid var(--aff-clr-accent);
+.atfrfo-gen-num:focus {
+	outline:        2px solid var(--atfrfo-clr-accent);
 	outline-offset: -2px;
 }
 
 /* On/Off toggle */
-.aff-toggle-label {
+.atfrfo-toggle-label {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -1043,25 +1043,25 @@ button.aff-pickr-btn:focus-visible {
 	user-select: none;
 }
 
-.aff-toggle-label input[type="checkbox"] {
+.atfrfo-toggle-label input[type="checkbox"] {
 	position: absolute;
 	opacity:  0;
 	width:    0;
 	height:   0;
 }
 
-.aff-toggle-track {
+.atfrfo-toggle-track {
 	display:       inline-block;
 	width:         36px;
 	height:        20px;
-	background:    var(--aff-clr-border);
+	background:    var(--atfrfo-clr-border);
 	border-radius: 10px;
 	position:      relative;
-	transition:    background-color var(--aff-transition);
+	transition:    background-color var(--atfrfo-transition);
 	flex-shrink:   0;
 }
 
-.aff-toggle-track::after {
+.atfrfo-toggle-track::after {
 	content:       '';
 	display:       block;
 	width:         14px;
@@ -1071,48 +1071,48 @@ button.aff-pickr-btn:focus-visible {
 	position:      absolute;
 	top:           3px;
 	left:          3px;
-	transition:    left var(--aff-transition);
+	transition:    left var(--atfrfo-transition);
 	box-shadow:    0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.aff-toggle-label input[type="checkbox"]:checked + .aff-toggle-track {
-	background: var(--aff-clr-accent);
+.atfrfo-toggle-label input[type="checkbox"]:checked + .atfrfo-toggle-track {
+	background: var(--atfrfo-clr-accent);
 }
 
-.aff-toggle-label input[type="checkbox"]:checked + .aff-toggle-track::after {
+.atfrfo-toggle-label input[type="checkbox"]:checked + .atfrfo-toggle-track::after {
 	left: 19px;
 }
 
-.aff-toggle-state-label {
+.atfrfo-toggle-state-label {
 	font-size: var(--fs-xs);
-	color:     var(--aff-clr-secondary);
+	color:     var(--atfrfo-clr-secondary);
 }
 
 /* Move-to-category select (inside expand modal gen row) */
-.aff-cat-move-select {
+.atfrfo-cat-move-select {
 	width:              100%;
 	padding:            3px 20px 3px var(--sp-2);
-	background-color:   var(--aff-bg-field);
+	background-color:   var(--atfrfo-bg-field);
 	background-image:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
 	background-repeat:  no-repeat;
 	background-position: right 6px center;
 	background-size:    10px 6px;
-	border:             1px solid var(--aff-clr-border);
-	border-radius:      var(--aff-border-radius-sm);
+	border:             1px solid var(--atfrfo-clr-border);
+	border-radius:      var(--atfrfo-border-radius-sm);
 	font-size:          var(--fs-xs);
-	color:              var(--aff-clr-secondary);
+	color:              var(--atfrfo-clr-secondary);
 	-webkit-appearance: none;
 	appearance:         none;
 	cursor:             pointer;
 }
 
-.aff-cat-move-select:focus {
-	outline:        2px solid var(--aff-clr-accent);
+.atfrfo-cat-move-select:focus {
+	outline:        2px solid var(--atfrfo-clr-accent);
 	outline-offset: -2px;
 }
 
 /* Inline field error — floating tooltip (appended to body by JS) */
-.aff-inline-error {
+.atfrfo-inline-error {
 	position:    fixed;
 	z-index:     9999;
 	padding:     4px 8px;
@@ -1126,10 +1126,10 @@ button.aff-pickr-btn:focus-visible {
 	word-wrap:   break-word;
 	line-height: 1.4;
 	pointer-events: none;
-	animation:   aff-error-in 0.15s ease;
+	animation:   atfrfo-error-in 0.15s ease;
 }
 
-@keyframes aff-error-in {
+@keyframes atfrfo-error-in {
 	from { opacity: 0; transform: translateY(-4px); }
 	to   { opacity: 1; transform: translateY(0); }
 }
@@ -1138,9 +1138,9 @@ button.aff-pickr-btn:focus-visible {
    9. EMPTY STATE
    ========================================================================== */
 
-.aff-colors-empty {
+.atfrfo-colors-empty {
 	padding:    var(--sp-4) var(--sp-4);
-	color:      var(--aff-clr-muted);
+	color:      var(--atfrfo-clr-muted);
 	font-size:  var(--fs-sm);
 }
 
@@ -1149,14 +1149,14 @@ button.aff-pickr-btn:focus-visible {
    ========================================================================== */
 
 @media (max-width: 600px) {
-	.aff-color-list-header,
-	.aff-color-row {
+	.atfrfo-color-list-header,
+	.atfrfo-color-row {
 		grid-template-columns: 24px 8px 80px 1fr 0 20% 0 28px 28px;
 		column-gap: 6px;
 		padding-right: var(--sp-2);
 	}
 
-	.aff-color-notes-input {
+	.atfrfo-color-notes-input {
 		visibility: hidden;
 		overflow:   hidden;
 	}
@@ -1166,32 +1166,32 @@ button.aff-pickr-btn:focus-visible {
    11. SECONDARY / DANGER BUTTON VARIANTS
    ========================================================================== */
 
-.aff-app .aff-btn--secondary {
+.atfrfo-app .atfrfo-btn--secondary {
 	background: transparent;
-	color:      var(--aff-clr-secondary);
-	border:     1px solid var(--aff-clr-border);
-	box-shadow: var(--aff-shadow-sm);
+	color:      var(--atfrfo-clr-secondary);
+	border:     1px solid var(--atfrfo-clr-border);
+	box-shadow: var(--atfrfo-shadow-sm);
 }
 
-.aff-app .aff-btn--secondary:hover:not(:disabled) {
-	background:   var(--aff-icon-btn-hover-bg);
-	border-color: var(--aff-clr-accent);
-	color:        var(--aff-clr-primary);
+.atfrfo-app .atfrfo-btn--secondary:hover:not(:disabled) {
+	background:   var(--atfrfo-icon-btn-hover-bg);
+	border-color: var(--atfrfo-clr-accent);
+	color:        var(--atfrfo-clr-primary);
 }
 
-.aff-app .aff-btn--secondary:disabled {
+.atfrfo-app .atfrfo-btn--secondary:disabled {
 	opacity: 0.5;
 	cursor:  not-allowed;
 }
 
-.aff-app .aff-btn--danger {
-	background: var(--aff-clr-error-bg, #fee2e2);
-	color:      var(--aff-clr-error, #dc2626);
-	border:     1px solid var(--aff-clr-error, #dc2626);
+.atfrfo-app .atfrfo-btn--danger {
+	background: var(--atfrfo-clr-error-bg, #fee2e2);
+	color:      var(--atfrfo-clr-error, #dc2626);
+	border:     1px solid var(--atfrfo-clr-error, #dc2626);
 }
 
-.aff-app .aff-btn--danger:hover:not(:disabled) {
-	background: var(--aff-clr-error, #dc2626);
+.atfrfo-app .atfrfo-btn--danger:hover:not(:disabled) {
+	background: var(--atfrfo-clr-error, #dc2626);
 	color:      #fff;
 }
 
@@ -1200,21 +1200,21 @@ button.aff-pickr-btn:focus-visible {
    ========================================================================== */
 
 /* Section-12 override kept for specificity safety — mirrors base rule */
-.aff-color-list-header,
-.aff-color-row {
+.atfrfo-color-list-header,
+.atfrfo-color-row {
 	grid-template-columns: 24px 8px 100px 200px 5fr 11% 220px 28px 28px;
 }
 
 /* Delete button — trash icon, danger variant on hover */
-.aff-color-delete-btn {
+.atfrfo-color-delete-btn {
 	width:   28px;
 	height:  28px;
 	padding: 0;
 	opacity: 0;
-	transition: opacity var(--aff-transition);
+	transition: opacity var(--atfrfo-transition);
 }
 
-.aff-color-row:hover .aff-color-delete-btn {
+.atfrfo-color-row:hover .atfrfo-color-delete-btn {
 	opacity: 1;
 }
 
@@ -1223,21 +1223,21 @@ button.aff-pickr-btn:focus-visible {
    ========================================================================== */
 
 /* Chevron rotation: indicates collapsed vs expanded state */
-.aff-category-collapse-btn svg {
+.atfrfo-category-collapse-btn svg {
 	transition: transform 0.2s ease;
 }
-.aff-category-block[data-collapsed="true"] .aff-category-collapse-btn svg {
+.atfrfo-category-block[data-collapsed="true"] .atfrfo-category-collapse-btn svg {
 	transform: rotate(-90deg);
 }
 
-/* Column sort buttons — appear inside .aff-color-list-header cells */
-.aff-col-sort-wrap {
+/* Column sort buttons — appear inside .atfrfo-color-list-header cells */
+.atfrfo-col-sort-wrap {
 	display:         flex;
 	justify-content: flex-end;
 	align-items:     center;
 }
 
-.aff-col-sort-btn {
+.atfrfo-col-sort-btn {
 	display:         inline-flex;
 	align-items:     center;
 	justify-content: center;
@@ -1246,56 +1246,56 @@ button.aff-pickr-btn:focus-visible {
 	padding:         0;
 	background:      transparent;
 	border:          none;
-	border-radius:   var(--aff-border-radius-sm);
+	border-radius:   var(--atfrfo-border-radius-sm);
 	cursor:          pointer;
-	color:           var(--aff-clr-muted);
+	color:           var(--atfrfo-clr-muted);
 	opacity:         0.4;
-	transition:      opacity var(--aff-transition), color var(--aff-transition);
+	transition:      opacity var(--atfrfo-transition), color var(--atfrfo-transition);
 }
 
-.aff-col-sort-btn:hover {
+.atfrfo-col-sort-btn:hover {
 	opacity: 0.85;
-	color:   var(--aff-clr-secondary);
+	color:   var(--atfrfo-clr-secondary);
 }
 
-.aff-col-sort-btn[data-sort-dir="asc"],
-.aff-col-sort-btn[data-sort-dir="desc"] {
+.atfrfo-col-sort-btn[data-sort-dir="asc"],
+.atfrfo-col-sort-btn[data-sort-dir="desc"] {
 	opacity: 0.9;
-	color:   var(--aff-clr-accent);
+	color:   var(--atfrfo-clr-accent);
 }
 
-.aff-sort-btn {
+.atfrfo-sort-btn {
 	display:         inline-flex;
 	align-items:     center;
 	justify-content: center;
 	padding:         2px 5px;
 	font-size:       11px;
 	font-weight:     var(--fw-semibold);
-	color:           var(--aff-clr-muted);
+	color:           var(--atfrfo-clr-muted);
 	background:      transparent;
 	border:          1px solid transparent;
-	border-radius:   var(--aff-border-radius-sm);
+	border-radius:   var(--atfrfo-border-radius-sm);
 	cursor:          pointer;
 	line-height:     1;
 	height:          24px;
 	white-space:     nowrap;
-	transition:      background-color var(--aff-transition), color var(--aff-transition), border-color var(--aff-transition);
+	transition:      background-color var(--atfrfo-transition), color var(--atfrfo-transition), border-color var(--atfrfo-transition);
 }
 
-.aff-sort-btn:hover {
-	background:   var(--aff-icon-btn-hover-bg);
-	color:        var(--aff-clr-secondary);
-	border-color: var(--aff-clr-border);
+.atfrfo-sort-btn:hover {
+	background:   var(--atfrfo-icon-btn-hover-bg);
+	color:        var(--atfrfo-clr-secondary);
+	border-color: var(--atfrfo-clr-border);
 }
 
-/* Commit button: force gold/accent — overrides .aff-btn--secondary */
-.aff-app .aff-panel-right__commit .aff-btn {
-	background:   var(--aff-clr-accent);
-	border-color: var(--aff-clr-accent);
-	color:        var(--aff-clr-on-accent, #3d2f1f);
+/* Commit button: force gold/accent — overrides .atfrfo-btn--secondary */
+.atfrfo-app .atfrfo-panel-right__commit .atfrfo-btn {
+	background:   var(--atfrfo-clr-accent);
+	border-color: var(--atfrfo-clr-accent);
+	color:        var(--atfrfo-clr-on-accent, #3d2f1f);
 }
 
-.aff-app .aff-panel-right__commit .aff-btn:disabled {
+.atfrfo-app .atfrfo-panel-right__commit .atfrfo-btn:disabled {
 	opacity: 0.5;
 	cursor:  not-allowed;
 }

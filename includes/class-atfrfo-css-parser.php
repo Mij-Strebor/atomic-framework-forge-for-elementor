@@ -1,6 +1,6 @@
 <?php
 /**
- * AFF CSS Parser — Elementor v4 Variable Extractor
+ * ATFRFO CSS Parser — Elementor v4 Variable Extractor
  *
  * Locates Elementor's compiled kit CSS file and extracts the Elementor v4
  * atomic widget CSS variables from the terminal :root block.
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AFF_CSS_Parser {
+class ATFRFO_CSS_Parser {
 
 	/**
 	 * Variable name prefixes that belong to Elementor's legacy/system blocks.
@@ -345,7 +345,7 @@ class AFF_CSS_Parser {
 			$variables[] = array(
 				// $label is exactly what the user typed in EV4 — preserve it as-is.
 				// EV4 prepends -- when writing CSS, so 'purple' → '--purple' in CSS,
-				// '--purple' → '----purple' in CSS. AFF stores the label unchanged.
+				// '--purple' → '----purple' in CSS. ATFRFO stores the label unchanged.
 				'name'    => $label,
 				'value'   => $this->normalize_value( $value ),
 				'el_type' => $el_type,  // Elementor type hint ('color'|'size'|'string')

@@ -1,11 +1,11 @@
 /**
- * AFF App — Main Application Entry Point
+ * ATFRFO App — Main Application Entry Point
  *
  * Initializes all modules in the correct order and manages global
- * application state. All modules attach themselves to window.AFF before
+ * application state. All modules attach themselves to window.ATFRFO before
  * this file runs (enforced by enqueue dependency chain in PHP).
  *
- * Global state object: AFF.state
+ * Global state object: ATFRFO.state
  *  - hasUnsavedChanges {boolean}  — drives Save Changes button state
  *  - currentSelection  {Object}   — { group, subgroup, category }
  *  - currentFile       {string}   — currently loaded filename
@@ -18,30 +18,30 @@
  * @package AtomicFrameworkForge
  */
 
-/* global AFFData */
+/* global ATFRFOData */
 (function () {
 	'use strict';
 
-	window.AFF = window.AFF || {};
+	window.ATFRFO = window.ATFRFO || {};
 
 	// -----------------------------------------------------------------------
 	// GLOBAL STATE
 	// -----------------------------------------------------------------------
 
-	AFF.state = {
-		hasUnsavedChanges:        false, // AFF file has unsaved changes (drives Save Changes button).
-		hasPendingElementorCommit: false, // AFF data not yet committed to Elementor (drives Commit button).
+	ATFRFO.state = {
+		hasUnsavedChanges:        false, // ATFRFO file has unsaved changes (drives Save Changes button).
+		hasPendingElementorCommit: false, // ATFRFO data not yet committed to Elementor (drives Commit button).
 		pendingSaveCount:         0,     // Number of in-flight per-variable AJAX saves (blocks file save).
 		currentSelection:         null,
 		currentFile:              null,
 		projectName:              '',   // Human-readable project name (set via Manage Project modal).
-		theme:                    (typeof AFFData !== 'undefined' ? AFFData.theme : 'light') || 'light',
+		theme:                    (typeof ATFRFOData !== 'undefined' ? ATFRFOData.theme : 'light') || 'light',
 		variables:                [],
 		classes:                  [],
 		components:               [],
 		config:                   {},
 		usageCounts:              {}, // { '--varname': count } — populated by fetchUsageCounts()
-		settings:                 {}, // cached from aff_get_settings on startup
+		settings:                 {}, // cached from atfrfo_get_settings on startup
 		metadata:                 {}, // { elementor_snapshot, ... } — populated by _loadFile()/_autoLoadFile()
 	};
 
@@ -49,7 +49,7 @@
 	// UTILITIES
 	// -----------------------------------------------------------------------
 
-	AFF.Utils = {
+	ATFRFO.Utils = {
 
 		/**
 		 * Return true if the trimmed string is a recognisable CSS color value.
@@ -108,7 +108,7 @@
 		 * @returns {boolean}
 		 */
 		confirmDeleteVariablesEnabled: function () {
-			return !(AFF.state.settings && AFF.state.settings.confirm_delete_variables === false);
+			return !(ATFRFO.state.settings && ATFRFO.state.settings.confirm_delete_variables === false);
 		},
 
 		/**
@@ -117,21 +117,21 @@
 		 * @param {boolean} enabled
 		 */
 		setConfirmDeleteVariablesEnabled: function (enabled) {
-			if (AFF.state.settings) {
-				AFF.state.settings.confirm_delete_variables = enabled;
+			if (ATFRFO.state.settings) {
+				ATFRFO.state.settings.confirm_delete_variables = enabled;
 			}
-			AFF.App.ajax('aff_save_settings', { settings: JSON.stringify({ confirm_delete_variables: enabled }) });
+			ATFRFO.App.ajax('atfrfo_save_settings', { settings: JSON.stringify({ confirm_delete_variables: enabled }) });
 		},
 
 		/**
 		 * HTML for the "Don't ask me again" checkbox used in variable delete dialogs.
-		 * Shares .aff-prefs-check-label styling with the Preferences panel.
+		 * Shares .atfrfo-prefs-check-label styling with the Preferences panel.
 		 *
 		 * @returns {string}
 		 */
 		dontAskAgainCheckboxHtml: function () {
-			return '<label class="aff-prefs-check-label" style="margin-top:var(--sp-3);font-weight:normal;">'
-				+ '<input type="checkbox" id="aff-del-dont-ask-again">'
+			return '<label class="atfrfo-prefs-check-label" style="margin-top:var(--sp-3);font-weight:normal;">'
+				+ '<input type="checkbox" id="atfrfo-del-dont-ask-again">'
 				+ '<span>Don&rsquo;t ask me again</span>'
 				+ '</label>';
 		},
@@ -144,14 +144,14 @@
 		 */
 		statusColor: function (status) {
 			var map = {
-				synced:   'var(--aff-status-synced)',
-				modified: 'var(--aff-status-modified)',
-				new:      'var(--aff-status-new)',
-				deleted:  'var(--aff-status-deleted)',
-				conflict: 'var(--aff-status-conflict)',
-				orphaned: 'var(--aff-status-orphaned)',
+				synced:   'var(--atfrfo-status-synced)',
+				modified: 'var(--atfrfo-status-modified)',
+				new:      'var(--atfrfo-status-new)',
+				deleted:  'var(--atfrfo-status-deleted)',
+				conflict: 'var(--atfrfo-status-conflict)',
+				orphaned: 'var(--atfrfo-status-orphaned)',
 			};
-			return map[status] || 'var(--aff-status-synced)';
+			return map[status] || 'var(--atfrfo-status-synced)';
 		},
 
 		/**
@@ -167,7 +167,7 @@
 				new:      'New \u2014 Variable not yet in the Elementor kit. Commit to add it.',
 				deleted:  'Deleted \u2014 Marked for deletion. Commit to remove from Elementor.',
 				conflict: 'Conflict \u2014 Value changed both here and in Elementor since last sync.',
-				orphaned: 'Orphaned \u2014 Exists in AFF but not found in Elementor kit. Commit to add it.',
+				orphaned: 'Orphaned \u2014 Exists in ATFRFO but not found in Elementor kit. Commit to add it.',
 			};
 			return map[status] || ('Status: ' + status);
 		},
@@ -193,9 +193,9 @@
 		 * @returns {Object|null}
 		 */
 		findVarByKey: function (key) {
-			var vars = AFF.state.variables || [];
+			var vars = ATFRFO.state.variables || [];
 			for (var i = 0; i < vars.length; i++) {
-				if (AFF.Utils.rowKey(vars[i]) === key) { return vars[i]; }
+				if (ATFRFO.Utils.rowKey(vars[i]) === key) { return vars[i]; }
 			}
 			if (key.indexOf('__n_') === 0) {
 				var name = key.slice(4);
@@ -213,7 +213,7 @@
 		 * @returns {Object|null}
 		 */
 		findVarById: function (id) {
-			var vars = AFF.state.variables || [];
+			var vars = ATFRFO.state.variables || [];
 			for (var i = 0; i < vars.length; i++) {
 				if (vars[i].id === id) { return vars[i]; }
 			}
@@ -227,7 +227,7 @@
 		 * @returns {Array}
 		 */
 		getVarsForCategoryId: function (catId, catName) {
-			return (AFF.state.variables || []).filter(function (v) {
+			return (ATFRFO.state.variables || []).filter(function (v) {
 				if (v.status === 'deleted') { return false; }
 				if (v.category_id === catId) { return true; }
 				// Legacy: var assigned by name only (no category_id set).
@@ -244,9 +244,9 @@
 		 * @param {string}      message
 		 */
 		showFieldError: function (field, message) {
-			AFF.Utils.clearFieldError(field);
+			ATFRFO.Utils.clearFieldError(field);
 			var el  = document.createElement('div');
-			el.className   = 'aff-inline-error';
+			el.className   = 'atfrfo-inline-error';
 			el.textContent = message;
 			var rect       = field.getBoundingClientRect();
 			el.style.left  = rect.left + 'px';
@@ -276,7 +276,7 @@
 		},
 
 		/**
-		 * Classify a CSS value as color / font / number and derive its AFF
+		 * Classify a CSS value as color / font / number and derive its ATFRFO
 		 * format string and storage value.
 		 *
 		 * Used by both _applyNewVars (Elementor sync) and _applyImport (JSON
@@ -288,7 +288,7 @@
 		 */
 		classifyVar: function (value, elUnit) {
 			var lc      = (value || '').trim().toLowerCase();
-			var isColor = AFF.Utils.isColorValue(lc);
+			var isColor = ATFRFO.Utils.isColorValue(lc);
 			var isFont  = !isColor &&
 				/\b(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-sans-serif|ui-serif|ui-monospace)\b/.test(lc);
 			// Named font fallback: a plain word/phrase (letters, digits, spaces, hyphens,
@@ -346,15 +346,15 @@
 
 		/**
 		 * Inject Google Fonts <link> tags for each unique font-family found in
-		 * .aff-font-preview cells inside container. Skips families already
+		 * .atfrfo-font-preview cells inside container. Skips families already
 		 * requested. Non-Google fonts fail silently — preview falls back to default.
 		 *
 		 * @param {Element} container
 		 */
 		loadFontPreviews: function (container) {
-			var cells = container ? container.querySelectorAll('.aff-font-preview') : [];
+			var cells = container ? container.querySelectorAll('.atfrfo-font-preview') : [];
 			if (!cells.length) { return; }
-			var loaded = AFF.Utils._loadedFonts || (AFF.Utils._loadedFonts = {});
+			var loaded = ATFRFO.Utils._loadedFonts || (ATFRFO.Utils._loadedFonts = {});
 			for (var i = 0; i < cells.length; i++) {
 				var family = (cells[i].style.fontFamily || '').replace(/['"]/g, '').trim();
 				if (!family || loaded[family]) { continue; }
@@ -373,13 +373,13 @@
 		 * before the named-font heuristic existed). Called at file-load time so
 		 * in-memory state is always correct; the fix persists on next save.
 		 *
-		 * @param {Array} variables  AFF.state.variables array (mutated in place).
+		 * @param {Array} variables  ATFRFO.state.variables array (mutated in place).
 		 */
 		migrateUnclassifiedVars: function (variables) {
 			for (var i = 0; i < variables.length; i++) {
 				var v = variables[i];
 				if (!v.subgroup && v.status !== 'deleted') {
-					var cls = AFF.Utils.classifyVar(v.value || '', '');
+					var cls = ATFRFO.Utils.classifyVar(v.value || '', '');
 					if (cls.type !== 'unknown') {
 						v.type     = cls.type;
 						v.subgroup = cls.subgroup;
@@ -410,11 +410,11 @@
 	// SHARED ICON HELPERS
 	// -----------------------------------------------------------------------
 	//
-	// All SVG icon strings and the catBtn builder live here so aff-colors.js
-	// and aff-variables.js never need local copies.
+	// All SVG icon strings and the catBtn builder live here so atfrfo-colors.js
+	// and atfrfo-variables.js never need local copies.
 	// -----------------------------------------------------------------------
 
-	AFF.Icons = {
+	ATFRFO.Icons = {
 
 		/**
 		 * Build a category action icon button.
@@ -427,11 +427,11 @@
 		 * @returns {string}
 		 */
 		catBtn: function (action, label, icon, extraClass, disabled) {
-			var esc = AFF.Utils.escAttr;
-			return '<button class="aff-icon-btn ' + (extraClass || '') + '"'
+			var esc = ATFRFO.Utils.escAttr;
+			return '<button class="atfrfo-icon-btn ' + (extraClass || '') + '"'
 				+ ' data-action="' + esc(action) + '"'
 				+ ' aria-label="' + esc(label) + '"'
-				+ ' data-aff-tooltip="' + esc(label) + '"'
+				+ ' data-atfrfo-tooltip="' + esc(label) + '"'
 				+ (disabled ? ' disabled' : '')
 				+ '>'
 				+ icon
@@ -599,7 +599,7 @@
 	// SHARED CATEGORY-MANAGEMENT MIXIN
 	// -----------------------------------------------------------------------
 	//
-	// Applied to AFF.Colors and AFF.Variables._proto via Object.assign at the
+	// Applied to ATFRFO.Colors and ATFRFO.Variables._proto via Object.assign at the
 	// end of each module's IIFE.
 	//
 	// Each target must expose:
@@ -609,11 +609,11 @@
 	//   this._noFileModal()  — shows the "no file loaded" modal
 	//   this._getVarsForCategory(cat) — returns variables for a category
 
-	AFF.CatMixin = {
+	ATFRFO.CatMixin = {
 
 		/** Scroll to and expand a category block in the current view. */
 		_jumpToCategory: function (catId, container) {
-			var block = container.querySelector('.aff-category-block[data-category-id="' + catId + '"]');
+			var block = container.querySelector('.atfrfo-category-block[data-category-id="' + catId + '"]');
 			if (!block) { return; }
 			block.setAttribute('data-collapsed', 'false');
 			this._collapsedIds[catId] = false;
@@ -625,46 +625,46 @@
 		/** Open the "Add Category" modal and persist the new category via AJAX. */
 		_addCategory: function () {
 			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+			if (!ATFRFO.state.currentFile) { self._noFileModal(); return; }
 
-			AFF.Modal.open({
+			ATFRFO.Modal.open({
 				title: 'New Category',
 				body:  '<p style="margin-bottom:10px">Enter a name for the new category.</p>'
-					+ '<input type="text" class="aff-field-input" id="aff-modal-cat-name"'
+					+ '<input type="text" class="atfrfo-field-input" id="atfrfo-modal-cat-name"'
 					+ ' placeholder="Category name" autocomplete="off" style="width:100%">',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-cat-cancel">Cancel</button>'
-					+ '<button class="aff-btn" id="aff-modal-cat-ok">Add Category</button>'
+					+ '<button class="atfrfo-btn atfrfo-btn--secondary" id="atfrfo-modal-cat-cancel">Cancel</button>'
+					+ '<button class="atfrfo-btn" id="atfrfo-modal-cat-ok">Add Category</button>'
 					+ '</div>',
 				onClose: function () { document.removeEventListener('click', handleClick); },
 			});
 			setTimeout(function () {
-				var inp = document.getElementById('aff-modal-cat-name');
+				var inp = document.getElementById('atfrfo-modal-cat-name');
 				if (inp) { inp.focus(); }
 			}, 50);
 
 			function handleClick(e) {
-				if (e.target.id === 'aff-modal-cat-cancel') {
-					AFF.Modal.close();
+				if (e.target.id === 'atfrfo-modal-cat-cancel') {
+					ATFRFO.Modal.close();
 					document.removeEventListener('click', handleClick);
-				} else if (e.target.id === 'aff-modal-cat-ok') {
-					var inp  = document.getElementById('aff-modal-cat-name');
+				} else if (e.target.id === 'atfrfo-modal-cat-ok') {
+					var inp  = document.getElementById('atfrfo-modal-cat-name');
 					var name = inp ? inp.value.trim() : '';
-					AFF.Modal.close();
+					ATFRFO.Modal.close();
 					document.removeEventListener('click', handleClick);
 					if (!name) { return; }
 
-					AFF.App.ajax('aff_save_category', {
-						filename: AFF.state.currentFile,
+					ATFRFO.App.ajax('atfrfo_save_category', {
+						filename: ATFRFO.state.currentFile,
 						subgroup: self._cfg.setName,
 						category: JSON.stringify({ name: name }),
 					}).then(function (res) {
 						if (res.success && res.data) {
-							if (!AFF.state.config) { AFF.state.config = {}; }
+							if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
 							// Use in-memory list as authoritative base; only append the
 							// newly created category from the server response. This
 							// preserves any unsaved reorder/drag state in local memory.
-							var existing = (AFF.state.config[self._cfg.catKey] || []).slice();
+							var existing = (ATFRFO.state.config[self._cfg.catKey] || []).slice();
 							var newId    = res.data.id;
 							var alreadyPresent = existing.some(function (c) { return c.id === newId; });
 							if (!alreadyPresent) {
@@ -691,13 +691,13 @@
 									break;
 								}
 							}
-							AFF.state.config[self._cfg.catKey] = existing;
-							if (AFF.App) { AFF.App.setDirty(true); }
+							ATFRFO.state.config[self._cfg.catKey] = existing;
+							if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 							self._rerenderView();
-							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+							if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 						}
 					}).catch(function () {
-						console.warn('[AFF] AJAX error: add category (' + self._cfg.setName + ')');
+						console.warn('[ATFRFO] AJAX error: add category (' + self._cfg.setName + ')');
 					});
 				}
 			}
@@ -707,7 +707,7 @@
 		/**
 		 * Save the category name from the always-on contenteditable span.
 		 *
-		 * @param {HTMLElement} input The .aff-category-name-input element.
+		 * @param {HTMLElement} input The .atfrfo-category-name-input element.
 		 */
 		_saveCategoryName: function (input) {
 			var self    = this;
@@ -719,43 +719,43 @@
 				input.textContent = oldName;
 				return;
 			}
-			if (!AFF.state.currentFile) {
+			if (!ATFRFO.state.currentFile) {
 				input.textContent = oldName;
 				self._noFileModal();
 				return;
 			}
 
-			AFF.App.ajax('aff_save_category', {
-				filename: AFF.state.currentFile,
+			ATFRFO.App.ajax('atfrfo_save_category', {
+				filename: ATFRFO.state.currentFile,
 				subgroup: self._cfg.setName,
 				category: JSON.stringify({ id: catId, name: newName }),
 			}).then(function (res) {
 				if (res.success && res.data) {
-					if (!AFF.state.config) { AFF.state.config = {}; }
+					if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
 					// Update only the renamed category in memory by ID — never replace
 					// the whole array. A wholesale replacement was causing all other
 					// categories to disappear when the server returned a stale list.
-					var _localCats = AFF.state.config[self._cfg.catKey];
+					var _localCats = ATFRFO.state.config[self._cfg.catKey];
 					if (Array.isArray(_localCats)) {
 						for (var _ri = 0; _ri < _localCats.length; _ri++) {
 							if (_localCats[_ri].id === catId) { _localCats[_ri].name = newName; break; }
 						}
 					} else {
-						AFF.state.config[self._cfg.catKey] = res.data.categories || [];
+						ATFRFO.state.config[self._cfg.catKey] = res.data.categories || [];
 					}
 					// Sync the cached category name on every variable in this category.
 					// _getVarsForCategory matches by v.category === cat.name as a
 					// fallback; without this sync a rename makes those variables invisible.
-					var _allVars = AFF.state.variables || [];
+					var _allVars = ATFRFO.state.variables || [];
 					for (var _vi = 0; _vi < _allVars.length; _vi++) {
 						if (_allVars[_vi].category_id === catId || _allVars[_vi].category === oldName) {
 							_allVars[_vi].category = newName;
 						}
 					}
 					input.setAttribute('data-original', newName);
-					if (AFF.App) { AFF.App.setDirty(true); }
+					if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 					self._rerenderView();
-					if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+					if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 				} else {
 					input.textContent = oldName;
 				}
@@ -769,13 +769,13 @@
 		 */
 		_deleteCategory: function (catId) {
 			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+			if (!ATFRFO.state.currentFile) { self._noFileModal(); return; }
 
-			var cats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
-				? AFF.state.config[self._cfg.catKey] : [];
+			var cats = (ATFRFO.state.config && Array.isArray(ATFRFO.state.config[self._cfg.catKey]))
+				? ATFRFO.state.config[self._cfg.catKey] : [];
 			var catObj   = cats.find(function (c) { return c.id === catId; });
 			var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
-			var vars     = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
+			var vars     = ATFRFO.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
 
 			// BFS to find all descendant sub-categories.
 			var descCats = [];
@@ -792,7 +792,7 @@
 			var descVarCount = 0;
 			for (var _dci = 0; _dci < descCats.length; _dci++) {
 				var _dc = descCats[_dci];
-				descVarCount += AFF.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
+				descVarCount += ATFRFO.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
 			}
 
 			// deleteVars: true = delete vars with category; false = move to Uncategorized.
@@ -812,21 +812,21 @@
 				bodyText += '<p style="margin-top:var(--sp-2)">This category has '
 					+ (descCats.length > 0 ? totalVars + ' variable(s) in total (direct and nested).' : vars.length + ' variable(s).')
 					+ ' You may save them to Uncategorized if you wish.</p>'
-					+ '<div class="aff-del-cat-vars">'
-					+ '<span class="aff-del-cat-action-label">Save variables to Uncategorized:</span>'
-					+ '<label class="aff-ios-toggle" for="aff-del-cat-check">'
-					+ '<input type="checkbox" id="aff-del-cat-check">'
-					+ '<span class="aff-ios-track"><span class="aff-ios-thumb"></span></span>'
+					+ '<div class="atfrfo-del-cat-vars">'
+					+ '<span class="atfrfo-del-cat-action-label">Save variables to Uncategorized:</span>'
+					+ '<label class="atfrfo-ios-toggle" for="atfrfo-del-cat-check">'
+					+ '<input type="checkbox" id="atfrfo-del-cat-check">'
+					+ '<span class="atfrfo-ios-track"><span class="atfrfo-ios-thumb"></span></span>'
 					+ '</label>'
 					+ '</div>';
 			}
 
-			AFF.Modal.open({
+			ATFRFO.Modal.open({
 				title:   'Delete Category',
 				body:    bodyText,
 				footer:  '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-del-cancel">Cancel</button>'
-					+ '<button class="aff-btn aff-btn--danger" id="aff-modal-del-ok">Delete</button>'
+					+ '<button class="atfrfo-btn atfrfo-btn--secondary" id="atfrfo-modal-del-cancel">Cancel</button>'
+					+ '<button class="atfrfo-btn atfrfo-btn--danger" id="atfrfo-modal-del-ok">Delete</button>'
 					+ '</div>',
 				onClose: function () {
 					document.removeEventListener('click', handleClick);
@@ -838,7 +838,7 @@
 			// Checked = save to Uncategorized (deleteVars = false); unchecked = delete (deleteVars = true).
 			if (vars.length > 0) {
 				setTimeout(function () {
-					var chk = document.getElementById('aff-del-cat-check');
+					var chk = document.getElementById('atfrfo-del-cat-check');
 					if (chk) {
 						chk.addEventListener('change', function () {
 							deleteVars = !chk.checked;
@@ -849,14 +849,14 @@
 
 			// Focus Delete button on open.
 			setTimeout(function () {
-				var btn = document.getElementById('aff-modal-del-ok');
+				var btn = document.getElementById('atfrfo-modal-del-ok');
 				if (btn) { btn.focus(); }
 			}, 50);
 
 			function handleDelCatKey(e) {
 				if (e.key === 'Enter') {
 					var focused = document.activeElement;
-					if (focused && (focused.id === 'aff-modal-del-ok' || focused.id === 'aff-modal-del-cancel')) {
+					if (focused && (focused.id === 'atfrfo-modal-del-ok' || focused.id === 'atfrfo-modal-del-cancel')) {
 						e.preventDefault();
 						focused.click();
 					}
@@ -866,7 +866,7 @@
 				var isRight = e.key === 'ArrowRight';
 				var isLeft  = e.key === 'ArrowLeft';
 				if (!isTab && !isRight && !isLeft) { return; }
-				var ids = ['aff-modal-del-cancel', 'aff-modal-del-ok'];
+				var ids = ['atfrfo-modal-del-cancel', 'atfrfo-modal-del-ok'];
 				var focused = document.activeElement;
 				var idx = ids.indexOf(focused ? focused.id : '');
 				if (isTab) {
@@ -886,52 +886,52 @@
 			document.addEventListener('keydown', handleDelCatKey);
 
 			function doDeleteCategory(dv) {
-				AFF.Modal.close();
+				ATFRFO.Modal.close();
 				document.removeEventListener('click', handleClick);
 				document.removeEventListener('keydown', handleDelCatKey);
 				// Pre-capture local list so we can filter it instead of trusting
 				// the server response (avoids potential stale-list replacement).
-				var _preDelCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
-					? AFF.state.config[self._cfg.catKey].slice() : null;
-				AFF.App.ajax('aff_delete_category', {
-					filename:    AFF.state.currentFile,
+				var _preDelCats = (ATFRFO.state.config && Array.isArray(ATFRFO.state.config[self._cfg.catKey]))
+					? ATFRFO.state.config[self._cfg.catKey].slice() : null;
+				ATFRFO.App.ajax('atfrfo_delete_category', {
+					filename:    ATFRFO.state.currentFile,
 					subgroup:    self._cfg.setName,
 					category_id: catId,
 					delete_vars: dv ? '1' : '0',
 				}).then(function (res) {
 					if (res.success && res.data) {
-						if (!AFF.state.config) { AFF.state.config = {}; }
+						if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
 						var _descIds = descCats.map(function (c) { return c.id; });
-						AFF.state.config[self._cfg.catKey] = _preDelCats !== null
+						ATFRFO.state.config[self._cfg.catKey] = _preDelCats !== null
 							? _preDelCats.filter(function (c) {
 								return c.id !== catId && _descIds.indexOf(c.id) === -1;
 							})
 							: res.data.categories;
 						if (res.data.variables) {
-							AFF.state.variables = res.data.variables;
+							ATFRFO.state.variables = res.data.variables;
 						}
 						delete self._collapsedIds[catId];
 						for (var _ddi = 0; _ddi < descCats.length; _ddi++) {
 							delete self._collapsedIds[descCats[_ddi].id];
 						}
-						if (AFF.App) { AFF.App.setDirty(true); }
+						if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 						self._rerenderView();
-						if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+						if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 					} else if (!res.success) {
 						var errMsg = (res.data && res.data.message) ? res.data.message : 'Delete failed.';
-						AFF.Modal.open({ title: 'Delete failed', body: '<p>' + errMsg + '</p>' });
+						ATFRFO.Modal.open({ title: 'Delete failed', body: '<p>' + errMsg + '</p>' });
 					}
 				}).catch(function () {
-					AFF.Modal.open({ title: 'Connection error', body: '<p>Connection error during delete.</p>' });
+					ATFRFO.Modal.open({ title: 'Connection error', body: '<p>Connection error during delete.</p>' });
 				});
 			}
 
 			function handleClick(e) {
-				if (e.target.id === 'aff-modal-del-cancel') {
-					AFF.Modal.close();
+				if (e.target.id === 'atfrfo-modal-del-cancel') {
+					ATFRFO.Modal.close();
 					document.removeEventListener('click', handleClick);
 					document.removeEventListener('keydown', handleDelCatKey);
-				} else if (e.target.id === 'aff-modal-del-ok') {
+				} else if (e.target.id === 'atfrfo-modal-del-ok') {
 					doDeleteCategory(deleteVars);
 				}
 			}
@@ -946,10 +946,10 @@
 		 */
 		_clearCategory: function (catId) {
 			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+			if (!ATFRFO.state.currentFile) { self._noFileModal(); return; }
 
-			var cats   = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
-				? AFF.state.config[self._cfg.catKey] : [];
+			var cats   = (ATFRFO.state.config && Array.isArray(ATFRFO.state.config[self._cfg.catKey]))
+				? ATFRFO.state.config[self._cfg.catKey] : [];
 			var catObj = cats.find(function (c) { return c.id === catId; });
 				var catLabel = catObj ? '‘' + catObj.name + '’' : 'this category';
 
@@ -966,11 +966,11 @@
 				}
 			}
 
-			var directVars = AFF.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
+			var directVars = ATFRFO.Utils.getVarsForCategoryId(catId, catObj ? catObj.name : '');
 			var descVarCount = 0;
 			for (var _dci = 0; _dci < descCats.length; _dci++) {
 				var _dc = descCats[_dci];
-				descVarCount += AFF.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
+				descVarCount += ATFRFO.Utils.getVarsForCategoryId(_dc.id, _dc.name).length;
 			}
 			var totalVars = directVars.length + descVarCount;
 
@@ -981,12 +981,12 @@
 				+ (totalVars > 0 ? ' (' + totalVars + ' variable' + (totalVars === 1 ? '' : 's') + ')' : '')
 				+ '. The category itself will remain.</p>';
 
-			AFF.Modal.open({
+			ATFRFO.Modal.open({
 				title:   'Clear Category',
 				body:    bodyText,
 				footer:  '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-clr-cancel">Cancel</button>'
-					+ '<button class="aff-btn aff-btn--danger" id="aff-modal-clr-ok">Clear</button>'
+					+ '<button class="atfrfo-btn atfrfo-btn--secondary" id="atfrfo-modal-clr-cancel">Cancel</button>'
+					+ '<button class="atfrfo-btn atfrfo-btn--danger" id="atfrfo-modal-clr-ok">Clear</button>'
 					+ '</div>',
 				onClose: function () {
 					document.removeEventListener('click', handleClrClick);
@@ -995,14 +995,14 @@
 			});
 
 			setTimeout(function () {
-				var btn = document.getElementById('aff-modal-clr-ok');
+				var btn = document.getElementById('atfrfo-modal-clr-ok');
 				if (btn) { btn.focus(); }
 			}, 50);
 
 			function handleClrKey(e) {
 				if (e.key === 'Enter') {
 					var focused = document.activeElement;
-					if (focused && (focused.id === 'aff-modal-clr-ok' || focused.id === 'aff-modal-clr-cancel')) {
+					if (focused && (focused.id === 'atfrfo-modal-clr-ok' || focused.id === 'atfrfo-modal-clr-cancel')) {
 						e.preventDefault();
 						focused.click();
 					}
@@ -1010,7 +1010,7 @@
 				}
 				var isTab = e.key === 'Tab', isRight = e.key === 'ArrowRight', isLeft = e.key === 'ArrowLeft';
 				if (!isTab && !isRight && !isLeft) { return; }
-				var ids = ['aff-modal-clr-cancel', 'aff-modal-clr-ok'];
+				var ids = ['atfrfo-modal-clr-cancel', 'atfrfo-modal-clr-ok'];
 				var focused = document.activeElement;
 				var idx = ids.indexOf(focused ? focused.id : '');
 				if (isTab) { e.preventDefault(); e.stopImmediatePropagation(); }
@@ -1025,47 +1025,47 @@
 			document.addEventListener('keydown', handleClrKey);
 
 			function doClearCategory() {
-				AFF.Modal.close();
+				ATFRFO.Modal.close();
 				document.removeEventListener('click', handleClrClick);
 				document.removeEventListener('keydown', handleClrKey);
-				var _preCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
-					? AFF.state.config[self._cfg.catKey].slice() : null;
-				AFF.App.ajax('aff_clear_category', {
-					filename:    AFF.state.currentFile,
+				var _preCats = (ATFRFO.state.config && Array.isArray(ATFRFO.state.config[self._cfg.catKey]))
+					? ATFRFO.state.config[self._cfg.catKey].slice() : null;
+				ATFRFO.App.ajax('atfrfo_clear_category', {
+					filename:    ATFRFO.state.currentFile,
 					subgroup:    self._cfg.setName,
 					category_id: catId,
 				}).then(function (res) {
 					if (res.success && res.data) {
-						if (!AFF.state.config) { AFF.state.config = {}; }
+						if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
 						var _descIds = descCats.map(function (c) { return c.id; });
 						// Remove descendant sub-categories but keep the target category.
-						AFF.state.config[self._cfg.catKey] = _preCats !== null
+						ATFRFO.state.config[self._cfg.catKey] = _preCats !== null
 							? _preCats.filter(function (c) { return _descIds.indexOf(c.id) === -1; })
 							: res.data.categories;
 						if (res.data.variables) {
-							AFF.state.variables = res.data.variables;
+							ATFRFO.state.variables = res.data.variables;
 						}
 						for (var _ddi = 0; _ddi < descCats.length; _ddi++) {
 							delete self._collapsedIds[descCats[_ddi].id];
 						}
-						if (AFF.App) { AFF.App.setDirty(true); }
+						if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 						self._rerenderView();
-						if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+						if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 					} else if (!res.success) {
 						var errMsg = (res.data && res.data.message) ? res.data.message : 'Clear failed.';
-						AFF.Modal.open({ title: 'Clear failed', body: '<p>' + errMsg + '</p>' });
+						ATFRFO.Modal.open({ title: 'Clear failed', body: '<p>' + errMsg + '</p>' });
 					}
 				}).catch(function () {
-					AFF.Modal.open({ title: 'Connection error', body: '<p>Connection error during clear.</p>' });
+					ATFRFO.Modal.open({ title: 'Connection error', body: '<p>Connection error during clear.</p>' });
 				});
 			}
 
 			function handleClrClick(e) {
-				if (e.target.id === 'aff-modal-clr-cancel') {
-					AFF.Modal.close();
+				if (e.target.id === 'atfrfo-modal-clr-cancel') {
+					ATFRFO.Modal.close();
 					document.removeEventListener('click', handleClrClick);
 					document.removeEventListener('keydown', handleClrKey);
-				} else if (e.target.id === 'aff-modal-clr-ok') {
+				} else if (e.target.id === 'atfrfo-modal-clr-ok') {
 					doClearCategory();
 				}
 			}
@@ -1079,22 +1079,22 @@
 		 */
 		_duplicateCategory: function (catId) {
 			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+			if (!ATFRFO.state.currentFile) { self._noFileModal(); return; }
 
-			var cats = (AFF.state.config && AFF.state.config[self._cfg.catKey]) || [];
+			var cats = (ATFRFO.state.config && ATFRFO.state.config[self._cfg.catKey]) || [];
 			var cat  = null;
 			for (var i = 0; i < cats.length; i++) {
 				if (cats[i].id === catId) { cat = cats[i]; break; }
 			}
 			if (!cat) { return; }
 
-			AFF.App.ajax('aff_save_category', {
-				filename: AFF.state.currentFile,
+			ATFRFO.App.ajax('atfrfo_save_category', {
+				filename: ATFRFO.state.currentFile,
 				subgroup: self._cfg.setName,
 				category: JSON.stringify({ name: cat.name + ' (copy)' }),
 			}).then(function (res) {
 				if (!res.success || !res.data) { return; }
-				if (!AFF.state.config) { AFF.state.config = {}; }
+				if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
 				// Merge: append new duplicate category to local state by ID rather
 				// than replacing the whole array from the server response.
 				var _dupCat = null;
@@ -1103,12 +1103,12 @@
 					if (_dupServerCats[_di].id === res.data.id) { _dupCat = _dupServerCats[_di]; break; }
 				}
 				if (_dupCat) {
-					if (!Array.isArray(AFF.state.config[self._cfg.catKey])) {
-						AFF.state.config[self._cfg.catKey] = [];
+					if (!Array.isArray(ATFRFO.state.config[self._cfg.catKey])) {
+						ATFRFO.state.config[self._cfg.catKey] = [];
 					}
-					AFF.state.config[self._cfg.catKey].push(_dupCat);
+					ATFRFO.state.config[self._cfg.catKey].push(_dupCat);
 				} else {
-					AFF.state.config[self._cfg.catKey] = _dupServerCats;
+					ATFRFO.state.config[self._cfg.catKey] = _dupServerCats;
 				}
 				var newCatId = res.data.id;
 				var vars     = self._getVarsForCategory(cat);
@@ -1125,21 +1125,21 @@
 					};
 					(function (dv) {
 						chain = chain.then(function () {
-							return AFF.App.ajax('aff_save_color', {
-								filename: AFF.state.currentFile,
+							return ATFRFO.App.ajax('atfrfo_save_color', {
+								filename: ATFRFO.state.currentFile,
 								variable: JSON.stringify(dv),
 							}).then(function (r) {
 								if (r.success && r.data && r.data.data) {
-									AFF.state.variables = r.data.data.variables;
+									ATFRFO.state.variables = r.data.data.variables;
 								}
 							});
 						});
 					}(dupVar));
 				});
 				chain.then(function () {
-					if (AFF.App) { AFF.App.setDirty(true); AFF.App.refreshCounts(); }
+					if (ATFRFO.App) { ATFRFO.App.setDirty(true); ATFRFO.App.refreshCounts(); }
 					self._rerenderView();
-					if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+					if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 				}).catch(function () {});
 			}).catch(function () {});
 		},
@@ -1156,11 +1156,11 @@
 
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector(self._catViewSelector())) { return; }
-				var handle = e.target.closest('.aff-cat-drag-handle');
+				var handle = e.target.closest('.atfrfo-cat-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
 
-				var block = handle.closest('.aff-category-block');
+				var block = handle.closest('.atfrfo-category-block');
 				if (!block) { return; }
 
 				d.catId = block.getAttribute('data-category-id');
@@ -1175,16 +1175,16 @@
 					+ 'width:' + block.offsetWidth + 'px;'
 					+ 'top:' + blockRect.top + 'px;left:' + blockRect.left + 'px;'
 					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:12px;';
-				ghost.className += ' aff-drag-ghost';
+				ghost.className += ' atfrfo-drag-ghost';
 				document.body.appendChild(ghost);
 				d.ghost = ghost;
 
 				var indicator = document.createElement('div');
-				indicator.className = 'aff-drop-indicator';
+				indicator.className = 'atfrfo-drop-indicator';
 				indicator.style.display = 'none';
 				indicator.style.pointerEvents = 'none';
-				var _appEl  = document.getElementById('aff-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
+				var _appEl  = document.getElementById('atfrfo-app');
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
 				if (!_accent) { _accent = '#f4c542'; }
 				indicator.style.background = 'linear-gradient(to right, transparent, '
 					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
@@ -1203,7 +1203,7 @@
 				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
 				d.ghost.style.display = '';
 
-				var targetBlock = elBelow ? elBelow.closest('.aff-category-block') : null;
+				var targetBlock = elBelow ? elBelow.closest('.atfrfo-category-block') : null;
 				if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
 					var tbRect = targetBlock.getBoundingClientRect();
 					var above  = e.clientY < tbRect.top + tbRect.height / 2;
@@ -1229,7 +1229,7 @@
 				d.ghost     = null;
 				d.indicator = null;
 
-				var draggingBlock = container.querySelector('.aff-category-block[data-category-id="' + d.catId + '"]');
+				var draggingBlock = container.querySelector('.atfrfo-category-block[data-category-id="' + d.catId + '"]');
 				if (draggingBlock) { draggingBlock.style.opacity = ''; }
 
 				if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
@@ -1243,22 +1243,22 @@
 
 		/**
 		 * Filter variable rows by search query, hiding empty category blocks.
-		 * Uses AFF.Utils.findVarByKey to match against state (name + value).
+		 * Uses ATFRFO.Utils.findVarByKey to match against state (name + value).
 		 *
 		 * @param {HTMLElement} container
 		 * @param {string}      query Lowercased search string.
 		 */
 		_filterRows: function (container, query) {
 			var lq     = (query || '').trim().toLowerCase();
-			var blocks = container.querySelectorAll('.aff-category-block');
+			var blocks = container.querySelectorAll('.atfrfo-category-block');
 			for (var bi = 0; bi < blocks.length; bi++) {
 				var block      = blocks[bi];
-				var rows       = block.querySelectorAll('.aff-color-row');
+				var rows       = block.querySelectorAll('.atfrfo-color-row');
 				var anyVisible = false;
 				for (var ri = 0; ri < rows.length; ri++) {
 					var row   = rows[ri];
 					var varId = row.getAttribute('data-var-id');
-					var v     = varId ? AFF.Utils.findVarByKey(varId) : null;
+					var v     = varId ? ATFRFO.Utils.findVarByKey(varId) : null;
 					var match = !lq;
 					if (!match && v) {
 						match = (v.name  || '').toLowerCase().indexOf(lq) !== -1
@@ -1281,8 +1281,8 @@
 			var catKey = self._cfg.catKey;
 
 			// Apply locally so the re-render shows the new order instantly.
-			if (AFF.state.config && AFF.state.config[catKey]) {
-				var cats = AFF.state.config[catKey];
+			if (ATFRFO.state.config && ATFRFO.state.config[catKey]) {
+				var cats = ATFRFO.state.config[catKey];
 				for (var i = 0; i < orderedIds.length; i++) {
 					for (var j = 0; j < cats.length; j++) {
 						if (cats[j].id === orderedIds[i]) { cats[j].order = i; break; }
@@ -1291,11 +1291,11 @@
 			}
 			self._rerenderView();
 
-			if (!AFF.state.currentFile) { return; }
-			if (AFF.App) { AFF.App.setDirty(true); }
+			if (!ATFRFO.state.currentFile) { return; }
+			if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 
-			AFF.App.ajax('aff_reorder_categories', {
-				filename:    AFF.state.currentFile,
+			ATFRFO.App.ajax('atfrfo_reorder_categories', {
+				filename:    ATFRFO.state.currentFile,
 				subgroup:    self._cfg.setName,
 				ordered_ids: JSON.stringify(orderedIds),
 			}).then(function (res) {
@@ -1313,52 +1313,52 @@
 		 */
 		_addSubCategory: function (parentCatId) {
 			var self = this;
-			if (!AFF.state.currentFile) { self._noFileModal(); return; }
+			if (!ATFRFO.state.currentFile) { self._noFileModal(); return; }
 
-			var allCats = (AFF.state.config && Array.isArray(AFF.state.config[self._cfg.catKey]))
-				? AFF.state.config[self._cfg.catKey] : [];
+			var allCats = (ATFRFO.state.config && Array.isArray(ATFRFO.state.config[self._cfg.catKey]))
+				? ATFRFO.state.config[self._cfg.catKey] : [];
 			var parentCat = null;
 			for (var _pi = 0; _pi < allCats.length; _pi++) {
 				if (allCats[_pi].id === parentCatId) { parentCat = allCats[_pi]; break; }
 			}
 
-			AFF.Modal.open({
+			ATFRFO.Modal.open({
 				title: 'New Sub-category',
 				body:  '<p style="margin-bottom:10px">Enter a name for the new sub-category'
-					+ (parentCat ? ' under “' + AFF.Utils.escHtml(parentCat.name) + '”' : '')
+					+ (parentCat ? ' under “' + ATFRFO.Utils.escHtml(parentCat.name) + '”' : '')
 					+ '.</p>'
-					+ '<input type="text" class="aff-field-input" id="aff-modal-subcat-name"'
+					+ '<input type="text" class="atfrfo-field-input" id="atfrfo-modal-subcat-name"'
 					+ ' placeholder="Sub-category name" autocomplete="off" style="width:100%">',
 				footer: '<div style="display:flex;justify-content:flex-end;gap:8px">'
-					+ '<button class="aff-btn aff-btn--secondary" id="aff-modal-subcat-cancel">Cancel</button>'
-					+ '<button class="aff-btn" id="aff-modal-subcat-ok">Add Sub-category</button>'
+					+ '<button class="atfrfo-btn atfrfo-btn--secondary" id="atfrfo-modal-subcat-cancel">Cancel</button>'
+					+ '<button class="atfrfo-btn" id="atfrfo-modal-subcat-ok">Add Sub-category</button>'
 					+ '</div>',
 				onClose: function () { document.removeEventListener('click', _scHandleClick); },
 			});
 			setTimeout(function () {
-				var inp = document.getElementById('aff-modal-subcat-name');
+				var inp = document.getElementById('atfrfo-modal-subcat-name');
 				if (inp) { inp.focus(); }
 			}, 50);
 
 			function _scHandleClick(e) {
-				if (e.target.id === 'aff-modal-subcat-cancel') {
-					AFF.Modal.close();
+				if (e.target.id === 'atfrfo-modal-subcat-cancel') {
+					ATFRFO.Modal.close();
 					document.removeEventListener('click', _scHandleClick);
-				} else if (e.target.id === 'aff-modal-subcat-ok') {
-					var inp  = document.getElementById('aff-modal-subcat-name');
+				} else if (e.target.id === 'atfrfo-modal-subcat-ok') {
+					var inp  = document.getElementById('atfrfo-modal-subcat-name');
 					var name = inp ? inp.value.trim() : '';
-					AFF.Modal.close();
+					ATFRFO.Modal.close();
 					document.removeEventListener('click', _scHandleClick);
 					if (!name) { return; }
 
-					AFF.App.ajax('aff_save_category', {
-						filename: AFF.state.currentFile,
+					ATFRFO.App.ajax('atfrfo_save_category', {
+						filename: ATFRFO.state.currentFile,
 						subgroup: self._cfg.setName,
 						category: JSON.stringify({ name: name, parent_id: parentCatId }),
 					}).then(function (res) {
 						if (res.success && res.data) {
-							if (!AFF.state.config) { AFF.state.config = {}; }
-							var existing  = (AFF.state.config[self._cfg.catKey] || []).slice();
+							if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
+							var existing  = (ATFRFO.state.config[self._cfg.catKey] || []).slice();
 							var newId     = res.data.id;
 							var alreadyIn = existing.some(function (c) { return c.id === newId; });
 							if (!alreadyIn) {
@@ -1370,13 +1370,13 @@
 									}
 								}
 							}
-							AFF.state.config[self._cfg.catKey] = existing;
-							if (AFF.App) { AFF.App.setDirty(true); }
+							ATFRFO.state.config[self._cfg.catKey] = existing;
+							if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 							self._rerenderView();
-							if (AFF.PanelLeft && AFF.PanelLeft.refresh) { AFF.PanelLeft.refresh(); }
+							if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 						}
 					}).catch(function () {
-						console.warn('[AFF] AJAX error: add sub-category (' + self._cfg.setName + ')');
+						console.warn('[ATFRFO] AJAX error: add sub-category (' + self._cfg.setName + ')');
 					});
 				}
 			}
@@ -1385,10 +1385,10 @@
 
 	};
 
-	// aff-colors.js and aff-variables.js load before aff-app.js, so their
+	// atfrfo-colors.js and atfrfo-variables.js load before atfrfo-app.js, so their
 	// module objects are already defined by the time this runs.
-	Object.assign(AFF.Colors, AFF.CatMixin);
-	Object.assign(AFF.Variables._proto, AFF.CatMixin);
+	Object.assign(ATFRFO.Colors, ATFRFO.CatMixin);
+	Object.assign(ATFRFO.Variables._proto, ATFRFO.CatMixin);
 
 	// -----------------------------------------------------------------------
 	// UNIFIED VARIABLE DRAG-AND-DROP
@@ -1401,15 +1401,15 @@
 	//
 	// Public surface
 	// ──────────────
-	//   AFF.VarDrag.rowKey(v)              → row key string for a variable object
-	//   AFF.VarDrag.drop(opts)             → commit a completed drag (update state + AJAX)
-	//   AFF.VarDrag.init(container, opts)  → bind drag events to a container element
+	//   ATFRFO.VarDrag.rowKey(v)              → row key string for a variable object
+	//   ATFRFO.VarDrag.drop(opts)             → commit a completed drag (update state + AJAX)
+	//   ATFRFO.VarDrag.init(container, opts)  → bind drag events to a container element
 	//
 	// opts for drop()
 	//   draggedId      {string}           row key of the dragged variable
 	//   targetId       {string}           row key of the drop-target variable, or '__empty-cat__'
 	//   insertBefore   {boolean}          insert before (true) or after (false) target
-	//   targetCatBlock {HTMLElement|null} .aff-category-block at the drop point
+	//   targetCatBlock {HTMLElement|null} .atfrfo-category-block at the drop point
 	//   getCats        {Function}         () → category array for this subgroup
 	//   rerenderView   {Function}         () → re-renders the edit panel
 	//
@@ -1418,7 +1418,7 @@
 	//   onDrop         {Function}         (draggedId, targetId, insertBefore, targetCatBlock)
 	// -----------------------------------------------------------------------
 
-	AFF.VarDrag = {
+	ATFRFO.VarDrag = {
 
 		/** Row key for a variable: UUID when available, otherwise a name-based sentinel. */
 		rowKey: function (v) {
@@ -1436,7 +1436,7 @@
 		 *   draggedId      {string}    row key of the dragged variable
 		 *   targetId       {string}    row key of the drop target, or '__empty-cat__'
 		 *   insertBefore   {boolean}   insert before (true) or after (false) target
-		 *   targetCatBlock {Element}   .aff-category-block at drop point
+		 *   targetCatBlock {Element}   .atfrfo-category-block at drop point
 		 *   getCats        {Function}  () → sorted category objects for this subgroup
 		 *   getSetVars     {Function}  () → all variable objects for this subgroup
 		 *   rerenderView   {Function}  () → re-renders the edit panel
@@ -1447,13 +1447,13 @@
 			var insertBefore   = opts.insertBefore;
 			var targetCatBlock = opts.targetCatBlock;
 			var getCats        = opts.getCats;
-			var getSetVars     = opts.getSetVars || function () { return AFF.state.variables; };
+			var getSetVars     = opts.getSetVars || function () { return ATFRFO.state.variables; };
 			var rerenderView   = opts.rerenderView;
 
-			if (!draggedId || !AFF.state.currentFile) { return; }
+			if (!draggedId || !ATFRFO.state.currentFile) { return; }
 
-			var self    = AFF.VarDrag;
-			var allVars = AFF.state.variables;
+			var self    = ATFRFO.VarDrag;
+			var allVars = ATFRFO.state.variables;
 
 			// Locate the dragged variable in the global pool (UUID lookup).
 			var dragged = null;
@@ -1483,11 +1483,11 @@
 				dragged.category_id = newCatId;
 				dragged.order       = 0;
 				rerenderView();
-				if (AFF.App) { AFF.App.setDirty(true); if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); } }
-				AFF.App.ajax('aff_save_color', {
-					filename: AFF.state.currentFile,
+				if (ATFRFO.App) { ATFRFO.App.setDirty(true); if (ATFRFO.PanelLeft) { ATFRFO.PanelLeft.refresh(); } }
+				ATFRFO.App.ajax('atfrfo_save_color', {
+					filename: ATFRFO.state.currentFile,
 					variable: JSON.stringify({ id: dragged.id, order: 0, category: newCatName, category_id: newCatId }),
-				}).catch(function () { console.warn('[AFF] VarDrag: AJAX error on empty-cat drop'); });
+				}).catch(function () { console.warn('[ATFRFO] VarDrag: AJAX error on empty-cat drop'); });
 				return;
 			}
 
@@ -1523,19 +1523,19 @@
 			}
 
 			rerenderView();
-			if (AFF.App) {
-				AFF.App.setDirty(true);
-				if (AFF.PanelLeft) { AFF.PanelLeft.refresh(); }
+			if (ATFRFO.App) {
+				ATFRFO.App.setDirty(true);
+				if (ATFRFO.PanelLeft) { ATFRFO.PanelLeft.refresh(); }
 			}
 
 			// Persist each affected variable (fire-and-forget — no state update from response).
 			for (var pi = 0; pi < saves.length; pi++) {
 				(function (saveItem) {
 					if (!saveItem.id) { return; }
-					AFF.App.ajax('aff_save_color', {
-						filename: AFF.state.currentFile,
+					ATFRFO.App.ajax('atfrfo_save_color', {
+						filename: ATFRFO.state.currentFile,
 						variable: JSON.stringify(saveItem),
-					}).catch(function () { console.warn('[AFF] VarDrag: AJAX error on persist reorder'); });
+					}).catch(function () { console.warn('[ATFRFO] VarDrag: AJAX error on persist reorder'); });
 				}(saves[pi]));
 			}
 		},
@@ -1545,7 +1545,7 @@
 		 *
 		 * @param {HTMLElement} container   The edit-content element.
 		 * @param {Object}      opts
-		 *   viewSelector {string}    Selector for the active view (e.g. '.aff-colors-view')
+		 *   viewSelector {string}    Selector for the active view (e.g. '.atfrfo-colors-view')
 		 *   onDrop       {Function}  (draggedId, targetId, insertBefore, targetCatBlock)
 		 */
 		init: function (container, opts) {
@@ -1562,11 +1562,11 @@
 			// ---- mousedown ----
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector(viewSelector)) { return; }
-				var handle = e.target.closest('.aff-drag-handle');
+				var handle = e.target.closest('.atfrfo-drag-handle');
 				if (!handle) { return; }
 				e.preventDefault();
 
-				var row = handle.closest('.aff-color-row');
+				var row = handle.closest('.atfrfo-color-row');
 				if (!row) { return; }
 
 				drag.varId = row.getAttribute('data-var-id');
@@ -1575,7 +1575,7 @@
 				drag.active = true;
 				drag.startY = e.clientY;
 
-				var _es = document.getElementById('aff-edit-space');
+				var _es = document.getElementById('atfrfo-edit-space');
 				drag.startScroll = _es ? _es.scrollTop : 0;
 
 				var ghost   = row.cloneNode(true);
@@ -1586,16 +1586,16 @@
 					+ 'top:' + rowRect.top + 'px;'
 					+ 'left:' + rowRect.left + 'px;'
 					+ 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:4px;';
-				ghost.className += ' aff-drag-ghost';
+				ghost.className += ' atfrfo-drag-ghost';
 				document.body.appendChild(ghost);
 				drag.ghost = ghost;
 
 				var indicator         = document.createElement('div');
-				indicator.className   = 'aff-drop-indicator';
+				indicator.className   = 'atfrfo-drop-indicator';
 				indicator.style.display      = 'none';
 				indicator.style.pointerEvents = 'none';
-				var _appEl  = document.getElementById('aff-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--aff-clr-accent').trim() : '';
+				var _appEl  = document.getElementById('atfrfo-app');
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
 				if (!_accent) { _accent = '#f4c542'; }
 				indicator.style.background = 'linear-gradient(to right, transparent,'
 					+ _accent + ' 15%,' + _accent + ' 85%, transparent)';
@@ -1603,7 +1603,7 @@
 				document.body.appendChild(indicator);
 				drag.indicator = indicator;
 
-				row.classList.add('aff-row-dragging');
+				row.classList.add('atfrfo-row-dragging');
 			});
 
 			// ---- mousemove ----
@@ -1617,7 +1617,7 @@
 				drag.startY = e.clientY;
 
 				// Auto-scroll the edit-space panel when near its top/bottom edge.
-				var _editSpace = document.getElementById('aff-edit-space');
+				var _editSpace = document.getElementById('atfrfo-edit-space');
 				if (_editSpace) {
 					var _rect = _editSpace.getBoundingClientRect();
 					var _sz   = 60;
@@ -1638,34 +1638,34 @@
 				var el = document.elementFromPoint(e.clientX, e.clientY);
 				drag.ghost.style.display = '';
 
-				var targetRow = el ? el.closest('.aff-color-row') : null;
+				var targetRow = el ? el.closest('.atfrfo-color-row') : null;
 
 				// If no row found, check if cursor is over a collapsed category block.
 				// Expand it immediately and re-probe so the indicator appears on the
 				// same mouse event (no one-event lag).
 				if (!targetRow && el) {
-					var hoverBlock = el.closest('.aff-category-block');
+					var hoverBlock = el.closest('.atfrfo-category-block');
 					if (hoverBlock && hoverBlock.getAttribute('data-collapsed') === 'true') {
 						hoverBlock.setAttribute('data-collapsed', 'false');
 						drag.ghost.style.display = 'none';
 						var el2 = document.elementFromPoint(e.clientX, e.clientY);
 						drag.ghost.style.display = '';
-						var newRow = el2 ? el2.closest('.aff-color-row') : null;
+						var newRow = el2 ? el2.closest('.atfrfo-color-row') : null;
 						if (newRow) { targetRow = newRow; }
 					}
 				}
 
 				// Cursor over an expanded block but not on a row → append to its end.
 				if (!targetRow && el) {
-					var hoverBlock2 = el.closest('.aff-category-block');
+					var hoverBlock2 = el.closest('.atfrfo-category-block');
 					if (hoverBlock2 && hoverBlock2.getAttribute('data-collapsed') === 'false') {
-						var blockRows = hoverBlock2.querySelectorAll('.aff-color-row:not(.aff-row-dragging)');
+						var blockRows = hoverBlock2.querySelectorAll('.atfrfo-color-row:not(.atfrfo-row-dragging)');
 						if (blockRows.length > 0) {
 							targetRow = blockRows[blockRows.length - 1];
 							drag._forceAfter = true;
 						} else {
 							// Empty category — show indicator in the list body.
-							var emptyBody = hoverBlock2.querySelector('.aff-color-list');
+							var emptyBody = hoverBlock2.querySelector('.atfrfo-color-list');
 							if (emptyBody) {
 								var er = emptyBody.getBoundingClientRect();
 								drag.indicator.style.display    = 'block';
@@ -1690,9 +1690,9 @@
 					drag.indicator.style.width     = rect.width + 'px';
 					drag.indicator._targetVarId    = targetRow.getAttribute('data-var-id');
 					drag.indicator._insertBefore   = before;
-					drag.indicator._targetCatBlock = targetRow.closest('.aff-category-block');
+					drag.indicator._targetCatBlock = targetRow.closest('.atfrfo-category-block');
 				} else {
-					if (!el || !el.closest('.aff-category-block')) {
+					if (!el || !el.closest('.atfrfo-category-block')) {
 						drag.indicator.style.display = 'none';
 						drag.indicator._targetVarId  = null;
 					}
@@ -1713,8 +1713,8 @@
 				if (drag.ghost)     { drag.ghost.parentNode     && drag.ghost.parentNode.removeChild(drag.ghost); }
 				if (drag.indicator) { drag.indicator.parentNode && drag.indicator.parentNode.removeChild(drag.indicator); }
 
-				var draggingRow = container.querySelector('.aff-color-row.aff-row-dragging');
-				if (draggingRow) { draggingRow.classList.remove('aff-row-dragging'); }
+				var draggingRow = container.querySelector('.atfrfo-color-row.atfrfo-row-dragging');
+				if (draggingRow) { draggingRow.classList.remove('atfrfo-row-dragging'); }
 
 				drag.ghost     = null;
 				drag.indicator = null;
@@ -1730,7 +1730,7 @@
 
 				// Restore scroll to where it was before the drag started,
 				// but only if it actually moved during the drag.
-				var _es = document.getElementById('aff-edit-space');
+				var _es = document.getElementById('atfrfo-edit-space');
 				if (_es && _es.scrollTop !== savedScroll) {
 					_es.scrollTop = savedScroll;
 				}
@@ -1743,7 +1743,7 @@
 	// CORE APP API
 	// -----------------------------------------------------------------------
 
-	AFF.App = {
+	ATFRFO.App = {
 
 		/**
 		 * Set or clear the unsaved-changes flag and update the Save Changes button.
@@ -1751,11 +1751,11 @@
 		 * @param {boolean} isDirty
 		 */
 		setDirty: function (isDirty) {
-			AFF.state.hasUnsavedChanges = isDirty;
-			if (AFF.PanelRight) {
-				AFF.PanelRight.updateSaveChangesBtn();
+			ATFRFO.state.hasUnsavedChanges = isDirty;
+			if (ATFRFO.PanelRight) {
+				ATFRFO.PanelRight.updateSaveChangesBtn();
 			}
-			var saveBtn = document.getElementById('aff-btn-save-changes');
+			var saveBtn = document.getElementById('atfrfo-btn-save-changes');
 			if (saveBtn) { saveBtn.classList.toggle('has-changes', !!isDirty); }
 		},
 
@@ -1766,9 +1766,9 @@
 		 * @param {boolean} hasPending
 		 */
 		setPendingCommit: function (hasPending) {
-			AFF.state.hasPendingElementorCommit = hasPending;
-			if (AFF.PanelRight) {
-				AFF.PanelRight.updateCommitBtn();
+			ATFRFO.state.hasPendingElementorCommit = hasPending;
+			if (ATFRFO.PanelRight) {
+				ATFRFO.PanelRight.updateCommitBtn();
 			}
 		},
 
@@ -1777,30 +1777,30 @@
 		 */
 		refreshCounts: function () {
 			var counts = {
-				variables:  AFF.state.variables.filter(function (v) { return v.status !== 'deleted'; }).length,
-				classes:    AFF.state.classes.length,
-				components: AFF.state.components.length,
+				variables:  ATFRFO.state.variables.filter(function (v) { return v.status !== 'deleted'; }).length,
+				classes:    ATFRFO.state.classes.length,
+				components: ATFRFO.state.components.length,
 			};
-			if (AFF.PanelRight) {
-				AFF.PanelRight.updateCounts(counts);
+			if (ATFRFO.PanelRight) {
+				ATFRFO.PanelRight.updateCounts(counts);
 			}
 		},
 
 		/**
-		 * Perform a generic AJAX request to an AFF endpoint.
+		 * Perform a generic AJAX request to an ATFRFO endpoint.
 		 *
 		 * @param {string} action  WordPress AJAX action name.
 		 * @param {Object} data    Additional POST data (excluding action/nonce).
 		 * @returns {Promise<Object>} Parsed JSON response.
 		 */
 		ajax: function (action, data) {
-			if (typeof AFFData === 'undefined') {
-				return Promise.reject(new Error('AFFData not available'));
+			if (typeof ATFRFOData === 'undefined') {
+				return Promise.reject(new Error('ATFRFOData not available'));
 			}
 
-			var body = Object.assign({ action: action, nonce: AFFData.nonce }, data || {});
+			var body = Object.assign({ action: action, nonce: ATFRFOData.nonce }, data || {});
 
-			return fetch(AFFData.ajaxUrl, {
+			return fetch(ATFRFOData.ajaxUrl, {
 				method:      'POST',
 				headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
 				credentials: 'same-origin',
@@ -1815,25 +1815,25 @@
 
 		/**
 		 * Scan all Elementor widget data for references to the current variables.
-		 * Results are stored in AFF.state.usageCounts and the current edit view
+		 * Results are stored in ATFRFO.state.usageCounts and the current edit view
 		 * is refreshed if a category is already loaded.
 		 *
 		 * @returns {Promise}
 		 */
 		fetchUsageCounts: function () {
-			var names = AFF.state.variables.map(function (v) { return v.name; });
+			var names = ATFRFO.state.variables.map(function (v) { return v.name; });
 			if (names.length === 0) {
 				return Promise.resolve();
 			}
 
-			return AFF.App.ajax('aff_get_usage_counts', {
+			return ATFRFO.App.ajax('atfrfo_get_usage_counts', {
 				variable_names: JSON.stringify(names),
 			}).then(function (res) {
 				if (res.success) {
-					AFF.state.usageCounts = res.data.counts || {};
+					ATFRFO.state.usageCounts = res.data.counts || {};
 					// Re-render the current category view to show updated badges
-					if (AFF.state.currentSelection && AFF.EditSpace) {
-						AFF.EditSpace.loadCategory(AFF.state.currentSelection);
+					if (ATFRFO.state.currentSelection && ATFRFO.EditSpace) {
+						ATFRFO.EditSpace.loadCategory(ATFRFO.state.currentSelection);
 					}
 				}
 			}).catch(function () {
@@ -1842,68 +1842,68 @@
 		},
 
 		/**
-		 * Apply accessibility/UI preferences from saved settings to #aff-app.
-		 * Sets data attributes that drive CSS overrides in aff-preferences.css.
+		 * Apply accessibility/UI preferences from saved settings to #atfrfo-app.
+		 * Sets data attributes that drive CSS overrides in atfrfo-preferences.css.
 		 * Call on startup after settings load, and after any preference change.
 		 *
 		 * @param {Object} settings  Saved settings object.
 		 */
 		applyA11y: function (settings) {
-			var app = document.getElementById('aff-app');
+			var app = document.getElementById('atfrfo-app');
 			if (!app || !settings) { return; }
 
 			// Font size: treat absent attribute as the default size (16px), matching
-			// both the base CSS (aff-preferences.css has no override rule for 16) and
-			// AFF_Settings::$defaults['ui_font_size'] (see tech debt C-04, fixed 2026-08-02).
+			// both the base CSS (atfrfo-preferences.css has no override rule for 16) and
+			// ATFRFO_Settings::$defaults['ui_font_size'] (see tech debt C-04, fixed 2026-08-02).
 			var fs = parseInt(settings.ui_font_size, 10) || 16;
 			if (fs !== 16) {
-				app.setAttribute('data-aff-font-size', String(fs));
+				app.setAttribute('data-atfrfo-font-size', String(fs));
 			} else {
-				app.removeAttribute('data-aff-font-size');
+				app.removeAttribute('data-atfrfo-font-size');
 			}
 
 			// Color contrast
 			if (settings.ui_contrast === 'high') {
-				app.setAttribute('data-aff-contrast', 'high');
+				app.setAttribute('data-atfrfo-contrast', 'high');
 			} else {
-				app.removeAttribute('data-aff-contrast');
+				app.removeAttribute('data-atfrfo-contrast');
 			}
 
 			// Button size
 			if (settings.ui_btn_size && settings.ui_btn_size !== 'normal') {
-				app.setAttribute('data-aff-btn-size', settings.ui_btn_size);
+				app.setAttribute('data-atfrfo-btn-size', settings.ui_btn_size);
 			} else {
-				app.removeAttribute('data-aff-btn-size');
+				app.removeAttribute('data-atfrfo-btn-size');
 			}
 
 			// Button contrast
 			if (settings.ui_btn_contrast === 'high') {
-				app.setAttribute('data-aff-btn-contrast', 'high');
+				app.setAttribute('data-atfrfo-btn-contrast', 'high');
 			} else {
-				app.removeAttribute('data-aff-btn-contrast');
+				app.removeAttribute('data-atfrfo-btn-contrast');
 			}
 
 			// Layout density
 			if (settings.layout_density && settings.layout_density !== 'normal') {
-				app.setAttribute('data-aff-density', settings.layout_density);
+				app.setAttribute('data-atfrfo-density', settings.layout_density);
 			} else {
-				app.removeAttribute('data-aff-density');
+				app.removeAttribute('data-atfrfo-density');
 			}
 
 			// Reduced motion
 			if (settings.reduced_motion) {
-				app.setAttribute('data-aff-motion', 'reduced');
+				app.setAttribute('data-atfrfo-motion', 'reduced');
 			} else {
-				app.removeAttribute('data-aff-motion');
+				app.removeAttribute('data-atfrfo-motion');
 			}
 
 			// Tooltip state — sync to PanelTop
-			if (AFF.PanelTop) {
+			if (ATFRFO.PanelTop) {
 				if (typeof settings.show_tooltips !== 'undefined') {
-					AFF.PanelTop._showTooltips = !!settings.show_tooltips;
+					ATFRFO.PanelTop._showTooltips = !!settings.show_tooltips;
 				}
 				if (typeof settings.extended_tooltips !== 'undefined') {
-					AFF.PanelTop._extendedTooltips = !!settings.extended_tooltips;
+					ATFRFO.PanelTop._extendedTooltips = !!settings.extended_tooltips;
 				}
 			}
 		},
@@ -1915,9 +1915,9 @@
 		 * the Save Changes button reflects in-flight state correctly.
 		 */
 		flushPending: function () {
-			AFF.state.pendingSaveCount = Math.max(0, AFF.state.pendingSaveCount - 1);
-			if (AFF.PanelRight) {
-				AFF.PanelRight.updateSaveChangesBtn();
+			ATFRFO.state.pendingSaveCount = Math.max(0, ATFRFO.state.pendingSaveCount - 1);
+			if (ATFRFO.PanelRight) {
+				ATFRFO.PanelRight.updateSaveChangesBtn();
 			}
 		},
 
@@ -1925,13 +1925,13 @@
 		 * Load the project config from WordPress (defaults + saved config).
 		 */
 		loadConfig: function () {
-			return AFF.App.ajax('aff_get_config', {})
+			return ATFRFO.App.ajax('atfrfo_get_config', {})
 				.then(function (res) {
 					if (res.success && res.data.config) {
 						var cfg = res.data.config;
 
 						// Normalize defaults: groups.Variables.* string arrays → category object arrays.
-						// aff-defaults.json stores ["Spacing","Gaps",...] but _getCatsForSet expects
+						// atfrfo-defaults.json stores ["Spacing","Gaps",...] but _getCatsForSet expects
 						// [{id, name, order, locked}]. Only run when the key is absent (defaults case).
 						var groupVars = (cfg.groups && cfg.groups.Variables) ? cfg.groups.Variables : {};
 						var _normalizeCats = function (strArr, prefix) {
@@ -1953,16 +1953,16 @@
 							cfg.numberCategories = _normalizeCats(numSrc, 'number');
 						}
 
-						AFF.state.config = cfg;
+						ATFRFO.state.config = cfg;
 						// globalConfig and config point to the same object reference here. config is
 						// replaced when _loadFile() assigns res.data.data.config, so after a project
 						// loads the two fields diverge. globalConfig is used as an immutable baseline
 						// to backfill missing category arrays on older project files.
-						// Risk (tech debt A-02): any mutation of AFF.state.config before a file loads
+						// Risk (tech debt A-02): any mutation of ATFRFO.state.config before a file loads
 						// also mutates globalConfig — fix by deep-cloning: JSON.parse(JSON.stringify(cfg)).
-						AFF.state.globalConfig = cfg;
+						ATFRFO.state.globalConfig = cfg;
 						if (cfg.projectName) {
-							AFF.state.projectName = cfg.projectName;
+							ATFRFO.state.projectName = cfg.projectName;
 						}
 					}
 				})
@@ -1975,7 +1975,7 @@
 	// -----------------------------------------------------------------------
 	// PER-SET VARIABLE CONFIGURATION (Fonts, Numbers)
 	//
-	// These objects are passed to AFF.Variables.initSet() after AFF.Variables
+	// These objects are passed to ATFRFO.Variables.initSet() after ATFRFO.Variables
 	// is loaded. Each object configures one variable set.
 	// -----------------------------------------------------------------------
 
@@ -1993,13 +1993,13 @@
 	function _varFormatSelect(current, types) {
 		// FX renders as fₓ (f + U+2093 LATIN SUBSCRIPT SMALL LETTER X) to match the
 		// Functions button icon in the top bar. The option *value* stays 'FX' for
-		// data compatibility with saved .aff.json files.
+		// data compatibility with saved .atfrfo.json files.
 		function _formatLabel(t) {
 			if (t === '')   { return '\u2014'; }   // — em dash: unitless / no suffix
 			if (t === 'FX') { return 'f\u2093'; }  // fₓ subscript-x
 			return t;
 		}
-		var html = '<select class="aff-var-format-sel" aria-label="Format">';
+		var html = '<select class="atfrfo-var-format-sel" aria-label="Format">';
 		for (var i = 0; i < types.length; i++) {
 			html += '<option value="' + _varEsc(types[i]) + '"'
 				+ (types[i] === current ? ' selected' : '')
@@ -2024,21 +2024,21 @@
 		newVarDefaults:  { name: 'new-font', value: 'sans-serif', format: 'System' },
 
 		renderPreviewCell: function (v) {
-			return '<span class="aff-font-preview"'
+			return '<span class="atfrfo-font-preview"'
 				+ ' style="font-family:' + _varEsc(v.value) + '"'
 				+ ' aria-hidden="true"'
-				+ ' data-aff-tooltip="Font preview">ABCabc</span>';
+				+ ' data-atfrfo-tooltip="Font preview">ABCabc</span>';
 		},
 
 		renderValueCell: function (v) {
-			return '<input type="text" class="aff-var-value-input"'
+			return '<input type="text" class="atfrfo-var-value-input"'
 				+ ' value="' + _varEsc(v.value) + '"'
 				+ ' data-original="' + _varEsc(v.value) + '"'
 				+ ' style="font-family:' + _varEsc(v.value) + '"'
 				+ ' spellcheck="false"'
 				+ ' aria-label="Font family"'
-				+ ' data-aff-tooltip="Font family \u2014 edit directly"'
-				+ ' data-aff-tooltip-long="CSS font-family value \u2014 changes the font used for this variable">'
+				+ ' data-atfrfo-tooltip="Font family \u2014 edit directly"'
+				+ ' data-atfrfo-tooltip-long="CSS font-family value \u2014 changes the font used for this variable">'
 				+ _varFormatSelect(v.format, this.valueTypes);
 		},
 	};
@@ -2059,13 +2059,13 @@
 		renderPreviewCell: null, // Numbers has no preview column.
 
 		renderValueCell: function (v) {
-			return '<input type="text" class="aff-var-value-input"'
+			return '<input type="text" class="atfrfo-var-value-input"'
 				+ ' value="' + _varEsc(v.value) + '"'
 				+ ' data-original="' + _varEsc(v.value) + '"'
 				+ ' spellcheck="false"'
 				+ ' aria-label="Value"'
-				+ ' data-aff-tooltip="Numeric value \u2014 enter number only"'
-				+ ' data-aff-tooltip-long="Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix on Enter to change unit (e.g. 16px, 1.5rem, 100pc).">'
+				+ ' data-atfrfo-tooltip="Numeric value \u2014 enter number only"'
+				+ ' data-atfrfo-tooltip-long="Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix on Enter to change unit (e.g. 16px, 1.5rem, 100pc).">'
 				+ _varFormatSelect(v.format, this.valueTypes);
 		},
 	};
@@ -2076,88 +2076,88 @@
 
 	document.addEventListener('DOMContentLoaded', function () {
 
-		// 1. Theme (reads data-aff-theme attribute set by PHP — no AJAX needed)
-		if (AFF.Theme) {
-			AFF.Theme.init();
+		// 1. Theme (reads data-atfrfo-theme attribute set by PHP — no AJAX needed)
+		if (ATFRFO.Theme) {
+			ATFRFO.Theme.init();
 		}
 
 		// 2. Modal system (must be ready before any button opens a modal)
-		if (AFF.Modal) {
-			AFF.Modal.init();
+		if (ATFRFO.Modal) {
+			ATFRFO.Modal.init();
 		}
 
 		// 3. Right panel (file management + counts)
-		if (AFF.PanelRight) {
-			AFF.PanelRight.init();
+		if (ATFRFO.PanelRight) {
+			ATFRFO.PanelRight.init();
 		}
 
 		// 4. Edit space (center content)
-		if (AFF.EditSpace) {
-			AFF.EditSpace.init();
+		if (ATFRFO.EditSpace) {
+			ATFRFO.EditSpace.init();
 		}
 
 		// 4b. Colors module — intercepts EditSpace for Colors subgroup.
-		if (AFF.Colors) {
-			AFF.Colors.init();
+		if (ATFRFO.Colors) {
+			ATFRFO.Colors.init();
 		}
 
 		// 4c. Fonts and Numbers — generic variable-set instances.
-		if (AFF.Variables) {
-			AFF.Variables.initSet(FONTS_CFG);
-			AFF.Variables.initSet(NUMBERS_CFG);
+		if (ATFRFO.Variables) {
+			ATFRFO.Variables.initSet(FONTS_CFG);
+			ATFRFO.Variables.initSet(NUMBERS_CFG);
 		}
 
 		// 5. Top bar (buttons + tooltips — needs Modal to be ready)
-		if (AFF.Print) {
-			AFF.Print.init();
+		if (ATFRFO.Print) {
+			ATFRFO.Print.init();
 		}
-		if (AFF.PanelTop) {
-			AFF.PanelTop.init();
+		if (ATFRFO.PanelTop) {
+			ATFRFO.PanelTop.init();
 			// Auto-sync from Elementor on page load (silent — no modal, no dirty flag).
-			AFF.PanelTop._syncFromElementor({ silent: true });
+			ATFRFO.PanelTop._syncFromElementor({ silent: true });
 		}
 
 		// 6. Load project config, then init left panel and auto-load last file.
-		AFF.App.loadConfig().then(function () {
+		ATFRFO.App.loadConfig().then(function () {
 			// NOTE: _ensureUncategorized() is NOT called here. Calling it before a
 			// file loads would pollute the global config with a Phase 2 categories
 			// array containing only Uncategorized, causing the left panel to enter
 			// Phase 2 mode and hide the v1 group items. It is called instead inside
-			// loadColors() after the file's config is already in AFF.state.
-			if (AFF.PanelLeft) {
-				AFF.PanelLeft.init();
+			// loadColors() after the file's config is already in ATFRFO.state.
+			if (ATFRFO.PanelLeft) {
+				ATFRFO.PanelLeft.init();
 			}
 
-			// Notify sign reads #aff-edit-space's rendered left edge, which
+			// Notify sign reads #atfrfo-edit-space's rendered left edge, which
 			// shifts with the left panel's width — must run after
 			// PanelLeft.init() has restored any persisted collapsed state.
-			if (AFF.Notify) {
-				AFF.Notify.init();
+			if (ATFRFO.Notify) {
+				ATFRFO.Notify.init();
 			}
 
 			// Auto-load last used file and cache settings.
-			// Tech debt DP-05: AFF.PanelTop.init() (called above) also fires aff_get_settings
+			// Tech debt DP-05: ATFRFO.PanelTop.init() (called above) also fires atfrfo_get_settings
 			// to load tooltip preferences. Two identical HTTP requests go to admin-ajax.php
 			// within ~100ms of each other on every page load. Fix: make one call here, then
-			// pass the settings object to AFF.PanelTop._applyTooltipSettings(settings).
-			AFF.App.ajax('aff_get_settings', {}).then(function (res) {
+			// pass the settings object to ATFRFO.PanelTop._applyTooltipSettings(settings).
+			ATFRFO.App.ajax('atfrfo_get_settings', {}).then(function (res) {
 				if (res.success && res.data && res.data.settings) {
-					AFF.state.settings = res.data.settings;
-					AFF.App.applyA11y(res.data.settings);
+					ATFRFO.state.settings = res.data.settings;
+					ATFRFO.App.applyA11y(res.data.settings);
 				}
 				var lf = res.success && res.data && res.data.settings && res.data.settings.last_file;
-				if (lf && AFF.PanelRight) {
-					AFF.PanelRight._autoLoadFile(lf);
+				if (lf && ATFRFO.PanelRight) {
+					ATFRFO.PanelRight._autoLoadFile(lf);
 				}
 			}).catch(function () {});
 		});
 
 		// 7. Initial counts (all zero until a file is loaded)
-		AFF.App.refreshCounts();
+		ATFRFO.App.refreshCounts();
 
 		// 8. Warn on page unload with unsaved or uncommitted changes
 		window.addEventListener('beforeunload', function (e) {
-			if (AFF.state.hasUnsavedChanges) {
+			if (ATFRFO.state.hasUnsavedChanges) {
 				var msg = 'You have unsaved changes. Leave anyway?';
 				e.preventDefault();
 				e.returnValue = msg;

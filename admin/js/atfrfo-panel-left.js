@@ -1,5 +1,5 @@
 /**
- * AFF Panel Left — Navigation Tree, Accordion, Collapse, and Category Loading
+ * ATFRFO Panel Left — Navigation Tree, Accordion, Collapse, and Category Loading
  *
  * Manages:
  *  - Expand/collapse of top-level group headers
@@ -21,9 +21,9 @@
 (function () {
 	'use strict';
 
-	window.AFF = window.AFF || {};
+	window.ATFRFO = window.ATFRFO || {};
 
-	AFF.PanelLeft = {
+	ATFRFO.PanelLeft = {
 
 		/** @type {HTMLElement|null} */
 		_panel: null,
@@ -34,8 +34,8 @@
 		 * Initialize the left panel.
 		 */
 		init: function () {
-			this._panel      = document.getElementById('aff-panel-left');
-			this._collapseBtn = document.getElementById('aff-btn-collapse-left');
+			this._panel      = document.getElementById('atfrfo-panel-left');
+			this._collapseBtn = document.getElementById('atfrfo-btn-collapse-left');
 
 			if (!this._panel) {
 				return;
@@ -55,7 +55,7 @@
 		 * Bind click and keyboard handlers to all top-level group headers.
 		 */
 		_bindGroupHeaders: function () {
-			var headers = this._panel.querySelectorAll('.aff-nav-group__header');
+			var headers = this._panel.querySelectorAll('.atfrfo-nav-group__header');
 
 			headers.forEach(function (header) {
 				header.addEventListener('click', function () {
@@ -91,7 +91,7 @@
 			if (newExpanded) {
 				children.removeAttribute('hidden');
 				// Always expand all subgroups fully — no memory of prior state.
-				var subHeaders = children.querySelectorAll('.aff-nav-subgroup__header');
+				var subHeaders = children.querySelectorAll('.atfrfo-nav-subgroup__header');
 				subHeaders.forEach(function (sh) {
 					var shId    = sh.getAttribute('aria-controls');
 					var shItems = shId ? document.getElementById(shId) : null;
@@ -107,7 +107,7 @@
 		 * Bind click handlers to all subgroup headers.
 		 */
 		_bindSubgroupHeaders: function () {
-			var headers = this._panel.querySelectorAll('.aff-nav-subgroup__header');
+			var headers = this._panel.querySelectorAll('.atfrfo-nav-subgroup__header');
 
 			headers.forEach(function (header) {
 				header.addEventListener('click', function () {
@@ -177,7 +177,7 @@
 		// ------------------------------------------------------------------
 
 		/**
-		 * Load nav leaf items from the project config stored in AFF.state.
+		 * Load nav leaf items from the project config stored in ATFRFO.state.
 		 *
 		 * Phase 2: For Colors, uses config.categories (Phase 2) if present,
 		 * otherwise falls back to config.groups.Variables.Colors (v1).
@@ -185,7 +185,7 @@
 		 * Called on init and whenever the project config changes.
 		 */
 		_loadNavItems: function () {
-			var config = AFF.state.config;
+			var config = ATFRFO.state.config;
 
 			if (!config) {
 				this._loadDefaultItems();
@@ -197,13 +197,13 @@
 				var sortedCats = config.categories.slice()
 					.filter(function (c) { return !c.parent_id; })
 					.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-				this._populateList('aff-nav-colors', sortedCats);
+				this._populateList('atfrfo-nav-colors', sortedCats);
 			} else if (config.groups && config.groups.Variables) {
 				var colorItems = (config.groups.Variables.Colors || []).slice();
 			if (colorItems.indexOf('Uncategorized') === -1) { colorItems.push('Uncategorized'); }
-			this._populateList('aff-nav-colors', colorItems);
+			this._populateList('atfrfo-nav-colors', colorItems);
 			} else {
-				this._populateList('aff-nav-colors', ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
+				this._populateList('atfrfo-nav-colors', ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
 			}
 
 			// Phase 2: Fonts use config.fontCategories when available.
@@ -212,10 +212,10 @@
 			var sortedFontCats = config.fontCategories.slice()
 				.filter(function (c) { return !c.parent_id; })
 				.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-			this._populateList('aff-nav-fonts', sortedFontCats);
+			this._populateList('atfrfo-nav-fonts', sortedFontCats);
 		} else {
-			var globalVarsF = (AFF.state.globalConfig && AFF.state.globalConfig.groups && AFF.state.globalConfig.groups.Variables) ? AFF.state.globalConfig.groups.Variables : {};
-			this._populateList('aff-nav-fonts', (vars.Fonts && vars.Fonts.length > 0) ? vars.Fonts : (globalVarsF.Fonts || []));
+			var globalVarsF = (ATFRFO.state.globalConfig && ATFRFO.state.globalConfig.groups && ATFRFO.state.globalConfig.groups.Variables) ? ATFRFO.state.globalConfig.groups.Variables : {};
+			this._populateList('atfrfo-nav-fonts', (vars.Fonts && vars.Fonts.length > 0) ? vars.Fonts : (globalVarsF.Fonts || []));
 		}
 
 		// Phase 2: Numbers use config.numberCategories when available.
@@ -223,11 +223,11 @@
 			var sortedNumCats = config.numberCategories.slice()
 				.filter(function (c) { return !c.parent_id; })
 				.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-			this._populateList('aff-nav-numbers', sortedNumCats);
+			this._populateList('atfrfo-nav-numbers', sortedNumCats);
 		} else {
-			var globalVarsN = (AFF.state.globalConfig && AFF.state.globalConfig.groups && AFF.state.globalConfig.groups.Variables) ? AFF.state.globalConfig.groups.Variables : {};
+			var globalVarsN = (ATFRFO.state.globalConfig && ATFRFO.state.globalConfig.groups && ATFRFO.state.globalConfig.groups.Variables) ? ATFRFO.state.globalConfig.groups.Variables : {};
 			var numList = (vars.Numbers && vars.Numbers.length > 0) ? vars.Numbers : ((globalVarsN.Numbers && globalVarsN.Numbers.length > 0) ? globalVarsN.Numbers : ['Spacing', 'Gaps', 'Grids', 'Radius']);
-			this._populateList('aff-nav-numbers', numList);
+			this._populateList('atfrfo-nav-numbers', numList);
 		}
 
 		this._updateSubgroupCounts();
@@ -237,9 +237,9 @@
 		 * Load the hard-coded default subgroup items (used before config loads).
 		 */
 		_loadDefaultItems: function () {
-			this._populateList('aff-nav-colors',  ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
-			this._populateList('aff-nav-fonts',   []);
-			this._populateList('aff-nav-numbers', ['Spacing', 'Gaps', 'Grids', 'Radius']);
+			this._populateList('atfrfo-nav-colors',  ['Branding', 'Background', 'Neutral', 'Semantic', 'Uncategorized']);
+			this._populateList('atfrfo-nav-fonts',   []);
+			this._populateList('atfrfo-nav-numbers', ['Spacing', 'Gaps', 'Grids', 'Radius']);
 		},
 
 		/**
@@ -259,10 +259,10 @@
 			}
 
 			// Determine subgroup for per-category counts.
-			var sgMap = { 'aff-nav-colors': 'Colors', 'aff-nav-fonts': 'Fonts', 'aff-nav-numbers': 'Numbers' };
+			var sgMap = { 'atfrfo-nav-colors': 'Colors', 'atfrfo-nav-fonts': 'Fonts', 'atfrfo-nav-numbers': 'Numbers' };
 			var subgroup = sgMap[listId] || '';
-			var vars     = (AFF.state && AFF.state.variables) ? AFF.state.variables : [];
-			var config   = (AFF.state && AFF.state.config)    ? AFF.state.config    : {};
+			var vars     = (ATFRFO.state && ATFRFO.state.variables) ? ATFRFO.state.variables : [];
+			var config   = (ATFRFO.state && ATFRFO.state.config)    ? ATFRFO.state.config    : {};
 
 			list.innerHTML = '';
 
@@ -302,7 +302,7 @@
 				var li  = document.createElement('li');
 				var btn = document.createElement('button');
 
-				btn.className = 'aff-nav-item';
+				btn.className = 'atfrfo-nav-item';
 				btn.setAttribute('type', 'button');
 				btn.setAttribute('data-category', name);
 				if (catId) {
@@ -311,7 +311,7 @@
 
 				// Category name text.
 				var nameSpan = document.createElement('span');
-				nameSpan.className   = 'aff-nav-item__name';
+				nameSpan.className   = 'atfrfo-nav-item__name';
 				nameSpan.textContent = name;
 				btn.appendChild(nameSpan);
 
@@ -331,7 +331,7 @@
 				}).length;
 				if (count > 0) {
 					var badge = document.createElement('span');
-					badge.className   = 'aff-nav-count';
+					badge.className   = 'atfrfo-nav-count';
 					badge.textContent = count;
 					btn.appendChild(badge);
 				}
@@ -355,21 +355,21 @@
 		 * (Colors / Fonts / Numbers), aligned with the per-category count badges.
 		 */
 		_updateSubgroupCounts: function () {
-			var vars = (AFF.state && AFF.state.variables) ? AFF.state.variables : [];
+			var vars = (ATFRFO.state && ATFRFO.state.variables) ? ATFRFO.state.variables : [];
 			var subgroups = [
-				{ key: 'Colors',  selector: '[data-subgroup="colors"] .aff-nav-subgroup__header' },
-				{ key: 'Fonts',   selector: '[data-subgroup="fonts"] .aff-nav-subgroup__header' },
-				{ key: 'Numbers', selector: '[data-subgroup="numbers"] .aff-nav-subgroup__header' },
+				{ key: 'Colors',  selector: '[data-subgroup="colors"] .atfrfo-nav-subgroup__header' },
+				{ key: 'Fonts',   selector: '[data-subgroup="fonts"] .atfrfo-nav-subgroup__header' },
+				{ key: 'Numbers', selector: '[data-subgroup="numbers"] .atfrfo-nav-subgroup__header' },
 			];
 			subgroups.forEach(function (sg) {
 				var btn = document.querySelector(sg.selector);
 				if (!btn) { return; }
-				var existing = btn.querySelector('.aff-nav-count');
+				var existing = btn.querySelector('.atfrfo-nav-count');
 				if (existing) { existing.remove(); }
 				var count = vars.filter(function (v) { return v.subgroup === sg.key && v.status !== 'deleted'; }).length;
 				if (count > 0) {
 					var badge = document.createElement('span');
-					badge.className   = 'aff-nav-count';
+					badge.className   = 'atfrfo-nav-count';
 					badge.textContent = count;
 					btn.appendChild(badge);
 				}
@@ -386,7 +386,7 @@
 		 */
 		selectItem: function (btn, listId, category, categoryId) {
 			// Remove active class from all items
-			var allItems = this._panel.querySelectorAll('.aff-nav-item');
+			var allItems = this._panel.querySelectorAll('.atfrfo-nav-item');
 			for (var i = 0; i < allItems.length; i++) {
 				allItems[i].classList.remove('is-active');
 				allItems[i].removeAttribute('aria-current');
@@ -398,14 +398,14 @@
 
 			// Determine subgroup from listId
 			var subgroupMap = {
-				'aff-nav-colors':  'Colors',
-				'aff-nav-fonts':   'Fonts',
-				'aff-nav-numbers': 'Numbers',
+				'atfrfo-nav-colors':  'Colors',
+				'atfrfo-nav-fonts':   'Fonts',
+				'atfrfo-nav-numbers': 'Numbers',
 			};
 			var subgroup = subgroupMap[listId] || listId;
 
 			// Update global selection state
-			AFF.state.currentSelection = {
+			ATFRFO.state.currentSelection = {
 				group:      'Variables',
 				subgroup:   subgroup,
 				category:   category,
@@ -413,8 +413,8 @@
 			};
 
 			// Notify edit space
-			if (AFF.EditSpace) {
-				AFF.EditSpace.loadCategory(AFF.state.currentSelection);
+			if (ATFRFO.EditSpace) {
+				ATFRFO.EditSpace.loadCategory(ATFRFO.state.currentSelection);
 			}
 		},
 
@@ -424,12 +424,12 @@
 		 * Called when the user closes the Colors view via the back/close button.
 		 */
 		clearSelection: function () {
-			var allItems = this._panel.querySelectorAll('.aff-nav-item');
+			var allItems = this._panel.querySelectorAll('.atfrfo-nav-item');
 			for (var i = 0; i < allItems.length; i++) {
 				allItems[i].classList.remove('is-active');
 				allItems[i].removeAttribute('aria-current');
 			}
-			AFF.state.currentSelection = null;
+			ATFRFO.state.currentSelection = null;
 		},
 
 		/**

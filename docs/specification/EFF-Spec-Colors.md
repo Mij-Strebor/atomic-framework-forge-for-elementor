@@ -1,15 +1,15 @@
-# AFF — Colors Workpage Specification
+# ATFRFO — Colors Workpage Specification
 
-**Document:** AFF-Spec-Colors.md
+**Document:** ATFRFO-Spec-Colors.md
 **Version:** 1.0
 **Date:** 2026-03-14
-**Scope:** The Colors edit-space — everything rendered inside `#aff-edit-content` when a Colors subgroup or category is selected in the left nav.
+**Scope:** The Colors edit-space — everything rendered inside `#atfrfo-edit-content` when a Colors subgroup or category is selected in the left nav.
 
 ---
 
 ## 1. Overview
 
-The Colors workpage is a full editing environment for CSS custom property color variables. It is implemented as a single JavaScript module (`AFF.Colors`, `admin/js/aff-colors.js`) that intercepts the generic `AFF.EditSpace.loadCategory()` function for the `Colors` subgroup and replaces the content area with its own rendering pipeline.
+The Colors workpage is a full editing environment for CSS custom property color variables. It is implemented as a single JavaScript module (`ATFRFO.Colors`, `admin/js/atfrfo-colors.js`) that intercepts the generic `ATFRFO.EditSpace.loadCategory()` function for the `Colors` subgroup and replaces the content area with its own rendering pipeline.
 
 **Responsibilities:**
 - Render category blocks with variable rows
@@ -27,15 +27,15 @@ The Colors workpage is a full editing environment for CSS custom property color 
 
 ## 2. Module Architecture
 
-**File:** `admin/js/aff-colors.js`
+**File:** `admin/js/atfrfo-colors.js`
 **Pattern:** ES5 IIFE, `'use strict'`, `var` only, no arrow functions
 
 ```
-AFF.Colors = {
+ATFRFO.Colors = {
     _openExpandId       // varId of the currently open expand panel, or null
-    init()              // Intercepts AFF.EditSpace.loadCategory; registers undo keyboard handler
+    init()              // Intercepts ATFRFO.EditSpace.loadCategory; registers undo keyboard handler
     loadColors(sel)     // Entry point; sets up view, calls _renderAll
-    _renderAll(sel, el) // Builds full colors-view HTML, injects into #aff-edit-content
+    _renderAll(sel, el) // Builds full colors-view HTML, injects into #atfrfo-edit-content
     _buildCategoryBlock(cat, idx, total)  // HTML for one category block
     _buildVariableRow(v)                  // HTML for one color variable row
     _buildModalContent(v, rowKey)         // HTML for expand modal header + body
@@ -53,11 +53,11 @@ Module-level variables:
 - `_focusedCategoryId` — set from nav click; cleared after first scroll
 - `_drag` — drag state object `{active, varId, ghost, indicator, startY, scrollTimer}`
 
-**Initialization** (called from `aff-app.js`):
+**Initialization** (called from `atfrfo-app.js`):
 ```javascript
-AFF.Colors.init();
+ATFRFO.Colors.init();
 ```
-`init()` patches `AFF.EditSpace.loadCategory` to route `subgroup === 'Colors'` calls to `AFF.Colors.loadColors()`.
+`init()` patches `ATFRFO.EditSpace.loadCategory` to route `subgroup === 'Colors'` calls to `ATFRFO.Colors.loadColors()`.
 
 ---
 
@@ -65,7 +65,7 @@ AFF.Colors.init();
 
 ### 3.1 Variable Object
 
-Stored in `AFF.state.variables[]`. All color variables have `subgroup === 'Colors'`.
+Stored in `ATFRFO.state.variables[]`. All color variables have `subgroup === 'Colors'`.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -92,7 +92,7 @@ Stored in `AFF.state.variables[]`. All color variables have `subgroup === 'Color
 
 ### 3.2 Category Object
 
-Stored in `AFF.state.config.categories[]`.
+Stored in `ATFRFO.state.config.categories[]`.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -130,7 +130,7 @@ The `_statusColor(status)` helper maps status strings to these hex values.
 
 ### 5.1 Filter Bar (sticky)
 
-The filter bar is `position: sticky; top: 0; z-index: 10` relative to `#aff-edit-space`. One row (`aff-filter-bar-top`):
+The filter bar is `position: sticky; top: 0; z-index: 10` relative to `#atfrfo-edit-space`. One row (`atfrfo-filter-bar-top`):
 
 ```
 [+ cat] ───────── [search        ] [A↑] [A↓] [C↑] [C↓] [✕] [⊞]
@@ -138,44 +138,44 @@ The filter bar is `position: sticky; top: 0; z-index: 10` relative to `#aff-edit
 
 | Element | ID / Class | Description |
 |---------|-----------|-------------|
-| Add Category | `#aff-colors-add-category` | Opens "New Category" modal prompt |
+| Add Category | `#atfrfo-colors-add-category` | Opens "New Category" modal prompt |
 | Spacer | `flex:1` | Pushes search to right |
-| Search | `#aff-colors-search` | Live text filter on `aff-color-row` elements |
+| Search | `#atfrfo-colors-search` | Live text filter on `atfrfo-color-row` elements |
 | Sort A↑ | `data-sort="colors-asc"` | Sort all variables A→Z |
 | Sort A↓ | `data-sort="colors-desc"` | Sort all variables Z→A |
 | Sort C↑ | `data-sort="cats-asc"` | Sort categories A→Z |
 | Sort C↓ | `data-sort="cats-desc"` | Sort categories Z→A |
-| Close | `#aff-colors-back` | Returns to placeholder, clears nav selection |
-| Collapse toggle | `#aff-colors-collapse-toggle` | Collapse all / Expand all; `data-toggle-state="expanded|collapsed"` |
+| Close | `#atfrfo-colors-back` | Returns to placeholder, clears nav selection |
+| Collapse toggle | `#atfrfo-colors-collapse-toggle` | Collapse all / Expand all; `data-toggle-state="expanded|collapsed"` |
 
 ### 5.2 Category Blocks
 
-Each category renders as `.aff-category-block > .aff-category-inner`, separated by `margin-bottom: 32px`. The outer block uses `overflow: visible` to allow the add-variable button to straddle the bottom edge.
+Each category renders as `.atfrfo-category-block > .atfrfo-category-inner`, separated by `margin-bottom: 32px`. The outer block uses `overflow: visible` to allow the add-variable button to straddle the bottom edge.
 
-**Collapsed state:** `data-collapsed="true"` on `.aff-category-block` hides `.aff-color-list` and `.aff-cat-add-btn-wrap` via CSS.
+**Collapsed state:** `data-collapsed="true"` on `.atfrfo-category-block` hides `.atfrfo-color-list` and `.atfrfo-cat-add-btn-wrap` via CSS.
 
 **Category header (two rows):**
 
-Row 1 (`.aff-cat-header-top`):
+Row 1 (`.atfrfo-cat-header-top`):
 ```
 [Category Name — 24px/700]  [count badge]  ────  [⧉] [↑] [↓] [✕] [▾]
 ```
 
 | Element | Class / data-action | Description |
 |---------|-----------|-------------|
-| Name span | `.aff-category-name-input` | Single-click → `contenteditable="true"`; Enter/blur to save; Escape to revert |
-| Count badge | `.aff-category-count` | Live variable count for this category |
+| Name span | `.atfrfo-category-name-input` | Single-click → `contenteditable="true"`; Enter/blur to save; Escape to revert |
+| Count badge | `.atfrfo-category-count` | Live variable count for this category |
 | Duplicate | `data-action="duplicate"` | Copies category (name + variables) |
 | Move up | `data-action="move-up"` | Disabled on first category |
 | Move down | `data-action="move-down"` | Disabled on last category |
 | Delete | `data-action="delete"` | Hidden on locked categories; shows confirmation modal |
-| Collapse | `data-action="collapse"` / `.aff-category-collapse-btn` | Toggles `data-collapsed`; chevron rotates 180° when expanded |
+| Collapse | `data-action="collapse"` / `.atfrfo-category-collapse-btn` | Toggles `data-collapsed`; chevron rotates 180° when expanded |
 
-Row 2 (`.aff-cat-header-bottom`): add-variable circle button (`.aff-cat-add-btn-wrap`, absolutely positioned at `bottom: -14px; left: 0`).
+Row 2 (`.atfrfo-cat-header-bottom`): add-variable circle button (`.atfrfo-cat-add-btn-wrap`, absolutely positioned at `bottom: -14px; left: 0`).
 
 ### 5.3 Variable Row Grid
 
-`.aff-color-list-header` and `.aff-color-row` share the same 8-column grid:
+`.atfrfo-color-list-header` and `.atfrfo-color-row` share the same 8-column grid:
 
 ```
 grid-template-columns: 24px 8px 15% 1fr 28% 12% 28px 28px;
@@ -184,22 +184,22 @@ column-gap: 16px;
 
 | Col | Width | Element | Class |
 |-----|-------|---------|-------|
-| 1 | 24px | Drag handle | `.aff-drag-handle` |
-| 2 | 8px | Status dot | `.aff-status-dot` |
-| 3 | 15% | Color swatch | `.aff-color-swatch` |
-| 4 | 1fr | Variable name | `.aff-color-name-input` |
-| 5 | 28% | Color value | `.aff-color-value-input` |
-| 6 | 12% | Format selector | `.aff-color-format-sel` |
-| 7 | 28px | Expand button | `.aff-color-expand-btn` |
-| 8 | 28px | Delete button | `.aff-color-delete-btn` |
+| 1 | 24px | Drag handle | `.atfrfo-drag-handle` |
+| 2 | 8px | Status dot | `.atfrfo-status-dot` |
+| 3 | 15% | Color swatch | `.atfrfo-color-swatch` |
+| 4 | 1fr | Variable name | `.atfrfo-color-name-input` |
+| 5 | 28% | Color value | `.atfrfo-color-value-input` |
+| 6 | 12% | Format selector | `.atfrfo-color-format-sel` |
+| 7 | 28px | Expand button | `.atfrfo-color-expand-btn` |
+| 8 | 28px | Delete button | `.atfrfo-color-delete-btn` |
 
-Rows have `6px` top/bottom padding. Row hover shows `var(--aff-clr-bg-hover)` background. The delete button (col 8) is `opacity: 0` by default; `opacity: 1` on row hover.
+Rows have `6px` top/bottom padding. Row hover shows `var(--atfrfo-clr-bg-hover)` background. The delete button (col 8) is `opacity: 0` by default; `opacity: 1` on row hover.
 
 **Responsive breakpoint** (`max-width: 600px`): column 6 collapses to `0`, column 3 shrinks to `12%`.
 
 ### 5.4 Tooltip Attributes on Variable Row Elements
 
-| Element | `data-aff-tooltip` | `data-aff-tooltip-long` |
+| Element | `data-atfrfo-tooltip` | `data-atfrfo-tooltip-long` |
 |---------|-------------------|------------------------|
 | Drag handle | "Drag to reorder" | — |
 | Status dot | Status name (e.g. "Synced") | Status-specific long text (see §4) |
@@ -210,7 +210,7 @@ Rows have `6px` top/bottom padding. Row hover shows `var(--aff-clr-bg-hover)` ba
 | Expand button | "Open color editor" | "Open the full color editor — tints, shades, transparency, and picker" |
 | Delete button | "Delete variable" | "Remove this variable from the project" |
 
-Category action buttons carry `data-aff-tooltip` equal to their `aria-label` (e.g. "Duplicate category", "Move category up", "Collapse/expand category").
+Category action buttons carry `data-atfrfo-tooltip` equal to their `aria-label` (e.g. "Duplicate category", "Move category up", "Collapse/expand category").
 
 ---
 
@@ -223,7 +223,7 @@ Category action buttons carry `data-aff-tooltip` equal to their `aria-label` (e.
 - **Live guard:** `input` event enforces `--` prefix (strips leading dashes then prepends `--`)
 - **Save:** `change` event (blur) or Enter key → `_saveVarName(varId, input)`
 - **Validation:** must match `/^--[\w-]+$/`; invalid → revert to `data-original`, show field error tooltip
-- **On save:** AJAX `aff_save_color` with `{id, name, pending_rename_from: oldName, status: 'modified'}`; updates `data-original` on success
+- **On save:** AJAX `atfrfo_save_color` with `{id, name, pending_rename_from: oldName, status: 'modified'}`; updates `data-original` on success
 - **Restore readonly:** `focusout` event on container
 
 ### 6.2 Color Value
@@ -231,12 +231,12 @@ Category action buttons carry `data-aff-tooltip` equal to their `aria-label` (e.
 - `<input type="text">` — always editable
 - **Save:** `change` event (blur) or Enter key → `_saveVarValue(varId, value, input)`
 - **Normalization:** `_normalizeColorValue(value, format)` validates and normalizes the string for the current format; invalid → revert + field error
-- **On save:** AJAX `aff_save_color` with `{id, value, status: 'modified'}`; updates swatch and main-list row in DOM immediately (optimistic update)
+- **On save:** AJAX `atfrfo_save_color` with `{id, value, status: 'modified'}`; updates swatch and main-list row in DOM immediately (optimistic update)
 
 ### 6.3 Format Selector
 
 - `<select>` with options: HEX, HEXA, RGB, RGBA, HSL, HSLA
-- **On change:** `_saveVarFormat(varId, newFormat)` — converts current value to new format using `_convertColor()`, updates state, updates DOM (swatch + value input), then AJAX `aff_save_color`
+- **On change:** `_saveVarFormat(varId, newFormat)` — converts current value to new format using `_convertColor()`, updates state, updates DOM (swatch + value input), then AJAX `atfrfo_save_color`
 
 ### 6.4 Category Name
 
@@ -244,7 +244,7 @@ Category action buttons carry `data-aff-tooltip` equal to their `aria-label` (e.
 - **Single click:** sets `contenteditable="true"`, focuses, selects all
 - **Enter:** blurs (triggers save via `focusout`)
 - **Escape:** reverts to `data-original`, sets `contenteditable="false"`, blurs
-- **Save (focusout):** `_saveCategoryName(input)` → AJAX `aff_save_category` with `{id, name}`; re-renders view on success
+- **Save (focusout):** `_saveCategoryName(input)` → AJAX `atfrfo_save_category` with `{id, name}`; re-renders view on success
 - **Locked categories** (`data-locked="true"`): single-click has no effect
 
 ---
@@ -269,11 +269,11 @@ Format conversion is performed client-side by `_convertColor(value, targetFormat
 Variables within a single category can be reordered via drag-and-drop.
 
 **Implementation:**
-- Drag handle (`.aff-drag-handle`): `cursor: grab / grabbing`
-- On mousedown: creates a ghost element (`.aff-drag-ghost`) positioned fixed, cloned from the row; creates a drop indicator (`.aff-drop-indicator`) — a fixed 4px bar with `var(--aff-clr-accent)` background and glow
-- Dragging row gets `.aff-row-dragging` (opacity 0.3)
+- Drag handle (`.atfrfo-drag-handle`): `cursor: grab / grabbing`
+- On mousedown: creates a ghost element (`.atfrfo-drag-ghost`) positioned fixed, cloned from the row; creates a drop indicator (`.atfrfo-drop-indicator`) — a fixed 4px bar with `var(--atfrfo-clr-accent)` background and glow
+- Dragging row gets `.atfrfo-row-dragging` (opacity 0.3)
 - **Drop to empty category (collapsed):** the target category block expands automatically, variable is moved there
-- **On drop:** calls `_finalizeDrop(targetCatId, insertBeforeVarId)` → updates `AFF.state.variables`, re-renders, then AJAX `aff_save_color` for each moved variable to update `category`, `category_id`, `order`
+- **On drop:** calls `_finalizeDrop(targetCatId, insertBeforeVarId)` → updates `ATFRFO.state.variables`, re-renders, then AJAX `atfrfo_save_color` for each moved variable to update `category`, `category_id`, `order`
 - Auto-scroll near viewport edges via `scrollTimer`
 - Drop indicator is positioned fixed at the insertion point with a gradient: `linear-gradient(90deg, transparent, accent, accent, transparent)`
 
@@ -286,7 +286,7 @@ Triggered by clicking the expand button (col 7) or the color swatch (col 3).
 ### 9.1 Opening
 
 1. Any previously open panel is removed immediately (no animation)
-2. A backdrop (`div.aff-expand-backdrop`) and modal (`div.aff-expand-modal`) are appended to `document.body`
+2. A backdrop (`div.atfrfo-expand-backdrop`) and modal (`div.atfrfo-expand-modal`) are appended to `document.body`
 3. `transform-origin` is set to the clicked row's viewport centre so the card appears to grow out of the row
 4. Class `is-open` is added after a 10ms tick to trigger the CSS transition (scale 0.04→1.0, opacity 0→1, 650ms spring)
 
@@ -296,7 +296,7 @@ Triggered by clicking the expand button (col 7) or the color swatch (col 3).
 
 ### 9.2 Modal Layout
 
-The modal header uses the same 7-column grid as `.aff-color-row` (drag placeholder → status dot → swatch → name → value → format → close button). All header fields are live-editable, synchronized with the main list row.
+The modal header uses the same 7-column grid as `.atfrfo-color-row` (drag placeholder → status dot → swatch → name → value → format → close button). All header fields are live-editable, synchronized with the main list row.
 
 **Modal body — three generator rows:**
 
@@ -307,11 +307,11 @@ The modal header uses the same 7-column grid as `.aff-color-row` (drag placehold
 | Transparencies | "TRANSPARENCIES" | toggle switch | 9 fixed alpha steps (10%–90%) |
 | Move to Category | "MOVE TO CATEGORY" | `<select>` | Only shown when 2+ categories exist |
 
-**Live preview:** Palette strips (`.aff-palette-strip`) update in real time as the user changes step counts or toggles. The strip is a flex row of `.aff-palette-swatch` spans.
+**Live preview:** Palette strips (`.atfrfo-palette-strip`) update in real time as the user changes step counts or toggles. The strip is a flex row of `.atfrfo-palette-swatch` spans.
 
 ### 9.3 Child Variable Generation
 
-Triggered by `_debounceGenerate()` (300ms debounce after any generator control change) → AJAX `aff_generate_children`.
+Triggered by `_debounceGenerate()` (300ms debounce after any generator control change) → AJAX `atfrfo_generate_children`.
 
 **Naming convention:**
 
@@ -335,23 +335,23 @@ Children inherit `category`, `category_id`, `format`, and `subgroup` from the pa
 
 ### 10.1 Add Category
 
-Clicking the `+` button in the filter bar opens a modal prompt. On confirm: AJAX `aff_save_category` with `{name}` (no ID = create). Response returns full `categories` array; state updated, view re-rendered, left panel refreshed.
+Clicking the `+` button in the filter bar opens a modal prompt. On confirm: AJAX `atfrfo_save_category` with `{name}` (no ID = create). Response returns full `categories` array; state updated, view re-rendered, left panel refreshed.
 
 ### 10.2 Rename Category
 
-Single-click on the category name span activates `contenteditable`. Save on blur/Enter via AJAX `aff_save_category` with `{id, name}`.
+Single-click on the category name span activates `contenteditable`. Save on blur/Enter via AJAX `atfrfo_save_category` with `{id, name}`.
 
 ### 10.3 Delete Category
 
-Shows confirmation modal. If the category has variables: "N variable(s) will be moved to Uncategorized." On confirm: AJAX `aff_delete_category` with `{category_id}`. Locked categories do not show the delete button.
+Shows confirmation modal. If the category has variables: "N variable(s) will be moved to Uncategorized." On confirm: AJAX `atfrfo_delete_category` with `{category_id}`. Locked categories do not show the delete button.
 
 ### 10.4 Duplicate Category
 
-Copies category and its variables to a new category named `"{name} copy"`. Implemented client-side + server-side via `aff_save_category` for the new category, then `aff_save_color` for each cloned variable with new IDs.
+Copies category and its variables to a new category named `"{name} copy"`. Implemented client-side + server-side via `atfrfo_save_category` for the new category, then `atfrfo_save_color` for each cloned variable with new IDs.
 
 ### 10.5 Reorder Categories (Move Up / Down)
 
-Swaps the clicked category's `order` with the adjacent one. Buttons are disabled at the list ends. After swap: AJAX `aff_reorder_categories` with `{ordered_ids}` (full array in new order).
+Swaps the clicked category's `order` with the adjacent one. Buttons are disabled at the list ends. After swap: AJAX `atfrfo_reorder_categories` with `{ordered_ids}` (full array in new order).
 
 ---
 
@@ -359,7 +359,7 @@ Swaps the clicked category's `order` with the adjacent one. Buttons are disabled
 
 ### 11.1 Add Variable
 
-The add button (`.aff-cat-add-btn-wrap`) sits on the bottom-left edge of the category block. Click → AJAX `aff_save_color` with defaults:
+The add button (`.atfrfo-cat-add-btn-wrap`) sits on the bottom-left edge of the category block. Click → AJAX `atfrfo_save_color` with defaults:
 
 ```javascript
 {
@@ -374,15 +374,15 @@ The add button (`.aff-cat-add-btn-wrap`) sits on the bottom-left edge of the cat
 }
 ```
 
-**No file guard:** If `AFF.state.currentFile` is null, a temp file (`aff-temp.aff.json`) is created first, then the variable add retried.
+**No file guard:** If `ATFRFO.state.currentFile` is null, a temp file (`atfrfo-temp.atfrfo.json`) is created first, then the variable add retried.
 
 ### 11.2 Delete Variable
 
-Delete button (col 8, opacity 0 until row hover): click → `_deleteVariable(varId)` — confirms if the variable has children ("also delete N child variables?"), then AJAX `aff_delete_color` with `{variable_id, delete_children}`.
+Delete button (col 8, opacity 0 until row hover): click → `_deleteVariable(varId)` — confirms if the variable has children ("also delete N child variables?"), then AJAX `atfrfo_delete_color` with `{variable_id, delete_children}`.
 
 ### 11.3 Move to Category
 
-From the expand panel's "Move to Category" selector: `_moveVarToCategory(varId, newCatId)` → closes expand panel, AJAX `aff_save_color` with updated `category` and `category_id`, re-renders.
+From the expand panel's "Move to Category" selector: `_moveVarToCategory(varId, newCatId)` → closes expand panel, AJAX `atfrfo_save_color` with updated `category` and `category_id`, re-renders.
 
 ---
 
@@ -413,13 +413,13 @@ Sort buttons in the filter bar:
 | C↑ | `cats-asc` | Sort categories A→Z |
 | C↓ | `cats-desc` | Sort categories Z→A |
 
-Variable sort updates `AFF.state.variables` order values and calls AJAX `aff_save_color` for each affected variable. Category sort calls AJAX `aff_reorder_categories`.
+Variable sort updates `ATFRFO.state.variables` order values and calls AJAX `atfrfo_save_color` for each affected variable. Category sort calls AJAX `atfrfo_reorder_categories`.
 
 ---
 
 ## 14. Search / Filter
 
-`#aff-colors-search` input fires `input` events → `_filterRows(container, query)`. Rows where `name` or `value` contains the query string (case-insensitive) remain visible; non-matching rows get `display: none`. Category blocks with all rows hidden also get `display: none`.
+`#atfrfo-colors-search` input fires `input` events → `_filterRows(container, query)`. Rows where `name` or `value` contains the query string (case-insensitive) remain visible; non-matching rows get `display: none`. Category blocks with all rows hidden also get `display: none`.
 
 ---
 
@@ -427,11 +427,11 @@ Variable sort updates `AFF.state.variables` order values and calls AJAX `aff_sav
 
 ### 15.1 Per-Category Toggle
 
-Category collapse button (`data-action="collapse"`) toggles `data-collapsed` attribute on `.aff-category-block`. The CSS shows/hides `.aff-color-list` and `.aff-cat-add-btn-wrap`. State persisted in `_collapsedCategoryIds` map across re-renders.
+Category collapse button (`data-action="collapse"`) toggles `data-collapsed` attribute on `.atfrfo-category-block`. The CSS shows/hides `.atfrfo-color-list` and `.atfrfo-cat-add-btn-wrap`. State persisted in `_collapsedCategoryIds` map across re-renders.
 
 ### 15.2 Collapse / Expand All
 
-Filter bar toggle button (`#aff-colors-collapse-toggle`): when in "expanded" state, collapses all; when in "collapsed" state, expands all. Updates `_collapsedCategoryIds` for all categories, re-renders. Button icon and `data-toggle-state` attribute update accordingly.
+Filter bar toggle button (`#atfrfo-colors-collapse-toggle`): when in "expanded" state, collapses all; when in "collapsed" state, expands all. Updates `_collapsedCategoryIds` for all categories, re-renders. Button icon and `data-toggle-state` attribute update accordingly.
 
 ### 15.3 Nav Click Behavior
 
@@ -445,16 +445,16 @@ Empty categories start collapsed. Non-empty categories start expanded.
 
 ## 16. Commit to Elementor
 
-**Trigger:** "Commit" button in the right panel (only when `AFF.state.pendingCommit === true`).
+**Trigger:** "Commit" button in the right panel (only when `ATFRFO.state.pendingCommit === true`).
 
-**Flow (`aff_commit_to_elementor` AJAX):**
+**Flow (`atfrfo_commit_to_elementor` AJAX):**
 1. Sends array of `{name, value}` for all non-deleted variables in the current file
 2. PHP reads the active Elementor kit CSS file
 3. For each variable: replaces `--name: value;` in the CSS using regex
 4. Variables not found in CSS (new): appended to the user-variables `:root` block (or a new block if none exists)
-5. CSS written back to disk (Elementor CSS regeneration is intentionally NOT triggered — AFF's values would be overwritten)
+5. CSS written back to disk (Elementor CSS regeneration is intentionally NOT triggered — ATFRFO's values would be overwritten)
 6. PHP baseline updated with committed values
-7. JS: `AFF.state.pendingCommit = false`; re-renders to show updated status dots
+7. JS: `ATFRFO.state.pendingCommit = false`; re-renders to show updated status dots
 
 **Skipped variables:** Variables whose names are not found in the CSS are reported in `res.data.skipped`. New variables are inserted instead.
 
@@ -463,22 +463,22 @@ Empty categories start collapsed. Non-empty categories start expanded.
 ## 17. AJAX Endpoints
 
 All endpoints require:
-- POST field `nonce`: `wp_nonce` with action `'aff_admin_nonce'`
+- POST field `nonce`: `wp_nonce` with action `'atfrfo_admin_nonce'`
 - Authenticated user with `manage_options` capability
 
 | Action | POST params | Description |
 |--------|-------------|-------------|
-| `aff_save_color` | `filename`, `variable` (JSON) | Add new variable (no `id`) or update existing (with `id`) |
-| `aff_delete_color` | `filename`, `variable_id`, `delete_children` | Delete variable; optionally cascade to children |
-| `aff_save_category` | `filename`, `category` (JSON) | Add (no `id`) or rename (with `id`) category |
-| `aff_delete_category` | `filename`, `category_id` | Delete category; variables reassigned to Uncategorized |
-| `aff_reorder_categories` | `filename`, `ordered_ids` (JSON array) | Set category order |
-| `aff_generate_children` | `filename`, `parent_id`, `tints`, `shades`, `transparencies` | Generate tint/shade/alpha child variables |
-| `aff_commit_to_elementor` | `filename`, `variables` (JSON array of `{name,value}`) | Write values to Elementor kit CSS |
-| `aff_save_baseline` | `filename`, `variables` (JSON array of `{name,value}`) | Persist baseline snapshot |
-| `aff_get_baseline` | `filename` | Retrieve baseline snapshot |
+| `atfrfo_save_color` | `filename`, `variable` (JSON) | Add new variable (no `id`) or update existing (with `id`) |
+| `atfrfo_delete_color` | `filename`, `variable_id`, `delete_children` | Delete variable; optionally cascade to children |
+| `atfrfo_save_category` | `filename`, `category` (JSON) | Add (no `id`) or rename (with `id`) category |
+| `atfrfo_delete_category` | `filename`, `category_id` | Delete category; variables reassigned to Uncategorized |
+| `atfrfo_reorder_categories` | `filename`, `ordered_ids` (JSON array) | Set category order |
+| `atfrfo_generate_children` | `filename`, `parent_id`, `tints`, `shades`, `transparencies` | Generate tint/shade/alpha child variables |
+| `atfrfo_commit_to_elementor` | `filename`, `variables` (JSON array of `{name,value}`) | Write values to Elementor kit CSS |
+| `atfrfo_save_baseline` | `filename`, `variables` (JSON array of `{name,value}`) | Persist baseline snapshot |
+| `atfrfo_get_baseline` | `filename` | Retrieve baseline snapshot |
 
-**Allowed fields for `aff_save_color` update:**
+**Allowed fields for `atfrfo_save_color` update:**
 `name`, `value`, `original_value`, `format`, `category`, `category_id`, `order`, `status`, `pending_rename_from`, `type`, `subgroup`, `group`
 
 **Response shape for write operations:**
@@ -500,60 +500,60 @@ All endpoints require:
 
 | Class | Element | Description |
 |-------|---------|-------------|
-| `.aff-colors-view` | Container div | Flex column; no overflow-y (parent handles scroll) |
-| `.aff-colors-filter-bar` | Filter bar | Sticky top; two-row layout |
-| `.aff-filter-bar-top` | Row 1 of filter bar | Flex row |
-| `.aff-filter-bar-bottom` | Row 2 of filter bar | Flex row (add-cat button) |
-| `.aff-colors-view-title` | "COLORS" label | Uppercase, muted, xs |
-| `.aff-colors-search` | Search input | Flex-grow |
-| `.aff-colors-add-cat-btn` | Add category button | Icon button variant |
-| `.aff-sort-btn` | Sort buttons | Small labeled buttons (A↑ etc.) |
-| `.aff-colors-back-btn` | Close button | Icon button |
-| `.aff-category-block` | One category | `data-collapsed`, `data-category-id` |
-| `.aff-category-inner` | Inner clip wrapper | `overflow: hidden`, `border-radius: 12px` |
-| `.aff-category-header` | Header container | Two-row flex column |
-| `.aff-cat-header-top` | Header row 1 | Name + actions |
-| `.aff-cat-header-bottom` | Header row 2 | Add-var button |
-| `.aff-cat-header-left` | Left of row 1 | Name + count |
-| `.aff-category-name-input` | Category name span | `contenteditable`; 24px/700 |
-| `.aff-category-count` | Count badge | Pill, muted, xs |
-| `.aff-category-actions` | Action button group | Flex row, gap 2px |
-| `.aff-category-collapse-btn` | Collapse chevron | Rotates 180° when expanded |
-| `.aff-cat-add-btn-wrap` | Add-var button wrapper | `position: absolute; bottom: -14px; left: 0` |
-| `.aff-add-var-btn` | Add-var circle button | 28px circle, primary border |
-| `.aff-color-list-header` | Column headings | Same grid as row |
-| `.aff-color-list` | Variable rows container | Flex column |
-| `.aff-color-row` | One variable row | Grid 8-col; `data-var-id`, `data-expanded` |
-| `.aff-status-dot` | Status indicator | 8px circle, col 2 |
-| `.aff-color-swatch` | Color preview | 32px height, col 3 |
-| `.aff-color-name-input` | Name field | Monospace, readonly by default |
-| `.aff-color-value-input` | Value field | Monospace, always editable |
-| `.aff-color-format-sel` | Format dropdown | Custom arrow; appearance: none |
-| `.aff-drag-handle` | Drag trigger | Col 1; `cursor: grab` |
-| `.aff-color-expand-btn` | Expand chevron | Col 7; rotates when `data-expanded="true"` |
-| `.aff-color-delete-btn` | Delete button | Col 8; hidden until row hover |
-| `.aff-row-dragging` | Row being dragged | `opacity: 0.3` |
-| `.aff-drag-ghost` | Drag clone | Fixed, cloned styles |
-| `.aff-drop-indicator` | Drop target bar | Fixed 4px, accent color with glow |
-| `.aff-expand-backdrop` | Modal click-catcher | Fixed inset-0, semi-transparent |
-| `.aff-expand-modal` | Expand modal card | Fixed centered; scale animation; always light theme |
-| `.aff-expand-modal.is-open` | Modal open state | `scale(1)`, `opacity: 1` |
-| `.aff-modal-header` | Modal header | Same grid as `.aff-color-row` |
-| `.aff-modal-close-btn` | Modal × button | Col 7 of header; 22px/700 |
-| `.aff-modal-body` | Modal content | Stacked generator rows |
-| `.aff-modal-gen-row` | One generator row | Flex: label + ctrl + palette |
-| `.aff-modal-gen-label` | Row label | 130px, uppercase, muted |
-| `.aff-modal-gen-ctrl` | Control wrapper | 72px fixed width |
-| `.aff-palette-strip` | Color preview strip | Flex, 36px tall, gap 2px |
-| `.aff-palette-swatch` | One palette color | `flex: 1` |
-| `.aff-gen-num` | Step count input | Number, 64px |
-| `.aff-toggle-label` | Toggle wrapper | Flex, `cursor: pointer` |
-| `.aff-toggle-track` | Toggle track | 36×20px, `border-radius: 10px` |
-| `.aff-cat-move-select` | Category move select | Fills ctrl area |
-| `.aff-icon-btn` | Generic icon button | 28×28px, transparent bg |
-| `.aff-icon-btn--danger` | Danger hover state | Red bg on hover |
-| `.aff-inline-error` | Field error tooltip | Fixed, red, appended to body |
-| `.aff-colors-empty` | Empty state text | Muted, sm |
+| `.atfrfo-colors-view` | Container div | Flex column; no overflow-y (parent handles scroll) |
+| `.atfrfo-colors-filter-bar` | Filter bar | Sticky top; two-row layout |
+| `.atfrfo-filter-bar-top` | Row 1 of filter bar | Flex row |
+| `.atfrfo-filter-bar-bottom` | Row 2 of filter bar | Flex row (add-cat button) |
+| `.atfrfo-colors-view-title` | "COLORS" label | Uppercase, muted, xs |
+| `.atfrfo-colors-search` | Search input | Flex-grow |
+| `.atfrfo-colors-add-cat-btn` | Add category button | Icon button variant |
+| `.atfrfo-sort-btn` | Sort buttons | Small labeled buttons (A↑ etc.) |
+| `.atfrfo-colors-back-btn` | Close button | Icon button |
+| `.atfrfo-category-block` | One category | `data-collapsed`, `data-category-id` |
+| `.atfrfo-category-inner` | Inner clip wrapper | `overflow: hidden`, `border-radius: 12px` |
+| `.atfrfo-category-header` | Header container | Two-row flex column |
+| `.atfrfo-cat-header-top` | Header row 1 | Name + actions |
+| `.atfrfo-cat-header-bottom` | Header row 2 | Add-var button |
+| `.atfrfo-cat-header-left` | Left of row 1 | Name + count |
+| `.atfrfo-category-name-input` | Category name span | `contenteditable`; 24px/700 |
+| `.atfrfo-category-count` | Count badge | Pill, muted, xs |
+| `.atfrfo-category-actions` | Action button group | Flex row, gap 2px |
+| `.atfrfo-category-collapse-btn` | Collapse chevron | Rotates 180° when expanded |
+| `.atfrfo-cat-add-btn-wrap` | Add-var button wrapper | `position: absolute; bottom: -14px; left: 0` |
+| `.atfrfo-add-var-btn` | Add-var circle button | 28px circle, primary border |
+| `.atfrfo-color-list-header` | Column headings | Same grid as row |
+| `.atfrfo-color-list` | Variable rows container | Flex column |
+| `.atfrfo-color-row` | One variable row | Grid 8-col; `data-var-id`, `data-expanded` |
+| `.atfrfo-status-dot` | Status indicator | 8px circle, col 2 |
+| `.atfrfo-color-swatch` | Color preview | 32px height, col 3 |
+| `.atfrfo-color-name-input` | Name field | Monospace, readonly by default |
+| `.atfrfo-color-value-input` | Value field | Monospace, always editable |
+| `.atfrfo-color-format-sel` | Format dropdown | Custom arrow; appearance: none |
+| `.atfrfo-drag-handle` | Drag trigger | Col 1; `cursor: grab` |
+| `.atfrfo-color-expand-btn` | Expand chevron | Col 7; rotates when `data-expanded="true"` |
+| `.atfrfo-color-delete-btn` | Delete button | Col 8; hidden until row hover |
+| `.atfrfo-row-dragging` | Row being dragged | `opacity: 0.3` |
+| `.atfrfo-drag-ghost` | Drag clone | Fixed, cloned styles |
+| `.atfrfo-drop-indicator` | Drop target bar | Fixed 4px, accent color with glow |
+| `.atfrfo-expand-backdrop` | Modal click-catcher | Fixed inset-0, semi-transparent |
+| `.atfrfo-expand-modal` | Expand modal card | Fixed centered; scale animation; always light theme |
+| `.atfrfo-expand-modal.is-open` | Modal open state | `scale(1)`, `opacity: 1` |
+| `.atfrfo-modal-header` | Modal header | Same grid as `.atfrfo-color-row` |
+| `.atfrfo-modal-close-btn` | Modal × button | Col 7 of header; 22px/700 |
+| `.atfrfo-modal-body` | Modal content | Stacked generator rows |
+| `.atfrfo-modal-gen-row` | One generator row | Flex: label + ctrl + palette |
+| `.atfrfo-modal-gen-label` | Row label | 130px, uppercase, muted |
+| `.atfrfo-modal-gen-ctrl` | Control wrapper | 72px fixed width |
+| `.atfrfo-palette-strip` | Color preview strip | Flex, 36px tall, gap 2px |
+| `.atfrfo-palette-swatch` | One palette color | `flex: 1` |
+| `.atfrfo-gen-num` | Step count input | Number, 64px |
+| `.atfrfo-toggle-label` | Toggle wrapper | Flex, `cursor: pointer` |
+| `.atfrfo-toggle-track` | Toggle track | 36×20px, `border-radius: 10px` |
+| `.atfrfo-cat-move-select` | Category move select | Fills ctrl area |
+| `.atfrfo-icon-btn` | Generic icon button | 28×28px, transparent bg |
+| `.atfrfo-icon-btn--danger` | Danger hover state | Red bg on hover |
+| `.atfrfo-inline-error` | Field error tooltip | Fixed, red, appended to body |
+| `.atfrfo-colors-empty` | Empty state text | Muted, sm |
 
 ---
 
@@ -561,14 +561,14 @@ All endpoints require:
 
 ```css
 /* Closed */
-.aff-expand-modal {
+.atfrfo-expand-modal {
     transform: translate(-50%, -50%) scale(0.04);
     opacity: 0;
     transition: opacity 0.28s ease-in, transform 0.38s cubic-bezier(0.55, 0, 1, 0.45);
 }
 
 /* Open */
-.aff-expand-modal.is-open {
+.atfrfo-expand-modal.is-open {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
     transition: opacity 0.28s ease-out, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
@@ -577,32 +577,32 @@ All endpoints require:
 
 `transform-origin` is set by JS to `calc(50% + {dx}px) calc(50% + {dy}px)` where dx/dy are the offsets from the row's centre to the viewport centre. This makes the card appear to grow out of — and collapse back into — the clicked row.
 
-The modal always uses a forced light-mode palette (overrides `--aff-bg-card`, `--aff-clr-primary`, etc. inline) so it looks consistent regardless of the app's dark/light theme.
+The modal always uses a forced light-mode palette (overrides `--atfrfo-bg-card`, `--atfrfo-clr-primary`, etc. inline) so it looks consistent regardless of the app's dark/light theme.
 
 ---
 
 ## 20. Field Error Display
 
-`_showFieldError(input, message)` appends a `.aff-inline-error` div to `document.body`, positioned fixed just below the input element. Removed by `_clearFieldError(input)` on the next valid input or on blur. Animated in with `aff-error-in` keyframe (fade + slide up 4px).
+`_showFieldError(input, message)` appends a `.atfrfo-inline-error` div to `document.body`, positioned fixed just below the input element. Removed by `_clearFieldError(input)` on the next valid input or on blur. Animated in with `atfrfo-error-in` keyframe (fade + slide up 4px).
 
 ---
 
 ## 21. State Integration
 
-The Colors module reads from and writes to the shared `AFF.state` object:
+The Colors module reads from and writes to the shared `ATFRFO.state` object:
 
 | Path | Usage |
 |------|-------|
-| `AFF.state.variables` | Source of truth for all variables; updated from AJAX responses |
-| `AFF.state.config.categories` | Category list for Colors |
-| `AFF.state.currentFile` | Filename for all AJAX write operations |
-| `AFF.state.currentSelection` | Cleared when closing the Colors view |
-| `AFF.state.pendingCommit` | Set to `true` after any variable save; `false` after commit |
+| `ATFRFO.state.variables` | Source of truth for all variables; updated from AJAX responses |
+| `ATFRFO.state.config.categories` | Category list for Colors |
+| `ATFRFO.state.currentFile` | Filename for all AJAX write operations |
+| `ATFRFO.state.currentSelection` | Cleared when closing the Colors view |
+| `ATFRFO.state.pendingCommit` | Set to `true` after any variable save; `false` after commit |
 
-**`AFF.App` integration:**
-- `AFF.App.setDirty(true)` — marks unsaved changes after any write
-- `AFF.App.setPendingCommit(true)` — enables the Commit button
-- `AFF.App.refreshCounts()` — updates the variable count display
-- `AFF.App.ajax(action, params)` — returns a Promise for all AJAX calls
+**`ATFRFO.App` integration:**
+- `ATFRFO.App.setDirty(true)` — marks unsaved changes after any write
+- `ATFRFO.App.setPendingCommit(true)` — enables the Commit button
+- `ATFRFO.App.refreshCounts()` — updates the variable count display
+- `ATFRFO.App.ajax(action, params)` — returns a Promise for all AJAX calls
 
-**Left panel refresh:** After category add/rename/delete/duplicate, `AFF.PanelLeft.refresh()` is called to keep the nav tree in sync.
+**Left panel refresh:** After category add/rename/delete/duplicate, `ATFRFO.PanelLeft.refresh()` is called to keep the nav tree in sync.

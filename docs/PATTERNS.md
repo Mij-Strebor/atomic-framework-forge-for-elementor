@@ -1,45 +1,45 @@
-# AFF Coding Patterns
+# ATFRFO Coding Patterns
 
-Established patterns used throughout AFF. Read this before making any change to
-`aff-colors.js`, `aff-variables.js`, or `aff-panel-right.js`.
+Established patterns used throughout ATFRFO. Read this before making any change to
+`atfrfo-colors.js`, `atfrfo-variables.js`, or `atfrfo-panel-right.js`.
 
 ---
 
 ## 1. View-Presence Guard
 
-**Problem:** `#aff-edit-content` is shared by Colors, Fonts, and Numbers. All three
+**Problem:** `#atfrfo-edit-content` is shared by Colors, Fonts, and Numbers. All three
 modules bind delegated event listeners to the same container. Without a guard, a
 Colors click handler fires while Numbers is showing, corrupting state.
 
 **Rule:** Every delegated event handler AND every drag `mousedown` handler must check
 for its own view wrapper element before doing anything.
 
-### Colors (aff-colors.js)
+### Colors (atfrfo-colors.js)
 
 ```js
 container.addEventListener('click', function (e) {
-    if (!container.querySelector('.aff-colors-view')) { return; }
+    if (!container.querySelector('.atfrfo-colors-view')) { return; }
     // ... rest of handler
 });
 
 container.addEventListener('mousedown', function (e) {
-    if (!container.querySelector('.aff-colors-view')) { return; }
-    var handle = e.target.closest('.aff-drag-handle');
+    if (!container.querySelector('.atfrfo-colors-view')) { return; }
+    var handle = e.target.closest('.atfrfo-drag-handle');
     // ...
 });
 ```
 
-### Variables factory (aff-variables.js)
+### Variables factory (atfrfo-variables.js)
 
 ```js
 // setLower = 'fonts' or 'numbers'
 container.addEventListener('click', function (e) {
-    if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
+    if (!container.querySelector('.atfrfo-' + setLower + '-view')) { return; }
     // ...
 });
 
 container.addEventListener('mousedown', function (e) {
-    if (!container.querySelector('.aff-' + setLower + '-view')) { return; }
+    if (!container.querySelector('.atfrfo-' + setLower + '-view')) { return; }
     // ...
 });
 ```
@@ -68,8 +68,8 @@ container.addEventListener('click', function (e) { /* ... */ });
 destroying and recreating the container node — that would re-enable duplicate binding
 on the very next render.
 
-**Multi-instance modules (Variables factory):** Each instance of `AFF.Variables._proto`
-(Fonts, Numbers) binds to the same `#aff-edit-content` container. Use an instance-specific
+**Multi-instance modules (Variables factory):** Each instance of `ATFRFO.Variables._proto`
+(Fonts, Numbers) binds to the same `#atfrfo-edit-content` container. Use an instance-specific
 flag so the second set to load doesn't skip binding because the first set already set a
 shared flag:
 
@@ -80,20 +80,20 @@ container[_boundFlag] = true;
 ```
 
 Each listener is still safe to have duplicates because it guards with the view-presence
-check (`.aff-fonts-view`, `.aff-numbers-view`) before doing anything.
+check (`.atfrfo-fonts-view`, `.atfrfo-numbers-view`) before doing anything.
 
 ---
 
 ## 3. Stable Row Identity — `_rowKey` and `_findVarByKey`
 
-**Problem:** Variables synced from Elementor have no AFF-assigned `id` yet (they're
+**Problem:** Variables synced from Elementor have no ATFRFO-assigned `id` yet (they're
 not saved). Using `.id` as the drag/drop key breaks for these rows.
 
 **Rule:** Use `_rowKey(v)` to generate a stable key, and `_findVarByKey(key)` to look
 up variables.
 
 ```js
-// aff-variables.js
+// atfrfo-variables.js
 _rowKey: function (v) {
     return v.id ? String(v.id) : '__n_' + v.name;
 },
@@ -139,15 +139,15 @@ _onDropVar: function (srcId, targetId, above, container) {
 
 ## 5. AJAX Request Pattern
 
-All AJAX calls use `fetch()` with the AFF nonce. Never use jQuery `$.ajax`.
+All AJAX calls use `fetch()` with the ATFRFO nonce. Never use jQuery `$.ajax`.
 
 ```js
-fetch(window.affData.ajaxUrl, {
+fetch(window.atfrfoData.ajaxUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-        action:  'aff_action_name',
-        nonce:   window.affData.nonce,
+        action:  'atfrfo_action_name',
+        nonce:   window.atfrfoData.nonce,
         // ... payload fields
     })
 })
@@ -160,12 +160,12 @@ fetch(window.affData.ajaxUrl, {
     // handle success
 })
 .catch(function (err) {
-    console.error('AFF AJAX error:', err);
+    console.error('ATFRFO AJAX error:', err);
     // show error to user
 });
 ```
 
-`window.affData` is localized in `class-aff-admin.php` via `wp_localize_script`.
+`window.atfrfoData` is localized in `class-atfrfo-admin.php` via `wp_localize_script`.
 
 ---
 
@@ -191,16 +191,16 @@ It calls `wp_send_json_error()` and exits if either check fails.
 ## 7. Project Storage Layout
 
 ```
-wp-content/uploads/aff/
+wp-content/uploads/atfrfo/
 └── {project-slug}/
-    ├── {slug}_2026-04-08_14-30-00.aff.json
-    ├── {slug}_2026-04-09_09-15-22.aff.json
-    └── {slug}_2026-04-13_16-44-11.aff.json   ← most recent = active
+    ├── {slug}_2026-04-08_14-30-00.atfrfo.json
+    ├── {slug}_2026-04-09_09-15-22.atfrfo.json
+    └── {slug}_2026-04-13_16-44-11.atfrfo.json   ← most recent = active
 ```
 
 - Slugified from the project name (`sanitize_title()`)
 - Each save creates a new timestamped file — never overwrites
-- `class-aff-data-store.php` owns all path resolution and file I/O
+- `class-atfrfo-data-store.php` owns all path resolution and file I/O
 - Auto-prunes oldest backups when count exceeds `max_backups` (default 10)
 
 ---

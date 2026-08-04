@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Mij-Strebor/atomic-framework-forge-for-elementor/master/assets/images/aff-git-banner.png" alt="Atomic Framework Forge for Elementor" width="100%" />
+<img src="https://raw.githubusercontent.com/Mij-Strebor/atomic-framework-forge-for-elementor/master/assets/images/atfrfo-git-banner.png" alt="Atomic Framework Forge for Elementor" width="100%" />
 
 # Atomic Framework Forge for Elementor
 
@@ -17,33 +17,33 @@
 
 | | |
 |---|---|
-| **New to AFF?** | **[Quick Start Guide →](QUICK-START.md)** — from zero to an organized project in about ten minutes |
+| **New to ATFRFO?** | **[Quick Start Guide →](QUICK-START.md)** — from zero to an organized project in about ten minutes |
 | **Looking up a feature?** | **[User Manual →](USER-MANUAL.md)** — complete reference for every panel and workflow |
 
 > Start with the Quick Start Guide — it covers installation through your first saved project and explains every part of the interface.
 
 ---
 
-## What is AFF?
+## What is ATFRFO?
 
-Atomic Framework Forge for Elementor (AFF) is a WordPress developer tool that gives you a purpose-built management interface for the CSS custom properties introduced by **Elementor Version 4** (the new atomic widget architecture).
+Atomic Framework Forge for Elementor (ATFRFO) is a WordPress developer tool that gives you a purpose-built management interface for the CSS custom properties introduced by **Elementor Version 4** (the new atomic widget architecture).
 
-Instead of hunting through Elementor's generated CSS by hand, AFF reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
+Instead of hunting through Elementor's generated CSS by hand, ATFRFO reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
 
-**Migrating from Elementor V3 to V4?** AFF handles the hardest part of the transition. Import all your V3 Global Colors into AFF with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](USER-MANUAL.md#15-v3--v4-migration-workflow)
+**Migrating from Elementor V3 to V4?** ATFRFO handles the hardest part of the transition. Import all your V3 Global Colors into ATFRFO with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](USER-MANUAL.md#15-v3--v4-migration-workflow)
 
 ---
 
-## How AFF Interacts with Elementor
+## How ATFRFO Interacts with Elementor
 
-> **Read:** AFF reads global variables directly from the active Elementor kit's `_elementor_global_variables` post meta — the same authoritative data store Elementor itself uses. This happens only when you click **↓ Variables (Fetch Elementor Data)**. It is purely read-only; nothing in Elementor is touched.
+> **Read:** ATFRFO reads global variables directly from the active Elementor kit's `_elementor_global_variables` post meta — the same authoritative data store Elementor itself uses. This happens only when you click **↓ Variables (Fetch Elementor Data)**. It is purely read-only; nothing in Elementor is touched.
 >
-> **Write:** When you click **↑ Variables (Write to Elementor)**, AFF writes the current variable values back to `_elementor_global_variables` on the kit post. Elementor rebuilds its CSS from this meta on the next page load. **This is the only write operation AFF performs on Elementor data.**
+> **Write:** When you click **↑ Variables (Write to Elementor)**, ATFRFO writes the current variable values back to `_elementor_global_variables` on the kit post. Elementor rebuilds its CSS from this meta on the next page load. **This is the only write operation ATFRFO performs on Elementor data.**
 >
 > Every write is:
 > - **Always user-triggered** — no background or automatic writes, ever
 > - **Always preceded by a confirmation dialog** showing exactly what will change
-> - **Always limited to variables you have managed in AFF** — AFF does not touch anything else in your Elementor configuration
+> - **Always limited to variables you have managed in ATFRFO** — ATFRFO does not touch anything else in your Elementor configuration
 >
 > **Use on staging or a local development environment only.** A corrupted write could damage your Elementor kit's variable data. Always export a project backup before writing to Elementor.
 
@@ -51,16 +51,16 @@ Instead of hunting through Elementor's generated CSS by hand, AFF reads your kit
 
 ## Data Management Model
 
-AFF manages Elementor V4 assets through four distinct, user-controlled data channels. All controls live in the **right panel**.
+ATFRFO manages Elementor V4 assets through four distinct, user-controlled data channels. All controls live in the **right panel**.
 
-| Channel | Into AFF | Out of AFF |
+| Channel | Into ATFRFO | Out of ATFRFO |
 |---------|----------|------------|
-| **Elementor V4 Sync** | Pull variables from Elementor kit | Commit AFF variables back to Elementor kit |
+| **Elementor V4 Sync** | Pull variables from Elementor kit | Commit ATFRFO variables back to Elementor kit |
 | **Elementor V3 Import** | Import V3 Global Colors into current project | Not supported — V3 is read-only |
 | **Backup / Restore** | Restore a saved project snapshot | Save Project — creates a timestamped backup |
-| **External File** | Import an `.aff.json` from disk | Export current project to `.aff.json` |
+| **External File** | Import an `.atfrfo.json` from disk | Export current project to `.atfrfo.json` |
 
-**The only automatic operation is startup auto-load** — AFF reloads the last active project when you open the plugin. Everything else is user-initiated.
+**The only automatic operation is startup auto-load** — ATFRFO reloads the last active project when you open the plugin. Everything else is user-initiated.
 
 ---
 
@@ -96,8 +96,8 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 | Save Project — creates timestamped backup snapshot | ✅ Working |
 | Restore from backup — two-level project / backup picker | ✅ Working |
 | Auto-prune — oldest backups removed at configurable limit | ✅ Working |
-| Export project to `.aff.json` | ✅ Working |
-| Import project from `.aff.json` | ✅ Working |
+| Export project to `.atfrfo.json` | ✅ Working |
+| Import project from `.atfrfo.json` | ✅ Working |
 | Classes management | 🔜 Phase 3 |
 | Components registry | 🔜 Phase 4 |
 | Sync options dialog (Sync by name / Clear and replace) | ✅ Working |
@@ -109,7 +109,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 
 ## Interface
 
-![AFF Numbers](docs/images/numbers.png)
+![ATFRFO Numbers](docs/images/numbers.png)
 
 **Four panels:**
 - **Top bar** — Preferences, Manage Project, Functions, History, Search, Help
@@ -128,7 +128,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 | Elementor (free) | Latest recommended |
 | Elementor Pro | Latest recommended |
 
-> Both **Elementor** and **Elementor Pro** must be installed and active. AFF shows an admin notice and refuses to load if either is missing.
+> Both **Elementor** and **Elementor Pro** must be installed and active. ATFRFO shows an admin notice and refuses to load if either is missing.
 
 ---
 
@@ -172,7 +172,7 @@ ln -s /path/to/eff /path/to/wp/wp-content/plugins/atomic-framework-forge-for-ele
 
 The short version:
 
-1. Activate the plugin and open **AFF** in the WordPress admin sidebar.
+1. Activate the plugin and open **ATFRFO** in the WordPress admin sidebar.
 2. In the right panel under **Elementor Sync**, click **↓ Variables** to pull your variables from Elementor.
 3. Variables appear under **Colors**, **Fonts**, and **Numbers** in the left panel.
 4. Click any category to open it in the edit space. Edit values inline; click a swatch to open the color picker.
@@ -182,15 +182,15 @@ The short version:
 
 ## Project File Format
 
-AFF stores projects in `uploads/aff/{project-slug}/` as timestamped `.aff.json` snapshots:
+ATFRFO stores projects in `uploads/atfrfo/{project-slug}/` as timestamped `.atfrfo.json` snapshots:
 
 ```
-uploads/aff/
+uploads/atfrfo/
   my-brand/
-    my-brand_2026-03-19_14-30-00.aff.json
-    my-brand_2026-03-19_16-45-12.aff.json
+    my-brand_2026-03-19_14-30-00.atfrfo.json
+    my-brand_2026-03-19_16-45-12.atfrfo.json
   client-theme/
-    client-theme_2026-03-18_09-00-00.aff.json
+    client-theme_2026-03-18_09-00-00.atfrfo.json
 ```
 
 The format is plain JSON — portable between installations and designed to support a future desktop application.
@@ -205,45 +205,45 @@ The format is plain JSON — portable between installations and designed to supp
 atomic-framework-forge-for-elementor/
 ├── atomic-framework-forge-for-elementor.php        # Plugin entry, headers, bootstrap
 ├── includes/
-│   ├── class-aff-admin.php              # Admin page, asset enqueueing
-│   ├── class-aff-ajax-handler.php       # All AJAX endpoints
-│   ├── class-aff-css-parser.php         # Elementor kit CSS parser (read-only)
-│   ├── class-aff-data-store.php         # Platform-portable data layer
-│   ├── class-aff-loader.php             # Hook registration
-│   ├── class-aff-settings.php           # Plugin preferences
-│   └── class-aff-usage-scanner.php      # Widget var() reference scanner
+│   ├── class-atfrfo-admin.php              # Admin page, asset enqueueing
+│   ├── class-atfrfo-ajax-handler.php       # All AJAX endpoints
+│   ├── class-atfrfo-css-parser.php         # Elementor kit CSS parser (read-only)
+│   ├── class-atfrfo-data-store.php         # Platform-portable data layer
+│   ├── class-atfrfo-loader.php             # Hook registration
+│   ├── class-atfrfo-settings.php           # Plugin preferences
+│   └── class-atfrfo-usage-scanner.php      # Widget var() reference scanner
 ├── admin/
-│   ├── views/page-aff-main.php          # Four-panel HTML template
+│   ├── views/page-atfrfo-main.php          # Four-panel HTML template
 │   ├── css/
-│   │   ├── aff-theme.css                # Design tokens, light/dark palettes
-│   │   ├── aff-layout.css               # Panel structure, nav, badges
-│   │   ├── aff-colors.css               # Colors edit space + Pickr styles
-│   │   └── aff-variables.css            # Fonts / Numbers edit space styles
+│   │   ├── atfrfo-theme.css                # Design tokens, light/dark palettes
+│   │   ├── atfrfo-layout.css               # Panel structure, nav, badges
+│   │   ├── atfrfo-colors.css               # Colors edit space + Pickr styles
+│   │   └── atfrfo-variables.css            # Fonts / Numbers edit space styles
 │   └── js/
-│       ├── aff-app.js                   # Global state, AJAX wrapper, init
-│       ├── aff-colors.js                # Colors variable set module + Pickr
-│       ├── aff-variables.js             # Generic variable set factory (Fonts, Numbers)
-│       ├── aff-edit-space.js            # Edit space router
-│       ├── aff-modal.js                 # Modal system with focus trap
-│       ├── aff-panel-left.js            # Left nav tree
-│       ├── aff-panel-right.js           # Data management panel
-│       ├── aff-panel-top.js             # Top bar, tooltips, sync, preferences
-│       └── aff-theme.js                 # Light/dark toggle & persistence
+│       ├── atfrfo-app.js                   # Global state, AJAX wrapper, init
+│       ├── atfrfo-colors.js                # Colors variable set module + Pickr
+│       ├── atfrfo-variables.js             # Generic variable set factory (Fonts, Numbers)
+│       ├── atfrfo-edit-space.js            # Edit space router
+│       ├── atfrfo-modal.js                 # Modal system with focus trap
+│       ├── atfrfo-panel-left.js            # Left nav tree
+│       ├── atfrfo-panel-right.js           # Data management panel
+│       ├── atfrfo-panel-top.js             # Top bar, tooltips, sync, preferences
+│       └── atfrfo-theme.js                 # Light/dark toggle & persistence
 ├── assets/
 │   ├── fonts/                           # Inter WOFF2 (400/500/600/700, Latin)
 │   ├── icons/                           # SVG icon set
 │   └── images/                          # Banners
 └── data/
-    └── aff-defaults.json                # Default category lists per variable set
+    └── atfrfo-defaults.json                # Default category lists per variable set
 ```
 
 ### Design Principles
 
-**Non-destructive by default.** AFF reads Elementor's CSS and never modifies it unless you click **Commit to Elementor**. Your Elementor configuration is always the source of truth until you deliberately push changes back.
+**Non-destructive by default.** ATFRFO reads Elementor's CSS and never modifies it unless you click **Commit to Elementor**. Your Elementor configuration is always the source of truth until you deliberately push changes back.
 
 **User-controlled data flow.** Every sync, commit, export, import, save, and restore is an explicit user action. The only automatic operation is reloading the last active project on startup.
 
-**Platform-portable data layer.** `AFF_Data_Store` contains zero WordPress dependencies in its core methods. The data layer is designed to be ported to a standalone desktop application in a future phase.
+**Platform-portable data layer.** `ATFRFO_Data_Store` contains zero WordPress dependencies in its core methods. The data layer is designed to be ported to a standalone desktop application in a future phase.
 
 **No build step.** All JavaScript is ES5 IIFE — no webpack, no transpiler, no `npm install`. The plugin works by dropping files into WordPress.
 
@@ -261,7 +261,7 @@ atomic-framework-forge-for-elementor/
 | **0.3.0-beta** | Versioned backup system. Two-level picker. Multi-project. Right panel reorganization. Sync options dialog. Commit summary dialog. V3 Global Colors import. |
 | **0.3.2-beta** | Bug fixes: drag-and-drop color reorder; column sort persistence across tab switches; auto-load reliability. |
 | **0.3.3-beta** | Auto-regenerate Elementor kit CSS when file is missing, preventing 0-variable sync on first load. |
-| **0.3.4-beta** | Renamed EFF → AFF for WordPress.org compatibility. Sync reads Elementor kit meta directly. Category defaults and AJAX action name fixes. |
+| **0.3.4-beta** | Renamed EFF → ATFRFO for WordPress.org compatibility. Sync reads Elementor kit meta directly. Category defaults and AJAX action name fixes. |
 | **0.3.5-beta** | Load Project modal improvements (save count, inline rename, copy, delete). Cross-module event contamination fix. Drag fixes in Numbers view. Write to Elementor auto-regenerates missing kit CSS. Duplicate variable name prevention. Removed forced `--` prefix while typing. |
 | **0.4.1-beta** | Placeholder sign background transparency fix. |
 | **1.0.0-beta** *(this release)* | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
@@ -277,34 +277,34 @@ atomic-framework-forge-for-elementor/
 
 ## AJAX Endpoints
 
-All endpoints require `manage_options` capability and a valid `aff_admin_nonce`.
+All endpoints require `manage_options` capability and a valid `atfrfo_admin_nonce`.
 
 | Action | Description |
 |--------|-------------|
-| `aff_save_file` | Save full project state to a new timestamped backup |
-| `aff_load_file` | Load a backup into the working store |
-| `aff_list_projects` | List all projects (Level 1 picker) |
-| `aff_list_backups` | List all backups for a project (Level 2 picker) |
-| `aff_delete_project` | Delete one backup; remove project dir if empty |
-| `aff_sync_from_elementor` | Parse Elementor V4 kit CSS; return variables |
-| `aff_sync_v3_global_colors` | Read V3 Global Colors from kit post meta; return color list |
-| `aff_save_color` | Save one variable (add or update) |
-| `aff_delete_color` | Delete a variable by ID |
-| `aff_add_category` / `aff_delete_category` / `aff_rename_category` | Category management |
-| `aff_reorder_categories` / `aff_duplicate_category` | Category ordering |
-| `aff_commit_to_elementor` | Write AFF variable values to Elementor kit CSS |
-| `aff_get_usage_counts` | Scan widget data for `var()` references |
-| `aff_save_user_theme` | Persist light/dark preference to usermeta |
-| `aff_get_config` / `aff_save_config` | Read/write subgroup configuration |
-| `aff_get_settings` / `aff_save_settings` | Read/write plugin preferences |
+| `atfrfo_save_file` | Save full project state to a new timestamped backup |
+| `atfrfo_load_file` | Load a backup into the working store |
+| `atfrfo_list_projects` | List all projects (Level 1 picker) |
+| `atfrfo_list_backups` | List all backups for a project (Level 2 picker) |
+| `atfrfo_delete_project` | Delete one backup; remove project dir if empty |
+| `atfrfo_sync_from_elementor` | Parse Elementor V4 kit CSS; return variables |
+| `atfrfo_sync_v3_global_colors` | Read V3 Global Colors from kit post meta; return color list |
+| `atfrfo_save_color` | Save one variable (add or update) |
+| `atfrfo_delete_color` | Delete a variable by ID |
+| `atfrfo_add_category` / `atfrfo_delete_category` / `atfrfo_rename_category` | Category management |
+| `atfrfo_reorder_categories` / `atfrfo_duplicate_category` | Category ordering |
+| `atfrfo_commit_to_elementor` | Write ATFRFO variable values to Elementor kit CSS |
+| `atfrfo_get_usage_counts` | Scan widget data for `var()` references |
+| `atfrfo_save_user_theme` | Persist light/dark preference to usermeta |
+| `atfrfo_get_config` / `atfrfo_save_config` | Read/write subgroup configuration |
+| `atfrfo_get_settings` / `atfrfo_save_settings` | Read/write plugin preferences |
 
 ---
 
 ## Technology
 
 - **PHP** — WordPress hooks, AJAX handlers, CSS parsing, post meta scanning
-- **Vanilla JavaScript (ES5)** — No jQuery for AFF UI logic; `fetch()` for all AJAX; no build step
-- **CSS Custom Properties** — Full design token system; light/dark mode via `[data-aff-theme]`
+- **Vanilla JavaScript (ES5)** — No jQuery for ATFRFO UI logic; `fetch()` for all AJAX; no build step
+- **CSS Custom Properties** — Full design token system; light/dark mode via `[data-atfrfo-theme]`
 - **Pickr v1.9.0** — Visual color picker (CDN); classic theme; HEX / RGB / HSL + alpha
 - **Inter** — Loaded locally from `assets/fonts/` (WOFF2, Latin subset, no CDN)
 - **SVG icons** — `stroke="currentColor"`, no icon font

@@ -1,8 +1,8 @@
 /**
- * AFF Print CSS — Print Selection Modal (screen only)
+ * ATFRFO Print CSS — Print Selection Modal (screen only)
  *
  * Styles for the print/PDF selection modal. The actual print document
- * is rendered in a new window using aff-print-page.css.
+ * is rendered in a new window using atfrfo-print-page.css.
  *
  * @package AtomicFrameworkForge
  */
@@ -11,50 +11,50 @@
    PRINT SELECTION MODAL
    ========================================================================== */
 
-.aff-print-select {
+.atfrfo-print-select {
 	padding: var(--sp-2) 0;
 }
 
-.aff-print-select__hint {
+.atfrfo-print-select__hint {
 	margin: 0 0 var(--sp-3);
 	font-size: var(--fs-sm);
-	color: var(--aff-clr-secondary);
+	color: var(--atfrfo-clr-secondary);
 }
 
-.aff-print-chk-row {
+.atfrfo-print-chk-row {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
 	padding:     var(--sp-2) 0;
 	font-size:   var(--fs-sm);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	cursor:      pointer;
 }
 
-.aff-print-chk-row input[type="checkbox"] {
+.atfrfo-print-chk-row input[type="checkbox"] {
 	width:  16px;
 	height: 16px;
 	cursor: pointer;
 }
 
-.aff-print-chk-row--disabled {
+.atfrfo-print-chk-row--disabled {
 	opacity: 0.45;
 	cursor:  not-allowed;
 }
 
-.aff-print-chk-count {
-	color:     var(--aff-clr-muted);
+.atfrfo-print-chk-count {
+	color:     var(--atfrfo-clr-muted);
 	font-size: var(--fs-xs);
 }
 
-.aff-print-chk-empty {
-	color:      var(--aff-clr-muted);
+.atfrfo-print-chk-empty {
+	color:      var(--atfrfo-clr-muted);
 	font-size:  var(--fs-xs);
 	font-style: italic;
 }
 
-.aff-print-select__sep {
+.atfrfo-print-select__sep {
 	border:     none;
-	border-top: 1px solid var(--aff-border-color, #ddd);
+	border-top: 1px solid var(--atfrfo-border-color, #ddd);
 	margin:     var(--sp-2) 0;
 }

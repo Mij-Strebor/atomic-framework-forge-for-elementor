@@ -1,6 +1,6 @@
 # Multi-Tiered Categories — Design Specification
 
-**Plugin:** Atomic Framework Forge for Elementor (AFF)
+**Plugin:** Atomic Framework Forge for Elementor (ATFRFO)
 **Spec version:** 1.0
 **Date:** 2026-04-19
 **Status:** Pre-implementation — pending developer decisions in §8
@@ -11,7 +11,7 @@
 
 ### 1.1 JSON Data Model (flat)
 
-The project file is a `.aff.json` document. The relevant portions are:
+The project file is a `.atfrfo.json` document. The relevant portions are:
 
 ```json
 {
@@ -71,7 +71,7 @@ Note: `parent_id` already exists but is used exclusively for tint/shade child va
 
 ### 1.2 PHP Storage Layer
 
-**File:** `includes/class-aff-data-store.php`
+**File:** `includes/class-atfrfo-data-store.php`
 
 Categories are stored in `$this->data['config']` under subgroup-specific keys:
 
@@ -98,12 +98,12 @@ The `subgroup_to_cat_key()` method (line 343) maps subgroup name to key. All cat
 
 ### 1.3 JavaScript Rendering Layer
 
-**File:** `admin/js/aff-variables.js` (Fonts and Numbers; Colors is in `aff-colors.js` with the same structural pattern)
+**File:** `admin/js/atfrfo-variables.js` (Fonts and Numbers; Colors is in `atfrfo-colors.js` with the same structural pattern)
 
 **Key state helpers:**
 
-- `_getCatsForSet()` (line 1498): reads `AFF.state.config[catKey]` and returns a sorted array of category objects.
-- `_getVarsForCategory(cat)` (line 1457): filters `AFF.state.variables` by `category_id` matching `cat.id` (primary) or `category` matching `cat.name` (legacy fallback). The Uncategorized branch catches orphaned variables. Returns variables sorted by `order`.
+- `_getCatsForSet()` (line 1498): reads `ATFRFO.state.config[catKey]` and returns a sorted array of category objects.
+- `_getVarsForCategory(cat)` (line 1457): filters `ATFRFO.state.variables` by `category_id` matching `cat.id` (primary) or `category` matching `cat.name` (legacy fallback). The Uncategorized branch catches orphaned variables. Returns variables sorted by `order`.
 - `_buildCategoryBlock(cat, ...)` (line 250): emits the HTML for one category block (header + column-sort row + variable rows + add-variable button).
 - `_buildVariableRow(v)` (line 364): emits the HTML for one variable row inside a category block.
 
@@ -113,24 +113,24 @@ The `subgroup_to_cat_key()` method (line 343) maps subgroup name to key. All cat
 2. `_renderAll()` loops over `_getCatsForSet()` and calls `_buildCategoryBlock()` for each
 3. `_buildCategoryBlock()` calls `_getVarsForCategory(cat)` and calls `_buildVariableRow()` for each variable
 
-**Category operations in `AFF.CatMixin`** (defined in `aff-app.js`, line 424, mixed into both `AFF.Colors` and `AFF.Variables._proto`):
+**Category operations in `ATFRFO.CatMixin`** (defined in `atfrfo-app.js`, line 424, mixed into both `ATFRFO.Colors` and `ATFRFO.Variables._proto`):
 
-- `_addCategory()`: opens a modal, POSTs to `aff_save_category`, appends new category to `AFF.state.config[catKey]`, re-renders.
-- `_saveCategoryName()`: fires on contenteditable `focusout`, POSTs to `aff_save_category` with existing ID.
-- `_deleteCategory()`: opens confirmation modal with iOS toggle (delete vs. move to Uncategorized), POSTs to `aff_delete_category`.
-- `_duplicateCategory()`: creates a copy category via `aff_save_category`, then iterates its variables and saves each via `aff_save_color`.
+- `_addCategory()`: opens a modal, POSTs to `atfrfo_save_category`, appends new category to `ATFRFO.state.config[catKey]`, re-renders.
+- `_saveCategoryName()`: fires on contenteditable `focusout`, POSTs to `atfrfo_save_category` with existing ID.
+- `_deleteCategory()`: opens confirmation modal with iOS toggle (delete vs. move to Uncategorized), POSTs to `atfrfo_delete_category`.
+- `_duplicateCategory()`: creates a copy category via `atfrfo_save_category`, then iterates its variables and saves each via `atfrfo_save_color`.
 
 ### 1.4 AJAX Endpoints (CRUD flow)
 
-All endpoints are registered in `class-aff-ajax-handler.php`:
+All endpoints are registered in `class-atfrfo-ajax-handler.php`:
 
-- `aff_save_category` — add or rename (identified by presence of `id` in payload)
-- `aff_delete_category` — delete with `delete_vars` flag
-- `aff_reorder_categories` — persist new `order` values
-- `aff_save_color` — add or update a variable (any type, despite the name)
-- `aff_delete_color` — delete a variable
+- `atfrfo_save_category` — add or rename (identified by presence of `id` in payload)
+- `atfrfo_delete_category` — delete with `delete_vars` flag
+- `atfrfo_reorder_categories` — persist new `order` values
+- `atfrfo_save_color` — add or update a variable (any type, despite the name)
+- `atfrfo_delete_color` — delete a variable
 
-The `with_store()` helper (line 1543) wraps all category/variable endpoints: it loads the `.aff.json` file, runs the callback, saves, and sends JSON success or error.
+The `with_store()` helper (line 1543) wraps all category/variable endpoints: it loads the `.atfrfo.json` file, runs the callback, saves, and sends JSON success or error.
 
 ---
 
@@ -146,7 +146,7 @@ The `with_store()` helper (line 1543) wraps all category/variable endpoints: it 
 
 4. **The feature applies to all three subgroups:** Colors, Fonts, Numbers.
 
-5. **Backwards compatibility is mandatory.** All existing flat `.aff.json` files must load and behave identically. No migration of existing files is required at load time; old structure is valid.
+5. **Backwards compatibility is mandatory.** All existing flat `.atfrfo.json` files must load and behave identically. No migration of existing files is required at load time; old structure is valid.
 
 6. **Sub-categories must support the same CRUD operations as top-level categories:** add, rename, delete (with variable reassignment), reorder within their parent, collapse/expand.
 
@@ -156,7 +156,7 @@ The `with_store()` helper (line 1543) wraps all category/variable endpoints: it 
 
 - The CSS custom property names of variables are not affected by category structure. A variable named `--status-stop-10` remains named exactly that regardless of whether it lives in Status, Status > Stop, or anywhere else.
 - The `parent_id` field on variables currently means "I am a tint/shade child of this color variable." This semantic must not be conflated with sub-category membership.
-- The existing `aff_save_color` endpoint is already the universal variable save endpoint (Colors, Fonts, Numbers). It must be extended, not replaced.
+- The existing `atfrfo_save_color` endpoint is already the universal variable save endpoint (Colors, Fonts, Numbers). It must be extended, not replaced.
 
 ---
 
@@ -171,7 +171,7 @@ The `with_store()` helper (line 1543) wraps all category/variable endpoints: it 
 ```
 
 - Pro: human-readable, easy to debug JSON directly.
-- Con: names are not stable — a category rename must update every variable in that branch. The current codebase already has rename-propagation bugs for the simpler `category` name field (see `_saveCategoryName` in `aff-app.js` which manually patches variables). Paths would amplify this technical debt. Adds complexity to the migration path for orphaned variables.
+- Con: names are not stable — a category rename must update every variable in that branch. The current codebase already has rename-propagation bugs for the simpler `category` name field (see `_saveCategoryName` in `atfrfo-app.js` which manually patches variables). Paths would amplify this technical debt. Adds complexity to the migration path for orphaned variables.
 
 **Option B — Parent ID on the sub-category (recommended):**
 
@@ -310,7 +310,7 @@ $id = $store->add_category_for_subgroup($subgroup, array(
 
 ### 4.4 `ajax_aff_save_category()` — Accept `parent_id`
 
-In `AFF_Ajax_Handler::ajax_aff_save_category()` (line 627):
+In `ATFRFO_Ajax_Handler::ajax_aff_save_category()` (line 627):
 
 ```php
 $parent_id = isset($category['parent_id'])
@@ -412,12 +412,12 @@ private function get_descendant_category_ids(string $subgroup, string $root_id):
 
 | Operation                  | PHP method                          | AJAX endpoint              |
 |----------------------------|-------------------------------------|----------------------------|
-| Add sub-category           | `add_category_for_subgroup()` (extended) | `aff_save_category` (extended) |
-| Rename sub-category        | `update_category_for_subgroup()` (unchanged) | `aff_save_category` (unchanged) |
-| Move sub-category to new parent | `update_category_for_subgroup()` with `parent_id` field | `aff_save_category` |
-| Delete sub-category        | `delete_category_for_subgroup()` (extended with cascade) | `aff_delete_category` |
-| Reorder sub-categories     | `reorder_categories_for_subgroup()` (unchanged) | `aff_reorder_categories` |
-| Move variable to sub-category | `update_variable()` with new `category_id` | `aff_save_color` (unchanged) |
+| Add sub-category           | `add_category_for_subgroup()` (extended) | `atfrfo_save_category` (extended) |
+| Rename sub-category        | `update_category_for_subgroup()` (unchanged) | `atfrfo_save_category` (unchanged) |
+| Move sub-category to new parent | `update_category_for_subgroup()` with `parent_id` field | `atfrfo_save_category` |
+| Delete sub-category        | `delete_category_for_subgroup()` (extended with cascade) | `atfrfo_delete_category` |
+| Reorder sub-categories     | `reorder_categories_for_subgroup()` (unchanged) | `atfrfo_reorder_categories` |
+| Move variable to sub-category | `update_variable()` with new `category_id` | `atfrfo_save_color` (unchanged) |
 
 No new AJAX endpoints are required. All operations can be handled by extending the existing endpoints.
 
@@ -437,7 +437,7 @@ Users may then manually restructure their categories using the new UI (Phase 3 o
 
 ### 5.1 Tree-Building Helper
 
-Both `aff-variables.js` and `aff-colors.js` need a shared helper that converts the flat category array into a tree for rendering purposes. This belongs in `aff-app.js` (where `AFF.Utils` lives):
+Both `atfrfo-variables.js` and `atfrfo-colors.js` need a shared helper that converts the flat category array into a tree for rendering purposes. This belongs in `atfrfo-app.js` (where `ATFRFO.Utils` lives):
 
 ```javascript
 /**
@@ -452,7 +452,7 @@ Both `aff-variables.js` and `aff-colors.js` need a shared helper that converts t
  * @param {Function} getVarsForCategory  Existing per-category filter.
  * @returns {Object[]} Tree nodes.
  */
-AFF.Utils.buildCatTree = function (cats, allVars, getVarsForCategory) {
+ATFRFO.Utils.buildCatTree = function (cats, allVars, getVarsForCategory) {
     var nodeMap = {};
     cats.forEach(function (c) {
         nodeMap[c.id] = Object.assign({}, c, { children: [], directVars: [] });
@@ -527,21 +527,21 @@ The current `_buildCategoryBlock()` renders a flat list of variable rows. It mus
 Proposed structure:
 
 ```
-.aff-category-block[data-category-id="cat-status"]
-  .aff-category-inner
-    .aff-category-header           (Status header with total count)
-    .aff-color-list                (direct variables: 3 disabled-state colors)
-    .aff-subcategory-list          (NEW wrapper)
-      .aff-category-block.aff-category-block--sub[data-category-id="cat-stop"]
-        .aff-category-inner--sub
-          .aff-category-header--sub  (Stop header with count)
-          .aff-color-list
+.atfrfo-category-block[data-category-id="cat-status"]
+  .atfrfo-category-inner
+    .atfrfo-category-header           (Status header with total count)
+    .atfrfo-color-list                (direct variables: 3 disabled-state colors)
+    .atfrfo-subcategory-list          (NEW wrapper)
+      .atfrfo-category-block.atfrfo-category-block--sub[data-category-id="cat-stop"]
+        .atfrfo-category-inner--sub
+          .atfrfo-category-header--sub  (Stop header with count)
+          .atfrfo-color-list
             (11 stop color rows)
-      .aff-category-block.aff-category-block--sub[data-category-id="cat-warning"]
+      .atfrfo-category-block.atfrfo-category-block--sub[data-category-id="cat-warning"]
         ...
-      .aff-category-block.aff-category-block--sub[data-category-id="cat-success"]
+      .atfrfo-category-block.atfrfo-category-block--sub[data-category-id="cat-success"]
         ...
-  .aff-cat-add-btn-wrap
+  .atfrfo-cat-add-btn-wrap
 ```
 
 The `_buildCategoryBlock()` method gains a `depth` parameter (0 = top-level, 1 = sub-category, 2 = sub-sub-category):
@@ -560,14 +560,14 @@ _buildCategoryBlock: function (cat, catIndex, catTotal, allCats, depth) {
 
     // Direct variables section
     if (directVars.length > 0) {
-        html += '<div class="aff-color-list aff-color-list--direct">';
+        html += '<div class="atfrfo-color-list atfrfo-color-list--direct">';
         directVars.forEach(function (v) { html += self._buildVariableRow(v); });
         html += '</div>';
     }
 
     // Sub-category section
     if (subCats.length > 0 && depth < MAX_DEPTH) {
-        html += '<div class="aff-subcategory-list" data-parent-cat-id="' + cat.id + '">';
+        html += '<div class="atfrfo-subcategory-list" data-parent-cat-id="' + cat.id + '">';
         subCats.forEach(function (sc, i) {
             html += self._buildCategoryBlock(sc, i, subCats.length, allCats, depth + 1);
         });
@@ -615,11 +615,11 @@ This method returns the full flat array sorted by `order`. It is used both for t
 
 `_collapsedIds` already maps `catId → boolean` and is keyed by UUID regardless of depth. No change needed — sub-categories will work with the same map.
 
-The "collapse all" / "expand all" toggle in the filter bar should collapse/expand all blocks at all depths. The current implementation iterates all `.aff-category-block` elements in the DOM, which will naturally include sub-category blocks.
+The "collapse all" / "expand all" toggle in the filter bar should collapse/expand all blocks at all depths. The current implementation iterates all `.atfrfo-category-block` elements in the DOM, which will naturally include sub-category blocks.
 
-### 5.7 `AFF.CatMixin._addCategory()` — Add Sub-category Support
+### 5.7 `ATFRFO.CatMixin._addCategory()` — Add Sub-category Support
 
-The existing modal asks for a name and posts to `aff_save_category` with no `parent_id`. This must be extended so the user can add a sub-category to a specific parent. Two approaches are needed:
+The existing modal asks for a name and posts to `atfrfo_save_category` with no `parent_id`. This must be extended so the user can add a sub-category to a specific parent. Two approaches are needed:
 
 1. **Add Category (top-level):** existing "+" button in the filter bar — no change.
 2. **Add Sub-category (to a specific category):** a new "Add sub-category" button inside each category header, visible only when `depth < MAX_DEPTH`.
@@ -627,24 +627,24 @@ The existing modal asks for a name and posts to `aff_save_category` with no `par
 The modal for adding a sub-category is identical to the existing one, but the `parent_id` is included in the payload:
 
 ```javascript
-AFF.App.ajax('aff_save_category', {
-    filename: AFF.state.currentFile,
+ATFRFO.App.ajax('atfrfo_save_category', {
+    filename: ATFRFO.state.currentFile,
     subgroup: self._cfg.setName,
     category: JSON.stringify({ name: name, parent_id: parentCatId }),
 });
 ```
 
-On success, append the new sub-category to `AFF.state.config[catKey]` (not to the parent's children; the flat array is the source of truth).
+On success, append the new sub-category to `ATFRFO.state.config[catKey]` (not to the parent's children; the flat array is the source of truth).
 
-### 5.8 `AFF.VarDrag.drop()` — Cross-category Movement
+### 5.8 `ATFRFO.VarDrag.drop()` — Cross-category Movement
 
-The existing drop logic reassigns `category_id` when a variable is dragged across category blocks. This will work for sub-categories without modification because sub-categories are also `.aff-category-block` elements with `data-category-id` attributes. The logic reads `targetCatBlock.getAttribute('data-category-id')` which will correctly resolve to the sub-category UUID.
+The existing drop logic reassigns `category_id` when a variable is dragged across category blocks. This will work for sub-categories without modification because sub-categories are also `.atfrfo-category-block` elements with `data-category-id` attributes. The logic reads `targetCatBlock.getAttribute('data-category-id')` which will correctly resolve to the sub-category UUID.
 
-One edge case: dragging a variable from a sub-category to the parent category's direct variable area. The drop indicator placement logic in `AFF.VarDrag.init()` identifies the target category block by the closest `.aff-category-block`. When a variable is in the "direct variables" section of Status (not inside a sub-category block), the closest `.aff-category-block` is the Status block, which is correct.
+One edge case: dragging a variable from a sub-category to the parent category's direct variable area. The drop indicator placement logic in `ATFRFO.VarDrag.init()` identifies the target category block by the closest `.atfrfo-category-block`. When a variable is in the "direct variables" section of Status (not inside a sub-category block), the closest `.atfrfo-category-block` is the Status block, which is correct.
 
-### 5.9 Left Panel (`AFF.PanelLeft`)
+### 5.9 Left Panel (`ATFRFO.PanelLeft`)
 
-The left panel currently lists categories as navigation items. Sub-categories must appear as nested items below their parent, indented. This requires changes to `AFF.PanelLeft.refresh()` to build the tree rather than the flat list. The selection object passed to `AFF.EditSpace.loadCategory()` must include `categoryId` so the edit space scrolls to and expands the correct block.
+The left panel currently lists categories as navigation items. Sub-categories must appear as nested items below their parent, indented. This requires changes to `ATFRFO.PanelLeft.refresh()` to build the tree rather than the flat list. The selection object passed to `ATFRFO.EditSpace.loadCategory()` must include `categoryId` so the edit space scrolls to and expands the correct block.
 
 ---
 
@@ -652,12 +652,12 @@ The left panel currently lists categories as navigation items. Sub-categories mu
 
 ### 6.1 Visual Hierarchy
 
-Top-level category blocks use the existing `.aff-category-block` / `.aff-category-inner` appearance (card with 12px border-radius, `--aff-bg-card` background, 32px bottom margin).
+Top-level category blocks use the existing `.atfrfo-category-block` / `.atfrfo-category-inner` appearance (card with 12px border-radius, `--atfrfo-bg-card` background, 32px bottom margin).
 
-Sub-category blocks are rendered inside a `.aff-subcategory-list` container inside the parent category block, with a left indent of 24px (one drag-handle column width) and a reduced visual weight:
+Sub-category blocks are rendered inside a `.atfrfo-subcategory-list` container inside the parent category block, with a left indent of 24px (one drag-handle column width) and a reduced visual weight:
 
 - Slightly smaller border-radius (8px vs 12px)
-- A left border accent (2px, `--aff-clr-border`) to indicate nesting
+- A left border accent (2px, `--atfrfo-clr-border`) to indicate nesting
 - No bottom margin on the last sub-category within a parent
 - Same collapse/expand chevron in the header
 
@@ -720,8 +720,8 @@ At depth 2, the sub-sub-category block is identical to the depth-1 block but wit
 
 When a category has both direct variables and sub-categories, they render in this order within the category block:
 
-1. Direct variable rows (in their own `.aff-color-list--direct` container, above the sub-categories)
-2. Sub-categories list (`.aff-subcategory-list` below)
+1. Direct variable rows (in their own `.atfrfo-color-list--direct` container, above the sub-categories)
+2. Sub-categories list (`.atfrfo-subcategory-list` below)
 
 The add-variable button at the bottom of the category block adds a variable directly to the category (not to a sub-category). Adding to a sub-category uses the sub-category's own add-variable button.
 
@@ -766,8 +766,8 @@ Each phase leaves the application in a fully working state. Phases do not overla
 5. Implement `get_descendant_category_ids()` helper.
 6. Extend `delete_category_for_subgroup()` to cascade sub-category deletion.
 7. Update `get_diagnostics()` and `deduplicate()` to scope duplicate detection to siblings.
-8. No AJAX endpoint changes other than `aff_save_category` accepting the new field.
-9. Test: existing `.aff.json` files load and save without change. New files with nested categories save and load correctly.
+8. No AJAX endpoint changes other than `atfrfo_save_category` accepting the new field.
+9. Test: existing `.atfrfo.json` files load and save without change. New files with nested categories save and load correctly.
 
 **Deliverable:** The PHP data layer fully supports nested categories. No UI exposes the feature yet.
 
@@ -775,8 +775,8 @@ Each phase leaves the application in a fully working state. Phases do not overla
 
 **Scope:** JS model and rendering infrastructure, no styling.
 
-1. Add `AFF.Utils.buildCatTree()` to `aff-app.js`.
-2. Add `_getSubCategoriesOf()` and `_getSubtreeVarCount()` to `AFF.Variables._proto` and `AFF.Colors`.
+1. Add `ATFRFO.Utils.buildCatTree()` to `atfrfo-app.js`.
+2. Add `_getSubCategoriesOf()` and `_getSubtreeVarCount()` to `ATFRFO.Variables._proto` and `ATFRFO.Colors`.
 3. Modify `_renderAll()` to filter for top-level categories only.
 4. Modify `_buildCategoryBlock()` to accept `depth` and `allCats` parameters, recursively rendering sub-categories.
 5. Verify: existing flat projects render identically (all categories have `parent_id === null`, rendering is unchanged).
@@ -792,7 +792,7 @@ Each phase leaves the application in a fully working state. Phases do not overla
 3. Sub-category delete modal — extend `_deleteCategory()` to show recursive count.
 4. Sub-category rename — already works via the contenteditable header (no change needed).
 5. Sub-category drag-and-drop reorder within a parent — extend `_initCatDrag()` to scope reorder to siblings (same `parent_id`).
-6. Left panel (`AFF.PanelLeft`) — render sub-categories as nested nav items.
+6. Left panel (`ATFRFO.PanelLeft`) — render sub-categories as nested nav items.
 
 **Deliverable:** The user can add, rename, delete, and reorder sub-categories through the UI.
 
@@ -800,9 +800,9 @@ Each phase leaves the application in a fully working state. Phases do not overla
 
 **Scope:** CSS for the nested visual hierarchy.
 
-1. `.aff-subcategory-list` container: left padding, optional left border.
-2. `.aff-category-block--sub` and `.aff-category-inner--sub`: reduced border-radius, smaller header font, distinct background tint.
-3. `.aff-category-block--sub-sub`: additional indent for depth 2.
+1. `.atfrfo-subcategory-list` container: left padding, optional left border.
+2. `.atfrfo-category-block--sub` and `.atfrfo-category-inner--sub`: reduced border-radius, smaller header font, distinct background tint.
+3. `.atfrfo-category-block--sub-sub`: additional indent for depth 2.
 4. Category count badge: display subtree total with secondary direct count.
 5. "Add sub-category" button visibility (hover-reveal in category header).
 6. Responsive behavior: sub-categories collapse to the same width as top-level categories on narrow screens.
@@ -815,7 +815,7 @@ Each phase leaves the application in a fully working state. Phases do not overla
 
 1. Add a "Move to sub-category" option to variable rows (context button or drag-target affordance).
 2. Modal lists available categories and sub-categories in a flat dropdown (indented labels for hierarchy).
-3. On confirm, fires `aff_save_color` with the new `category_id`.
+3. On confirm, fires `atfrfo_save_color` with the new `category_id`.
 
 **Deliverable:** Users can move variables between categories/sub-categories without drag-and-drop.
 
@@ -850,7 +850,7 @@ The left panel currently shows a two-level tree (group → category). Sub-catego
 
 _Decision needed: do sub-categories appear in the left panel, or only in the edit space?_
 
-**Q6. `aff_save_category` response — return updated full tree or only the new item?**
+**Q6. `atfrfo_save_category` response — return updated full tree or only the new item?**
 The existing endpoint returns the full `categories` array after every save. For large projects with many nested categories, this becomes a significant payload. A leaner alternative returns only the affected category object plus its parent's ID. The client code in `_addCategory()` and `_saveCategoryName()` already uses selective merge logic rather than full replacement, so either format is supportable.
 
 _Decision needed: keep current full-array response or switch to partial response in Phase 3?_

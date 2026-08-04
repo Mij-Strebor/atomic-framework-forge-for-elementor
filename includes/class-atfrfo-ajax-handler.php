@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AFF Ajax Handler — AJAX Endpoint Registration & Processing
+ * ATFRFO Ajax Handler — AJAX Endpoint Registration & Processing
  *
  * All AJAX endpoints are registered here, each protected with nonce
  * verification and capability checks before any processing occurs.
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // phpcs:disable WordPress.Security.NonceVerification.Missing -- All handlers call $this->verify_request() which performs nonce verification via check_ajax_referer().
 // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON payloads are validated via $this->safe_json_decode(); scalar values are sanitized per-field inside each handler.
 
-class AFF_Ajax_Handler {
+class ATFRFO_Ajax_Handler {
 
 
 	/**
@@ -25,39 +25,39 @@ class AFF_Ajax_Handler {
 	public function register_handlers(): void {
 		$actions = array(
 			// v1.0.0 endpoints
-			'aff_save_file',
-			'aff_load_file',
-			'aff_sync_from_elementor',
-			'aff_save_user_theme',
-			'aff_increment_notify_count',
-			'aff_get_config',
-			'aff_save_config',
-			'aff_save_settings',
-			'aff_get_settings',
-			'aff_get_usage_counts',
+			'atfrfo_save_file',
+			'atfrfo_load_file',
+			'atfrfo_sync_from_elementor',
+			'atfrfo_save_user_theme',
+			'atfrfo_increment_notify_count',
+			'atfrfo_get_config',
+			'atfrfo_save_config',
+			'atfrfo_save_settings',
+			'atfrfo_get_settings',
+			'atfrfo_get_usage_counts',
 			// Project management endpoints
-			'aff_list_projects',
-			'aff_list_backups',
-			'aff_delete_project',
-			'aff_rename_project',
-			'aff_copy_project',
-			'aff_delete_project_folder',
+			'atfrfo_list_projects',
+			'atfrfo_list_backups',
+			'atfrfo_delete_project',
+			'atfrfo_rename_project',
+			'atfrfo_copy_project',
+			'atfrfo_delete_project_folder',
 			// Phase 2 — Colors endpoints
-			'aff_save_category',
-			'aff_delete_category',
-			'aff_clear_category',
-			'aff_reorder_categories',
-			'aff_save_color',
-			'aff_delete_color',
-			'aff_generate_children',
-			'aff_save_baseline',
-			'aff_get_baseline',
-			'aff_commit_to_elementor',
+			'atfrfo_save_category',
+			'atfrfo_delete_category',
+			'atfrfo_clear_category',
+			'atfrfo_reorder_categories',
+			'atfrfo_save_color',
+			'atfrfo_delete_color',
+			'atfrfo_generate_children',
+			'atfrfo_save_baseline',
+			'atfrfo_get_baseline',
+			'atfrfo_commit_to_elementor',
 			// Elementor V3 Import
-			'aff_sync_v3_global_colors',
+			'atfrfo_sync_v3_global_colors',
 			// Diagnostics & cleanup
-			'aff_get_diagnostics',
-			'aff_deduplicate',
+			'atfrfo_get_diagnostics',
+			'atfrfo_deduplicate',
 		);
 
 		foreach ( $actions as $action ) {
@@ -83,7 +83,7 @@ class AFF_Ajax_Handler {
 		$decoded = $this->safe_json_decode( $data_raw, __( 'Invalid data format.', 'atomic-framework-forge-for-elementor' ) );
 
 		// Assign UUIDs to any variables that arrived with an empty id (e.g., synced
-		// Elementor variables that were never explicitly saved via aff_save_color).
+		// Elementor variables that were never explicitly saved via atfrfo_save_color).
 		if ( ! empty( $decoded['variables'] ) && is_array( $decoded['variables'] ) ) {
 			foreach ( $decoded['variables'] as &$var ) {
 				if ( empty( $var['id'] ) ) {
@@ -93,9 +93,9 @@ class AFF_Ajax_Handler {
 			unset( $var );
 		}
 
-		$slug  = AFF_Data_Store::sanitize_project_slug( $project_name );
-		$dir   = AFF_Data_Store::get_project_dir( $slug );
-		$fname = AFF_Data_Store::generate_backup_filename( $slug );
+		$slug  = ATFRFO_Data_Store::sanitize_project_slug( $project_name );
+		$dir   = ATFRFO_Data_Store::get_project_dir( $slug );
+		$fname = ATFRFO_Data_Store::generate_backup_filename( $slug );
 		$file  = $dir . $fname;
 
 		$json = wp_json_encode( $decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
@@ -138,7 +138,7 @@ class AFF_Ajax_Handler {
 			);
 		}
 
-		AFF_Data_Store::prune_backups( $dir, (int) AFF_Settings::get( 'max_backups' ) );
+		ATFRFO_Data_Store::prune_backups( $dir, (int) ATFRFO_Settings::get( 'max_backups' ) );
 
 		$relative = $slug . '/' . $fname;
 		wp_send_json_success(
@@ -166,13 +166,13 @@ class AFF_Ajax_Handler {
 		$resolved = $this->resolve_file( $raw );
 		$file     = $resolved['absolute'];
 		$filename = $resolved['relative'];
-		$dir      = AFF_Data_Store::get_wp_storage_dir();
+		$dir      = ATFRFO_Data_Store::get_wp_storage_dir();
 
 		if ( ! file_exists( $file ) ) {
 			// Backward compat: old flat path — try newest backup in slug subdir.
 			if ( strpos( $raw, '/' ) === false ) {
-				$slug    = AFF_Data_Store::sanitize_project_slug( preg_replace( '/\.aff\.json$/i', '', $raw ) );
-				$backups = AFF_Data_Store::list_project_backups( $dir, $slug );
+				$slug    = ATFRFO_Data_Store::sanitize_project_slug( preg_replace( '/\.atfrfo\.json$/i', '', $raw ) );
+				$backups = ATFRFO_Data_Store::list_project_backups( $dir, $slug );
 				if ( ! empty( $backups ) ) {
 					$resolved = $this->resolve_file( $backups[0]['filename'] );
 					$file     = $resolved['absolute'];
@@ -184,10 +184,10 @@ class AFF_Ajax_Handler {
 				// Still not found → return a fresh empty project (create-on-load).
 				$project_name = isset( $_POST['project_name'] )
 					? sanitize_text_field( wp_unslash( $_POST['project_name'] ) )
-					: preg_replace( '/\.aff(?:\.json)?$/i', '', basename( $filename ) );
-				$project_name = preg_replace( '/\.aff$/', '', $project_name );
+					: preg_replace( '/\.atfrfo(?:\.json)?$/i', '', basename( $filename ) );
+				$project_name = preg_replace( '/\.atfrfo$/', '', $project_name );
 
-				$store = new AFF_Data_Store();
+				$store = new ATFRFO_Data_Store();
 				$data  = $store->new_project( $project_name );
 
 				wp_send_json_success(
@@ -206,7 +206,7 @@ class AFF_Ajax_Handler {
 			}
 		}
 
-		$store = new AFF_Data_Store();
+		$store = new ATFRFO_Data_Store();
 		if ( ! $store->load_from_file( $file ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not read or parse file.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
@@ -227,7 +227,7 @@ class AFF_Ajax_Handler {
 	public function ajax_aff_sync_from_elementor(): void {
 		$this->verify_request();
 
-		$parser = new AFF_CSS_Parser();
+		$parser = new ATFRFO_CSS_Parser();
 
 		// Primary path: read directly from _elementor_global_variables post meta.
 		// This is Elementor's authoritative storage for v4 variables and works even
@@ -322,7 +322,7 @@ class AFF_Ajax_Handler {
 		$theme   = in_array( $theme, array( 'light', 'dark' ), true ) ? $theme : 'light';
 		$user_id = get_current_user_id();
 
-		update_user_meta( $user_id, AFF_USER_META_THEME, $theme );
+		update_user_meta( $user_id, ATFRFO_USER_META_THEME, $theme );
 
 		wp_send_json_success( array( 'theme' => $theme ) );
 	}
@@ -334,18 +334,18 @@ class AFF_Ajax_Handler {
 	/**
 	 * Increment the current user's notify-sign shown count by one.
 	 * Called once per display, fire-and-forget from the client — the server
-	 * is the single source of truth for the cap (AFF_NOTIFY_MAX_SHOWS), and
+	 * is the single source of truth for the cap (ATFRFO_NOTIFY_MAX_SHOWS), and
 	 * this endpoint has no meaningful failure mode the client needs to react to.
 	 */
 	public function ajax_aff_increment_notify_count(): void {
 		$this->verify_request();
 
 		$user_id = get_current_user_id();
-		$count   = get_user_meta( $user_id, AFF_USER_META_NOTIFY_COUNT, true );
+		$count   = get_user_meta( $user_id, ATFRFO_USER_META_NOTIFY_COUNT, true );
 		$count   = is_numeric( $count ) ? (int) $count : 0;
 		++$count;
 
-		update_user_meta( $user_id, AFF_USER_META_NOTIFY_COUNT, $count );
+		update_user_meta( $user_id, ATFRFO_USER_META_NOTIFY_COUNT, $count );
 
 		wp_send_json_success( array( 'count' => $count ) );
 	}
@@ -358,7 +358,7 @@ class AFF_Ajax_Handler {
 		$this->verify_request();
 
 		// Saved config takes precedence over defaults file.
-		$saved = get_option( 'aff_project_config', array() );
+		$saved = get_option( 'atfrfo_project_config', array() );
 
 		if ( ! empty( $saved ) ) {
 			wp_send_json_success( array( 'config' => $saved ) );
@@ -366,7 +366,7 @@ class AFF_Ajax_Handler {
 		}
 
 		// Fall back to defaults JSON.
-		$defaults_file = AFF_PLUGIN_DIR . 'data/aff-defaults.json';
+		$defaults_file = ATFRFO_PLUGIN_DIR . 'data/atfrfo-defaults.json';
 		$config        = array();
 
 		if ( file_exists( $defaults_file ) ) {
@@ -389,7 +389,7 @@ class AFF_Ajax_Handler {
 		$config_raw = isset( $_POST['config'] ) ? wp_unslash( $_POST['config'] ) : '';
 		$config     = $this->safe_json_decode( $config_raw, __( 'Invalid config format.', 'atomic-framework-forge-for-elementor' ) );
 
-		update_option( 'aff_project_config', $config );
+		update_option( 'atfrfo_project_config', $config );
 
 		wp_send_json_success( array( 'message' => __( 'Configuration saved.', 'atomic-framework-forge-for-elementor' ) ) );
 	}
@@ -404,7 +404,7 @@ class AFF_Ajax_Handler {
 		$settings_raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
 		$settings     = $this->safe_json_decode( $settings_raw, __( 'Invalid settings format.', 'atomic-framework-forge-for-elementor' ) );
 
-		AFF_Settings::set( $settings );
+		ATFRFO_Settings::set( $settings );
 
 		wp_send_json_success( array( 'message' => __( 'Settings saved.', 'atomic-framework-forge-for-elementor' ) ) );
 	}
@@ -429,7 +429,7 @@ class AFF_Ajax_Handler {
 			)
 		);
 
-		$counts = AFF_Usage_Scanner::scan( $names );
+		$counts = ATFRFO_Usage_Scanner::scan( $names );
 
 		wp_send_json_success(
 			array(
@@ -445,7 +445,7 @@ class AFF_Ajax_Handler {
 
 	public function ajax_aff_get_settings(): void {
 		$this->verify_request();
-		wp_send_json_success( array( 'settings' => AFF_Settings::get() ) );
+		wp_send_json_success( array( 'settings' => ATFRFO_Settings::get() ) );
 	}
 
 	// -----------------------------------------------------------------------
@@ -455,8 +455,8 @@ class AFF_Ajax_Handler {
 	public function ajax_aff_list_projects(): void {
 		$this->verify_request();
 
-		$dir      = AFF_Data_Store::get_wp_storage_dir();
-		$projects = AFF_Data_Store::list_projects( $dir );
+		$dir      = ATFRFO_Data_Store::get_wp_storage_dir();
+		$projects = ATFRFO_Data_Store::list_projects( $dir );
 
 		wp_send_json_success( array( 'projects' => $projects ) );
 	}
@@ -469,9 +469,9 @@ class AFF_Ajax_Handler {
 		$this->verify_request();
 
 		$slug    = $this->post_param( 'project_slug' );
-		$slug    = AFF_Data_Store::sanitize_project_slug( $slug );
-		$dir     = AFF_Data_Store::get_wp_storage_dir();
-		$backups = AFF_Data_Store::list_project_backups( $dir, $slug );
+		$slug    = ATFRFO_Data_Store::sanitize_project_slug( $slug );
+		$dir     = ATFRFO_Data_Store::get_wp_storage_dir();
+		$backups = ATFRFO_Data_Store::list_project_backups( $dir, $slug );
 
 		wp_send_json_success( array( 'backups' => $backups ) );
 	}
@@ -502,11 +502,11 @@ class AFF_Ajax_Handler {
 		}
 
 		// Clean up stored baseline.
-		AFF_Data_Store::delete_baseline( $filename );
+		ATFRFO_Data_Store::delete_baseline( $filename );
 
 		// Remove project subdirectory if now empty.
 		$project_dir = dirname( $file );
-		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.aff.json' ) ) ) {
+		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.atfrfo.json' ) ) ) {
 			$fs = $this->get_wp_filesystem();
 			if ( $fs ) {
 				$fs->rmdir( $project_dir );
@@ -523,15 +523,15 @@ class AFF_Ajax_Handler {
 	public function ajax_aff_rename_project(): void {
 		$this->verify_request();
 
-		$old_slug = AFF_Data_Store::sanitize_project_slug( $this->post_param( 'old_slug' ) );
+		$old_slug = ATFRFO_Data_Store::sanitize_project_slug( $this->post_param( 'old_slug' ) );
 		$new_name = sanitize_text_field( $this->post_param( 'new_name' ) );
-		$new_slug = AFF_Data_Store::sanitize_project_slug( $new_name );
+		$new_slug = ATFRFO_Data_Store::sanitize_project_slug( $new_name );
 
 		if ( empty( $old_slug ) || empty( $new_name ) || empty( $new_slug ) ) {
 			wp_send_json_error( array( 'message' => __( 'Project slug and new name are required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		$base_dir = AFF_Data_Store::get_wp_storage_dir();
+		$base_dir = ATFRFO_Data_Store::get_wp_storage_dir();
 		$old_dir  = $base_dir . $old_slug . '/';
 		$new_dir  = $base_dir . $new_slug . '/';
 
@@ -544,7 +544,7 @@ class AFF_Ajax_Handler {
 		}
 
 		// Update name in every backup file.
-		foreach ( glob( $old_dir . '*.aff.json' ) ?: array() as $file ) {
+		foreach ( glob( $old_dir . '*.atfrfo.json' ) ?: array() as $file ) {
 			$raw = json_decode( file_get_contents( $file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			if ( is_array( $raw ) ) {
 				$raw['name'] = $new_name;
@@ -575,15 +575,15 @@ class AFF_Ajax_Handler {
 	public function ajax_aff_copy_project(): void {
 		$this->verify_request();
 
-		$src_slug = AFF_Data_Store::sanitize_project_slug( $this->post_param( 'source_slug' ) );
+		$src_slug = ATFRFO_Data_Store::sanitize_project_slug( $this->post_param( 'source_slug' ) );
 		$new_name = sanitize_text_field( $this->post_param( 'new_name' ) );
-		$new_slug = AFF_Data_Store::sanitize_project_slug( $new_name );
+		$new_slug = ATFRFO_Data_Store::sanitize_project_slug( $new_name );
 
 		if ( empty( $src_slug ) || empty( $new_name ) || empty( $new_slug ) ) {
 			wp_send_json_error( array( 'message' => __( 'Source slug and new name are required.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		$base_dir = AFF_Data_Store::get_wp_storage_dir();
+		$base_dir = ATFRFO_Data_Store::get_wp_storage_dir();
 		$src_dir  = $base_dir . $src_slug . '/';
 		$new_dir  = $base_dir . $new_slug . '/';
 
@@ -599,7 +599,7 @@ class AFF_Ajax_Handler {
 		}
 
 		// Copy each backup file, updating the name fields and generating a new timestamped filename.
-		foreach ( glob( $src_dir . '*.aff.json' ) ?: array() as $src_file ) {
+		foreach ( glob( $src_dir . '*.atfrfo.json' ) ?: array() as $src_file ) {
 			$raw = json_decode( file_get_contents( $src_file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			if ( ! is_array( $raw ) ) {
 				continue;
@@ -608,7 +608,7 @@ class AFF_Ajax_Handler {
 			if ( isset( $raw['config'] ) && is_array( $raw['config'] ) ) {
 				$raw['config']['projectName'] = $new_name;
 			}
-			$dest = $new_dir . AFF_Data_Store::generate_backup_filename( $new_slug );
+			$dest = $new_dir . ATFRFO_Data_Store::generate_backup_filename( $new_slug );
 			// Avoid filename collisions when multiple files are copied in the same second.
 			// generate_backup_filename() uses 1-second resolution (gmdate 'Y-m-d_H-i-s'),
 			// so copying several backups in rapid succession produces identical filenames.
@@ -618,7 +618,7 @@ class AFF_Ajax_Handler {
 			$attempt = 0;
 			while ( file_exists( $dest ) && $attempt < 10 ) {
 				sleep( 1 );
-				$dest = $new_dir . AFF_Data_Store::generate_backup_filename( $new_slug );
+				$dest = $new_dir . ATFRFO_Data_Store::generate_backup_filename( $new_slug );
 				++$attempt;
 			}
 			file_put_contents( $dest, wp_json_encode( $raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
@@ -639,16 +639,16 @@ class AFF_Ajax_Handler {
 	public function ajax_aff_delete_project_folder(): void {
 		$this->verify_request();
 
-		$slug     = AFF_Data_Store::sanitize_project_slug( $this->post_param( 'project_slug' ) );
-		$base_dir = AFF_Data_Store::get_wp_storage_dir();
+		$slug     = ATFRFO_Data_Store::sanitize_project_slug( $this->post_param( 'project_slug' ) );
+		$base_dir = ATFRFO_Data_Store::get_wp_storage_dir();
 		$dir      = $base_dir . $slug . '/';
 
 		if ( empty( $slug ) || ! is_dir( $dir ) ) {
 			wp_send_json_error( array( 'message' => __( 'Project not found.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		foreach ( glob( $dir . '*.aff.json' ) ?: array() as $file ) {
-			AFF_Data_Store::delete_baseline( $slug . '/' . basename( $file ) );
+		foreach ( glob( $dir . '*.atfrfo.json' ) ?: array() as $file ) {
+			ATFRFO_Data_Store::delete_baseline( $slug . '/' . basename( $file ) );
 			wp_delete_file( $file );
 		}
 
@@ -665,7 +665,7 @@ class AFF_Ajax_Handler {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Add or update a category in the .aff.json file.
+	 * Add or update a category in the .atfrfo.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
 	 *              category (JSON: {id?, name, order?, locked?, parent_id?})
@@ -736,7 +736,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Delete a category from the .aff.json file.
+	 * Delete a category from the .atfrfo.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'), category_id
 	 */
@@ -792,7 +792,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Reorder categories in the .aff.json file.
+	 * Reorder categories in the .atfrfo.json file.
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
 	 *              ordered_ids (JSON array of category UUIDs in desired order)
@@ -824,7 +824,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Add or update a color variable in the .aff.json file.
+	 * Add or update a color variable in the .atfrfo.json file.
 	 *
 	 * POST params: filename, variable (JSON — full variable object or partial with `id`)
 	 */
@@ -899,7 +899,7 @@ class AFF_Ajax_Handler {
 					}
 
 					// Remove any existing placeholder copy that arrived with an empty id
-					// (e.g., a synced Elementor variable saved via aff_save_file before
+					// (e.g., a synced Elementor variable saved via atfrfo_save_file before
 					// it was assigned a UUID). Without this, add_variable would create a
 					// duplicate alongside the empty-id entry already on disk.
 					$store->delete_variable_by_name_if_empty_id( $name );
@@ -931,7 +931,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Delete a color variable from the .aff.json file.
+	 * Delete a color variable from the .atfrfo.json file.
 	 *
 	 * POST params: filename, variable_id, delete_children (optional, '1' to delete children)
 	 */
@@ -964,7 +964,7 @@ class AFF_Ajax_Handler {
 	 *
 	 * POST params: filename, parent_id, tints (0–10), shades (0–10), transparencies (0|1)
 	 *
-	 * Child variable naming (spec §15.7 — AFF-Spec-Colors):
+	 * Child variable naming (spec §15.7 — ATFRFO-Spec-Colors):
 	 *   Tints:          --name-{step*10}     (e.g., --primary-10, --primary-20)
 	 *   Shades:         --name-plus-{step*10} (e.g., --primary-plus-10; '+' encoded as '-plus-')
 	 *   Transparencies: --name{step*10}       (e.g., --primary10, --primary20; 9 fixed steps)
@@ -1114,7 +1114,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Save the Elementor baseline snapshot for a .aff.json file.
+	 * Save the Elementor baseline snapshot for a .atfrfo.json file.
 	 *
 	 * POST params: filename, variables (JSON array of {name, value})
 	 */
@@ -1137,7 +1137,7 @@ class AFF_Ajax_Handler {
 			);
 		}
 
-		AFF_Data_Store::save_baseline( $filename, $sanitized );
+		ATFRFO_Data_Store::save_baseline( $filename, $sanitized );
 
 		wp_send_json_success(
 			array(
@@ -1148,7 +1148,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Retrieve the Elementor baseline snapshot for a .aff.json file.
+	 * Retrieve the Elementor baseline snapshot for a .atfrfo.json file.
 	 *
 	 * POST params: filename
 	 */
@@ -1156,7 +1156,7 @@ class AFF_Ajax_Handler {
 		$this->verify_request();
 
 		$filename  = $this->get_filename_param();
-		$variables = AFF_Data_Store::get_baseline( $filename );
+		$variables = ATFRFO_Data_Store::get_baseline( $filename );
 
 		wp_send_json_success(
 			array(
@@ -1167,7 +1167,7 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Commit AFF variables to Elementor.
+	 * Commit ATFRFO variables to Elementor.
 	 *
 	 * PRIMARY: Updates _elementor_global_variables post meta — Elementor's
 	 * authoritative store. This makes changes visible in EV4's Variables Manager
@@ -1178,15 +1178,15 @@ class AFF_Ajax_Handler {
 	 *
 	 * Deletions: variables present in elementor_snapshot (sent by client) but
 	 * absent from the current variable list are removed from EV4 meta. Only
-	 * variables AFF has previously imported are eligible for deletion — EV4
-	 * variables that AFF has never seen are always left untouched.
+	 * variables ATFRFO has previously imported are eligible for deletion — EV4
+	 * variables that ATFRFO has never seen are always left untouched.
 	 *
 	 * POST params:
-	 *   filename           - current .aff.json relative path
+	 *   filename           - current .atfrfo.json relative path
 	 *   variables          - JSON array of {name, value, type, subgroup, format}
 	 *   elementor_snapshot - JSON array of label names from last EV4 import
 	 */
-	// Intentional Phase 5 write-back exception — see AFF CLAUDE.md Critical Rule #1.
+	// Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
 	public function ajax_aff_commit_to_elementor(): void {
 		$this->verify_request();
 
@@ -1203,7 +1203,7 @@ class AFF_Ajax_Handler {
 		// -----------------------------------------------------------------------
 		// PRIMARY — Update _elementor_global_variables post meta.
 		// -----------------------------------------------------------------------
-		$kit_id      = AFF_CSS_Parser::get_active_kit_id();
+		$kit_id      = ATFRFO_CSS_Parser::get_active_kit_id();
 		$meta_ok     = false;
 		$ev4_updated = array(); // labels updated in existing EV4 entries
 		$ev4_created = array(); // labels added as new EV4 entries
@@ -1247,7 +1247,7 @@ class AFF_Ajax_Handler {
 				}
 			}
 
-			// Deletions: snapshot labels no longer present in AFF.
+			// Deletions: snapshot labels no longer present in ATFRFO.
 			foreach ( $snapshot as $snap_label ) {
 				$snap_lc = strtolower( (string) $snap_label );
 				if ( ! in_array( $snap_lc, $current_names_lc, true ) ) {
@@ -1269,7 +1269,7 @@ class AFF_Ajax_Handler {
 				}
 			}
 
-			// Update or create each AFF variable in EV4 meta.
+			// Update or create each ATFRFO variable in EV4 meta.
 			foreach ( $variables as $v ) {
 				if ( ! is_array( $v ) || ! isset( $v['name'] ) ) {
 					continue;
@@ -1281,11 +1281,11 @@ class AFF_Ajax_Handler {
 				}
 
 				$css_value  = sanitize_text_field( $v['value'] ?? '' );
-				$aff_type   = sanitize_text_field( $v['type'] ?? '' );
+				$atfrfo_type   = sanitize_text_field( $v['type'] ?? '' );
 				$subgroup   = sanitize_text_field( $v['subgroup'] ?? '' );
 				$format     = sanitize_text_field( $v['format'] ?? '' );
 				$label_lc   = strtolower( $label );
-				$meta_value = $this->build_elementor_meta_value( $css_value, $aff_type, $subgroup, $format );
+				$meta_value = $this->build_elementor_meta_value( $css_value, $atfrfo_type, $subgroup, $format );
 
 				if ( isset( $label_index[ $label_lc ] ) ) {
 					// Update existing — preserve original EV4 label casing.
@@ -1297,7 +1297,7 @@ class AFF_Ajax_Handler {
 				} else {
 					// Create new entry.
 					$new_id   = $this->generate_elementor_var_id();
-					$ev4_type = $this->get_elementor_var_type( $aff_type, $subgroup );
+					$ev4_type = $this->get_elementor_var_type( $atfrfo_type, $subgroup );
 					++$max_order;
 					$existing[ $new_id ] = array(
 						'label'      => $label,
@@ -1332,7 +1332,7 @@ class AFF_Ajax_Handler {
 		$css_committed = array();
 		$css_skipped   = array();
 
-		$parser   = new AFF_CSS_Parser();
+		$parser   = new ATFRFO_CSS_Parser();
 		$css_file = $parser->find_kit_css_file();
 
 		if ( ! $css_file ) {
@@ -1379,7 +1379,7 @@ class AFF_Ajax_Handler {
 							if ( false !== $pos ) {
 								$css = substr( $css, 0, $pos ) . $insert_block . "\n" . substr( $css, $pos );
 							} else {
-								$css .= "\n\n/* AFF user-defined variables */\n:root {" . $insert_block . "\n}\n";
+								$css .= "\n\n/* ATFRFO user-defined variables */\n:root {" . $insert_block . "\n}\n";
 							}
 							foreach ( $newly_added as $n ) {
 								$css_committed[] = $n;
@@ -1412,7 +1412,7 @@ class AFF_Ajax_Handler {
 			}
 		}
 		if ( ! empty( $baseline_vars ) ) {
-			$existing_bl = AFF_Data_Store::get_baseline( $filename );
+			$existing_bl = ATFRFO_Data_Store::get_baseline( $filename );
 			$index       = array();
 			foreach ( $existing_bl as $bv ) {
 				$index[ $bv['name'] ] = $bv['value'];
@@ -1427,7 +1427,7 @@ class AFF_Ajax_Handler {
 					'value' => $val,
 				);
 			}
-			AFF_Data_Store::save_baseline( $filename, $merged );
+			ATFRFO_Data_Store::save_baseline( $filename, $merged );
 		}
 
 		// -----------------------------------------------------------------------
@@ -1464,21 +1464,21 @@ class AFF_Ajax_Handler {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Build an Elementor v4 meta value object from an AFF variable's CSS value.
+	 * Build an Elementor v4 meta value object from an ATFRFO variable's CSS value.
 	 *
 	 * EV4 wraps every value in { "$$type": "...", "value": ... }. The exact
 	 * shape of `value` depends on the type: plain string for colors/strings,
 	 * { size, unit } for sizes.
 	 *
 	 * @param string $css_value Full CSS value string (e.g. '9rem', '#f00', 'clamp(...)').
-	 * @param string $aff_type  AFF type field ('color', 'number', 'font', etc.).
-	 * @param string $subgroup  AFF subgroup ('Colors', 'Numbers', 'Fonts', etc.).
-	 * @param string $format    AFF format field ('HEX', 'REM', 'PX', 'FX', etc.).
+	 * @param string $atfrfo_type  ATFRFO type field ('color', 'number', 'font', etc.).
+	 * @param string $subgroup  ATFRFO subgroup ('Colors', 'Numbers', 'Fonts', etc.).
+	 * @param string $format    ATFRFO format field ('HEX', 'REM', 'PX', 'FX', etc.).
 	 * @return array EV4 meta value: { $$type, value }.
 	 */
-	private function build_elementor_meta_value( string $css_value, string $aff_type, string $subgroup, string $format ): array {
-		$is_color = ( 'color' === $aff_type || 'Colors' === $subgroup );
-		$is_size  = ( 'number' === $aff_type || 'Numbers' === $subgroup );
+	private function build_elementor_meta_value( string $css_value, string $atfrfo_type, string $subgroup, string $format ): array {
+		$is_color = ( 'color' === $atfrfo_type || 'Colors' === $subgroup );
+		$is_size  = ( 'number' === $atfrfo_type || 'Numbers' === $subgroup );
 
 		if ( $is_color ) {
 			return array(
@@ -1537,17 +1537,17 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Map AFF type/subgroup to the Elementor variable type string stored in meta.
+	 * Map ATFRFO type/subgroup to the Elementor variable type string stored in meta.
 	 *
-	 * @param string $aff_type AFF type field.
-	 * @param string $subgroup AFF subgroup.
+	 * @param string $atfrfo_type ATFRFO type field.
+	 * @param string $subgroup ATFRFO subgroup.
 	 * @return string EV4 type string.
 	 */
-	private function get_elementor_var_type( string $aff_type, string $subgroup ): string {
-		if ( 'color' === $aff_type || 'Colors' === $subgroup ) {
+	private function get_elementor_var_type( string $atfrfo_type, string $subgroup ): string {
+		if ( 'color' === $atfrfo_type || 'Colors' === $subgroup ) {
 			return 'global-color-variable';
 		}
-		if ( 'number' === $aff_type || 'Numbers' === $subgroup ) {
+		if ( 'number' === $atfrfo_type || 'Numbers' === $subgroup ) {
 			return 'global-size-variable';
 		}
 		return 'global-variable';
@@ -1592,7 +1592,7 @@ class AFF_Ajax_Handler {
 	 * @return int|false Position of `}` in $css, or false if no suitable block found.
 	 */
 	private function find_user_root_close_pos( string $css ) {
-		$system_prefixes = AFF_CSS_Parser::SYSTEM_PREFIXES;
+		$system_prefixes = ATFRFO_CSS_Parser::SYSTEM_PREFIXES;
 
 		// Find all :root block positions and their content.
 		$offset = 0;
@@ -1663,39 +1663,39 @@ class AFF_Ajax_Handler {
 	}
 
 	/**
-	 * Load a .aff.json file into a new AFF_Data_Store instance.
+	 * Load a .atfrfo.json file into a new ATFRFO_Data_Store instance.
 	 *
 	 * Sends a JSON error and dies if the file cannot be read.
 	 *
-	 * @param string $filename Relative path (slug/file.aff.json or legacy file.aff.json).
-	 * @return AFF_Data_Store Loaded store.
+	 * @param string $filename Relative path (slug/file.atfrfo.json or legacy file.atfrfo.json).
+	 * @return ATFRFO_Data_Store Loaded store.
 	 */
-	private function load_store( string $filename ): AFF_Data_Store {
-		$dir   = AFF_Data_Store::get_wp_storage_dir();
+	private function load_store( string $filename ): ATFRFO_Data_Store {
+		$dir   = ATFRFO_Data_Store::get_wp_storage_dir();
 		$file  = $dir . $filename;
-		$store = new AFF_Data_Store();
+		$store = new ATFRFO_Data_Store();
 
 		if ( file_exists( $file ) && ! $store->load_from_file( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read or parse AFF file.', 'atomic-framework-forge-for-elementor' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not read or parse ATFRFO file.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
 		return $store;
 	}
 
 	/**
-	 * Save a data store to its .aff.json file.
+	 * Save a data store to its .atfrfo.json file.
 	 *
 	 * Sends a JSON error and dies if the file cannot be written.
 	 *
-	 * @param AFF_Data_Store $store    Store to save.
-	 * @param string         $filename Relative path (slug/file.aff.json or legacy file.aff.json).
+	 * @param ATFRFO_Data_Store $store    Store to save.
+	 * @param string         $filename Relative path (slug/file.atfrfo.json or legacy file.atfrfo.json).
 	 */
-	private function save_store( AFF_Data_Store $store, string $filename ): void {
-		$dir  = AFF_Data_Store::get_wp_storage_dir();
+	private function save_store( ATFRFO_Data_Store $store, string $filename ): void {
+		$dir  = ATFRFO_Data_Store::get_wp_storage_dir();
 		$file = $dir . $filename;
 
 		if ( ! $store->save_to_file( $file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not write AFF file. Check directory permissions.', 'atomic-framework-forge-for-elementor' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Could not write ATFRFO file. Check directory permissions.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 	}
 
@@ -1705,10 +1705,10 @@ class AFF_Ajax_Handler {
 	 * Handles nonce verification and capability check internally — callers must NOT
 	 * call verify_request() before with_store(). Security is owned here.
 	 *
-	 * The callback receives the AFF_Data_Store instance and must return the array
+	 * The callback receives the ATFRFO_Data_Store instance and must return the array
 	 * to pass to wp_send_json_success(). Throw an \Exception to send an error instead.
 	 *
-	 * @param callable $callback function( AFF_Data_Store $store ): array
+	 * @param callable $callback function( ATFRFO_Data_Store $store ): array
 	 */
 	private function with_store( callable $callback ): void {
 		$this->verify_request();
@@ -1876,15 +1876,15 @@ class AFF_Ajax_Handler {
 	/**
 	 * Resolve a raw filename POST param to an absolute path.
 	 *
-	 * Handles new subdirectory format (slug/slug_YYYY-MM-DD_HH-II-SS.aff.json)
-	 * and old flat format (slug.aff.json) for backward compat.
+	 * Handles new subdirectory format (slug/slug_YYYY-MM-DD_HH-II-SS.atfrfo.json)
+	 * and old flat format (slug.atfrfo.json) for backward compat.
 	 * Exits with JSON error on invalid input.
 	 *
 	 * @param string $raw Raw filename value from POST.
 	 * @return array { absolute: string, relative: string }
 	 */
 	private function resolve_file( string $raw ): array {
-		$dir = AFF_Data_Store::get_wp_storage_dir();
+		$dir = ATFRFO_Data_Store::get_wp_storage_dir();
 
 		if ( strpos( $raw, '/' ) !== false ) {
 			// New subdirectory format — validate, prevent path traversal.
@@ -1909,7 +1909,7 @@ class AFF_Ajax_Handler {
 		}
 
 		// Old flat format — backward compat.
-		$filename = AFF_Data_Store::sanitize_filename( $raw );
+		$filename = ATFRFO_Data_Store::sanitize_filename( $raw );
 		return array(
 			'absolute' => $dir . $filename,
 			'relative' => $filename,
@@ -1924,7 +1924,7 @@ class AFF_Ajax_Handler {
 	 * Verify nonce and capability. Sends JSON error and dies on failure.
 	 */
 	private function verify_request(): void {
-		if ( ! check_ajax_referer( AFF_NONCE_ACTION, 'nonce', false ) ) {
+		if ( ! check_ajax_referer( ATFRFO_NONCE_ACTION, 'nonce', false ) ) {
 			wp_send_json_error(
 				array( 'message' => __( 'Security check failed.', 'atomic-framework-forge-for-elementor' ) ),
 				403
@@ -1980,7 +1980,7 @@ class AFF_Ajax_Handler {
 	 * @return string|null Absolute path to the kit CSS file, or null on failure.
 	 */
 	private function try_regenerate_elementor_kit_css(): ?string {
-		$kit_id = AFF_CSS_Parser::get_active_kit_id();
+		$kit_id = ATFRFO_CSS_Parser::get_active_kit_id();
 		if ( ! $kit_id ) {
 			return null;
 		}
@@ -1999,13 +1999,13 @@ class AFF_Ajax_Handler {
 			$css_obj->update();
 		} catch ( \Throwable $e ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AFF: Failed to regenerate Elementor kit CSS (kit ID ' . $kit_id . '): ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'ATFRFO: Failed to regenerate Elementor kit CSS (kit ID ' . $kit_id . '): ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}
 			return null;
 		}
 
 		// Re-check for the file after regeneration.
-		$parser = new AFF_CSS_Parser();
+		$parser = new ATFRFO_CSS_Parser();
 		return $parser->find_kit_css_file();
 	}
 
@@ -2015,7 +2015,7 @@ class AFF_Ajax_Handler {
 
 	/**
 	 * Read Elementor V3 Global Colors from the active kit post meta and return
-	 * them as an array of { name, value } objects for import into AFF.
+	 * them as an array of { name, value } objects for import into ATFRFO.
 	 *
 	 * V3 Global Colors are stored in `_elementor_page_settings` → `system_colors`
 	 * and `custom_colors` as arrays of { _id, title, color } objects.
@@ -2024,7 +2024,7 @@ class AFF_Ajax_Handler {
 	public function ajax_aff_sync_v3_global_colors(): void {
 		$this->verify_request();
 
-		$kit_id = AFF_CSS_Parser::get_active_kit_id();
+		$kit_id = ATFRFO_CSS_Parser::get_active_kit_id();
 		if ( ! $kit_id ) {
 			wp_send_json_error(
 				array(
@@ -2091,9 +2091,9 @@ class AFF_Ajax_Handler {
 		$this->verify_request();
 
 		$filename = $this->get_filename_param();
-		$store    = new AFF_Data_Store();
+		$store    = new ATFRFO_Data_Store();
 
-		if ( ! $store->load_from_file( AFF_Data_Store::get_wp_storage_dir() . $filename ) ) {
+		if ( ! $store->load_from_file( ATFRFO_Data_Store::get_wp_storage_dir() . $filename ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not load project file.', 'atomic-framework-forge-for-elementor' ) ) );
 			return;
 		}
@@ -2113,8 +2113,8 @@ class AFF_Ajax_Handler {
 		$this->verify_request();
 
 		$filename = $this->get_filename_param();
-		$path     = AFF_Data_Store::get_wp_storage_dir() . $filename;
-		$store    = new AFF_Data_Store();
+		$path     = ATFRFO_Data_Store::get_wp_storage_dir() . $filename;
+		$store    = new ATFRFO_Data_Store();
 
 		if ( ! $store->load_from_file( $path ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not load project file.', 'atomic-framework-forge-for-elementor' ) ) );

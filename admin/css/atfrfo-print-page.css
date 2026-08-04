@@ -1,7 +1,7 @@
 /**
- * AFF Print Page — Standalone Document Styles
+ * ATFRFO Print Page — Standalone Document Styles
  *
- * Loaded into the new print window opened by aff-print.js.
+ * Loaded into the new print window opened by atfrfo-print.js.
  * No @media print wrapper needed — the entire window is for printing.
  * No WP admin overrides needed — the window has no WP chrome.
  *
@@ -34,14 +34,14 @@ body {
    Document header
    ========================================================================== */
 
-.aff-print-doc-header {
+.atfrfo-print-doc-header {
 	text-align:     center;
 	padding-bottom: 10pt;
 	margin-bottom:  14pt;
 	border-bottom:  2pt solid #1a1a1a;
 }
 
-.aff-print-doc-header__title {
+.atfrfo-print-doc-header__title {
 	font-size:      20pt;
 	font-weight:    800;
 	letter-spacing: 0.04em;
@@ -53,9 +53,9 @@ body {
 	print-color-adjust: exact;
 }
 
-.aff-print-doc-header__project,
-.aff-print-doc-header__date,
-.aff-print-doc-header__count {
+.atfrfo-print-doc-header__project,
+.atfrfo-print-doc-header__date,
+.atfrfo-print-doc-header__count {
 	font-size:   9.5pt;
 	color:       #333;
 	line-height: 1.6;
@@ -65,18 +65,18 @@ body {
    Section
    ========================================================================== */
 
-.aff-print-section {
+.atfrfo-print-section {
 	margin-bottom:     20pt;
 	page-break-inside: auto;
 }
 
-.aff-print-section-title {
+.atfrfo-print-section-title {
 	display: block;
 	width:   100%;
 	margin:  0 0 6pt;
 }
 
-.aff-print-section-badge {
+.atfrfo-print-section-badge {
 	display:         flex;
 	justify-content: space-between;
 	align-items:     center;
@@ -92,11 +92,11 @@ body {
 	print-color-adjust: exact;
 }
 
-.aff-print-section-badge--color  { background: #4361b5; }
-.aff-print-section-badge--font   { background: #c25e1a; }
-.aff-print-section-badge--number { background: #2a7a4b; }
+.atfrfo-print-section-badge--color  { background: #4361b5; }
+.atfrfo-print-section-badge--font   { background: #c25e1a; }
+.atfrfo-print-section-badge--number { background: #2a7a4b; }
 
-.aff-print-section-count {
+.atfrfo-print-section-count {
 	font-size:      9pt;
 	font-weight:    400;
 	letter-spacing: 0;
@@ -108,19 +108,19 @@ body {
    Table
    ========================================================================== */
 
-.aff-print-table {
+.atfrfo-print-table {
 	width:           100%;
 	border-collapse: collapse;
 	font-size:       8.5pt;
 }
 
-.aff-print-table thead tr {
+.atfrfo-print-table thead tr {
 	background-color: #f0f0f0;
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
 }
 
-.aff-print-table th {
+.atfrfo-print-table th {
 	padding:        3pt 6pt;
 	text-align:     left;
 	font-size:      7pt;
@@ -131,26 +131,26 @@ body {
 	border-bottom:  1pt solid #aaa;
 }
 
-.aff-print-table td {
+.atfrfo-print-table td {
 	padding:         3.5pt 6pt;
 	vertical-align:  middle;
 	border-bottom:   0.5pt solid #ddd;
 }
 
-.aff-print-table tbody tr:nth-child(even) {
+.atfrfo-print-table tbody tr:nth-child(even) {
 	background-color: #fafafa;
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
 }
 
 /* Indent variable rows so category headings read as section leaders */
-.aff-print-table tbody tr:not(.aff-print-cat-row):not(.aff-print-subcat-row) td:first-child {
+.atfrfo-print-table tbody tr:not(.atfrfo-print-cat-row):not(.atfrfo-print-subcat-row) td:first-child {
 	padding-left: 16pt;
 }
 
 /* Colors/fonts: sub-cat var preview cell is an empty spacer; no extra indent needed.
    Numbers: indent name cell to align with the sub-cat band start. */
-.aff-print-section--number .aff-print-subcat-var td:first-child {
+.atfrfo-print-section--number .atfrfo-print-subcat-var td:first-child {
 	padding-left: 20pt;
 }
 
@@ -158,7 +158,7 @@ body {
    Category separator rows
    ========================================================================== */
 
-.aff-print-cat-row td {
+.atfrfo-print-cat-row td {
 	padding:        4pt 6pt 4pt 10pt;
 	font-size:      7pt;
 	font-weight:    700;
@@ -172,23 +172,23 @@ body {
 	print-color-adjust: exact;
 }
 
-.aff-print-cat-row:first-child td {
+.atfrfo-print-cat-row:first-child td {
 	border-top: none;
 }
 
-.aff-print-section--color .aff-print-cat-row td {
+.atfrfo-print-section--color .atfrfo-print-cat-row td {
 	background:  #edf1fa;
 	border-left: 3pt solid #4361b5;
 	color:       #2d3f80;
 }
 
-.aff-print-section--font .aff-print-cat-row td {
+.atfrfo-print-section--font .atfrfo-print-cat-row td {
 	background:  #faf0e8;
 	border-left: 3pt solid #c25e1a;
 	color:       #7a3a0e;
 }
 
-.aff-print-section--number .aff-print-cat-row td {
+.atfrfo-print-section--number .atfrfo-print-cat-row td {
 	background:  #e8f4ed;
 	border-left: 3pt solid #2a7a4b;
 	color:       #1a5232;
@@ -201,7 +201,7 @@ body {
 /* Colors and Fonts: gradient clears the 54pt preview column so the band
    starts at the same horizontal position as the Name column header.
    ::before draws the accent bar at the 54pt indent point.              */
-.aff-print-subcat-row td {
+.atfrfo-print-subcat-row td {
 	padding:        3pt 6pt 3pt 62pt;   /* 54pt spacer + 8pt inner */
 	font-size:      7pt;
 	font-weight:    600;
@@ -215,7 +215,7 @@ body {
 	print-color-adjust: exact;
 }
 
-.aff-print-subcat-row td::before {
+.atfrfo-print-subcat-row td::before {
 	content:  '';
 	position: absolute;
 	left:     54pt;
@@ -224,32 +224,32 @@ body {
 	width:    3pt;
 }
 
-.aff-print-section--color .aff-print-subcat-row td {
+.atfrfo-print-section--color .atfrfo-print-subcat-row td {
 	background: linear-gradient(to right, #fff 54pt, #f4f6fd 54pt);
 	color:      #4361b5;
 }
-.aff-print-section--color .aff-print-subcat-row td::before { background: #8fa4d8; }
+.atfrfo-print-section--color .atfrfo-print-subcat-row td::before { background: #8fa4d8; }
 
-.aff-print-section--font .aff-print-subcat-row td {
+.atfrfo-print-section--font .atfrfo-print-subcat-row td {
 	background: linear-gradient(to right, #fff 54pt, #fdf5ee 54pt);
 	color:      #884010;
 }
-.aff-print-section--font .aff-print-subcat-row td::before { background: #d99a6e; }
+.atfrfo-print-section--font .atfrfo-print-subcat-row td::before { background: #d99a6e; }
 
 /* Numbers: no preview column, use a simple indent with left-border */
-.aff-print-section--number .aff-print-subcat-row td {
+.atfrfo-print-section--number .atfrfo-print-subcat-row td {
 	padding:     3pt 6pt 3pt 20pt;
 	background:  #f0f9f3;
 	color:       #1a5232;
 	border-left: 3pt solid #72b88e;
 }
-.aff-print-section--number .aff-print-subcat-row td::before { display: none; }
+.atfrfo-print-section--number .atfrfo-print-subcat-row td::before { display: none; }
 
 /* ==========================================================================
    Inline swatch / font preview (sub-cat variable rows only)
    ========================================================================== */
 
-.aff-print-swatch--inline {
+.atfrfo-print-swatch--inline {
 	display:        inline-block;
 	vertical-align: middle;
 	width:          18pt;
@@ -261,7 +261,7 @@ body {
 	print-color-adjust: exact;
 }
 
-.aff-print-font-preview--inline {
+.atfrfo-print-font-preview--inline {
 	font-size:      9pt;
 	max-width:      36pt;
 	margin-right:   3pt;
@@ -272,13 +272,13 @@ body {
    Comment rows (second line under a variable when Print comments is on)
    ========================================================================== */
 
-.aff-print-comment-row td {
+.atfrfo-print-comment-row td {
 	padding-top:    1pt;
 	padding-bottom: 3.5pt;
 	border-top:     none;
 }
 
-.aff-print-comment {
+.atfrfo-print-comment {
 	font-size:   7.5pt;
 	font-style:  italic;
 	color:       #666;
@@ -289,20 +289,20 @@ body {
    Column widths
    ========================================================================== */
 
-.aff-ptcol-preview { width: 54pt; }
-.aff-ptcol-name    { width: 40%;  }
-.aff-ptcol-val     { width: 44%;  }
-.aff-ptcol-fmt     { width: 12%;  }
+.atfrfo-ptcol-preview { width: 54pt; }
+.atfrfo-ptcol-name    { width: 40%;  }
+.atfrfo-ptcol-val     { width: 44%;  }
+.atfrfo-ptcol-fmt     { width: 12%;  }
 
-.aff-print-section--number .aff-ptcol-name { width: 30%; }
-.aff-print-section--number .aff-ptcol-val  { width: 58%; white-space: nowrap; }
-.aff-print-section--number .aff-ptcol-fmt  { width: 12%; }
+.atfrfo-print-section--number .atfrfo-ptcol-name { width: 30%; }
+.atfrfo-print-section--number .atfrfo-ptcol-val  { width: 58%; white-space: nowrap; }
+.atfrfo-print-section--number .atfrfo-ptcol-fmt  { width: 12%; }
 
 /* ==========================================================================
    Cell content
    ========================================================================== */
 
-.aff-print-swatch {
+.atfrfo-print-swatch {
 	display:        inline-block;
 	width:          46pt;
 	height:         14pt;
@@ -313,7 +313,7 @@ body {
 	print-color-adjust: exact;
 }
 
-.aff-print-font-preview {
+.atfrfo-print-font-preview {
 	font-size:   11pt;
 	line-height: 1;
 	display:     inline-block;
@@ -322,11 +322,11 @@ body {
 	max-width:   50pt;
 }
 
-.aff-print-monospace {
+.atfrfo-print-monospace {
 	font-family: 'Courier New', Courier, monospace;
 }
 
-.aff-print-varname {
+.atfrfo-print-varname {
 	font-family: 'Courier New', Courier, monospace;
 	font-size:   8pt;
 	color:       #2a2a8a;
@@ -336,14 +336,14 @@ body {
    Page breaks
    ========================================================================== */
 
-.aff-print-table thead {
+.atfrfo-print-table thead {
 	display: table-header-group;
 }
 
-.aff-print-table tr {
+.atfrfo-print-table tr {
 	page-break-inside: avoid;
 }
 
-.aff-print-section + .aff-print-section {
+.atfrfo-print-section + .atfrfo-print-section {
 	page-break-before: auto;
 }

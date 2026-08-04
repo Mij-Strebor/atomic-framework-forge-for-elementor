@@ -1,16 +1,16 @@
-# AFF — Numbers Workpage Specification
+# ATFRFO — Numbers Workpage Specification
 
-**Document:** AFF-Spec-Numbers.md
+**Document:** ATFRFO-Spec-Numbers.md
 **Version:** 1.1
 **Date:** 2026-04-13
-**Scope:** The Numbers edit-space — everything rendered inside `#aff-edit-content` when a Numbers subgroup or category is selected in the left nav.
-**Related:** AFF-Spec-Colors.md (template), AFF-Spec-Fonts.md, AFF-Spec-Variables.md §2–5
+**Scope:** The Numbers edit-space — everything rendered inside `#atfrfo-edit-content` when a Numbers subgroup or category is selected in the left nav.
+**Related:** ATFRFO-Spec-Colors.md (template), ATFRFO-Spec-Fonts.md, ATFRFO-Spec-Variables.md §2–5
 
 ---
 
 ## 1. Overview
 
-The Numbers workpage is a full editing environment for CSS custom property numeric variables — sizes, spacings, radii, grid values, and any other dimension or unit-based property. It is one of three variable-set workpages (Colors, Fonts, Numbers) that share a common module factory (`AFF.Variables`, `admin/js/aff-variables.js`). The Numbers instance is initialized with `AFF.Variables.initSet(NUMBERS_CFG)`.
+The Numbers workpage is a full editing environment for CSS custom property numeric variables — sizes, spacings, radii, grid values, and any other dimension or unit-based property. It is one of three variable-set workpages (Colors, Fonts, Numbers) that share a common module factory (`ATFRFO.Variables`, `admin/js/atfrfo-variables.js`). The Numbers instance is initialized with `ATFRFO.Variables.initSet(NUMBERS_CFG)`.
 
 **Differs from Colors in four ways:**
 
@@ -27,10 +27,10 @@ Everything else — filter bar, category blocks, drag-and-drop, undo/redo, sort,
 
 ## 2. Module Architecture
 
-**File:** `admin/js/aff-variables.js` (shared factory)
-**Initialization** (in `aff-app.js`):
+**File:** `admin/js/atfrfo-variables.js` (shared factory)
+**Initialization** (in `atfrfo-app.js`):
 ```javascript
-AFF.Variables.initSet(NUMBERS_CFG);
+ATFRFO.Variables.initSet(NUMBERS_CFG);
 ```
 
 **Per-set configuration object:**
@@ -43,13 +43,13 @@ var NUMBERS_CFG = {
     catKey:            'numberCategories',
     renderPreviewCell: null,  // no preview column for Numbers
     renderValueCell: function (v) {
-        return '<input class="aff-var-value-input" value="' + esc(v.value) + '">'
+        return '<input class="atfrfo-var-value-input" value="' + esc(v.value) + '">'
              + formatSelect(v.format, this.valueTypes);
     },
 };
 ```
 
-**Routing:** `initSet()` patches `AFF.EditSpace.loadCategory` to intercept calls where `selection.subgroup === 'Numbers'` and delegate to the shared prototype's `loadVars(selection)`.
+**Routing:** `initSet()` patches `ATFRFO.EditSpace.loadCategory` to intercept calls where `selection.subgroup === 'Numbers'` and delegate to the shared prototype's `loadVars(selection)`.
 
 ---
 
@@ -57,7 +57,7 @@ var NUMBERS_CFG = {
 
 ### 3.1 Variable Object
 
-All Numbers variables have `subgroup === 'Numbers'` and `type === 'number'`. Fields identical to Colors (see AFF-Spec-Colors.md §3.1) except:
+All Numbers variables have `subgroup === 'Numbers'` and `type === 'number'`. Fields identical to Colors (see ATFRFO-Spec-Colors.md §3.1) except:
 
 | Field | Numbers value |
 |-------|--------------|
@@ -86,7 +86,7 @@ The format selector allows the user to indicate which unit a variable uses. Chan
 
 ### 3.2 Category Object
 
-Identical structure to Colors categories. Stored in `AFF.state.config.numberCategories`.
+Identical structure to Colors categories. Stored in `ATFRFO.state.config.numberCategories`.
 
 **Default categories:**
 ```
@@ -103,7 +103,7 @@ Uncategorized (order: 6, locked: true)
 
 ## 4. Status Dot
 
-Identical to Colors (AFF-Spec-Colors.md §4). Same four statuses, same colors, same tooltip text. The status dot occupies column 2 (8px circle) of every variable row.
+Identical to Colors (ATFRFO-Spec-Colors.md §4). Same four statuses, same colors, same tooltip text. The status dot occupies column 2 (8px circle) of every variable row.
 
 | Status | Color | Short tooltip | Long tooltip |
 |--------|-------|---------------|--------------|
@@ -139,22 +139,22 @@ column-gap: 16px;
 
 | Col | Width | Element | Class |
 |-----|-------|---------|-------|
-| 1 | 24px | Drag handle | `.aff-drag-handle` |
-| 2 | 8px | Status dot | `.aff-status-dot` |
-| 3 | 1fr | Variable name | `.aff-var-name-input` |
-| 4 | 28% | Numeric value | `.aff-var-value-input` |
-| 5 | 12% | Format selector | `.aff-var-format-sel` |
-| 6 | 28px | Delete button | `.aff-var-delete-btn` |
+| 1 | 24px | Drag handle | `.atfrfo-drag-handle` |
+| 2 | 8px | Status dot | `.atfrfo-status-dot` |
+| 3 | 1fr | Variable name | `.atfrfo-var-name-input` |
+| 4 | 28% | Numeric value | `.atfrfo-var-value-input` |
+| 5 | 12% | Format selector | `.atfrfo-var-format-sel` |
+| 6 | 28px | Delete button | `.atfrfo-var-delete-btn` |
 
 No preview column. No expand button. The name column (col 3) is wider than in Colors and Fonts because the 15% preview column is not present.
 
 ### 5.4 Numeric Value Input (Column 4)
 
 ```html
-<input class="aff-var-value-input"
+<input class="atfrfo-var-value-input"
        value="{v.value}"
-       data-aff-tooltip="Numeric value — enter number only"
-       data-aff-tooltip-long="Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix to change unit on Enter (e.g. 16px, 1.5rem, 100%)."
+       data-atfrfo-tooltip="Numeric value — enter number only"
+       data-atfrfo-tooltip-long="Enter a plain number (e.g. 1.5, 16, 100). Add a type suffix to change unit on Enter (e.g. 16px, 1.5rem, 100%)."
        spellcheck="false">
 ```
 
@@ -164,7 +164,7 @@ Rendered in monospace (same as Colors name/value inputs). The field displays the
 
 ### 5.5 Tooltip Attributes on Variable Row Elements
 
-| Element | `data-aff-tooltip` | `data-aff-tooltip-long` |
+| Element | `data-atfrfo-tooltip` | `data-atfrfo-tooltip-long` |
 |---------|-------------------|------------------------|
 | Drag handle | "Drag to reorder" | — |
 | Status dot | Status name (e.g. "Synced") | Status-specific long text (see §4) |
@@ -179,13 +179,13 @@ Rendered in monospace (same as Colors name/value inputs). The field displays the
 
 ### 6.1 Variable Name
 
-Identical to Colors and Fonts. `<input type="text" readonly>` — single click removes `readonly`. Saved via `aff_save_color` AJAX (with `subgroup: 'Numbers'`) on `change` / Enter. Invalid name → revert + field error. The `--` prefix is not re-enforced by a live `input` handler — names are validated on save only.
+Identical to Colors and Fonts. `<input type="text" readonly>` — single click removes `readonly`. Saved via `atfrfo_save_color` AJAX (with `subgroup: 'Numbers'`) on `change` / Enter. Invalid name → revert + field error. The `--` prefix is not re-enforced by a live `input` handler — names are validated on save only.
 
 ### 6.2 Numeric Value
 
 - `<input type="text">` — always editable, monospace
 - **Save:** blur or Enter key → `_saveVarValue(varId, rawInput, input)`
-- **On save:** AJAX `aff_save_color` with `{id, value, format, status: 'modified', subgroup: 'Numbers'}`; updates `data-original` and the format selector on success
+- **On save:** AJAX `atfrfo_save_color` with `{id, value, format, status: 'modified', subgroup: 'Numbers'}`; updates `data-original` and the format selector on success
 
 No live preview cell to update (no col 3 for Numbers).
 
@@ -238,13 +238,13 @@ If the trailing characters after the numeric portion are not empty and do not ma
 ### 6.3 Format Selector
 
 - `<select>` with options: `PX`, `%`, `EM`, `REM`, `VW`, `VH`, `CH`, `fₓ` (stored as `FX`)
-- **On change:** saves immediately via `aff_save_color` with `{id, format: newFormat}`
+- **On change:** saves immediately via `atfrfo_save_color` with `{id, format: newFormat}`
 - No value conversion is performed. The format is metadata indicating which CSS unit the stored number represents
 - The selector is also updated automatically when autofill (§6.2.1) detects a type suffix in the value input — this is the primary way format changes as the user works
 
 ### 6.4 Category Name
 
-Identical to Colors and Fonts. `contenteditable` span, single-click to activate, Enter/blur to save, Escape to revert. Saved via `aff_save_category` (with `subgroup: 'Numbers'`).
+Identical to Colors and Fonts. `contenteditable` span, single-click to activate, Enter/blur to save, Escape to revert. Saved via `atfrfo_save_category` (with `subgroup: 'Numbers'`).
 
 ---
 
@@ -258,7 +258,7 @@ The `NUMBERS_CFG.showExpandPanel = false` flag in the module configuration suppr
 
 ## 8. Drag-and-Drop Reordering
 
-Identical to Colors. Drag handle in col 1. Ghost element and drop indicator follow the same implementation. Variables can be dragged within a category or dropped onto a collapsed category (which expands to accept the drop). Saves `order`, `category`, and `category_id` via `aff_save_color`.
+Identical to Colors. Drag handle in col 1. Ghost element and drop indicator follow the same implementation. Variables can be dragged within a category or dropped onto a collapsed category (which expands to accept the drop). Saves `order`, `category`, and `category_id` via `atfrfo_save_color`.
 
 ---
 
@@ -274,7 +274,7 @@ Identical to Colors. All six operations (add, rename, delete, duplicate, move-up
 
 ### 10.1 Add Variable
 
-Add button (circle on bottom-left edge of category block) → AJAX `aff_save_color` with defaults from `NUMBERS_CFG.newVarDefaults`:
+Add button (circle on bottom-left edge of category block) → AJAX `atfrfo_save_color` with defaults from `NUMBERS_CFG.newVarDefaults`:
 
 ```javascript
 {
@@ -291,7 +291,7 @@ Add button (circle on bottom-left edge of category block) → AJAX `aff_save_col
 
 ### 10.2 Delete Variable
 
-Delete button (col 6, opacity 0 until row hover) → confirmation modal → AJAX `aff_delete_color` with `{variable_id}`. Numbers variables do not have child variables; the `delete_children` parameter is always `false` and the confirmation modal does not mention children.
+Delete button (col 6, opacity 0 until row hover) → confirmation modal → AJAX `atfrfo_delete_color` with `{variable_id}`. Numbers variables do not have child variables; the `delete_children` parameter is always `false` and the confirmation modal does not mention children.
 
 ### 10.3 Move to Category
 
@@ -327,7 +327,7 @@ Numeric value sorting (small→large, large→small) is a planned future enhance
 
 ## 13. Search / Filter
 
-Identical to Colors. `#aff-numbers-search` input filters rows where `name` or `value` matches the query. Category blocks with all rows hidden are also hidden.
+Identical to Colors. `#atfrfo-numbers-search` input filters rows where `name` or `value` matches the query. Category blocks with all rows hidden are also hidden.
 
 ---
 
@@ -339,7 +339,7 @@ Identical to Colors. Per-category toggle, collapse-all / expand-all, nav-click s
 
 ## 15. Commit to Elementor
 
-Identical to Colors. Number variables are committed to the Elementor kit CSS via `aff_commit_to_elementor`. The commit payload is `{name, value}` pairs for all non-deleted Numbers variables. PHP replaces `--name: value;` in the kit CSS `:root` block or appends new variables.
+Identical to Colors. Number variables are committed to the Elementor kit CSS via `atfrfo_commit_to_elementor`. The commit payload is `{name, value}` pairs for all non-deleted Numbers variables. PHP replaces `--name: value;` in the kit CSS `:root` block or appends new variables.
 
 After a successful commit, all committed variables have their `status` set to `'synced'` and the status dots update accordingly.
 
@@ -347,16 +347,16 @@ After a successful commit, all committed variables have their `status` set to `'
 
 ## 16. AJAX Endpoints
 
-All endpoints require the `aff_admin_nonce` nonce and `manage_options` capability. Numbers variables use the same endpoints as Colors and Fonts, distinguished by the `subgroup` field in the variable payload.
+All endpoints require the `atfrfo_admin_nonce` nonce and `manage_options` capability. Numbers variables use the same endpoints as Colors and Fonts, distinguished by the `subgroup` field in the variable payload.
 
 | Action | POST params | Description |
 |--------|-------------|-------------|
-| `aff_save_color` | `filename`, `variable` (JSON with `subgroup:'Numbers'`) | Add or update a number variable |
-| `aff_delete_color` | `filename`, `variable_id` | Delete a number variable |
-| `aff_save_category` | `filename`, `category` (JSON), `subgroup:'Numbers'` | Add or rename a Numbers category |
-| `aff_delete_category` | `filename`, `category_id`, `subgroup:'Numbers'` | Delete a Numbers category |
-| `aff_reorder_categories` | `filename`, `ordered_ids` (JSON), `subgroup:'Numbers'` | Reorder Numbers categories |
-| `aff_commit_to_elementor` | `filename`, `variables` (JSON) | Write Numbers variables to Elementor kit CSS |
+| `atfrfo_save_color` | `filename`, `variable` (JSON with `subgroup:'Numbers'`) | Add or update a number variable |
+| `atfrfo_delete_color` | `filename`, `variable_id` | Delete a number variable |
+| `atfrfo_save_category` | `filename`, `category` (JSON), `subgroup:'Numbers'` | Add or rename a Numbers category |
+| `atfrfo_delete_category` | `filename`, `category_id`, `subgroup:'Numbers'` | Delete a Numbers category |
+| `atfrfo_reorder_categories` | `filename`, `ordered_ids` (JSON), `subgroup:'Numbers'` | Reorder Numbers categories |
+| `atfrfo_commit_to_elementor` | `filename`, `variables` (JSON) | Write Numbers variables to Elementor kit CSS |
 
 **Category routing:** All category endpoints accept `subgroup` to route to `numberCategories` in the data store.
 
@@ -370,32 +370,32 @@ Numbers uses the same shared class namespace as Fonts. The 6-column grid is uniq
 
 | Class | Element | Description |
 |-------|---------|-------------|
-| `.aff-numbers-view` | Container div | Flex column |
-| `.aff-numbers-filter-bar` | Filter bar | Sticky top |
-| `.aff-numbers-search` | Search input | Flex-grow |
-| `.aff-numbers-add-cat-btn` | Add category button | Icon button |
-| `.aff-var-name-input` | Name field | Shared class; monospace, readonly by default |
-| `.aff-var-value-input` | Value field | Shared class; monospace, always editable |
-| `.aff-var-format-sel` | Format dropdown | Shared class; 8 unit options for Numbers |
-| `.aff-var-delete-btn` | Delete button | Shared class; hidden until row hover |
-| `.aff-status-dot` | Status indicator | Shared class; 8px circle |
-| `.aff-drag-handle` | Drag trigger | Shared class |
-| `.aff-category-block` | One category | Shared class |
-| `.aff-category-inner` | Inner clip wrapper | Shared class |
-| `.aff-category-header` | Header container | Shared class |
-| `.aff-category-name-input` | Category name span | Shared class |
-| `.aff-category-count` | Count badge | Shared class |
-| `.aff-category-actions` | Action button group | Shared class |
-| `.aff-cat-add-btn-wrap` | Add-var button wrapper | Shared class |
-| `.aff-color-list` | Variable rows container | Shared class |
-| `.aff-color-row` | One variable row | Shared class; **6-col grid** for Numbers |
-| `.aff-drop-indicator` | Drop target bar | Shared class |
-| `.aff-inline-error` | Field error tooltip | Shared class |
+| `.atfrfo-numbers-view` | Container div | Flex column |
+| `.atfrfo-numbers-filter-bar` | Filter bar | Sticky top |
+| `.atfrfo-numbers-search` | Search input | Flex-grow |
+| `.atfrfo-numbers-add-cat-btn` | Add category button | Icon button |
+| `.atfrfo-var-name-input` | Name field | Shared class; monospace, readonly by default |
+| `.atfrfo-var-value-input` | Value field | Shared class; monospace, always editable |
+| `.atfrfo-var-format-sel` | Format dropdown | Shared class; 8 unit options for Numbers |
+| `.atfrfo-var-delete-btn` | Delete button | Shared class; hidden until row hover |
+| `.atfrfo-status-dot` | Status indicator | Shared class; 8px circle |
+| `.atfrfo-drag-handle` | Drag trigger | Shared class |
+| `.atfrfo-category-block` | One category | Shared class |
+| `.atfrfo-category-inner` | Inner clip wrapper | Shared class |
+| `.atfrfo-category-header` | Header container | Shared class |
+| `.atfrfo-category-name-input` | Category name span | Shared class |
+| `.atfrfo-category-count` | Count badge | Shared class |
+| `.atfrfo-category-actions` | Action button group | Shared class |
+| `.atfrfo-cat-add-btn-wrap` | Add-var button wrapper | Shared class |
+| `.atfrfo-color-list` | Variable rows container | Shared class |
+| `.atfrfo-color-row` | One variable row | Shared class; **6-col grid** for Numbers |
+| `.atfrfo-drop-indicator` | Drop target bar | Shared class |
+| `.atfrfo-inline-error` | Field error tooltip | Shared class |
 
 **Grid override for Numbers:**
 ```css
-.aff-numbers-view .aff-color-list-header,
-.aff-numbers-view .aff-color-row {
+.atfrfo-numbers-view .atfrfo-color-list-header,
+.atfrfo-numbers-view .atfrfo-color-row {
     grid-template-columns: 24px 8px 1fr 28% 12% 28px;
 }
 ```
@@ -408,8 +408,8 @@ At `max-width: 600px`, the format selector column (col 5) collapses to `0` and t
 
 ```css
 @media (max-width: 600px) {
-    .aff-numbers-view .aff-color-list-header,
-    .aff-numbers-view .aff-color-row {
+    .atfrfo-numbers-view .atfrfo-color-list-header,
+    .atfrfo-numbers-view .atfrfo-color-row {
         grid-template-columns: 24px 8px 1fr 28% 0 28px;
         column-gap: 6px;
     }
@@ -420,11 +420,11 @@ At `max-width: 600px`, the format selector column (col 5) collapses to `0` and t
 
 ## 19. State Integration
 
-Identical to Colors and Fonts. Reads/writes `AFF.state.variables` (filtered to `subgroup === 'Numbers'`), `AFF.state.config.numberCategories`, `AFF.state.currentFile`. Calls `AFF.App.setDirty()`, `AFF.App.setPendingCommit()`, `AFF.App.refreshCounts()`, `AFF.PanelLeft.refresh()` on the same triggers as Colors.
+Identical to Colors and Fonts. Reads/writes `ATFRFO.state.variables` (filtered to `subgroup === 'Numbers'`), `ATFRFO.state.config.numberCategories`, `ATFRFO.state.currentFile`. Calls `ATFRFO.App.setDirty()`, `ATFRFO.App.setPendingCommit()`, `ATFRFO.App.refreshCounts()`, `ATFRFO.PanelLeft.refresh()` on the same triggers as Colors.
 
 **`_getVarsForSet()`:**
 ```javascript
-return AFF.state.variables.filter(function (v) { return v.subgroup === 'Numbers'; });
+return ATFRFO.state.variables.filter(function (v) { return v.subgroup === 'Numbers'; });
 ```
 
 ---

@@ -1,6 +1,6 @@
 <?php
 /**
- * AFF Usage Scanner — Widget-level Variable Reference Counter
+ * ATFRFO Usage Scanner — Widget-level Variable Reference Counter
  *
  * Scans all Elementor post data (stored in _elementor_data post meta) for
  * references to CSS custom properties using the var(--name) pattern.
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AFF_Usage_Scanner {
+class ATFRFO_Usage_Scanner {
 
 	/**
 	 * Maximum number of Elementor posts to scan.

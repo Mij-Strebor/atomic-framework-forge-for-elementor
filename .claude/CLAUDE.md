@@ -1,4 +1,4 @@
-# CLAUDE.md — Atomic Framework Forge for Elementor (AFF)
+# CLAUDE.md — Atomic Framework Forge for Elementor (ATFRFO)
 
 ## INHERITANCE — ADDS TO, NEVER REPLACES
 
@@ -7,7 +7,7 @@
 2. `E:\projects\.claude\CLAUDE.md` — All E:\projects\ work
 3. `E:\projects\plugins\.claude\CLAUDE.md` — All plugin development rules
 
-**This file adds:** AFF-specific rules only.
+**This file adds:** ATFRFO-specific rules only.
 
 ---
 
@@ -22,9 +22,9 @@
 
 ---
 
-## What AFF Does
+## What ATFRFO Does
 
-AFF is a WordPress admin plugin that provides a management interface for **Elementor v4 (atomic widget) assets** — specifically the CSS custom properties that Elementor v4 writes into its compiled kit stylesheet (`post-{id}.css`). AFF reads those variables, lets developers organize and edit them, and persists the data as `.aff.json` files.
+ATFRFO is a WordPress admin plugin that provides a management interface for **Elementor v4 (atomic widget) assets** — specifically the CSS custom properties that Elementor v4 writes into its compiled kit stylesheet (`post-{id}.css`). ATFRFO reads those variables, lets developers organize and edit them, and persists the data as `.atfrfo.json` files.
 
 **Three asset types managed:**
 1. **Variables** — CSS custom properties from the Elementor v4 `:root` block (Colors, Fonts, Numbers — fully implemented)
@@ -38,14 +38,14 @@ AFF is a WordPress admin plugin that provides a management interface for **Eleme
 ## Test Environment
 
 **Corrected 2026-08-03** — this section previously named a different, stale
-Local site (`site`); confirmed via direct WP-CLI use that AFF actually runs
+Local site (`site`); confirmed via direct WP-CLI use that ATFRFO actually runs
 on `claude-wordpress-integration-novamira`, the same Local install used for
 JimRForge website/NovaMira work. Both purposes share this one site.
 
 - **WP site:** `claude-wordpress-integration-novamira` (Local by Flywheel)
 - **WP root:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public`
 - **Plugins dir:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/plugins`
-- **Uploads/AFF data:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/uploads/aff/`
+- **Uploads/ATFRFO data:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/uploads/atfrfo/`
 - **Symlink target:** `E:/projects/plugins/aff`
 - **Symlink creation** requires Administrator CMD:
   ```cmd
@@ -61,34 +61,34 @@ JimRForge website/NovaMira work. Both purposes share this one site.
 atomic-framework-forge-for-elementor/
 ├── atomic-framework-forge-for-elementor.php  # Main plugin file, headers, bootstrap
 ├── includes/
-│   ├── class-aff-loader.php             # Hook registration
-│   ├── class-aff-admin.php              # Admin page registration
-│   ├── class-aff-css-parser.php         # Reads/parses post-{id}.css  ← READ-ONLY
-│   ├── class-aff-data-store.php         # Variable/class/component persistence
-│   ├── class-aff-ajax-handler.php       # AJAX endpoints
-│   └── class-aff-settings.php          # Plugin preferences
+│   ├── class-atfrfo-loader.php             # Hook registration
+│   ├── class-atfrfo-admin.php              # Admin page registration
+│   ├── class-atfrfo-css-parser.php         # Reads/parses post-{id}.css  ← READ-ONLY
+│   ├── class-atfrfo-data-store.php         # Variable/class/component persistence
+│   ├── class-atfrfo-ajax-handler.php       # AJAX endpoints
+│   └── class-atfrfo-settings.php          # Plugin preferences
 ├── admin/
-│   ├── views/page-aff-main.php          # Root PHP template for the admin page
+│   ├── views/page-atfrfo-main.php          # Root PHP template for the admin page
 │   ├── js/
-│   │   ├── aff-app.js                   # Main JS entry point, AFF.state init
-│   │   ├── aff-panel-left.js            # Left nav tree
-│   │   ├── aff-panel-right.js           # Right panel: project, sync, backup
-│   │   ├── aff-panel-top.js             # Top bar: project name, Switch Project
-│   │   ├── aff-colors.js                # Colors variable set (full edit UI)
-│   │   ├── aff-variables.js             # Generic variable set factory (Fonts, Numbers)
-│   │   ├── aff-merge.js                 # Merge/conflict resolution utilities
-│   │   ├── aff-modal.js                 # Single-instance modal system
-│   │   └── aff-theme.js                 # Light/dark mode toggle
+│   │   ├── atfrfo-app.js                   # Main JS entry point, ATFRFO.state init
+│   │   ├── atfrfo-panel-left.js            # Left nav tree
+│   │   ├── atfrfo-panel-right.js           # Right panel: project, sync, backup
+│   │   ├── atfrfo-panel-top.js             # Top bar: project name, Switch Project
+│   │   ├── atfrfo-colors.js                # Colors variable set (full edit UI)
+│   │   ├── atfrfo-variables.js             # Generic variable set factory (Fonts, Numbers)
+│   │   ├── atfrfo-merge.js                 # Merge/conflict resolution utilities
+│   │   ├── atfrfo-modal.js                 # Single-instance modal system
+│   │   └── atfrfo-theme.js                 # Light/dark mode toggle
 │   └── css/
-│       ├── aff-layout.css               # Panel layout and structure
-│       └── aff-theme.css                # Light/dark mode CSS variables
+│       ├── atfrfo-layout.css               # Panel layout and structure
+│       └── atfrfo-theme.css                # Light/dark mode CSS variables
 ├── assets/
 │   ├── fonts/                           # Inter WOFF2 files (4 weights)
 │   └── icons/                           # SVG icon set
 ├── data/
-│   └── aff-defaults.json               # Default subgroup definitions
+│   └── atfrfo-defaults.json               # Default subgroup definitions
 └── docs/
-    └── AFF-Framework-Forge-Spec.md      # Full spec document
+    └── ATFRFO-Framework-Forge-Spec.md      # Full spec document
 ```
 
 ---
@@ -97,10 +97,10 @@ atomic-framework-forge-for-elementor/
 
 | Layer | Prefix | Example |
 |-------|--------|---------|
-| PHP classes | `AFF_` | `AFF_CSS_Parser`, `AFF_Admin` |
-| JS globals | `AFF` | `AFF.Modal`, `AFF.Theme` |
-| CSS classes | `aff-` | `aff-btn`, `aff-panel-left`, `aff-modal` |
-| AJAX actions | `aff_` | `aff_save_user_theme`, `aff_sync_variables` |
+| PHP classes | `ATFRFO_` | `ATFRFO_CSS_Parser`, `ATFRFO_Admin` |
+| JS globals | `ATFRFO` | `ATFRFO.Modal`, `ATFRFO.Theme` |
+| CSS classes | `atfrfo-` | `atfrfo-btn`, `atfrfo-panel-left`, `atfrfo-modal` |
+| AJAX actions | `atfrfo_` | `atfrfo_save_user_theme`, `atfrfo_sync_variables` |
 
 **Never deviate from these prefixes.**
 
@@ -108,25 +108,25 @@ atomic-framework-forge-for-elementor/
 
 ## Critical Rules — Read These First
 
-### 1. AFF_CSS_Parser is read-only — write-back lives only in the AJAX handler
-`class-aff-css-parser.php` only reads `post-{id}.css`. It **never writes to, modifies, or regenerates** Elementor's stylesheets.
+### 1. ATFRFO_CSS_Parser is read-only — write-back lives only in the AJAX handler
+`class-atfrfo-css-parser.php` only reads `post-{id}.css`. It **never writes to, modifies, or regenerates** Elementor's stylesheets.
 
-**The one intentional exception:** `AFF_Ajax_Handler::ajax_aff_commit_to_elementor()` writes variable values back to the Elementor kit CSS. This is the **Phase 5 write-back feature** and is intentionally isolated in the AJAX handler layer only. It must never be merged into `AFF_CSS_Parser` or any parser class. Every call site must carry the comment:
+**The one intentional exception:** `ATFRFO_Ajax_Handler::ajax_aff_commit_to_elementor()` writes variable values back to the Elementor kit CSS. This is the **Phase 5 write-back feature** and is intentionally isolated in the AJAX handler layer only. It must never be merged into `ATFRFO_CSS_Parser` or any parser class. Every call site must carry the comment:
 ```php
-// Intentional Phase 5 write-back exception — see AFF CLAUDE.md Critical Rule #1.
+// Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
 ```
 
 ### 2. Portable data layer
-`class-aff-data-store.php`, `class-aff-ajax-handler.php`, and all business logic classes must have **no WordPress dependencies**. All WordPress-specific code belongs in thin adapter classes only. AFF is architecturally intended for future port to a standalone Windows/Mac app. The `.aff.json` storage format must remain platform-agnostic.
+`class-atfrfo-data-store.php`, `class-atfrfo-ajax-handler.php`, and all business logic classes must have **no WordPress dependencies**. All WordPress-specific code belongs in thin adapter classes only. ATFRFO is architecturally intended for future port to a standalone Windows/Mac app. The `.atfrfo.json` storage format must remain platform-agnostic.
 
-### 3. No jQuery for AFF UI logic
-Covered by the plugins-level prohibition. AFF-specific addition: prefer `fetch()` with nonces for all AJAX — do not use `jQuery.ajax` even for WordPress API calls in AFF.
+### 3. No jQuery for ATFRFO UI logic
+Covered by the plugins-level prohibition. ATFRFO-specific addition: prefer `fetch()` with nonces for all AJAX — do not use `jQuery.ajax` even for WordPress API calls in ATFRFO.
 
 ### 4. No build process
 Pure PHP/JS/CSS. No npm, no Babel, no bundler. ES6+ is fine. Hard-refresh (Ctrl+Shift+R) after JS/CSS changes.
 
 ### 5. Font override must be scoped
-The Inter font override uses `!important` — it must be scoped within `.aff-app *`, never bare `*`.
+The Inter font override uses `!important` — it must be scoped within `.atfrfo-app *`, never bare `*`.
 
 ---
 
@@ -143,7 +143,7 @@ The Inter font override uses `!important` — it must be scoped within `.aff-app
 └────────────┴─────────────────────────────────────┴───────────────┘
 ```
 
-- **Root container:** `#aff-app` — carries `data-aff-theme="light|dark"` attribute
+- **Root container:** `#atfrfo-app` — carries `data-atfrfo-theme="light|dark"` attribute
 - **Max content width:** 1280px (`--jimr-container-max`)
 - **Standard panel padding:** 36px (`--sp-9`)
 - Left panel collapses to ~48px icon-only bar
@@ -172,44 +172,44 @@ At least one subgroup must always remain under each parent.
 
 ## Theme System
 
-- Controlled by `data-aff-theme="light|dark"` on `#aff-app`
-- Toggle via `AFF.Theme.toggle()` or `AFF.Theme.set('light'|'dark')`
-- Preference persisted to WordPress `usermeta` via AJAX (`aff_save_user_theme`)
+- Controlled by `data-atfrfo-theme="light|dark"` on `#atfrfo-app`
+- Toggle via `ATFRFO.Theme.toggle()` or `ATFRFO.Theme.set('light'|'dark')`
+- Preference persisted to WordPress `usermeta` via AJAX (`atfrfo_save_user_theme`)
 - Dark mode palette not yet finalized — do not hard-code dark values without confirmation
 
 ---
 
 ## Modal System
 
-Single-instance modal — never stack modals. Use `AFF.Modal.open({ title, body, footer, onClose })`.
+Single-instance modal — never stack modals. Use `ATFRFO.Modal.open({ title, body, footer, onClose })`.
 
-Behavioral rules (already in `aff-modal.js`): backdrop scoped to AFF container; ESC closes; click outside closes; focus trapped; focus restored on close; only one modal open at a time.
+Behavioral rules (already in `atfrfo-modal.js`): backdrop scoped to ATFRFO container; ESC closes; click outside closes; focus trapped; focus restored on close; only one modal open at a time.
 
 ---
 
 ## Color System — Exact Values
 
 ```css
---aff-bg-page:        #faf6f0;    --aff-bg-card:        #ffffff;
---aff-bg-panel:       #faf9f6;    --aff-bg-field:       #fff;
---aff-clr-primary:    #3d2f1f;    --aff-clr-secondary:  #6d4c2f;
---aff-clr-accent:     #f4c542;    --aff-clr-accent-hov: #dda824;
---aff-clr-muted:      #64748b;    --aff-clr-link:       #ce6565;
---aff-clr-link-hov:   #b54545;    --aff-clr-border:     #c9b89a;
---aff-shadow-sm: 0 1px 2px rgba(61,47,31,0.08);
---aff-shadow-md: 0 4px 6px rgba(61,47,31,0.12);
---aff-shadow-lg: 0 10px 20px rgba(61,47,31,0.15);
---aff-shadow-xl: 0 20px 30px rgba(61,47,31,0.18);
+--atfrfo-bg-page:        #faf6f0;    --atfrfo-bg-card:        #ffffff;
+--atfrfo-bg-panel:       #faf9f6;    --atfrfo-bg-field:       #fff;
+--atfrfo-clr-primary:    #3d2f1f;    --atfrfo-clr-secondary:  #6d4c2f;
+--atfrfo-clr-accent:     #f4c542;    --atfrfo-clr-accent-hov: #dda824;
+--atfrfo-clr-muted:      #64748b;    --atfrfo-clr-link:       #ce6565;
+--atfrfo-clr-link-hov:   #b54545;    --atfrfo-clr-border:     #c9b89a;
+--atfrfo-shadow-sm: 0 1px 2px rgba(61,47,31,0.08);
+--atfrfo-shadow-md: 0 4px 6px rgba(61,47,31,0.12);
+--atfrfo-shadow-lg: 0 10px 20px rgba(61,47,31,0.15);
+--atfrfo-shadow-xl: 0 20px 30px rgba(61,47,31,0.18);
 ```
 
 ---
 
 ## Button Standards
 
-### Primary (Gold) — `.aff-btn`
-Background: `--aff-clr-accent`; Text: `--aff-clr-primary`; Hover: `--aff-clr-accent-hov`, `translate(-2px,-2px)`. Font: 14px/600. Sentence case in HTML. No borders. No gray/ghost secondary buttons.
+### Primary (Gold) — `.atfrfo-btn`
+Background: `--atfrfo-clr-accent`; Text: `--atfrfo-clr-primary`; Hover: `--atfrfo-clr-accent-hov`, `translate(-2px,-2px)`. Font: 14px/600. Sentence case in HTML. No borders. No gray/ghost secondary buttons.
 
-### Icon-Only — `.aff-icon-btn`
+### Icon-Only — `.atfrfo-icon-btn`
 Background: transparent; hover: `rgba(61,47,31,0.08)`. Tooltip after 300ms CSS delay. All icon buttons: `aria-label`.
 
 ---
@@ -223,8 +223,8 @@ All icons are **inline SVG** from `assets/icons/`. No icon fonts. All use `fill:
 ## Accessibility — WCAG 2.1 AA minimum
 
 - All icon buttons: `aria-label` required
-- Focus: `2px solid var(--aff-clr-accent)`, `outline-offset: 2px`
-- Modal: focus trap (already in `aff-modal.js`)
+- Focus: `2px solid var(--atfrfo-clr-accent)`, `outline-offset: 2px`
+- Modal: focus trap (already in `atfrfo-modal.js`)
 - Left menu tree: arrow key navigation, Enter to select, Space to expand/collapse
 
 ---
@@ -233,22 +233,22 @@ All icons are **inline SVG** from `assets/icons/`. No icon fonts. All use `fill:
 
 **Variable:**
 ```json
-{ "id": "uuid-v4", "name": "--aff-color-brand-primary", "value": "#2C3E50",
+{ "id": "uuid-v4", "name": "--atfrfo-color-brand-primary", "value": "#2C3E50",
   "type": "color", "group": "Variables", "subgroup": "Colors",
   "category": "Branding", "source": "elementor-parsed",
   "modified": false, "created_at": "ISO8601", "updated_at": "ISO8601" }
 ```
 
-**Storage format:** `.aff.json` — platform-agnostic JSON.
+**Storage format:** `.atfrfo.json` — platform-agnostic JSON.
 
 ---
 
 ## JavaScript Architecture
 
-### AFF.state — global state object (aff-app.js)
+### ATFRFO.state — global state object (atfrfo-app.js)
 
 ```js
-AFF.state = {
+ATFRFO.state = {
     variables:  [],       // flat array of all variable objects
     categories: {},       // { Colors: [...], Fonts: [...], Numbers: [...] }
     config:     {},       // project config (name, backup limit, etc.)
@@ -260,12 +260,12 @@ AFF.state = {
 
 ### Shared Container — the root cause of cross-module bugs
 
-`#aff-edit-content` is a **single DOM element** shared by all variable set modules. Delegated event listeners from a previous module remain bound when a new module renders. **The view-presence guard must be on every handler.** See `PATTERNS.md`.
+`#atfrfo-edit-content` is a **single DOM element** shared by all variable set modules. Delegated event listeners from a previous module remain bound when a new module renders. **The view-presence guard must be on every handler.** See `PATTERNS.md`.
 
 ### Module Architecture
 
-- **`aff-colors.js`** — self-contained module for the Colors variable set. Uses module-level `_drag` object.
-- **`aff-variables.js`** — factory function `AFF.Variables(config)` for Fonts and Numbers.
+- **`atfrfo-colors.js`** — self-contained module for the Colors variable set. Uses module-level `_drag` object.
+- **`atfrfo-variables.js`** — factory function `ATFRFO.Variables(config)` for Fonts and Numbers.
 - Both use `_effEventsBound` / `_effVarsEventsBound` flags on the container DOM node to prevent re-binding. **These flags persist even when innerHTML is replaced** — never clear them by destroying the node.
 
 ---
@@ -279,16 +279,16 @@ AFF.state = {
 | Global variables meta key | `_elementor_global_variables` on the kit post |
 | V3 colors meta key | `_elementor_page_settings` → `system_colors` / `custom_colors` |
 
-`AFF_CSS_Parser::read_from_kit_meta()` reads directly from post meta (primary path). CSS file parsing is the fallback.
+`ATFRFO_CSS_Parser::read_from_kit_meta()` reads directly from post meta (primary path). CSS file parsing is the fallback.
 
 ---
 
 ## PHP Standards
 
-- All classes prefixed `AFF_`
+- All classes prefixed `ATFRFO_`
 - AJAX: `wp_ajax_{action}` hooks + `check_ajax_referer()` on every endpoint
 - No direct file access: `if ( ! defined( 'ABSPATH' ) ) { exit; }` in every PHP file
-- Enqueue assets only on the AFF admin page (check `$hook`)
+- Enqueue assets only on the ATFRFO admin page (check `$hook`)
 - Admin page slug: `atomic-framework-forge`
 
 ---
@@ -320,14 +320,14 @@ After all edits, search for the old version string — zero matches expected out
 
 ---
 
-## Quick Checks Before Any AFF Code Change
+## Quick Checks Before Any ATFRFO Code Change
 
-- [ ] CSS class uses `aff-` prefix
-- [ ] PHP class uses `AFF_` prefix
-- [ ] JS global uses `AFF` namespace
+- [ ] CSS class uses `atfrfo-` prefix
+- [ ] PHP class uses `ATFRFO_` prefix
+- [ ] JS global uses `ATFRFO` namespace
 - [ ] No jQuery in UI logic (use `fetch()` for AJAX)
 - [ ] No writes to Elementor CSS files
-- [ ] Font override scoped to `.aff-app *` not bare `*`
+- [ ] Font override scoped to `.atfrfo-app *` not bare `*`
 - [ ] Button text is sentence case in HTML
 - [ ] Icon buttons have `aria-label`
 - [ ] Color values match exact hex from the color system above

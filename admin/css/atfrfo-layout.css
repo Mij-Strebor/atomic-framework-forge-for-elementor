@@ -1,11 +1,11 @@
 /**
- * AFF Layout CSS — Four-Panel Structure, Panel Sizing, Collapse States
+ * ATFRFO Layout CSS — Four-Panel Structure, Panel Sizing, Collapse States
  *
  * Implements the four-panel layout:
  *   Top Bar (fixed height) | Left Panel + Center + Right Panel (full height)
  *
  * Uses CSS Grid for the workspace and Flexbox for panel internals.
- * The left panel collapse is driven by [data-collapsed] on .aff-panel-left.
+ * The left panel collapse is driven by [data-collapsed] on .atfrfo-panel-left.
  *
  * @package AtomicFrameworkForge
  * @version 1.0.0
@@ -18,7 +18,7 @@
 /*
  * Hide the WP footer — it carries padding and a border-top even when its text
  * content is emptied by the admin_footer_text filter, which adds enough height
- * to the document to create a browser scrollbar that scrolls .aff-top-bar
+ * to the document to create a browser scrollbar that scrolls .atfrfo-top-bar
  * off screen.
  */
 #wpfooter {
@@ -30,7 +30,7 @@
  * (Screen Options/Help tab buttons) inside #wpbody-content before our content.
  * Their floated height is contained by WP's overflow:hidden on #wpbody-content
  * and adds to the document height, creating a browser scrollbar that scrolls
- * .aff-top-bar off screen. AFF doesn't use either feature.
+ * .atfrfo-top-bar off screen. ATFRFO doesn't use either feature.
  */
 #screen-meta,
 #screen-meta-links {
@@ -42,7 +42,7 @@
  * left admin menu, sized to the full menu item count — taller than the
  * viewport once enough plugins are installed. Because it's position:fixed,
  * that excess height still inflates document scrollHeight past the viewport,
- * forcing a page-level scroll that carries .aff-top-bar off screen with it.
+ * forcing a page-level scroll that carries .atfrfo-top-bar off screen with it.
  * The real #adminmenu list already scrolls independently when it overflows,
  * so capping this decorative layer doesn't affect menu usability.
  */
@@ -56,7 +56,7 @@
  * sibling of #wpcontent inside #wpwrap, not a flex/grid item. #wpwrap's own
  * height naturally grows to fit its tallest child, so once the menu has more
  * items than fit the viewport (as it does here), #wpwrap — and with it the
- * whole document — exceeds the viewport regardless of .aff-app's own fixed
+ * whole document — exceeds the viewport regardless of .atfrfo-app's own fixed
  * height and overflow:hidden. Capping and scrolling the menu independently
  * keeps every item reachable while stopping it from inflating page height.
  */
@@ -73,7 +73,7 @@
 	padding-bottom: 0;
 }
 
-.aff-app {
+.atfrfo-app {
 	display:        flex;
 	flex-direction: column;
 	height:         calc(100vh - 32px);
@@ -85,24 +85,24 @@
    2. TOP MENU BAR
    ========================================================================== */
 
-.aff-top-bar {
+.atfrfo-top-bar {
 	position:        sticky;
 	top:             0;
 	display:         flex;
 	align-items:     center;
-	height:          var(--aff-top-bar-height);
+	height:          var(--atfrfo-top-bar-height);
 	padding:         0 var(--sp-3);
-	background:      color-mix(in srgb, var(--aff-top-bar-bg) 88%, transparent);
+	background:      color-mix(in srgb, var(--atfrfo-top-bar-bg) 88%, transparent);
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
-	border-bottom:   1px solid var(--aff-top-bar-border);
+	border-bottom:   1px solid var(--atfrfo-top-bar-border);
 	flex-shrink:     0;
 	gap:             var(--sp-2);
 	z-index:         200;
 }
 
 /* Brand — logo + title, left-anchored */
-.aff-top-bar__brand {
+.atfrfo-top-bar__brand {
 	display:     flex;
 	align-items: center;
 	gap:         0;
@@ -110,18 +110,18 @@
 	padding-left: var(--sp-2);
 }
 
-.aff-logo {
+.atfrfo-logo {
 	height:    36px;
 	width:     auto;
 	display:   block;
 	flex-shrink: 0;
 }
 
-.aff-top-bar__brand .aff-brand-name {
+.atfrfo-top-bar__brand .atfrfo-brand-name {
 	font-size:             24px;
 	font-weight:           var(--fw-bold);
-	color:                 var(--aff-clr-accent);
-	-webkit-text-stroke:   1px var(--aff-clr-primary);
+	color:                 var(--atfrfo-clr-accent);
+	-webkit-text-stroke:   1px var(--atfrfo-clr-primary);
 	paint-order:           stroke fill;
 	white-space:           nowrap;
 	letter-spacing:        0.02em;
@@ -132,11 +132,11 @@
    content. margin-left:auto absorbs the leftover flex space, pulling Project
    (and Actions after it) toward the right edge instead of leaving it centered
    with large empty margins on both sides. margin-right is 40px, not 48px —
-   .aff-top-bar's own `gap: var(--sp-2)` (8px) already applies between every
+   .atfrfo-top-bar's own `gap: var(--sp-2)` (8px) already applies between every
    child, so 40px margin + 8px gap nets the intended 48px total to Manage
    Projects. Preferences/Functions/Help moved into the "More" dropdown, so
    there's no longer a left-hand cluster to gap against. */
-.aff-top-bar__project {
+.atfrfo-top-bar__project {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -146,37 +146,37 @@
 	min-width:   0;
 }
 
-.aff-project-label {
+.atfrfo-project-label {
 	font-size:   var(--fs-sm);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	white-space: nowrap;
 	flex-shrink: 0;
 }
 
-.aff-project-input {
+.atfrfo-project-input {
 	background:   transparent;
 	border:       1px solid transparent;
-	border-radius: var(--aff-border-radius-sm);
-	color:        var(--aff-clr-text);
+	border-radius: var(--atfrfo-border-radius-sm);
+	color:        var(--atfrfo-clr-text);
 	font-size:    var(--fs-sm);
 	padding:      2px var(--sp-2);
 	min-width:    120px;
 	max-width:    260px;
-	transition:   border-color var(--aff-transition);
+	transition:   border-color var(--atfrfo-transition);
 }
 
-.aff-project-input:hover,
-.aff-project-input:focus {
-	border-color: var(--aff-clr-border);
+.atfrfo-project-input:hover,
+.atfrfo-project-input:focus {
+	border-color: var(--atfrfo-clr-border);
 	outline:      none;
 }
 
-.aff-project-input:focus {
-	border-color: var(--aff-clr-accent);
+.atfrfo-project-input:focus {
+	border-color: var(--atfrfo-clr-accent);
 }
 
 /* Actions — all toolbar buttons, right-anchored */
-.aff-top-bar__actions {
+.atfrfo-top-bar__actions {
 	display:     flex;
 	align-items: center;
 	gap:         2px;
@@ -185,15 +185,15 @@
 }
 
 /* Save button gets extra side margin so glow doesn't overlap neighbours */
-.aff-icon-btn--save-slot {
+.atfrfo-icon-btn--save-slot {
 	margin: 0 var(--sp-1);
 }
 
-.aff-toolbar-sep {
+.atfrfo-toolbar-sep {
 	display:    block;
 	width:      1px;
 	height:     20px;
-	background: var(--aff-clr-border);
+	background: var(--atfrfo-clr-border);
 	margin:     0 var(--sp-1);
 	flex-shrink: 0;
 }
@@ -202,7 +202,7 @@
    3. WORKSPACE — Three-column layout (Left | Center | Right)
    ========================================================================== */
 
-.aff-workspace {
+.atfrfo-workspace {
 	display:    flex;
 	flex:       1;
 	overflow:   hidden; /* Each panel scrolls internally */
@@ -212,8 +212,8 @@
 }
 
 /* Watermark — faint banner behind the edit space when a category is active.
-   Hidden by default; images in .aff-placeholder replace it on the empty state. */
-.aff-workspace::before {
+   Hidden by default; images in .atfrfo-placeholder replace it on the empty state. */
+.atfrfo-workspace::before {
 	content:    '';
 	position:   absolute;
 	inset:      0;
@@ -225,7 +225,7 @@
 }
 
 /* Show as faint watermark once the user opens a category */
-.aff-workspace[data-active="true"]::before {
+.atfrfo-workspace[data-active="true"]::before {
 	opacity: 0.04;
 }
 
@@ -233,69 +233,69 @@
    4. LEFT NAVIGATION PANEL
    ========================================================================== */
 
-.aff-panel-left {
-	width:                var(--aff-panel-left-width);
-	min-width:            var(--aff-panel-left-width);
-	background:           var(--aff-bg-panel);
-	border-right:         1px solid var(--aff-clr-border);
+.atfrfo-panel-left {
+	width:                var(--atfrfo-panel-left-width);
+	min-width:            var(--atfrfo-panel-left-width);
+	background:           var(--atfrfo-bg-panel);
+	border-right:         1px solid var(--atfrfo-clr-border);
 	display:              flex;
 	flex-direction:       column;
 	overflow-y:           auto;
 	overflow-x:           hidden;
 	overscroll-behavior:  contain;
-	transition:           width var(--aff-transition-md), min-width var(--aff-transition-md);
+	transition:           width var(--atfrfo-transition-md), min-width var(--atfrfo-transition-md);
 	flex-shrink:          0;
 	position:             relative;
 }
 
 /* Collapse trigger button */
-.aff-collapse-btn {
+.atfrfo-collapse-btn {
 	align-self:    flex-end;
 	margin:        var(--sp-2) var(--sp-2) 0;
 	flex-shrink:   0;
 }
 
-.aff-collapse-btn svg {
-	transition: transform var(--aff-transition-md);
+.atfrfo-collapse-btn svg {
+	transition: transform var(--atfrfo-transition-md);
 }
 
-.aff-collapse-arrow {
+.atfrfo-collapse-arrow {
 	display:    inline-block;
 	font-size:  1.1em;
 	line-height: 1;
-	transition: transform var(--aff-transition-md);
+	transition: transform var(--atfrfo-transition-md);
 }
 
 /* Collapsed state */
-.aff-panel-left[data-collapsed="true"] {
-	width:     var(--aff-panel-left-collapsed);
-	min-width: var(--aff-panel-left-collapsed);
+.atfrfo-panel-left[data-collapsed="true"] {
+	width:     var(--atfrfo-panel-left-collapsed);
+	min-width: var(--atfrfo-panel-left-collapsed);
 }
 
-.aff-panel-left[data-collapsed="true"] .aff-collapse-btn svg,
-.aff-panel-left[data-collapsed="true"] .aff-collapse-arrow {
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-collapse-btn svg,
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-collapse-arrow {
 	transform: rotate(180deg);
 }
 
 /* Hide labels and children when collapsed */
-.aff-panel-left[data-collapsed="true"] .aff-nav-group__label,
-.aff-panel-left[data-collapsed="true"] .aff-nav-group__chevron,
-.aff-panel-left[data-collapsed="true"] .aff-nav-group__children,
-.aff-panel-left[data-collapsed="true"] .aff-brand-name,
-.aff-panel-left[data-collapsed="true"] .aff-panel-version {
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-group__label,
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-group__chevron,
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-group__children,
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-brand-name,
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-panel-version {
 	display: none;
 }
 
 /* Version number — pinned to bottom of left panel */
-.aff-panel-version {
+.atfrfo-panel-version {
 	flex-shrink:    0;
 	padding:        var(--sp-3) var(--sp-4);
 	font-size:      var(--fs-xxs);
 	font-weight:    var(--fw-medium);
-	color:          var(--aff-clr-muted);
+	color:          var(--atfrfo-clr-muted);
 	text-align:     center;
 	letter-spacing: 0.05em;
-	border-top:     1px solid var(--aff-clr-border);
+	border-top:     1px solid var(--atfrfo-clr-border);
 	margin-top:     auto;
 }
 
@@ -303,13 +303,13 @@
    5. NAV TREE
    ========================================================================== */
 
-.aff-nav-tree {
+.atfrfo-nav-tree {
 	flex:    1;
 	padding: var(--sp-2) 0;
 }
 
 /* Top-level group header */
-.aff-nav-group__header {
+.atfrfo-nav-group__header {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -318,18 +318,18 @@
 	background:  transparent;
 	border:      none;
 	cursor:      pointer;
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	font-size:   var(--fs-lg);
 	font-weight: var(--fw-semibold);
 	text-align:  left;
-	transition:  background var(--aff-transition);
+	transition:  background var(--atfrfo-transition);
 }
 
-.aff-nav-group__header:hover {
-	background: var(--aff-nav-hover-bg);
+.atfrfo-nav-group__header:hover {
+	background: var(--atfrfo-nav-hover-bg);
 }
 
-.aff-nav-group__icon {
+.atfrfo-nav-group__icon {
 	flex-shrink: 0;
 	width:       20px;
 	height:      20px;
@@ -337,45 +337,45 @@
 	align-items: center;
 }
 
-.aff-nav-group__icon svg {
+.atfrfo-nav-group__icon svg {
 	width:  18px;
 	height: 18px;
 }
 
-.aff-nav-group__label {
+.atfrfo-nav-group__label {
 	flex: 1;
 }
 
-.aff-nav-group__chevron {
+.atfrfo-nav-group__chevron {
 	flex-shrink: 0;
 	width:  16px;
 	height: 16px;
 	display: flex;
 	align-items: center;
-	transition: transform var(--aff-transition);
+	transition: transform var(--atfrfo-transition);
 }
 
-.aff-nav-group__chevron svg {
+.atfrfo-nav-group__chevron svg {
 	width:  14px;
 	height: 14px;
 	transform: rotate(-90deg); /* Points down when expanded */
 }
 
-.aff-nav-group__header[aria-expanded="false"] .aff-nav-group__chevron svg {
+.atfrfo-nav-group__header[aria-expanded="false"] .atfrfo-nav-group__chevron svg {
 	transform: rotate(0deg); /* Points right when collapsed */
 }
 
 /* Group children container */
-.aff-nav-group__children {
+.atfrfo-nav-group__children {
 	padding-left: var(--sp-4);
 }
 
-.aff-nav-group__children[hidden] {
+.atfrfo-nav-group__children[hidden] {
 	display: none;
 }
 
 /* Subgroup header */
-.aff-nav-subgroup__header {
+.atfrfo-nav-subgroup__header {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
@@ -384,21 +384,21 @@
 	background:  transparent;
 	border:      none;
 	cursor:      pointer;
-	color:       var(--aff-clr-secondary);
+	color:       var(--atfrfo-clr-secondary);
 	font-size:   var(--fs-xs);
 	font-weight: var(--fw-semibold);
 	text-align:  left;
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
-	transition:  background var(--aff-transition);
-	border-radius: var(--aff-border-radius-sm);
+	transition:  background var(--atfrfo-transition);
+	border-radius: var(--atfrfo-border-radius-sm);
 }
 
-.aff-nav-subgroup__header:hover {
-	background: var(--aff-nav-hover-bg);
+.atfrfo-nav-subgroup__header:hover {
+	background: var(--atfrfo-nav-hover-bg);
 }
 
-.aff-nav-subgroup__icon {
+.atfrfo-nav-subgroup__icon {
 	flex-shrink: 0;
 	width:  16px;
 	height: 16px;
@@ -406,64 +406,64 @@
 	align-items: center;
 }
 
-.aff-nav-subgroup__icon svg {
+.atfrfo-nav-subgroup__icon svg {
 	width:  14px;
 	height: 14px;
 }
 
 /* Nav leaf items */
-.aff-nav-items {
+.atfrfo-nav-items {
 	list-style: none;
 	margin:     0;
 	padding:    0;
 }
 
-.aff-nav-items li {
+.atfrfo-nav-items li {
 	margin: 0;
 }
 
-.aff-nav-item {
+.atfrfo-nav-item {
 	display:      flex;
 	align-items:  center;
 	gap:          var(--sp-2);
 	padding:      var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-4);
-	color:        var(--aff-clr-secondary);
+	color:        var(--atfrfo-clr-secondary);
 	font-size:    var(--fs-sm);
 	font-weight:  var(--fw-normal);
 	cursor:       pointer;
-	border-radius: var(--aff-border-radius-sm);
-	transition:   background var(--aff-transition), color var(--aff-transition);
+	border-radius: var(--atfrfo-border-radius-sm);
+	transition:   background var(--atfrfo-transition), color var(--atfrfo-transition);
 	width:        100%;
 	background:   none;
 	border:       none;
 	text-align:   left;
 }
 
-.aff-nav-item:hover {
-	background: var(--aff-nav-hover-bg);
-	color:      var(--aff-clr-primary);
+.atfrfo-nav-item:hover {
+	background: var(--atfrfo-nav-hover-bg);
+	color:      var(--atfrfo-clr-primary);
 }
 
-.aff-nav-item.is-active {
-	background: var(--aff-nav-active-bg);
-	color:      var(--aff-nav-active-color);
+.atfrfo-nav-item.is-active {
+	background: var(--atfrfo-nav-active-bg);
+	color:      var(--atfrfo-nav-active-color);
 	font-weight: var(--fw-semibold);
 }
 
 /* Accent bar on active item */
-.aff-nav-item.is-active::before {
+.atfrfo-nav-item.is-active::before {
 	content:       '';
 	display:       block;
 	width:         3px;
 	height:        1em;
-	background:    var(--aff-clr-accent);
+	background:    var(--atfrfo-clr-accent);
 	border-radius: 2px;
 	flex-shrink:   0;
 	margin-left:   calc(-1 * var(--sp-2));
 }
 
 /* Name span fills available space */
-.aff-nav-item__name {
+.atfrfo-nav-item__name {
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
@@ -472,7 +472,7 @@
 }
 
 /* Variable count badges — used on nav items and subgroup labels */
-.aff-nav-count {
+.atfrfo-nav-count {
 	flex-shrink:     0;
 	display:         inline-flex;
 	align-items:     center;
@@ -480,8 +480,8 @@
 	min-width:       18px;
 	height:          16px;
 	padding:         0 4px;
-	background:      var(--aff-clr-accent);
-	color:           var(--aff-clr-on-accent, #fff);
+	background:      var(--atfrfo-clr-accent);
+	color:           var(--atfrfo-clr-on-accent, #fff);
 	font-size:       10px;
 	font-weight:     var(--fw-semibold);
 	line-height:     1;
@@ -489,7 +489,7 @@
 }
 
 /* Subgroup label fills available space so the count badge right-aligns */
-.aff-nav-subgroup__label {
+.atfrfo-nav-subgroup__label {
 	flex: 1;
 	min-width: 0;
 }
@@ -498,27 +498,27 @@
    6. CENTER EDIT SPACE
    ========================================================================== */
 
-.aff-edit-space {
+.atfrfo-edit-space {
 	flex:                1;
 	display:             flex;
 	flex-direction:      column;
 	overflow-y:          auto;
 	overscroll-behavior: contain;
-	background:          var(--aff-bg-page); /* Match app background — PNG transparency shows theme colour, not WP admin white */
+	background:          var(--atfrfo-bg-page); /* Match app background — PNG transparency shows theme colour, not WP admin white */
 	min-width:           0; /* Prevent flex blowout */
 	padding:             var(--sp-9);
 	position:            relative;
 }
 
 /* Ensure content layers sit above the workspace background image */
-.aff-placeholder,
-.aff-edit-content {
+.atfrfo-placeholder,
+.atfrfo-edit-content {
 	position: relative;
 	z-index:  1;
 }
 
 /* Placeholder — fills the edit space without scrolling */
-.aff-placeholder {
+.atfrfo-placeholder {
 	flex:            1;
 	display:         flex;
 	flex-direction:  column;
@@ -531,8 +531,8 @@
 
 /* Banner fills the entire edit space including its padding.
    inset: -36px escapes the placeholder into the edit-space padding area;
-   .aff-workspace { overflow: hidden } provides the outer clip. */
-.aff-placeholder-banner {
+   .atfrfo-workspace { overflow: hidden } provides the outer clip. */
+.atfrfo-placeholder-banner {
 	display:    block;
 	position:   absolute;
 	inset:      calc(-1 * var(--sp-9));
@@ -543,27 +543,27 @@
 }
 
 
-.aff-placeholder__text {
+.atfrfo-placeholder__text {
 	font-size:   var(--fs-md);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	margin:      0;
 	font-weight: var(--fw-medium);
 	letter-spacing: 0.01em;
 }
 
 /* Edit content area */
-.aff-edit-content {
+.atfrfo-edit-content {
 	flex:  1;
 	width: 100%;
 }
 
-.aff-edit-content[hidden] {
+.atfrfo-edit-content[hidden] {
 	display: none;
 }
 
 /* Placeholder uses display:flex which overrides the UA [hidden] rule.
    This explicit rule restores the expected hide behaviour. */
-.aff-placeholder[hidden] {
+.atfrfo-placeholder[hidden] {
 	display: none;
 }
 
@@ -571,11 +571,11 @@
    7. RIGHT STATUS PANEL
    ========================================================================== */
 
-.aff-panel-right {
-	width:               var(--aff-panel-right-width);
-	min-width:           var(--aff-panel-right-width);
-	background:          var(--aff-bg-panel);
-	border-left:         1px solid var(--aff-clr-border);
+.atfrfo-panel-right {
+	width:               var(--atfrfo-panel-right-width);
+	min-width:           var(--atfrfo-panel-right-width);
+	background:          var(--atfrfo-bg-panel);
+	border-left:         1px solid var(--atfrfo-clr-border);
 	display:             flex;
 	flex-direction:      column;
 	justify-content:     space-between;
@@ -587,128 +587,128 @@
 }
 
 /* File management section */
-.aff-panel-right__files {
+.atfrfo-panel-right__files {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-2);
 }
 
-.aff-file-actions {
+.atfrfo-file-actions {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-1);
 	margin-top:  var(--sp-1);
 }
 
-/* Unsynced indicator — shown when AFF values have not been committed to Elementor */
-.aff-panel-right__unsynced {
+/* Unsynced indicator — shown when ATFRFO values have not been committed to Elementor */
+.atfrfo-panel-right__unsynced {
 	display:        flex;
 	align-items:    center;
 	gap:            var(--sp-2);
 	padding:        var(--sp-2) 0;
-	border-bottom:  1px solid var(--aff-clr-border);
+	border-bottom:  1px solid var(--atfrfo-clr-border);
 }
 
-.aff-unsynced-dot {
+.atfrfo-unsynced-dot {
 	display:       inline-block;
 	width:         8px;
 	height:        8px;
 	border-radius: 50%;
-	background:    var(--aff-clr-warning, #f59e0b);
+	background:    var(--atfrfo-clr-warning, #f59e0b);
 	flex-shrink:   0;
 }
 
-.aff-unsynced-label {
+.atfrfo-unsynced-label {
 	flex:      1;
 	font-size: var(--fs-xs);
-	color:     var(--aff-clr-secondary);
+	color:     var(--atfrfo-clr-secondary);
 }
 
-/* .aff-btn--xs: compact inline button */
-.aff-btn--xs {
+/* .atfrfo-btn--xs: compact inline button */
+.atfrfo-btn--xs {
 	padding:    2px 8px;
 	font-size:  var(--fs-xs);
 	min-height: 0;
 	height:     auto;
 }
 
-.aff-panel-right__unsynced[hidden] {
+.atfrfo-panel-right__unsynced[hidden] {
 	display: none;
 }
 
 /* Sync button highlighted with accent color when uncommitted changes exist */
-.aff-btn--accent {
-	background:   var(--aff-clr-accent) !important;
-	color:        var(--aff-clr-on-accent, #3d2f1f) !important;
-	border-color: var(--aff-clr-accent) !important;
-	box-shadow:   0 0 0 2px color-mix(in srgb, var(--aff-clr-accent) 35%, transparent);
+.atfrfo-btn--accent {
+	background:   var(--atfrfo-clr-accent) !important;
+	color:        var(--atfrfo-clr-on-accent, #3d2f1f) !important;
+	border-color: var(--atfrfo-clr-accent) !important;
+	box-shadow:   0 0 0 2px color-mix(in srgb, var(--atfrfo-clr-accent) 35%, transparent);
 }
-.aff-btn--accent:hover {
+.atfrfo-btn--accent:hover {
 	opacity: 0.9;
 }
 
 /* Counts section — anchored to bottom */
-.aff-panel-right__counts {
+.atfrfo-panel-right__counts {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-2);
 	margin-top:     auto;
 	padding-top:    var(--sp-4);
-	border-top:     1px solid var(--aff-clr-border);
+	border-top:     1px solid var(--atfrfo-clr-border);
 }
 
-.aff-count-item {
+.atfrfo-count-item {
 	display:         flex;
 	align-items:     center;
 	gap:             var(--sp-2);
 	justify-content: flex-end;
 }
 
-.aff-count-item__icon {
+.atfrfo-count-item__icon {
 	display: flex;
 	align-items: center;
-	color: var(--aff-clr-muted);
+	color: var(--atfrfo-clr-muted);
 }
 
-.aff-count-item__icon svg {
+.atfrfo-count-item__icon svg {
 	width:  16px;
 	height: 16px;
 }
 
-.aff-count-item__label {
+.atfrfo-count-item__label {
 	font-size:  var(--fs-xs);
-	color:      var(--aff-clr-muted);
+	color:      var(--atfrfo-clr-muted);
 	flex:       1;
 	text-align: right;
 }
 
-.aff-count-item__value {
+.atfrfo-count-item__value {
 	font-size:   var(--fs-sm);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	min-width:   24px;
 	text-align:  right;
 }
 
 /* Right panel — named sections */
-.aff-rp-section {
+.atfrfo-rp-section {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-2);
 }
 
-.aff-rp-section__label {
+.atfrfo-rp-section__label {
 	font-size:      var(--fs-xs);
 	font-weight:    var(--fw-bold, 700);
-	color:          var(--aff-clr-secondary);
+	color:          var(--atfrfo-clr-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	padding-bottom: var(--sp-1);
-	border-bottom:  1px solid var(--aff-clr-border);
+	border-bottom:  1px solid var(--atfrfo-clr-border);
 }
 
 /* Future (placeholder) button — visually disabled, not interactive */
-.aff-btn--future {
+.atfrfo-btn--future {
 	opacity:        0.35;
 	cursor:         not-allowed !important;
 	pointer-events: none;
@@ -718,17 +718,17 @@
    8. COLLAPSED LEFT PANEL — flyout stub (future phase: flyout sub-menus)
    ========================================================================== */
 
-.aff-panel-left[data-collapsed="true"] .aff-nav-tree {
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-tree {
 	padding: var(--sp-2) var(--sp-1);
 }
 
-.aff-panel-left[data-collapsed="true"] .aff-nav-group__header {
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-group__header {
 	padding:         var(--sp-2);
 	justify-content: center;
 }
 
-.aff-panel-left[data-collapsed="true"] .aff-nav-subgroup,
-.aff-panel-left[data-collapsed="true"] .aff-nav-items {
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-subgroup,
+.atfrfo-panel-left[data-collapsed="true"] .atfrfo-nav-items {
 	display: none;
 }
 
@@ -736,22 +736,22 @@
    9. SCROLL STYLING
    ========================================================================== */
 
-.aff-panel-left::-webkit-scrollbar,
-.aff-panel-right::-webkit-scrollbar,
-.aff-edit-space::-webkit-scrollbar {
+.atfrfo-panel-left::-webkit-scrollbar,
+.atfrfo-panel-right::-webkit-scrollbar,
+.atfrfo-edit-space::-webkit-scrollbar {
 	width: 4px;
 }
 
-.aff-panel-left::-webkit-scrollbar-track,
-.aff-panel-right::-webkit-scrollbar-track,
-.aff-edit-space::-webkit-scrollbar-track {
+.atfrfo-panel-left::-webkit-scrollbar-track,
+.atfrfo-panel-right::-webkit-scrollbar-track,
+.atfrfo-edit-space::-webkit-scrollbar-track {
 	background: transparent;
 }
 
-.aff-panel-left::-webkit-scrollbar-thumb,
-.aff-panel-right::-webkit-scrollbar-thumb,
-.aff-edit-space::-webkit-scrollbar-thumb {
-	background:    var(--aff-clr-border);
+.atfrfo-panel-left::-webkit-scrollbar-thumb,
+.atfrfo-panel-right::-webkit-scrollbar-thumb,
+.atfrfo-edit-space::-webkit-scrollbar-thumb {
+	background:    var(--atfrfo-clr-border);
 	border-radius: 4px;
 }
 
@@ -760,13 +760,13 @@
    ========================================================================== */
 
 /* Hidden by default on desktop */
-.aff-mobile-block {
+.atfrfo-mobile-block {
 	display: none;
 }
 
 @media (max-width: 1023px) {
 	/* Show restriction message */
-	.aff-mobile-block {
+	.atfrfo-mobile-block {
 		display:         flex;
 		align-items:     center;
 		justify-content: center;
@@ -780,13 +780,13 @@
 		line-height:     1.5;
 	}
 
-	.aff-mobile-block__message {
+	.atfrfo-mobile-block__message {
 		max-width: 360px;
 		margin:    0;
 	}
 
 	/* Hide the full application */
-	.aff-app {
+	.atfrfo-app {
 		display: none;
 	}
 }
@@ -795,36 +795,36 @@
    11. CATEGORY VIEW — Variable list, column headers, usage badges
    ========================================================================== */
 
-.aff-category-view {
+.atfrfo-category-view {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-6);
 	width:          100%;
 }
 
-.aff-category-header {
+.atfrfo-category-header {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-1);
 	padding-bottom: var(--sp-4);
-	border-bottom:  1px solid var(--aff-clr-border);
+	border-bottom:  1px solid var(--atfrfo-clr-border);
 }
 
-.aff-breadcrumb {
+.atfrfo-breadcrumb {
 	font-size: var(--fs-xs);
-	color:     var(--aff-clr-muted);
+	color:     var(--atfrfo-clr-muted);
 	margin:    0;
 }
 
-.aff-category-title {
+.atfrfo-category-title {
 	font-size:   var(--fs-xl);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	margin:      0;
 }
 
 /* Column header row */
-.aff-variable-list-header {
+.atfrfo-variable-list-header {
 	display:     grid;
 	grid-template-columns: 2fr 2fr 1fr auto;
 	gap:         var(--sp-3);
@@ -832,70 +832,70 @@
 	padding:     0 var(--sp-3);
 }
 
-.aff-list-col {
+.atfrfo-list-col {
 	font-size:   var(--fs-xxs);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 }
 
-.aff-list-col--usage {
+.atfrfo-list-col--usage {
 	text-align: center;
 	min-width:  52px;
 }
 
 /* Variable rows */
-.aff-variable-list {
+.atfrfo-variable-list {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-1);
 }
 
-.aff-variable-row {
+.atfrfo-variable-row {
 	display:     grid;
 	grid-template-columns: 2fr 2fr 1fr auto;
 	gap:         var(--sp-3);
 	align-items: center;
 	padding:     var(--sp-3);
 	border-radius: var(--sp-2);
-	background:  var(--aff-bg-panel);
+	background:  var(--atfrfo-bg-panel);
 	border:      1px solid transparent;
 	transition:  border-color 0.15s ease, background 0.15s ease;
 }
 
-.aff-variable-row:hover {
-	border-color: var(--aff-clr-border);
-	background:   var(--aff-bg-hover, var(--aff-bg-panel));
+.atfrfo-variable-row:hover {
+	border-color: var(--atfrfo-clr-border);
+	background:   var(--atfrfo-bg-hover, var(--atfrfo-bg-panel));
 }
 
-.aff-var-name {
+.atfrfo-var-name {
 	font-size:   var(--fs-xs);
 	font-weight: var(--fw-medium);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	font-family: monospace;
 	word-break:  break-all;
 }
 
-.aff-var-value {
+.atfrfo-var-value {
 	font-size:  var(--fs-xs);
-	color:      var(--aff-clr-secondary);
+	color:      var(--atfrfo-clr-secondary);
 	word-break: break-all;
 }
 
-.aff-var-source {
+.atfrfo-var-source {
 	font-size: var(--fs-xxs);
-	color:     var(--aff-clr-muted);
+	color:     var(--atfrfo-clr-muted);
 }
 
-.aff-var-usage {
+.atfrfo-var-usage {
 	display:         flex;
 	justify-content: center;
 	min-width:       52px;
 }
 
 /* Usage count badge */
-.aff-usage-badge {
+.atfrfo-usage-badge {
 	display:        inline-flex;
 	align-items:    center;
 	justify-content: center;
@@ -908,21 +908,21 @@
 	cursor:         default;
 }
 
-.aff-usage-badge--active {
-	background: var(--aff-clr-accent);
-	color:      var(--aff-clr-on-accent, #3d2f1f);
+.atfrfo-usage-badge--active {
+	background: var(--atfrfo-clr-accent);
+	color:      var(--atfrfo-clr-on-accent, #3d2f1f);
 }
 
-.aff-usage-badge--unused {
+.atfrfo-usage-badge--unused {
 	background: transparent;
-	color:      var(--aff-clr-muted);
-	border:     1px solid var(--aff-clr-border);
+	color:      var(--atfrfo-clr-muted);
+	border:     1px solid var(--atfrfo-clr-border);
 }
 
 /* Empty state message */
-.aff-empty-state {
+.atfrfo-empty-state {
 	font-size:  var(--fs-sm);
-	color:      var(--aff-clr-muted);
+	color:      var(--atfrfo-clr-muted);
 	margin:     0;
 	padding:    var(--sp-6);
 	text-align: center;
@@ -932,21 +932,21 @@
    12. SAVE CHANGES INDICATOR — pulses gold-to-red shadow when dirty
    ========================================================================== */
 
-@keyframes aff-save-pulse {
-	0%   { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
+@keyframes atfrfo-save-pulse {
+	0%   { box-shadow: 0 0 6px 2px var(--atfrfo-clr-accent); }
 	6%   { box-shadow: 0 0 22px 7px #991b1b; }
-	12%  { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
-	100% { box-shadow: 0 0 6px 2px var(--aff-clr-accent); }
+	12%  { box-shadow: 0 0 6px 2px var(--atfrfo-clr-accent); }
+	100% { box-shadow: 0 0 6px 2px var(--atfrfo-clr-accent); }
 }
 
-/* Override aff-theme.css duration: 5s cycle, linear so the pause is flat */
-.aff-app .aff-icon-btn--dirty {
-	animation: aff-save-pulse 5s linear infinite;
+/* Override atfrfo-theme.css duration: 5s cycle, linear so the pause is flat */
+.atfrfo-app .atfrfo-icon-btn--dirty {
+	animation: atfrfo-save-pulse 5s linear infinite;
 }
 
 
 /* Export / Import — extra 1rem top gap to visually separate from Elementor sync */
-.aff-rp-section--mt {
+.atfrfo-rp-section--mt {
 	margin-top: var(--sp-4);
 }
 
@@ -954,7 +954,7 @@
    13. PROJECT PICKER MODAL
    ========================================================================== */
 
-.aff-picker-list {
+.atfrfo-picker-list {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-1);
@@ -964,45 +964,45 @@
 }
 
 /* Column header row */
-.aff-picker-header {
+.atfrfo-picker-header {
 	display:     grid;
 	grid-template-columns: 1fr 48px 120px 96px;
 	gap:         var(--sp-2);
 	padding:     var(--sp-1) var(--sp-3);
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	font-weight: var(--fw-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 }
 
-.aff-picker-row {
+.atfrfo-picker-row {
 	display:       grid;
 	grid-template-columns: 1fr 48px 120px 96px;
 	align-items:   center;
 	gap:           var(--sp-2);
 	padding:       var(--sp-2) var(--sp-3);
 	border-radius: 4px;
-	border:        1px solid var(--aff-clr-border);
+	border:        1px solid var(--atfrfo-clr-border);
 }
 
 /* Name input takes up the flex-1 column */
-.aff-picker-name-edit {
+.atfrfo-picker-name-edit {
 	width:    100%;
 	min-width: 0;
 	font-size: var(--fs-sm);
 }
 
-.aff-picker-row__saves {
+.atfrfo-picker-row__saves {
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	text-align:  center;
 	flex-shrink: 0;
 }
 
-.aff-picker-row__date {
+.atfrfo-picker-row__date {
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	flex-shrink: 0;
 	white-space: nowrap;
 	overflow:    hidden;
@@ -1010,7 +1010,7 @@
 }
 
 /* Buttons column in the picker row: icon buttons inline */
-.aff-picker-row__actions {
+.atfrfo-picker-row__actions {
 	display:         flex;
 	align-items:     center;
 	gap:             var(--sp-1);
@@ -1018,68 +1018,68 @@
 }
 
 /* Level 2 — backup list rows */
-.aff-picker-backup-header {
+.atfrfo-picker-backup-header {
 	display:     grid;
 	grid-template-columns: 1fr 80px 108px;
 	gap:         var(--sp-2);
 	padding:     var(--sp-1) var(--sp-3);
 	font-size:   var(--fs-xs);
-	color:       var(--aff-clr-muted);
+	color:       var(--atfrfo-clr-muted);
 	font-weight: var(--fw-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 }
 
-.aff-picker-backup-header__vars {
+.atfrfo-picker-backup-header__vars {
 	text-align: center;
 }
 
-.aff-picker-backup-row {
+.atfrfo-picker-backup-row {
 	display:       grid;
 	grid-template-columns: 1fr 80px 108px;
 	align-items:   center;
 	gap:           var(--sp-2);
 	padding:       var(--sp-2) var(--sp-3);
 	border-radius: 4px;
-	border:        1px solid var(--aff-clr-border);
+	border:        1px solid var(--atfrfo-clr-border);
 }
 
-.aff-picker-backup-row__date {
+.atfrfo-picker-backup-row__date {
 	font-size:     var(--fs-sm);
-	color:         var(--aff-clr-primary);
+	color:         var(--atfrfo-clr-primary);
 	white-space:   nowrap;
 	overflow:      hidden;
 	text-overflow: ellipsis;
 }
 
-.aff-picker-backup-row__vars {
+.atfrfo-picker-backup-row__vars {
 	font-size:  var(--fs-xs);
-	color:      var(--aff-clr-muted);
+	color:      var(--atfrfo-clr-muted);
 	text-align: center;
 }
 
-.aff-picker-back-bar {
+.atfrfo-picker-back-bar {
 	display:       flex;
 	align-items:   center;
 	gap:           var(--sp-2);
 	margin-bottom: var(--sp-2);
 	padding-bottom: var(--sp-2);
-	border-bottom: 1px solid var(--aff-clr-border);
+	border-bottom: 1px solid var(--atfrfo-clr-border);
 	font-size:     var(--fs-sm);
 	font-weight:   var(--fw-semibold);
-	color:         var(--aff-clr-primary);
+	color:         var(--atfrfo-clr-primary);
 }
 
-.aff-picker-create {
+.atfrfo-picker-create {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-2);
 	margin-top:  var(--sp-4);
 	padding-top: var(--sp-4);
-	border-top:  1px solid var(--aff-clr-border);
+	border-top:  1px solid var(--atfrfo-clr-border);
 }
 
-.aff-picker-create .aff-field-input {
+.atfrfo-picker-create .atfrfo-field-input {
 	flex: 1;
 }
 
@@ -1087,13 +1087,13 @@
    14. TOAST NOTIFICATION
    ========================================================================== */
 
-.aff-toast {
+.atfrfo-toast {
 	position:   fixed;
 	bottom:     24px;
 	left:       50%;
 	transform:  translateX(-50%) translateY(12px);
-	background: var(--aff-clr-accent);
-	color:      var(--aff-clr-on-accent, #3d2f1f);
+	background: var(--atfrfo-clr-accent);
+	color:      var(--atfrfo-clr-on-accent, #3d2f1f);
 	padding:    8px 16px;
 	border-radius: 4px;
 	font-size:  var(--fs-sm);
@@ -1104,16 +1104,16 @@
 	pointer-events: none;
 }
 
-.aff-toast--visible {
+.atfrfo-toast--visible {
 	opacity:   1;
 	transform: translateX(-50%) translateY(0);
 }
 
 /* ==========================================================================
-   15. INFO PANEL — Help button fills the edit space with AFF about content
+   15. INFO PANEL — Help button fills the edit space with ATFRFO about content
    ========================================================================== */
 
-.aff-info-panel {
+.atfrfo-info-panel {
 	max-width:   800px;
 	margin:      0 auto;
 	padding:     var(--sp-2) var(--sp-4);
@@ -1123,16 +1123,16 @@
 }
 
 /* Header */
-.aff-info-header {
+.atfrfo-info-header {
 	text-align:     center;
 	padding-bottom: var(--sp-6);
-	border-bottom:  2px solid var(--aff-clr-accent);
+	border-bottom:  2px solid var(--atfrfo-clr-accent);
 }
 
-.aff-info-title {
+.atfrfo-info-title {
 	font-size:   var(--fs-xxxl);
 	font-weight: var(--fw-bold);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	margin:      0 0 var(--sp-2) 0;
 	line-height: var(--fl-md);
 	display:     flex;
@@ -1142,10 +1142,10 @@
 	flex-wrap:   wrap;
 }
 
-.aff-info-badge {
+.atfrfo-info-badge {
 	display:       inline-block;
-	background:    var(--aff-clr-accent);
-	color:         var(--aff-clr-primary);
+	background:    var(--atfrfo-clr-accent);
+	color:         var(--atfrfo-clr-primary);
 	font-size:     var(--fs-sm);
 	font-weight:   var(--fw-semibold);
 	padding:       2px var(--sp-2);
@@ -1154,59 +1154,59 @@
 	letter-spacing: 0.02em;
 }
 
-.aff-info-tagline {
+.atfrfo-info-tagline {
 	font-size:  var(--fs-lg);
-	color:      var(--aff-clr-secondary);
+	color:      var(--atfrfo-clr-secondary);
 	margin:     var(--sp-2) 0 0 0;
 	font-weight: var(--fw-normal);
 }
 
 /* Sections */
-.aff-info-section {
+.atfrfo-info-section {
 	display:        flex;
 	flex-direction: column;
 	gap:            var(--sp-3);
 }
 
-.aff-info-section__title {
+.atfrfo-info-section__title {
 	font-size:      var(--fs-xl);
 	font-weight:    var(--fw-bold);
-	color:          var(--aff-clr-primary);
+	color:          var(--atfrfo-clr-primary);
 	margin:         0;
 	padding-bottom: var(--sp-2);
-	border-bottom:  1px solid var(--aff-clr-border);
+	border-bottom:  1px solid var(--atfrfo-clr-border);
 }
 
-.aff-info-section p {
+.atfrfo-info-section p {
 	font-size:   var(--fs-md);
-	color:       var(--aff-clr-secondary);
+	color:       var(--atfrfo-clr-secondary);
 	line-height: var(--fl-lg);
 	margin:      0;
 }
 
-.aff-info-section code {
+.atfrfo-info-section code {
 	font-family:    monospace;
 	font-size:      0.9em;
-	background:     var(--aff-bg-card);
-	border:         1px solid var(--aff-clr-border);
+	background:     var(--atfrfo-bg-card);
+	border:         1px solid var(--atfrfo-clr-border);
 	border-radius:  3px;
 	padding:        1px 5px;
-	color:          var(--aff-clr-primary);
+	color:          var(--atfrfo-clr-primary);
 }
 
-.aff-info-section a {
-	color:           var(--aff-clr-link);
+.atfrfo-info-section a {
+	color:           var(--atfrfo-clr-link);
 	text-decoration: none;
 	font-style:      italic;
 }
 
-.aff-info-section a:hover {
-	color:           var(--aff-clr-link-hov);
+.atfrfo-info-section a:hover {
+	color:           var(--atfrfo-clr-link-hov);
 	text-decoration: underline;
 }
 
 /* Lists */
-.aff-info-list {
+.atfrfo-info-list {
 	margin:      0;
 	padding:     0 0 0 var(--sp-5);
 	display:     flex;
@@ -1214,18 +1214,18 @@
 	gap:         var(--sp-2);
 }
 
-.aff-info-list li {
+.atfrfo-info-list li {
 	font-size:   var(--fs-md);
-	color:       var(--aff-clr-secondary);
+	color:       var(--atfrfo-clr-secondary);
 	line-height: var(--fl-lg);
 }
 
-.aff-info-list--ordered {
+.atfrfo-info-list--ordered {
 	list-style: decimal;
 }
 
 /* Phase badges */
-.aff-info-phase {
+.atfrfo-info-phase {
 	display:       inline-block;
 	font-size:     var(--fs-xs);
 	font-weight:   var(--fw-semibold);
@@ -1235,32 +1235,32 @@
 	vertical-align: middle;
 }
 
-.aff-info-phase--current {
-	background: var(--aff-clr-accent);
-	color:      var(--aff-clr-primary);
+.atfrfo-info-phase--current {
+	background: var(--atfrfo-clr-accent);
+	color:      var(--atfrfo-clr-primary);
 }
 
-.aff-info-phase--next {
-	background: var(--aff-bg-card);
-	color:      var(--aff-clr-secondary);
-	border:     1px solid var(--aff-clr-border);
+.atfrfo-info-phase--next {
+	background: var(--atfrfo-bg-card);
+	color:      var(--atfrfo-clr-secondary);
+	border:     1px solid var(--atfrfo-clr-border);
 }
 
-.aff-info-phase--future {
+.atfrfo-info-phase--future {
 	background: transparent;
-	color:      var(--aff-clr-muted);
-	border:     1px solid var(--aff-clr-border);
+	color:      var(--atfrfo-clr-muted);
+	border:     1px solid var(--atfrfo-clr-border);
 }
 
 /* Divider */
-.aff-info-divider {
+.atfrfo-info-divider {
 	border:     none;
-	border-top: 2px solid var(--aff-clr-border);
+	border-top: 2px solid var(--atfrfo-clr-border);
 	margin:     0;
 }
 
 /* Related plugins list */
-.aff-info-related {
+.atfrfo-info-related {
 	list-style:     none;
 	margin:         0;
 	padding:        0;
@@ -1269,30 +1269,30 @@
 	gap:            var(--sp-3);
 }
 
-.aff-info-related li {
+.atfrfo-info-related li {
 	display:       grid;
 	grid-template-columns: 180px 1fr auto;
 	align-items:   center;
 	gap:           var(--sp-3);
 	padding:       var(--sp-3);
-	background:    var(--aff-bg-card);
-	border:        1px solid var(--aff-clr-border);
+	background:    var(--atfrfo-bg-card);
+	border:        1px solid var(--atfrfo-clr-border);
 	border-radius: 6px;
 }
 
-.aff-info-related__name {
+.atfrfo-info-related__name {
 	font-size:   var(--fs-sm);
 	font-weight: var(--fw-semibold);
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 }
 
-.aff-info-related__desc {
+.atfrfo-info-related__desc {
 	font-size:  var(--fs-sm);
-	color:      var(--aff-clr-secondary);
+	color:      var(--atfrfo-clr-secondary);
 	line-height: var(--fl-lg);
 }
 
-.aff-info-related__status {
+.atfrfo-info-related__status {
 	font-size:     var(--fs-xs);
 	font-weight:   var(--fw-semibold);
 	border-radius: 4px;
@@ -1300,47 +1300,47 @@
 	white-space:   nowrap;
 }
 
-.aff-info-related__status--available {
+.atfrfo-info-related__status--available {
 	background:      var(--clr-success-bg, #ecfdf5);
 	color:           var(--clr-success, #059669);
 	text-decoration: none;
 }
 
-a.aff-info-related__status--available:hover {
+a.atfrfo-info-related__status--available:hover {
 	text-decoration: underline;
 }
 
-.aff-info-related__status--coming {
+.atfrfo-info-related__status--coming {
 	background: var(--clr-info-bg, #dbeafe);
 	color:      var(--clr-info, #3b82f6);
 }
 
-.aff-info-related__status--dev {
+.atfrfo-info-related__status--dev {
 	background: var(--clr-warning-bg, #fef3c7);
 	color:      var(--clr-warning, #f59e0b);
 }
 
 /* Support section */
-.aff-info-section--support {
-	background:    var(--aff-bg-card);
-	border:        1px solid var(--aff-clr-border);
+.atfrfo-info-section--support {
+	background:    var(--atfrfo-bg-card);
+	border:        1px solid var(--atfrfo-clr-border);
 	border-radius: 8px;
 	padding:       var(--sp-6);
 }
 
-.aff-info-support-links {
+.atfrfo-info-support-links {
 	display:   flex;
 	gap:       var(--sp-3);
 	flex-wrap: wrap;
 	margin-top: var(--sp-3);
 }
 
-.aff-info-support-btn {
+.atfrfo-info-support-btn {
 	display:       inline-flex;
 	align-items:   center;
 	gap:           var(--sp-2);
-	background:    var(--aff-clr-accent);
-	color:         var(--aff-clr-primary);
+	background:    var(--atfrfo-clr-accent);
+	color:         var(--atfrfo-clr-primary);
 	font-size:     var(--fs-sm);
 	font-weight:   var(--fw-semibold);
 	padding:       var(--sp-2) var(--sp-5);
@@ -1349,77 +1349,77 @@ a.aff-info-related__status--available:hover {
 	transition:    background 0.15s ease, transform 0.15s ease;
 }
 
-.aff-info-support-btn:hover {
-	background: var(--aff-clr-accent-hov);
+.atfrfo-info-support-btn:hover {
+	background: var(--atfrfo-clr-accent-hov);
 	transform:  translate(-2px, -2px);
 	text-decoration: none;
-	color:      var(--aff-clr-primary);
+	color:      var(--atfrfo-clr-primary);
 }
 
-.aff-info-support-btn--secondary {
-	background: var(--aff-bg-card);
-	color:      var(--aff-clr-secondary);
-	border:     1px solid var(--aff-clr-border);
+.atfrfo-info-support-btn--secondary {
+	background: var(--atfrfo-bg-card);
+	color:      var(--atfrfo-clr-secondary);
+	border:     1px solid var(--atfrfo-clr-border);
 }
 
-.aff-info-support-btn--secondary:hover {
-	background: var(--aff-bg-panel);
-	color:      var(--aff-clr-primary);
+.atfrfo-info-support-btn--secondary:hover {
+	background: var(--atfrfo-bg-panel);
+	color:      var(--atfrfo-clr-primary);
 }
 
 /* ==========================================================================
    SYNC MODAL — Beta warning, version toggle switch, direction and mode sections
    ========================================================================== */
 
-.aff-sync-warning {
+.atfrfo-sync-warning {
 	display:       flex;
 	gap:           var(--sp-3);
 	align-items:   flex-start;
 	padding:       var(--sp-3) var(--sp-4);
-	border-left:   3px solid var(--aff-clr-accent);
-	background:    rgb(from var(--aff-clr-accent) r g b / 8%);
-	border-radius: var(--aff-border-radius-sm);
+	border-left:   3px solid var(--atfrfo-clr-accent);
+	background:    rgb(from var(--atfrfo-clr-accent) r g b / 8%);
+	border-radius: var(--atfrfo-border-radius-sm);
 	margin-bottom: var(--sp-4);
 	font-size:     13px;
 	line-height:   1.6;
 }
 
-.aff-sync-warning__icon {
+.atfrfo-sync-warning__icon {
 	font-size:  18px;
 	flex-shrink: 0;
 	line-height: 1.4;
-	color:       var(--aff-clr-accent);
+	color:       var(--atfrfo-clr-accent);
 }
 
-.aff-sync-section {
+.atfrfo-sync-section {
 	margin-bottom: var(--sp-4);
 }
 
-.aff-sync-section__label {
+.atfrfo-sync-section__label {
 	font-size:     11px;
 	font-weight:   600;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	color:         var(--aff-clr-muted);
+	color:         var(--atfrfo-clr-muted);
 	margin-bottom: var(--sp-2);
 }
 
 /* Version toggle switch row */
-.aff-sync-toggle {
+.atfrfo-sync-toggle {
 	display:     flex;
 	align-items: center;
 	gap:         var(--sp-3);
 }
 
-.aff-sync-toggle__label {
+.atfrfo-sync-toggle__label {
 	font-size:   13px;
 	font-weight: 600;
-	color:       var(--aff-clr-primary);
+	color:       var(--atfrfo-clr-primary);
 	min-width:   20px;
 }
 
 /* iOS-style toggle switch */
-.aff-toggle-switch {
+.atfrfo-toggle-switch {
 	position: relative;
 	display:  inline-block;
 	width:    44px;
@@ -1427,26 +1427,26 @@ a.aff-info-related__status--available:hover {
 	cursor:   pointer;
 }
 
-.aff-toggle-switch input {
+.atfrfo-toggle-switch input {
 	opacity:  0;
 	width:    0;
 	height:   0;
 	position: absolute;
 }
 
-.aff-toggle-switch__track {
+.atfrfo-toggle-switch__track {
 	position:      absolute;
 	inset:         0;
-	background:    var(--aff-clr-border);
+	background:    var(--atfrfo-clr-border);
 	border-radius: 12px;
-	transition:    background var(--aff-transition);
+	transition:    background var(--atfrfo-transition);
 }
 
-.aff-toggle-switch input:checked + .aff-toggle-switch__track {
-	background: var(--aff-clr-accent);
+.atfrfo-toggle-switch input:checked + .atfrfo-toggle-switch__track {
+	background: var(--atfrfo-clr-accent);
 }
 
-.aff-toggle-switch__thumb {
+.atfrfo-toggle-switch__thumb {
 	position:      absolute;
 	top:           3px;
 	left:          3px;
@@ -1455,20 +1455,20 @@ a.aff-info-related__status--available:hover {
 	border-radius: 50%;
 	background:    #fff;
 	box-shadow:    0 1px 3px rgba(0,0,0,.25);
-	transition:    transform var(--aff-transition);
+	transition:    transform var(--atfrfo-transition);
 }
 
-.aff-toggle-switch input:checked + .aff-toggle-switch__track .aff-toggle-switch__thumb {
+.atfrfo-toggle-switch input:checked + .atfrfo-toggle-switch__track .atfrfo-toggle-switch__thumb {
 	transform: translateX(20px);
 }
 
-.aff-toggle-switch:focus-within .aff-toggle-switch__track {
-	outline:        2px solid var(--aff-clr-accent);
+.atfrfo-toggle-switch:focus-within .atfrfo-toggle-switch__track {
+	outline:        2px solid var(--atfrfo-clr-accent);
 	outline-offset: 2px;
 }
 
 /* Direction and mode radio rows */
-.aff-sync-radio {
+.atfrfo-sync-radio {
 	display:       flex;
 	align-items:   flex-start;
 	gap:           var(--sp-2);
@@ -1477,20 +1477,20 @@ a.aff-info-related__status--available:hover {
 	font-size:     13px;
 }
 
-.aff-sync-radio input[type="radio"] {
+.atfrfo-sync-radio input[type="radio"] {
 	margin-top:  3px;
 	flex-shrink: 0;
-	accent-color: var(--aff-clr-accent);
+	accent-color: var(--atfrfo-clr-accent);
 }
 
-.aff-sync-radio span {
+.atfrfo-sync-radio span {
 	display:        flex;
 	flex-direction: column;
 	gap:            2px;
 }
 
-.aff-sync-hint {
+.atfrfo-sync-hint {
 	font-size: 12px;
-	color:     var(--aff-clr-muted);
+	color:     var(--atfrfo-clr-muted);
 	display:   block;
 }

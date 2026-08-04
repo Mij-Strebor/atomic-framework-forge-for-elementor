@@ -1,4 +1,4 @@
-# AFF User Manual
+# ATFRFO User Manual
 ## Atomic Framework Forge for Elementor — v1.4.0
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
@@ -24,7 +24,7 @@
 14. [V4 Export (Write to Elementor)](#14-v4-export-write-to-elementor)
 15. [Conflict Resolution — Merge Dialog](#15-conflict-resolution--merge-dialog)
 16. [V3 → V4 Migration Workflow](#16-v3--v4-migration-workflow)
-17. [Export / Import (.aff.json)](#17-export--import-affjson)
+17. [Export / Import (.atfrfo.json)](#17-export--import-affjson)
 18. [Manage Projects](#18-manage-projects)
 19. [Preferences](#19-preferences)
 20. [Functions — Diagnose & Clean Up](#20-functions--diagnose--clean-up)
@@ -35,25 +35,25 @@
 
 ---
 
-## How AFF Interacts with Elementor
+## How ATFRFO Interacts with Elementor
 
 > **Read — Import from Elementor:**
-> AFF reads from two Elementor data sources depending on version:
-> - **V4:** The `_elementor_global_variables` post meta on the active Elementor kit — the same authoritative data Elementor itself renders into CSS. If that meta is unavailable, AFF falls back to parsing the kit's generated CSS file (`/wp-content/uploads/elementor/css/post-{id}.css`).
+> ATFRFO reads from two Elementor data sources depending on version:
+> - **V4:** The `_elementor_global_variables` post meta on the active Elementor kit — the same authoritative data Elementor itself renders into CSS. If that meta is unavailable, ATFRFO falls back to parsing the kit's generated CSS file (`/wp-content/uploads/elementor/css/post-{id}.css`).
 > - **V3:** The `system_colors` and `custom_colors` stored in the Elementor kit post meta (`_elementor_page_settings`). These are the "Global Colors" panel entries.
 >
 > Both reads are non-destructive — nothing in Elementor is changed.
 >
 > **Write — Export to Elementor (V4 only):**
-> AFF writes modified variable values directly to the `_elementor_global_variables` post meta on the kit post — the same store Elementor itself uses. As a secondary step, AFF also attempts to regenerate the kit's CSS file so the change is visible immediately without a full page reload; a **browser refresh is required afterward** to see the updated values inside Elementor's own Variables Manager panel. Every write is user-triggered, gated behind an explicit safety confirmation, and preceded by a summary of exactly what will change.
+> ATFRFO writes modified variable values directly to the `_elementor_global_variables` post meta on the kit post — the same store Elementor itself uses. As a secondary step, ATFRFO also attempts to regenerate the kit's CSS file so the change is visible immediately without a full page reload; a **browser refresh is required afterward** to see the updated values inside Elementor's own Variables Manager panel. Every write is user-triggered, gated behind an explicit safety confirmation, and preceded by a summary of exactly what will change.
 >
-> ### Use AFF on staging or a local development environment. Always back up your project — and your Elementor kit — before writing to Elementor.
+> ### Use ATFRFO on staging or a local development environment. Always back up your project — and your Elementor kit — before writing to Elementor.
 
 ---
 
 ## 1. Interface Overview
 
-AFF uses a three-panel layout that fills the WordPress admin content area.
+ATFRFO uses a three-panel layout that fills the WordPress admin content area.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -75,13 +75,13 @@ AFF uses a three-panel layout that fills the WordPress admin content area.
 
 There is no separate right-hand panel. All project management, sync, print, and import/export controls live in the top bar (directly or via the **More** dropdown), and every modal opens as an overlay above the workspace.
 
-AFF requires a minimum screen width of 1024px. Below that, a restriction overlay is displayed.
+ATFRFO requires a minimum screen width of 1024px. Below that, a restriction overlay is displayed.
 
 ---
 
 ## 2. Top Bar
 
-The top bar spans the full width of the AFF panel: brand mark on the left, an editable project name in the center, and all action buttons on the right. Icon buttons show a tooltip on hover; long-hover (with Extended Tooltips enabled in Preferences) shows a longer description.
+The top bar spans the full width of the ATFRFO panel: brand mark on the left, an editable project name in the center, and all action buttons on the right. Icon buttons show a tooltip on hover; long-hover (with Extended Tooltips enabled in Preferences) shows a longer description.
 
 ### Brand (far left)
 
@@ -115,8 +115,8 @@ All project-scoped and app-level actions live in this cluster, left to right:
 | Preferences | Opens the Preferences view in the center edit space — see [§19](#19-preferences) |
 | Functions ▸ | Nested submenu: **Change Variable Types** *(placeholder, marked "Soon")* and **Diagnose & Clean Up** — see [§20](#20-functions--diagnose--clean-up) |
 | Print / PDF | Opens the print options modal — see [§9](#9-print--pdf) |
-| Export | Downloads the current project as `.aff.json` |
-| Import | Loads a `.aff.json` file, replacing the current project |
+| Export | Downloads the current project as `.atfrfo.json` |
+| Import | Loads a `.atfrfo.json` file, replacing the current project |
 | Help | Opens a brief in-app reference panel |
 
 #### Save Changes glow behavior
@@ -143,8 +143,8 @@ The Save icon pulses with a brief red glow approximately every 12 seconds when t
         • Font Size
         • Spacing
         • Uncategorized
-▶ Classes              ← placeholder, coming in AFF v3
-▶ Components           ← placeholder, coming in AFF v4
+▶ Classes              ← placeholder, coming in ATFRFO v3
+▶ Components           ← placeholder, coming in ATFRFO v4
 ```
 
 Each section label shows a count of variables it contains. Category leaves show the count for that category.
@@ -201,7 +201,7 @@ Each row in a category block shows:
 |-------|---------|
 | Green | Synced — value matches the Elementor source |
 | Orange | Modified — value differs from the synced source |
-| Blue | New — added in AFF, not yet synced to Elementor |
+| Blue | New — added in ATFRFO, not yet synced to Elementor |
 | Yellow | Orphaned — previously synced; no longer in the Elementor source |
 | Red | Conflict — exists in both with different content |
 
@@ -262,7 +262,7 @@ Grab the **⠿** drag handle and drag the row to a new position within the same 
 
 ## 6. The Color Picker
 
-AFF uses the [Pickr](https://github.com/Simonwep/pickr) visual color picker (v1.9.0, classic theme).
+ATFRFO uses the [Pickr](https://github.com/Simonwep/pickr) visual color picker (v1.9.0, classic theme).
 
 ### Opening the picker
 
@@ -406,10 +406,10 @@ Click the **💾 Save** icon in the toolbar. Updates the current project file in
 Every save (via the Save icon, or from inside the Project Manager) writes a new **timestamped snapshot file** — nothing is silently overwritten:
 
 ```
-wp-content/uploads/aff/
+wp-content/uploads/atfrfo/
   my-brand/
-    my-brand_2026-03-19_14-30-00.aff.json   ← first save
-    my-brand_2026-03-19_16-45-12.aff.json   ← second save
+    my-brand_2026-03-19_14-30-00.atfrfo.json   ← first save
+    my-brand_2026-03-19_16-45-12.atfrfo.json   ← second save
 ```
 
 ### Opening a project / restoring a backup
@@ -424,7 +424,7 @@ Open **▦ Manage Projects**, then click **Project Manager…** to reach the two
 
 ### Auto-load on startup
 
-AFF reloads the last active project automatically on the next page load. This is the **only** automatic data operation AFF performs — there is no auto-save.
+ATFRFO reloads the last active project automatically on the next page load. This is the **only** automatic data operation ATFRFO performs — there is no auto-save.
 
 ### Max backups
 
@@ -452,8 +452,8 @@ All Elementor import and export operations go through this modal.
 
 | Mode | Behavior |
 |------|----------|
-| **Sync by name** | Add new variables; existing AFF values are not overwritten automatically — conflicting values are routed to the [merge dialog](#15-conflict-resolution--merge-dialog). Safe for incremental updates. |
-| **Clear and replace** | Remove all existing variables, then import fresh. Discards AFF edits for those variables. |
+| **Sync by name** | Add new variables; existing ATFRFO values are not overwritten automatically — conflicting values are routed to the [merge dialog](#15-conflict-resolution--merge-dialog). Safe for incremental updates. |
+| **Clear and replace** | Remove all existing variables, then import fresh. Discards ATFRFO edits for those variables. |
 
 ### V3 Export
 
@@ -480,7 +480,7 @@ New variables land in **Uncategorized** under Colors, Fonts, or Numbers in the l
 
 ### Manual CSS path fallback
 
-If AFF cannot locate the kit data automatically, an error dialog shows a manual CSS path input. Enter the full server path to the kit CSS file (must be inside `wp-content/uploads/elementor/css/`) and retry.
+If ATFRFO cannot locate the kit data automatically, an error dialog shows a manual CSS path input. Enter the full server path to the kit CSS file (must be inside `wp-content/uploads/elementor/css/`) and retry.
 
 ---
 
@@ -490,7 +490,7 @@ If AFF cannot locate the kit data automatically, an error dialog shows a manual 
 
 ### What V3 Import does
 
-Elementor's V3 Global Colors are stored as post meta on the active kit post — not in the kit CSS file. V3 Import reads `system_colors` and `custom_colors` from that meta and imports them as AFF color variables.
+Elementor's V3 Global Colors are stored as post meta on the active kit post — not in the kit CSS file. V3 Import reads `system_colors` and `custom_colors` from that meta and imports them as ATFRFO color variables.
 
 ### Variable naming
 
@@ -501,13 +501,13 @@ The original Elementor variable identifier (e.g., `--e-global-color-accent`) is 
 ### After import
 
 - All imported V3 colors land in **Uncategorized** in the Colors set.
-- Variables whose identifier already exists in AFF are skipped — existing values are not overwritten.
+- Variables whose identifier already exists in ATFRFO are skipped — existing values are not overwritten.
 - The left panel count for Uncategorized updates immediately.
 - A result modal appears showing the number of colors imported. It closes automatically after 4 seconds, or immediately when you click **Close**.
 
 ### System color auto-notes
 
-The first four colors returned by Elementor are the standard system colors (Primary, Secondary, Text, Accent) by position, regardless of what names they have been given in the Global Colors panel. AFF automatically populates the Comment field for each of these four with its standard Elementor role:
+The first four colors returned by Elementor are the standard system colors (Primary, Secondary, Text, Accent) by position, regardless of what names they have been given in the Global Colors panel. ATFRFO automatically populates the Comment field for each of these four with its standard Elementor role:
 
 | Position | Default Elementor role |
 |----------|------------------------|
@@ -530,20 +530,20 @@ V3 Import never modifies any Elementor file or post meta.
 
 ### Safety gate
 
-Before anything else, AFF shows a mandatory **"Stop, Before You Write To Elementor"** confirmation. It reminds you to:
+Before anything else, ATFRFO shows a mandatory **"Stop, Before You Write To Elementor"** confirmation. It reminds you to:
 - Never run this on a live/in-service website — staging or local only
 - Make a backup before writing
-- Note that AFF is well-tested but makes no compatibility guarantee for every Elementor configuration
+- Note that ATFRFO is well-tested but makes no compatibility guarantee for every Elementor configuration
 
-If the Elementor or Elementor Pro version currently running on the site differs from the version AFF was developed and tested against, a version-mismatch warning is shown here as well. You must click **I Understand – Continue** to proceed.
+If the Elementor or Elementor Pro version currently running on the site differs from the version ATFRFO was developed and tested against, a version-mismatch warning is shown here as well. You must click **I Understand – Continue** to proceed.
 
 ### Conflict check and commit summary
 
-After you accept the safety gate, AFF re-reads the current Elementor values and checks for conflicts. If any variable was changed on both sides since the last sync, the [merge dialog](#15-conflict-resolution--merge-dialog) opens first. Once conflicts (if any) are resolved, a commit summary appears:
+After you accept the safety gate, ATFRFO re-reads the current Elementor values and checks for conflicts. If any variable was changed on both sides since the last sync, the [merge dialog](#15-conflict-resolution--merge-dialog) opens first. Once conflicts (if any) are resolved, a commit summary appears:
 
 - **N modified** — variables whose value differs from the last synced value
-- **M new** — variables added in AFF not yet in the Elementor kit
-- **K deleted / removed from Elementor** — variables that existed in the last fetch but are no longer present in AFF
+- **M new** — variables added in ATFRFO not yet in the Elementor kit
+- **K deleted / removed from Elementor** — variables that existed in the last fetch but are no longer present in ATFRFO
 
 If there are no pending changes, the dialog shows "Nothing to commit."
 
@@ -551,32 +551,32 @@ If there are no pending changes, the dialog shows "Nothing to commit."
 
 1. Writes the current values of modified / new / deleted variables to the `_elementor_global_variables` post meta on the kit
 2. Attempts to regenerate the kit CSS file as a secondary step for immediate visual preview
-3. Only variables managed by AFF are changed — the rest of the kit meta is untouched
+3. Only variables managed by ATFRFO are changed — the rest of the kit meta is untouched
 4. After a successful write, committed variables revert to green (Synced) status
 5. **Refresh the browser page** to see the new values reflected in Elementor's own Variables Manager
 
 ### Safety
 
-Export is not reversible through AFF alone. Save a project backup before exporting so you have a clean snapshot.
+Export is not reversible through ATFRFO alone. Save a project backup before exporting so you have a clean snapshot.
 
 ---
 
 ## 15. Conflict Resolution — Merge Dialog
 
-Both **Fetch from Elementor** (import) and **Write to Elementor** (export) can encounter the same problem: a variable with the same name has a different value in AFF than it does in Elementor. When that happens, AFF opens a **Merge Conflicts** dialog before continuing.
+Both **Fetch from Elementor** (import) and **Write to Elementor** (export) can encounter the same problem: a variable with the same name has a different value in ATFRFO than it does in Elementor. When that happens, ATFRFO opens a **Merge Conflicts** dialog before continuing.
 
 ### How it works
 
-- Each conflicting variable appears as a row showing its name, the **AFF value**, and the **Elementor value** (with a color swatch preview for color values).
-- Each row has two choices: **Keep AFF** (default for every row) or **Use Elementor** / **Keep Elementor** (label depends on direction).
-- **Keep all AFF** and **Use all Elementor** / **Keep all Elementor** buttons set every row at once.
+- Each conflicting variable appears as a row showing its name, the **ATFRFO value**, and the **Elementor value** (with a color swatch preview for color values).
+- Each row has two choices: **Keep ATFRFO** (default for every row) or **Use Elementor** / **Keep Elementor** (label depends on direction).
+- **Keep all ATFRFO** and **Use all Elementor** / **Keep all Elementor** buttons set every row at once.
 - Click **Apply & Continue** to proceed with your choices, or **Cancel** to abort the operation entirely.
 
 ### Direction-specific behavior
 
 | Direction | If you choose "Elementor" for a row |
 |-----------|--------------------------------------|
-| Fetch (Import) | The AFF variable's value is overwritten with the Elementor value |
+| Fetch (Import) | The ATFRFO variable's value is overwritten with the Elementor value |
 | Write (Export) | That variable is **excluded** from the write — Elementor's existing value is left untouched |
 
 Variables that are brand-new on either side (not present in the other system) are never treated as conflicts — they are added or written automatically.
@@ -585,7 +585,7 @@ Variables that are brand-new on either side (not present in the other system) ar
 
 ## 16. V3 → V4 Migration Workflow
 
-A major use case for AFF is migrating an Elementor site from V3 to V4. The challenge: as you move features over to V4 one at a time, you need to keep V3 and V4 colors in sync. Tracking which V3 color maps to which V4 variable — across dozens of colors and many pages — is the hard problem. AFF solves it.
+A major use case for ATFRFO is migrating an Elementor site from V3 to V4. The challenge: as you move features over to V4 one at a time, you need to keep V3 and V4 colors in sync. Tracking which V3 color maps to which V4 variable — across dozens of colors and many pages — is the hard problem. ATFRFO solves it.
 
 ### How it works
 
@@ -593,23 +593,23 @@ A major use case for AFF is migrating an Elementor site from V3 to V4. The chall
 
 - Use **Sync → V3 → Import** to bring in all V3 Global Colors (display names preserved).
 - Use **Sync → V4 → Import** to bring in all V4 CSS custom properties from the kit.
-- Both sets appear as AFF color variables. Use categories to group V3 colors (e.g., category "V3 Source") and V4 variables (e.g., "Brand", "Background", etc.).
+- Both sets appear as ATFRFO color variables. Use categories to group V3 colors (e.g., category "V3 Source") and V4 variables (e.g., "Brand", "Background", etc.).
 
 **2. Map V3 colors to their V4 equivalents.**
 
-For each V3 color, identify the V4 variable it corresponds to. AFF's side-by-side view — both sets visible in the same edit space — makes visual comparison easy.
+For each V3 color, identify the V4 variable it corresponds to. ATFRFO's side-by-side view — both sets visible in the same edit space — makes visual comparison easy.
 
 Use the variable **label** (display name) and **swatch** to confirm the mapping. V3 variable names carry the original Elementor display name so "accent" in V3 is directly comparable to `--accent` or `--brand-accent` in V4.
 
 **3. Migrate features one at a time.**
 
 As each Elementor page or widget set migrates from V3 to V4 elements:
-- The V4 variables it now uses are already in AFF — edit and commit values as needed via **Sync → V4 → Export**.
+- The V4 variables it now uses are already in ATFRFO — edit and commit values as needed via **Sync → V4 → Export**.
 - The V3 colors that page no longer references become candidates for retirement.
 
 **4. Track V3 retirement.**
 
-When a V3 color is no longer referenced by any V3 page or widget, delete it from AFF (or move it to a "Retired V3" category). When all V3 colors are retired, the migration is complete.
+When a V3 color is no longer referenced by any V3 page or widget, delete it from ATFRFO (or move it to a "Retired V3" category). When all V3 colors are retired, the migration is complete.
 
 **5. V3 Export**
 
@@ -617,28 +617,28 @@ V3 Export (**Sync → V3 → Export**) is not currently provided. If keeping V3 
 
 ### Why this matters
 
-Without AFF, tracking V3 → V4 variable correspondence requires manually cross-referencing Elementor's Global Colors panel, the kit CSS, and individual widget settings. AFF makes it a managed, visible, side-by-side workflow with a single source of truth.
+Without ATFRFO, tracking V3 → V4 variable correspondence requires manually cross-referencing Elementor's Global Colors panel, the kit CSS, and individual widget settings. ATFRFO makes it a managed, visible, side-by-side workflow with a single source of truth.
 
 ---
 
-## 17. Export / Import (.aff.json)
+## 17. Export / Import (.atfrfo.json)
 
 ### Export
 
-Open **More (⋯) → Export**. Downloads the entire current project as a `.aff.json` file (using the browser's native file-save picker where supported). Use this to:
+Open **More (⋯) → Export**. Downloads the entire current project as a `.atfrfo.json` file (using the browser's native file-save picker where supported). Use this to:
 - Back up a project off-server
 - Share a project between WordPress sites
 - Hand off a variable set to another designer or developer
 
 ### Import
 
-Open **More (⋯) → Import**. Choose a `.aff.json` file. The current project's state is **replaced** with the file's contents.
+Open **More (⋯) → Import**. Choose a `.atfrfo.json` file. The current project's state is **replaced** with the file's contents.
 
 Export and import are **complete replacements**, not merges. For incremental updates from Elementor, use the Sync modal instead.
 
 ### File format
 
-`.aff.json` files are plain JSON and human-readable:
+`.atfrfo.json` files are plain JSON and human-readable:
 
 ```json
 {
@@ -796,7 +796,7 @@ Usage data is updated when you sync from Elementor (V4 import) and when a projec
 
 Usage scanning reads up to 500 posts' Elementor data. On large sites, the count may be incomplete.
 
-> Badges are informational only. AFF does not prevent editing or deleting variables that are in use.
+> Badges are informational only. ATFRFO does not prevent editing or deleting variables that are in use.
 
 ---
 
@@ -810,7 +810,7 @@ Usage scanning reads up to 500 posts' Elementor data. On large sites, the count 
 | **Escape** | Any modal | Close the modal |
 | **Tab** | Modal | Move focus through modal controls |
 
-AFF meets WCAG 2.1 AA contrast standards:
+ATFRFO meets WCAG 2.1 AA contrast standards:
 - All icon buttons have `aria-label` attributes
 - Modal dialogs trap focus while open
 - Focus states use a 2px gold outline
@@ -829,7 +829,7 @@ AFF meets WCAG 2.1 AA contrast standards:
 → Create a project first via **▦ Manage Projects → Project Manager… → Create**.
 
 **Variables appear in the wrong set (color in Numbers, etc.)**
-→ AFF classifies variables by value pattern. Drag misclassified variables to the correct category manually.
+→ ATFRFO classifies variables by value pattern. Drag misclassified variables to the correct category manually.
 
 **Color picker swatch shows black or wrong color**
 → Hard refresh (`Ctrl+Shift+R`). The Pickr library loads from a CDN — check the browser Network tab for load failures.
@@ -837,20 +837,20 @@ AFF meets WCAG 2.1 AA contrast standards:
 **After exporting, Elementor values look wrong or unchanged**
 → Refresh the browser page — Elementor's Variables Manager reads from meta on page load, not live. If values are still wrong, go to **Elementor → Site Settings → Save Changes** to regenerate the CSS. If the kit data is corrupted, restore from a WordPress backup and report the issue.
 
-**The AFF panel looks unstyled or broken**
+**The ATFRFO panel looks unstyled or broken**
 → Hard refresh (`Ctrl+Shift+R`). If the issue persists, deactivate and reactivate the plugin, then refresh.
 
 **Drag-and-drop is not working**
 → Grab the **⠿** drag handle specifically — not the name or value field.
 
 **Left panel shows Classes or Components but clicking does nothing**
-→ These are placeholders for future phases (AFF v3 and v4 respectively).
+→ These are placeholders for future phases (ATFRFO v3 and v4 respectively).
 
 **Save icon stays red after saving**
 → Confirm the project has a name in the toolbar input. Saving requires a project name.
 
 **A "Merge Conflicts" dialog appears during Sync or Write**
-→ This is expected when a variable's value differs between AFF and Elementor. Resolve each row (or use "Keep all AFF" / "Use all Elementor") and click **Apply & Continue**. See [§15](#15-conflict-resolution--merge-dialog).
+→ This is expected when a variable's value differs between ATFRFO and Elementor. Resolve each row (or use "Keep all ATFRFO" / "Use all Elementor") and click **Apply & Continue**. See [§15](#15-conflict-resolution--merge-dialog).
 
 ---
 
@@ -858,8 +858,8 @@ AFF meets WCAG 2.1 AA contrast standards:
 
 | Area | Status |
 |------|--------|
-| Classes panel | Navigation shown; content not yet built (planned AFF v3) |
-| Components panel | Navigation shown; content not yet built (planned AFF v4) |
+| Classes panel | Navigation shown; content not yet built (planned ATFRFO v3) |
+| Components panel | Navigation shown; content not yet built (planned ATFRFO v4) |
 | V3 Export (write back to Elementor V3) | Not currently planned — contact developer if needed |
 | Change Variable Types (bulk format conversion) | Placeholder in the Functions menu; per-variable format change works today |
 | Fonts value preview | Value editing works; live "Aa" font render uses the browser's own font resolution, not a Google Fonts loader everywhere |
