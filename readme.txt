@@ -34,6 +34,11 @@ Every write is user-triggered (no background or automatic writes, ever), precede
 
 === Key Features ===
 
+* **Full Elementor V4 Variable Management** — AFF reads, classifies, and lets you fully edit every CSS custom property exposed by Elementor V4's atomic widget architecture, organized into Colors, Fonts, and Numbers, with user-defined sub-classifications for each.
+* **Color Variables** — Visual Pickr color picker (HEX / RGB / HSL + alpha) with live palette refresh; generate up to 10 tints, 10 shades, and 9 transparency variants per color variable.
+* **Font Variables** — Organize and edit font-related CSS custom properties by classification.
+* **Number Variables** — Full control over spacing, sizing, and other numeric variables, with unit-aware editing (px, rem, em, %, vw, vh, ch, and function mode).
+* **Light / Dark Mode** — AFF's own interface supports both, as a per-user preference persisted to WordPress usermeta.
 * **V3 → V4 Color Migration** — Import all Elementor V3 Global Colors (system and custom) into AFF with a single click. The four Elementor system colors (Primary, Secondary, Text, Accent) are automatically annotated with their standard usage roles so you never lose track of what each color controls. Use AFF to map V3 colors to their V4 equivalents side-by-side as you rebuild pages.
 * **Sync from Elementor V4** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
 * **Commit to Elementor V4** — Write modified variable values back to the active kit CSS. Commit summary shows modified / new / deleted counts before writing.
@@ -41,10 +46,6 @@ Every write is user-triggered (no background or automatic writes, ever), precede
 * **Multi-project support** — Multiple independent named projects per WordPress site.
 * **Export / Import** — Download the current project as a portable `.aff.json` file; import on any WordPress site running AFF.
 * **Four-panel interface** — Top menu bar, collapsible left navigation tree, center edit space, right data management panel.
-* **Project organization** — Variables organized into Colors / Fonts / Numbers. Categories are user-configurable per set.
-* **Color picker** — Visual Pickr color picker (HEX / RGB / HSL + alpha) with live palette refresh.
-* **Tint / shade / transparency generator** — Generate up to 10 tints, 10 shades, and 9 transparency variants per color variable.
-* **Light / Dark mode** — Per-user theme preference, persisted to WordPress usermeta.
 
 === Architecture ===
 
