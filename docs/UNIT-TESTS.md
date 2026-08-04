@@ -525,7 +525,7 @@ File: `includes/class-aff-settings.php`
 | 5 | `set(['max_backups' => 5])` merges — other keys unchanged | All other defaults still present |
 | 6 | All expected default keys present | Check for every key in `$defaults` |
 | 7 | `get_defaults()` returns the hardcoded defaults | Identical to `$defaults` property |
-| 8 | `ui_font_size` default | `14` |
+| 8 | `ui_font_size` default | `16` |
 | 9 | `max_backups` default | `10` |
 | 10 | `colors_default_categories` default | `['Branding', 'Backgrounds', 'Neutral', 'Status']` |
 

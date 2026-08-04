@@ -37,17 +37,21 @@ AFF is a WordPress admin plugin that provides a management interface for **Eleme
 
 ## Test Environment
 
-- **WP site:** `site` (Local by Flywheel — main dev site)
-- **WP root:** `C:/Users/Owner/Local Sites/site/app/public`
-- **Plugins dir:** `C:/Users/Owner/Local Sites/site/app/public/wp-content/plugins`
-- **Uploads/AFF data:** `C:/Users/Owner/Local Sites/site/app/public/wp-content/uploads/aff/`
+**Corrected 2026-08-03** — this section previously named a different, stale
+Local site (`site`); confirmed via direct WP-CLI use that AFF actually runs
+on `claude-wordpress-integration-novamira`, the same Local install used for
+JimRForge website/NovaMira work. Both purposes share this one site.
+
+- **WP site:** `claude-wordpress-integration-novamira` (Local by Flywheel)
+- **WP root:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public`
+- **Plugins dir:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/plugins`
+- **Uploads/AFF data:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/uploads/aff/`
 - **Symlink target:** `E:/projects/plugins/aff`
 - **Symlink creation** requires Administrator CMD:
   ```cmd
-  mklink /D "C:\Users\Owner\Local Sites\site\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\aff"
+  mklink /D "C:\Users\Owner\Local Sites\claude-wordpress-integration-novamira\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\aff"
   ```
-- **Active Elementor kit CSS:** `wp-content/uploads/elementor/css/post-67.css` (kit ID: 67)
-- **WP Admin:** `http://site.local/wp-admin/`
+- **WP Admin:** `http://localhost:10011/wp-admin/`
 
 ---
 

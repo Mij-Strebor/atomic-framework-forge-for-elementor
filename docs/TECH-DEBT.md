@@ -1,6 +1,6 @@
 # AFF Technical Debt Report
-# Atomic Framework Forge for Elementor — v1.0.0
-# Reviewed: 2026-05-18
+# Atomic Framework Forge for Elementor — v1.3.0
+# Reviewed: 2026-05-18 · Re-verified against current source: 2026-08-02
 
 > **Scope:** All PHP and JS source files. CSS and SVG assets excluded.
 > Issues are graded **Critical / High / Medium / Low**. Critical = active bug or
@@ -54,49 +54,30 @@ this contract in its PHPDoc. Affected endpoints were:
 
 ---
 
-### C-03 — `AFF.PanelRight._escHtml()` is weaker than `AFF.Utils.escHtml()` — OPEN
+### C-03 — `AFF.PanelRight._escHtml()` is weaker than `AFF.Utils.escHtml()` — FIXED
 
-**File:** `admin/js/aff-panel-right.js` line 1851
-
-`_escHtml` in PanelRight only escapes `&`, `<`, `>`. It does NOT escape `"` or
-`'`. This means it is unsafe for use inside HTML attribute values. Several
-places in `_showCopyForm()` and other methods use `_escHtml` where
-`_escAttr` should be used — and `_escAttr` itself only escapes `&` and `"`,
-missing single-quote in attribute contexts.
-
-`AFF.Utils.escHtml()` in `aff-app.js` uses `div.textContent = str; return
-div.innerHTML` — the browser-native DOM escape, which handles every character
-correctly and is authoritative.
-
-**Fix:** Delete `_escHtml` and `_escAttr` from `aff-panel-right.js`. Replace
-all call sites with `AFF.Utils.escHtml()`. For attribute values, use
-`AFF.Utils.escHtml()` — the DOM method escapes `"` as `&quot;` which is safe
-inside double-quoted attributes.
+**Status: FIXED (2026-08-02).** `_escHtml` and `_escAttr` deleted from
+`aff-panel-right.js`. All 19 call sites repointed to `AFF.Utils.escHtml()` /
+`AFF.Utils.escAttr()` (the DOM-based, fully-correct implementations in
+`aff-app.js`). Verified script load order is safe: `aff-panel-right.js` is
+enqueued before `aff-app.js`, but every call site is inside an event-triggered
+function (modal renders on user action), never top-level/init code — by
+execution time `AFF.Utils` is already defined.
 
 ---
 
-### C-04 — Font-size magic number mismatch in `applyA11y()` — OPEN
+### C-04 — Font-size magic number mismatch in `applyA11y()` — FIXED
 
-**File:** `admin/js/aff-app.js` line 1183
-
-```js
-var fs = parseInt(settings.ui_font_size, 10) || 16;
-if (fs !== 16) {
-    app.setAttribute('data-aff-font-size', String(fs));
-} else {
-    app.removeAttribute('data-aff-font-size');
-}
-```
-
-The JS treats `16` as "attribute absent = default". But the PHP default for
-`ui_font_size` is `14` (`AFF_Settings::$defaults`). On every page load with an
-unmodified setting, `fs = 14`, `14 !== 16` is true, and `data-aff-font-size="14"`
-is always set — never absent. The CSS rule that targets the absent-attribute
-case (the default) will never fire for a fresh install. A "why" comment has been
-added at the call site to document this mismatch.
-
-**Fix:** Either change the PHP default to `16`, or change the JS sentinel to
-`14`. Decide which is the "no override" value and make both layers agree.
+**Status: FIXED (2026-08-02).** Root cause was genuinely ambiguous — the CSS
+(`aff-preferences.css`) has override rules for 14/15/17/18 but none for 16,
+meaning 16px was always the true "no override" baseline; but PHP's
+`AFF_Settings::$defaults['ui_font_size']` said `14`, and the test plan
+(`docs/UNIT-TESTS.md`) also documented `14` as expected. Confirmed with Jim
+which was actually intended: **16px is correct.** Changed
+`AFF_Settings::$defaults['ui_font_size']` from `14` to `16`; updated
+`docs/UNIT-TESTS.md`'s expected-default row to match; cleaned up the now-stale
+"why" comment at the JS call site (the JS sentinel itself was already correct
+and didn't need to change).
 
 ---
 
@@ -108,23 +89,13 @@ load. L-07 and L-08 doc comments fixed in the same pass.
 
 ---
 
-### C-06 — String concatenation gaps in `_openSyncOptionsDialog` modal copy — OPEN
+### C-06 — String concatenation gaps in `_openSyncOptionsDialog` modal copy — FIXED
 
-**File:** `admin/js/aff-panel-right.js` lines 1129, 1134, 1139
-
-Three strings in the sync dialog body have the product name jammed against the
-following word, missing a space:
-
-| Line | Actual | Should be |
-|------|--------|-----------|
-| 1129 | `"AFFshould handle"` | `"AFF should handle"` |
-| 1134 | `"keep existing AFFvalues unchanged"` | `"keep existing AFF values unchanged"` |
-| 1139 | `"Discards AFFedits"` | `"Discards AFF edits"` |
-
-This is visible to the user whenever the Fetch Elementor Data button is clicked.
-Likely caused by a find-and-replace that removed spaces when inserting the brand name.
-
-**Fix:** Insert the missing space in each of the three strings.
+**Status: FIXED (confirmed 2026-08-02).** All three strings now read correctly:
+"Add new variables; keep existing AFF values unchanged." and "Remove all
+existing variables and import fresh from Elementor. Discards AFF edits." The
+sync dialog itself was substantially rewritten as part of the toolbar/top-bar
+restructure (see git log), which appears to have carried this fix along.
 
 ---
 
@@ -180,50 +151,22 @@ feature ships.
 
 ## 3. High — Duplication
 
-### DP-01 — Three independent HTML-escape implementations — OPEN
+### DP-01 — Three independent HTML-escape implementations — FIXED
 
-The codebase has three different HTML-escape functions with different character
-coverage:
-
-| Location | Function | Escapes |
-|----------|----------|---------|
-| `aff-app.js:78` | `AFF.Utils.escHtml(str)` | All characters (browser DOM method) |
-| `aff-app.js:93` | `AFF.Utils.escAttr(str)` | `& < > " '` (manual replace) |
-| `aff-panel-right.js:1851` | `_escHtml(str)` | `& < >` only |
-| `aff-panel-right.js:1863` | `_escAttr(str)` | `& "` only |
-
-`AFF.PanelRight._escHtml` is weaker than `AFF.Utils.escHtml` (see C-03).
-`AFF.PanelRight._escAttr` is weaker than `AFF.Utils.escAttr` (misses `'`).
-
-**Fix:** Use `AFF.Utils.escHtml()` and `AFF.Utils.escAttr()` everywhere. Delete
-`_escHtml` and `_escAttr` from `aff-panel-right.js`.
+**Status: FIXED** (same fix as C-03 — see there for details). Only
+`AFF.Utils.escHtml()` and `AFF.Utils.escAttr()` remain; the weaker
+`aff-panel-right.js` locals are deleted.
 
 ---
 
-### DP-02 — Number format-unit map defined twice in `aff-panel-right.js` — OPEN
+### DP-02 — Number format-unit map defined twice in `aff-panel-right.js` — FIXED
 
-**File:** `admin/js/aff-panel-right.js`
-
-Two identical objects defined in the same file with different names:
-
-```js
-// In _openCommitSummaryDialog (~line 1342):
-var _FMT = { PX: 'px', '%': '%', EM: 'em', REM: 'rem', VW: 'vw', VH: 'vh', CH: 'ch' };
-
-// In _executeCommit (~line 1529):
-var FORMAT_UNIT = { 'PX': 'px', '%': '%', 'EM': 'em', 'REM': 'rem', 'VW': 'vw', 'VH': 'vh', 'CH': 'ch' };
-```
-
-If a new unit is added (e.g., `dvh`, `svh`, `cqi`), it must be added in both
-places — and will inevitably be missed in one. "Why" comments have been added at
-both sites cross-referencing each other.
-
-**Fix:** Hoist as a module-level constant at the top of the IIFE:
-```js
-var AFF_FORMAT_UNITS = { 'PX': 'px', '%': '%', 'EM': 'em', 'REM': 'rem',
-                         'VW': 'vw', 'VH': 'vh', 'CH': 'ch' };
-```
-Reference from both call sites.
+**Status: FIXED (2026-08-02).** Hoisted to a single module-level
+`AFF_FORMAT_UNITS` constant at the top of the IIFE; both call sites
+(`_openCommitSummaryDialog`, `_executeCommit`) now reference it. Fixed
+proactively ahead of the upcoming Classes work, since Classes will likely need
+the same CSS-unit vocabulary — one source of truth now avoids a third
+duplicate appearing later.
 
 ---
 
@@ -271,20 +214,22 @@ handler delegate to it.
 
 ---
 
-### DP-05 — `aff_get_settings` called twice on every page load — OPEN
+### DP-05 — `aff_get_settings` called on every page load, from multiple sites — OPEN, WORSE THAN DOCUMENTED
 
 **Files:** `admin/js/aff-app.js` and `admin/js/aff-panel-top.js`
 
-On `DOMContentLoaded`:
-1. `AFF.PanelTop.init()` makes an `aff_get_settings` AJAX call to load tooltip
-   preferences (`show_tooltips`, `extended_tooltips`)
-2. `AFF.App`'s init also calls `aff_get_settings` to get `last_file` for
-   auto-loading and to call `applyA11y()`
+**Re-verified 2026-08-02: `aff-panel-top.js` now has three separate `aff_get_settings`
+call sites** (lines ~94, ~669, ~842), not the one originally documented — plus
+`aff-app.js`'s own call (still marked with its original "why" comment at line 2138).
+Not yet confirmed whether the two newer PanelTop calls fire on every page load or
+only in specific interaction paths (e.g. opening a picker) — needs a quick trace
+before assuming this is four-on-load rather than one-on-load-plus-three-on-demand.
+Re-scope the fix once that's confirmed; the original one-call consolidation plan
+may need to become a shared cached-settings accessor instead of a single
+init-time call if some of these are legitimately triggered by user action.
 
-Both calls fire within ~100ms of each other. A "why" comment has been added at
-the `AFF.App` call site.
-
-**Fix:** Make one call in `AFF.App`'s init, then pass the settings object to
+**Original fix, still the right direction if load-time calls are confirmed
+redundant:** Make one call in `AFF.App`'s init, then pass the settings object to
 `AFF.PanelTop._applyTooltipSettings(settings)` rather than having PanelTop
 fetch independently.
 
@@ -292,18 +237,15 @@ fetch independently.
 
 ## 4. Medium — Architecture & Technical Debt
 
-### A-01 — `with_store()` calling convention is ambiguous in PATTERNS.md — OPEN
+### A-01 — `with_store()` calling convention is ambiguous in PATTERNS.md — FIXED (as documentation)
 
-**Files:** `includes/class-aff-ajax-handler.php`, `PATTERNS.md`
-
-PATTERNS.md §6 shows the canonical pattern as calling `verify_request()` always
-first. But `with_store()` calls `verify_request()` internally. Any endpoint
-using `with_store()` that also calls `verify_request()` first gets double
-verification (C-02). The PATTERNS.md rule is incomplete.
-
-**Fix:** Choose one approach and document it clearly. Recommended: remove
-`verify_request()` from inside `with_store()`, require all callers to call it
-explicitly. This makes the security check visible at every call site.
+**Status: FIXED (confirmed 2026-08-02).** `with_store()`'s PHPDoc now explicitly
+states: "Handles nonce verification and capability check internally — callers
+must NOT call verify_request() before with_store(). Security is owned here."
+Checked all 7 current `with_store()` call sites — none call `verify_request()`
+separately beforehand. The ambiguity is resolved; PATTERNS.md §6 itself wasn't
+re-checked for a matching update, but the authoritative doc comment is now
+unambiguous at the source.
 
 ---
 
@@ -332,17 +274,16 @@ arrays when loading older project files.
 
 ---
 
-### A-03 — `AFF.state.metadata` undeclared in initial state — OPEN
+### A-03 — `AFF.state.metadata` undeclared in initial state — FIXED
 
-**File:** `admin/js/aff-app.js` line 31
-
-`AFF.state` is initialized without a `metadata` field. `metadata` is added
-dynamically by `_loadFile()`. All access is guarded with `AFF.state.metadata &&`
-throughout `aff-panel-right.js`. This is defensively correct but inconsistent —
-every other state field is declared upfront. A comment has been added to the
-initial state object.
-
-**Fix:** Add `metadata: {}` to the initial `AFF.state` declaration.
+**Status: FIXED (2026-08-02).** Added `metadata: {}` to the initial `AFF.state`
+declaration. Verified safe first: every existing guard (`metadata &&
+metadata.x`, `metadata || {}`, `if (!metadata) metadata = {}`) produces an
+identical result whether `metadata` starts as `undefined` or `{}` — no
+behavior changed anywhere. Fixed proactively ahead of the Classes work, which
+will add more state fields (`classes`/`components` are already declared as
+empty arrays) — establishes "every field declared upfront" as the pattern
+before more fields join un-declared.
 
 ---
 
@@ -383,18 +324,14 @@ in the Ajax handler (see DP-04). Consolidate into a single correct parser in
 
 ---
 
-### A-06 — `list_projects()` sort comparator re-globs the filesystem O(N log N) times — OPEN
+### A-06 — `list_projects()` sort comparator re-globs the filesystem O(N log N) times — FIXED
 
-**File:** `includes/class-aff-data-store.php` line 1026
-
-The `usort` comparator calls `glob()` and `filemtime()` for both elements on
-every comparison. For N projects, a comparison-based sort makes O(N log N) calls
-to `glob()`. For 10 projects ~34 glob calls; for 50 projects ~280 glob calls.
-A "why" comment has been added at the sort site.
-
-**Fix:** In `list_project_backups()`, also return the raw `filemtime()` of the
-latest backup as an integer. Sort `$list` directly on that integer field. No
-extra filesystem calls needed.
+**Status: FIXED (confirmed 2026-08-02).** `list_projects()` now precomputes a
+`_sort_key` (the latest backup's filename, which encodes its creation
+timestamp) for each project during the initial build pass, then sorts with a
+plain `strcmp` comparator — zero additional filesystem calls during the sort
+itself. The internal `_sort_key` field is stripped before the array is
+returned. Matches the spirit of the originally recommended fix.
 
 ---
 
@@ -437,13 +374,12 @@ Should be:
 
 ---
 
-### L-03 — `AFF_Data_Store` baseline methods describe `md5()` as "WP adapter" — OPEN
+### L-03 — `AFF_Data_Store` baseline methods describe `md5()` as "WP adapter" — FIXED
 
-**File:** `includes/class-aff-data-store.php`
-
-The baseline option key uses `md5( $filename )`. `md5()` is a plain PHP function,
-not a WordPress function. The "WP adapter" section comment implies it would need
-replacement when porting — it would not. Minor comment accuracy issue.
+**Status: FIXED (confirmed 2026-08-02).** The section header is now
+"BASELINE ADAPTER METHODS" — no longer claims `md5()` (a plain PHP function)
+is WordPress-specific. `md5()` usage itself is unchanged, which is correct;
+this was purely a comment-accuracy issue.
 
 ---
 
@@ -493,29 +429,29 @@ describes a legacy file that can still be read (backward compat).
 |----|----------|--------|----------|---------|----------------------|
 | C-01 | **Critical** | STUBBED | Feature stub | `aff-panel-right.js` | V3 import button intentionally not wired — future feature |
 | C-02 | **Critical** | FIXED | Bug | `class-aff-ajax-handler.php` | Double `verify_request()` removed from 6 Phase 2 endpoints |
-| C-03 | **Critical** | OPEN | Security | `aff-panel-right.js` | `_escHtml` missing `"` and `'` — weaker than `AFF.Utils.escHtml` |
-| C-04 | **Critical** | OPEN | Bug | `aff-app.js` | Font-size sentinel `16` mismatches PHP default `14` |
+| C-03 | **Critical** | FIXED | Security | `aff-panel-right.js` | Weak local escape fns deleted; all call sites use `AFF.Utils.escHtml/escAttr` |
+| C-04 | **Critical** | FIXED | Bug | `class-aff-settings.php` | PHP default changed 14→16 to match CSS/JS (16 confirmed correct) |
 | C-05 | **Critical** | FIXED | Bug | `aff-colors.js`, `aff-panel-top.js` | `.eff.json` generation replaced with `.aff.json` |
-| C-06 | **Critical** | OPEN | Bug | `aff-panel-right.js` | Missing spaces: "AFFshould", "AFFvalues", "AFFedits" in sync dialog |
+| C-06 | **Critical** | FIXED | Bug | `aff-panel-right.js` | Missing spaces in sync dialog — fixed, likely as part of dialog rewrite |
 | D-01 | **High** | OPEN | Dead code | `_patch_panel_right.js` | Node.js patch script committed to plugin repo |
 | D-02 | **High** | FIXED | Dead code | `class-aff-data-store.php` | `list_projects()` v1 removed; v2 renamed to `list_projects` |
 | D-03 | **High** | FIXED | Dead code | `aff-panel-right.js` | `_getFilename()` deleted; stale doc comment fixed (L-08) |
 | D-04 | **High** | STUBBED | Feature stub | `aff-panel-right.js` | `_bindV3ColorsBtn()` dormant — intentional V3 feature stub |
-| DP-01 | **High** | OPEN | Duplication | `aff-app.js`, `aff-panel-right.js` | Four escape implementations with different coverage |
-| DP-02 | **High** | OPEN | Duplication | `aff-panel-right.js` | Format-unit map defined twice with different names |
+| DP-01 | **High** | FIXED | Duplication | `aff-app.js`, `aff-panel-right.js` | Weak locals deleted; single `AFF.Utils` escape pair used everywhere |
+| DP-02 | **High** | FIXED | Duplication | `aff-panel-right.js` | Hoisted to single `AFF_FORMAT_UNITS` module-level constant |
 | DP-03 | **High** | OPEN | Duplication | `aff-panel-right.js` | ~40 lines of state-loading code in `_loadFile` and `_autoLoadFile` |
 | DP-04 | **High** | OPEN | Duplication | `class-aff-css-parser.php`, `class-aff-ajax-handler.php` | Two independent `:root` CSS block parsers |
-| DP-05 | **High** | OPEN | Duplication | `aff-app.js`, `aff-panel-top.js` | `aff_get_settings` called twice on every page load |
-| A-01 | **Medium** | OPEN | Architecture | `class-aff-ajax-handler.php`, `PATTERNS.md` | `with_store` calling convention undocumented — callers double-verify |
+| DP-05 | **High** | OPEN — worse | Duplication | `aff-app.js`, `aff-panel-top.js` | `aff_get_settings` now has 4 call sites, not 2 — needs re-scoping before fixing |
+| A-01 | **Medium** | FIXED | Architecture | `class-aff-ajax-handler.php` | `with_store` calling convention now unambiguous in its own PHPDoc |
 | A-02 | **Medium** | OPEN | Architecture | `aff-app.js` | `globalConfig` and `config` aliased to same object; latent mutation risk |
-| A-03 | **Medium** | OPEN | Architecture | `aff-app.js` | `AFF.state.metadata` undeclared in initial state object |
+| A-03 | **Medium** | FIXED | Architecture | `aff-app.js` | `metadata: {}` added to initial state; verified no guard behavior changed |
 | A-04 | **Medium** | OPEN | Architecture | `class-aff-ajax-handler.php` | `copy_project` sleeps up to 10s for filename collision avoidance |
 | A-05 | **Medium** | OPEN | Architecture | `class-aff-css-parser.php` | `find_root_blocks` regex fails on nested braces in `:root` blocks |
-| A-06 | **Medium** | OPEN | Architecture | `class-aff-data-store.php` | `list_projects` sort re-globs filesystem O(N log N) times |
-| A-07 | **Medium** | OPEN | Architecture | `aff-app.js` | Category normalization done client-side in AJAX handler |
+| A-06 | **Medium** | FIXED | Architecture | `class-aff-data-store.php` | `list_projects` sort now uses a precomputed sort key, zero extra filesystem calls |
+| A-07 | **Medium** | OPEN | Architecture | `aff-app.js` | Category normalization done client-side, not server-side |
 | L-01 | Low | OPEN | Naming | `aff-panel-right.js` | Wrong `@package` tag — `ElementorFrameworkForge` |
 | L-02 | Low | FIXED | Naming | `class-aff-data-store.php` | `list_projects_v2` name resolved — function renamed |
-| L-03 | Low | OPEN | Naming | `class-aff-data-store.php` | `md5()` in "WP adapter" section is a plain PHP function |
+| L-03 | Low | FIXED | Naming | `class-aff-data-store.php` | Section renamed "BASELINE ADAPTER METHODS" — no longer misclaims md5() as WP-specific |
 | L-04 | Low | OPEN | Naming | `aff-app.js`, CLAUDE.md | `hasUnsavedChanges` / `isDirty` / `dirty` — three names for one concept |
 | L-05 | Low | OPEN | Naming | Multiple JS files | `/* global AFFData */` comment inconsistently applied |
 | L-06 | Low | OPEN | Naming | `aff-panel-top.js` | `_eff` prefix on IndexedDB helpers — should be `_aff` |
@@ -524,25 +460,20 @@ describes a legacy file that can still be read (backward compat).
 
 ---
 
-## Recommended Fix Order
+## Recommended Fix Order (updated 2026-08-02)
 
-These can be done independently in any order, but this sequence minimises risk:
+~~C-02, C-03, C-04, C-06, DP-01, DP-02, A-01, A-03, A-06, D-02, D-03, L-02,
+L-03, L-07, L-08~~ — all confirmed FIXED. Remaining, in priority order:
 
-1. **C-06** — Fix three missing spaces in sync dialog strings (2-min, no logic change)
-2. ~~**C-05**~~ — FIXED
-3. **DP-02** — Hoist format-unit map to module level (5 min, low risk)
-5. **DP-01** / **C-03** — Consolidate escape functions; delete `_escHtml`, `_escAttr`
-6. **D-01** — Delete `_patch_panel_right.js`
-7. **DP-05** — Merge the two `aff_get_settings` calls
-8. **A-04** — Fix backup filename collision (add microseconds, remove sleep)
-9. **DP-03** — Extract `_applyLoadedData` helper
-10. **C-04** — Align font-size default between PHP and JS
-11. **A-02** — Deep-clone `globalConfig`; document in PATTERNS.md
-12. **A-03** — Add `metadata: {}` to initial state
-13. **A-06** — Fix `list_projects` sort efficiency
-14. **L-01**, **L-03–L-06** — Cosmetic fixes in a single cleanup commit
+1. **D-01** — Delete `_patch_panel_right.js`
+2. **DP-05** — Trace all 4 current `aff_get_settings` call sites first (this grew
+   since the original audit — re-scope before assuming a simple 2-call merge fixes it)
+3. **A-04** — Fix backup filename collision (add microseconds, remove sleep)
+4. **DP-03** — Extract `_applyLoadedData` helper
+5. **A-02** — Deep-clone `globalConfig`; document in PATTERNS.md
+6. **L-01**, **L-04**, **L-05**, **L-06** — Cosmetic fixes in a single cleanup commit
 
-Items A-01, A-05, A-07, and DP-04 require more careful design decisions before
-implementing and should be discussed first.
+Items A-05 and A-07, and DP-04, still require more careful design decisions
+before implementing and should be discussed first.
 
 C-01 and D-04 are intentional stubs — wire up when the V3 import feature ships.

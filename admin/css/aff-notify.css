@@ -1,0 +1,60 @@
+/**
+ * AFF Notify Sign — "Take a look" rising notification
+ *
+ * Rises slowly straight up from the bottom-left corner of the center edit
+ * space (not the whole viewport), holds briefly, then sinks back down. No
+ * horizontal movement or rotation — a plain vertical rise, not a swing-in.
+ * Display cap (AFF_NOTIFY_MAX_SHOWS) is enforced server-side — this file
+ * only owns the animation, not the count.
+ *
+ * The left offset is set at show-time by aff-notify.js as the
+ * --aff-notify-left custom property, computed from #aff-edit-space's actual
+ * rendered left edge — this file only supplies the 24px fallback for the
+ * (unreachable in practice) case where JS hasn't set it yet.
+ */
+
+.aff-notify-sign {
+	position: fixed;
+	left: var(--aff-notify-left, 24px);
+	bottom: 24px;
+	width: 390px;
+	max-width: 60vw;
+	height: auto;
+	background: transparent;
+	z-index: 100000; /* Above WP admin bar and AFF panels, below native modal overlays. */
+	pointer-events: none; /* Re-enabled only while visible, see .aff-notify-sign--visible. */
+	filter: drop-shadow(var(--aff-shadow-lg));
+
+	/* Resting position: below its final spot, fully hidden beneath the
+	   bottom edge — rises straight up, no horizontal drift, no rotation. */
+	transform: translateY(140%);
+	transition: transform 0.9s ease-out;
+}
+
+.aff-notify-sign--visible {
+	pointer-events: auto;
+	cursor: pointer;
+	transform: translateY(0);
+}
+
+.aff-notify-sign--leaving {
+	/* Sinks back down slightly faster than it rose. */
+	transition-timing-function: ease-in;
+	transition-duration: 0.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aff-notify-sign {
+		transition: opacity 0.3s ease;
+		transform: translateY(0);
+		opacity: 0;
+	}
+
+	.aff-notify-sign--visible {
+		opacity: 1;
+	}
+
+	.aff-notify-sign--leaving {
+		opacity: 0;
+	}
+}
