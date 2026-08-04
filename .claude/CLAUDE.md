@@ -15,7 +15,7 @@
 
 - **Plugin name:** Atomic Framework Forge for Elementor
 - **Acronym / folder:** `aff` → `E:\projects\plugins\aff`
-- **Version:** v1.3.0
+- **Version:** v1.4.0
 - **GitHub:** https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor
 - **Branding:** Always "Jim R Forge" — never "JimRWeb"
 - **Author URI:** https://jimrforge.com
@@ -31,7 +31,7 @@ AFF is a WordPress admin plugin that provides a management interface for **Eleme
 2. **Classes** — Developer-defined CSS class names on atomic widgets (future)
 3. **Components** — User-assembled widget compositions (future)
 
-**Current phase: v1.3.0.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes are planned for v2.0; Components for v3.0.
+**Current phase: v1.4.0.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes are planned for v2.0; Components for v3.0.
 
 ---
 
@@ -297,7 +297,7 @@ AFF.state = {
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Current — 1.3.0** |
+| **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Current — 1.4.0** |
 | **v2.0** | Classes management; Change History log (currently a placeholder button, no log behind it) | Planned |
 | **v3.0** | Components registry; Elementor Kit Manager API write-back | Planned |
 | **Future** | Standalone Windows/Mac desktop application | Roadmap |

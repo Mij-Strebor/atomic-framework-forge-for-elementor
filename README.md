@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Stable](https://img.shields.io/badge/status-Stable%201.3.0-2d7d46?style=flat-square&labelColor=1a3d28)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-1.3.0-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Stable](https://img.shields.io/badge/status-Stable%201.4.0-2d7d46?style=flat-square&labelColor=1a3d28)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%207.0-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -66,13 +66,13 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Status
 
-Version **1.3.0**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional. Classes management is planned for v3; Components registry for v4.
+Version **1.4.0**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional. Classes management is planned for v3; Components registry for v4.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 
-## What Works in v1.3.0
+## What Works in v1.4.0
 
 | Feature | Status |
 |---------|--------|
@@ -268,6 +268,7 @@ atomic-framework-forge-for-elementor/
 | **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
 | **0.5.x-beta** | Super Categories — two-level nesting within Colors, Fonts, and Numbers. Top-level category contains sub-categories only; sub-categories contain variables only. Elementor commit remains flat. Requested for large design systems (382-variable projects). |
 | **1.3.0** | V3 import result modal, system color auto-notes, expand modal two-row header, sticky filter bar. Print hierarchy: sub-categories indented, comments toggle. Modal DRY refactor. Title fade fix. |
+| **1.4.0** | "Take a look" notify sign. New blacksmith-hammer brand assets. Help panel content refresh. Security fix (HTML-escape consolidation). Font-size default correction. Dead patch-script cleanup. |
 | **1.0.0** | Classes management. Components registry. |
 | **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
 | **Future** | Standalone Windows / Mac desktop application. |

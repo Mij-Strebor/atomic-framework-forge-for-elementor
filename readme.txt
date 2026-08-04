@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.3.0
+Stable tag:        1.4.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,14 @@ In your WordPress uploads directory under `/uploads/aff/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 1.4.0 =
+* Added: "Take a look" notify sign — rising notification pointing new users at the Quick-Start guide, capped at 3 lifetime shows per user.
+* Changed: Brand assets — logo and favicon replaced with new blacksmith-hammer artwork.
+* Changed: Help panel — Media Inventory Forge now shown as available on WordPress.org, added Fluid Button Forge as In Development, corrected stale references, updated for jimrforge.com being live.
+* Fixed: Weak HTML-escape functions consolidated to the canonical, fully-correct implementation (security).
+* Fixed: Font-size default mismatch between PHP and the actual CSS baseline corrected.
+* Fixed: Two dead dev-only patch scripts removed from the plugin repo.
 
 = 1.3.0 =
 * Added: V3 import result modal — shows import count, Close button, auto-closes after 4 seconds.

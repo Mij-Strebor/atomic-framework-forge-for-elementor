@@ -1,5 +1,5 @@
 # Atomic Framework Forge Quick Start Guide
-## Atomic Framework Forge for Elementor — v1.3.0
+## Atomic Framework Forge for Elementor — v1.4.0
 
 > This guide gets you from install to your first synced, organized, and saved variable project in about ten minutes.
 >
