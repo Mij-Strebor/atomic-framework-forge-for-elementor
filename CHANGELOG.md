@@ -7,7 +7,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.3.0] — 2026-06-21
+## [1.3.0] — 2026-06-21 (RC.1 submission prep added 2026-08-04)
 
 ### Added
 
@@ -15,6 +15,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **System Color Auto-Notes** — The first four colors imported from V3 (Elementor system colors: Primary, Secondary, Text, Accent) automatically receive a descriptive note in their Notes field prefixed with "System Colors:".
 - **Print: Sub-category hierarchy** — The print document now mirrors the screen layout. Sub-categories appear indented under their parent category header, with a gradient-indented band that starts at the Name column and a type-colored accent bar. Sub-category variable rows shift their swatches to align under the sub-category title.
 - **Print: Comments toggle** — A "Print comments" checkbox in the print options modal. When checked, each variable's saved comment prints on a second line in italic beneath the variable row.
+- **"Take a look" notify sign** — A rising notification (`take-a-look.png`) points new users at the Quick-Start guide. Appears once per admin page load, capped at 3 lifetime shows per user (tracked via usermeta), rises from the bottom-left past the sidebar, holds 10 seconds, dismissible by click.
 
 ### Changed
 
@@ -24,12 +25,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Comment field placeholder** — Notes input in the Colors and Variables expand panels shows "Comment" instead of "Add a note…".
 - **Informational modals** — "Fetch complete", "Clean Up Complete", and "V3 Import complete" success modals now auto-close after 4 seconds and include an explicit Close button. The three separate timer/handler implementations replaced with a single `AFF.Modal.info()` helper.
 - **Elementor Dev Versions** — Updated `AFF_DEV_ELEMENTOR_VERSION` to 4.1.3 and `AFF_DEV_ELEMENTOR_PRO_VERSION` to 4.1.1.
+- **Brand assets** — Logo and favicon replaced with new blacksmith-hammer artwork (was a carpenter's/claw hammer).
+- **Help panel** — Media Inventory Forge now shows as available on WordPress.org (was GitHub-only); added Fluid Button Forge as "In Development"; renamed "Elementor Color Inventory" to "Color Inventory Forge" to match branding used elsewhere; corrected stale `.eff.json` references to `.aff.json`; Development Phase section rewritten to match actually-shipped v1.x capabilities; Project Hub section updated now that jimrforge.com is live, with real Quick-Start/User's Manual links.
 - **Version** — Bumped to 1.3.0.
 
 ### Fixed
 
 - **App Top Bar Scrolls Off Screen** — WordPress default padding on `#wpbody-content` (65 px footer reserve plus unmapped screen-meta elements) created a browser scrollbar that scrolled the AFF top bar out of view. Fixed by zeroing the padding, hiding unused WP screen-meta elements, and adding a `max-height` clamp so no WP injected content can grow the document past the viewport.
 - **Brand name fades on scroll** — The "Atomic Framework Forge" title in the top bar faded to invisible when the center panel was scrolled down. The fade animation has been removed; the title remains visible at all times.
+- **Weak HTML-escape functions** (security) — `aff-panel-right.js` had local `_escHtml`/`_escAttr` helpers missing `"`/`'` escaping; consolidated to the canonical `AFF.Utils.escHtml()`/`escAttr()` everywhere.
+- **Font-size default mismatch** — `AFF_Settings::$defaults['ui_font_size']` said 14 but the CSS baseline was actually 16 (no override rule existed for 16), so the "no override" branch never fired on a fresh install. Corrected the PHP default to 16.
+- **Two dead patch scripts removed** (`_patch_panel_right.js`, `_patch.ps1`) — found via WordPress Plugin Check flagging them as illegal files ahead of this submission; neither was enqueued or part of any build process.
+- Assorted tech-debt cleanup: duplicated format-unit map hoisted to one constant, undeclared `metadata` state field added, several stale doc/comment corrections.
 
 ---
 
