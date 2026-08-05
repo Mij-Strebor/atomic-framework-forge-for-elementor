@@ -396,9 +396,9 @@ created — the field is effectively dead.
 
 ---
 
-### A-09 — `import_fetched_classes()` can't tell "zero classes" from "fetch failed" — OPEN (Classes Phase 3.1, feature branch only)
+### A-09 — `import_fetched_classes()` can't tell "zero classes" from "fetch failed" — FIXED (Classes Phase 3.1, feature branch)
 
-**File:** `class-atfrfo-data-store.php` — `import_fetched_classes()`
+**File:** `class-atfrfo-data-store.php` — `import_fetched_classes()`; guard lives in `class-atfrfo-ajax-handler.php` — `ajax_atfrfo_sync_classes()`
 
 Found 2026-08-05 during a full code review of the new Classes work. If
 `ATFRFO_Classes_Reader::get_all()` returns an empty class list because the fetch
@@ -410,17 +410,15 @@ in Elementor since last sync") — because nothing in an empty fetched set match
 anything already stored. This silently corrupts sync state on a transient failure,
 even though nothing actually changed on the Elementor side.
 
-Not yet live — the AJAX endpoint that would call this (`atfrfo_sync_classes`)
-hasn't been built yet (next remaining piece of Classes Phase 3.1). A caller-side
-guard requirement has been documented directly in `import_fetched_classes()`'s
-docblock so it isn't missed when that endpoint gets built.
-
-**Fix:** the `atfrfo_sync_classes` handler must check
+**Status: FIXED (2026-08-05).** `ajax_atfrfo_sync_classes()` checks
 `ATFRFO_Classes_Reader::get_all()['source']` before calling
-`import_fetched_classes()`, and refuse to call it at all when `source ===
-'unavailable'` — surface an error to the user instead ("couldn't reach Elementor's
-Global Classes data, sync aborted, nothing changed") rather than proceeding with a
-list that looks identical to "everything was deleted."
+`import_fetched_classes()`, throwing inside the `with_store()` callback when
+`source === 'unavailable'` — `with_store()` skips the save on a thrown
+exception, so the store is left untouched and the user sees an error instead
+of a silent false "everything was deleted." Confirmed the danger was real
+before considering this fixed: calling `import_fetched_classes([])` directly
+(what would happen without the guard) flipped all 10 previously-synced test
+classes to `atfrfo-only` in one call.
 
 ---
 
@@ -525,7 +523,7 @@ describes a legacy file that can still be read (backward compat).
 | A-06 | **Medium** | FIXED | Architecture | `class-atfrfo-data-store.php` | `list_projects` sort now uses a precomputed sort key, zero extra filesystem calls |
 | A-07 | **Medium** | OPEN | Architecture | `atfrfo-app.js` | Category normalization done client-side, not server-side |
 | A-08 | **Medium** | OPEN | Architecture | `class-atfrfo-data-store.php` | `created_at` defaults to `''`, so `??` in `set_timestamps()` never sets it — dead field on every variable and class |
-| A-09 | **Medium** | OPEN (feature branch) | Architecture | `class-atfrfo-data-store.php` | `import_fetched_classes()` can't distinguish a failed fetch from genuinely zero classes — an empty list marks everything atfrfo-only |
+| A-09 | **Medium** | FIXED (feature branch) | Architecture | `class-atfrfo-data-store.php` / `class-atfrfo-ajax-handler.php` | `import_fetched_classes()` couldn't distinguish a failed fetch from genuinely zero classes — guarded in `ajax_atfrfo_sync_classes()`, verified the risk was real before fixing |
 | L-01 | Low | OPEN | Naming | `atfrfo-panel-right.js` | Wrong `@package` tag — `ElementorFrameworkForge` |
 | L-02 | Low | FIXED | Naming | `class-atfrfo-data-store.php` | `list_projects_v2` name resolved — function renamed |
 | L-03 | Low | FIXED | Naming | `class-atfrfo-data-store.php` | Section renamed "BASELINE ADAPTER METHODS" — no longer misclaims md5() as WP-specific |
@@ -556,9 +554,9 @@ A-08 is a trivial one-line fix (found 2026-08-04) but touches both Variables
 and Classes data — worth its own small commit rather than folding into
 unrelated Classes work.
 
-A-09 must be fixed as part of building the `atfrfo_sync_classes` AJAX handler
-(next piece of Classes Phase 3.1) — not a standalone fix, a requirement on that
-handler's own implementation. Don't ship that endpoint without it.
+A-09 fixed 2026-08-05 as part of building the `atfrfo_sync_classes` AJAX handler,
+completing Classes Phase 3.1 (data layer). Phase 3.2 (left panel + list view) is
+next per `docs/AFF-VISION-AND-ROADMAP.md`.
 
 C-01 and D-04 are intentional stubs — wire up when the V3 import feature ships.
 
