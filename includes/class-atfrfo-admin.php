@@ -48,7 +48,7 @@ class ATFRFO_Admin {
 	public function register_admin_menu(): void {
 		add_menu_page(
 			__( 'Atomic Framework Forge', 'atomic-framework-forge-for-elementor' ),
-			__( 'ATFRFO', 'atomic-framework-forge-for-elementor' ),
+			__( 'AFF', 'atomic-framework-forge-for-elementor' ),
 			'manage_options',
 			self::MENU_SLUG,
 			array( $this, 'render_admin_page' ),

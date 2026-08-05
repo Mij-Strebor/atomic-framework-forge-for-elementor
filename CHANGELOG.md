@@ -7,6 +7,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **User-facing text incorrectly showed "ATFRFO"** (the internal code prefix) instead of "AFF" (the public brand name) in several places: the Merge Conflicts dialog (button labels, column header, body text), the WordPress admin sidebar menu label, the Help/About panel, the sync dialog hint text, and the print/PDF document title. The Help panel's plugin-name explainer is now the canonical place the acronym gets spelled out, bolded, so it stays familiar without repeating the explainer everywhere.
+- **Merge Conflicts dialog was too narrow** — the "Use Elementor" column required horizontal scrolling. Widened using the existing `atfrfo-modal--wide` variant already used elsewhere, rather than widening the shared modal component globally.
+- **Removed a false claim from the pre-write safety dialog** — "ATFRFO runs 350+ automated tests" was shown to users immediately before a destructive Elementor write, but no automated test suite exists anywhere in the codebase.
+
+---
+
 ## [1.4.1] — 2026-08-04
 
 ### Fixed
