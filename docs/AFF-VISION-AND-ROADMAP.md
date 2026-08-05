@@ -60,7 +60,7 @@ Global Classes are Elementor V4's reusable CSS class system. Each class:
 
 - Has a user-defined name (the `label` field) that becomes the literal CSS class name on the element — a class labelled `primary-btn` renders as `class="primary-btn"` in the HTML DOM.
 - Contains one or more **variants** — each variant is a full CSS ruleset scoped to a specific breakpoint and/or pseudo-state (desktop/tablet/mobile × normal/hover/active/focus), not a handful of properties. The property schema (`modules/atomic-widgets/styles/style-schema.php`) covers 40+ property types across layout, typography, spacing, border, background, effects, and alignment. A class with 3 breakpoints × 2 states could carry 6 full variants — closer to a component stylesheet than a short property list.
-- Is referenced from Elementor atomic widget elements by an opaque internal ID (`g-XXXXXXX`) rather than by label; the ID-to-label mapping happens during render via `Atomic_Global_Styles::transform_classes_names()`.
+- Is referenced from Elementor atomic widget elements by an opaque internal ID (`g-XXXXXXX` (7 hex chars — **note:** live-checked 2026-08-04 against the dev site and actual IDs look like `gc-0e2eff4039bbe56f`, a different prefix and length than documented here; re-verify the exact format before Phase 3.4 writes any ID)) rather than by label; the ID-to-label mapping happens during render via `Atomic_Global_Styles::transform_classes_names()`.
 - Has a site-wide usage count accessible via a separate REST endpoint.
 
 **Relationship to Variables:** each variant property value uses the same `$$type` value format Variables use (e.g. `{"$$type": "color", "value": "#ff0000"}`). Whether a property's `$$type` can instead be a *reference* to a global Variable's ID, rather than always a literal, is unconfirmed — see §7.3. This is the single fact that determines whether Classes and Variables converge into one linked system or remain structurally separate ones that happen to share a value-encoding format.
@@ -259,7 +259,7 @@ Create classes in the Elementor Class Manager, then sync here.
 
 ### 5.6 Create New Class (Phase 3.4)
 
-A "New Class" button opens a modal for the class name. On confirm: AFF generates a `g-XXXXXXX` ID, calls the REST PUT endpoint with `changes.added`, adds the new class to AFF's local store with `source: 'user-created'`, and directs the user to the Elementor editor to add styles. Name validation: alphanumeric/hyphen/underscore only, no leading digit, max 50 chars.
+A "New Class" button opens a modal for the class name. On confirm: AFF generates a `g-XXXXXXX` (7 hex chars — **note:** live-checked 2026-08-04 against the dev site and actual IDs look like `gc-0e2eff4039bbe56f`, a different prefix and length than documented here; re-verify the exact format before Phase 3.4 writes any ID) ID, calls the REST PUT endpoint with `changes.added`, adds the new class to AFF's local store with `source: 'user-created'`, and directs the user to the Elementor editor to add styles. Name validation: alphanumeric/hyphen/underscore only, no leading digit, max 50 chars.
 
 ---
 
@@ -329,9 +329,9 @@ Each write method fetches the current full class list first, then constructs the
 
 **7.6 (RESOLVED) REST authentication.** Standard `wp_rest` nonce for GET; custom capability `elementor_global_classes_update_class` for PUT (administrator only by default).
 
-**7.7 (OPEN) Feature flag status on the dev site.** Global Classes requires both `e_classes` and `e_atomic_elements` experiments active. Must be confirmed enabled in Elementor → Settings → Features on the development site before Phase 3.1 testing. If inactive, `get_post_meta()` returns an empty string — indistinguishable from "no classes created yet" — AFF must detect this state and direct the user to enable the feature rather than reporting a false empty result.
+**7.7 (RESOLVED — verified 2026-08-04) Feature flag status on the dev site.** Confirmed active on `claude-wordpress-integration-novamira` — the REST route `/elementor/v1/global-classes` exists and 10 real classes were read back successfully. `ATFRFO_Classes_Reader::is_feature_available()` checks for this route directly, so AFF can always tell "feature disabled" apart from "zero classes" going forward, on any site.
 
-**7.8 (OPEN) `get_post_meta()` vs `get_json_meta()` raw value type.** Testing needed to confirm whether the meta value arrives as a JSON string or an already-decoded array (due to WordPress's auto-unserialization behavior for some formats) — this determines whether the `is_string($raw)` branch in the reader ever executes. **How to verify:** log `gettype(get_post_meta($kit_id, '_elementor_global_classes', true))` in the `atfrfo_sync_classes` handler on a site that has classes.
+**7.8 (RESOLVED — verified 2026-08-04) `get_post_meta()` raw value type.** Confirmed `string` — a JSON-encoded string, as expected, decoded correctly by the `is_string($raw)` branch. `ATFRFO_Classes_Reader::read_from_postmeta()` in Phase 3.1 handles this correctly as built.
 
 **7.9 (RESOLVED) CSS selector prefix.** `Styles_Renderer` uses `.elementor` as a selector prefix — rendered output is `.elementor .primary-btn { ... }`, not bare. Informational only for Phases 3.1-3.3 (display-only, no CSS rendering by AFF).
 

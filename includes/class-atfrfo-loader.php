@@ -22,6 +22,7 @@ class ATFRFO_Loader {
 		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-settings.php';
 		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-data-store.php';
 		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-css-parser.php';
+		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-classes-reader.php';
 		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-usage-scanner.php';
 		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-ajax-handler.php';
 		require_once ATFRFO_PLUGIN_DIR . 'includes/class-atfrfo-admin.php';
