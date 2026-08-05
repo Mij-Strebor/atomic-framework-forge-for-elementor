@@ -1112,7 +1112,7 @@
             '<label class="atfrfo-sync-radio">' +
             '<input type="radio" name="atfrfo-sync-mode" value="name" checked />' +
             "<span><strong>Sync by name</strong>" +
-            '<span class="atfrfo-sync-hint">Add new variables; keep existing ATFRFO values unchanged. Safe for incremental updates.</span></span>' +
+            '<span class="atfrfo-sync-hint">Add new variables; keep existing AFF values unchanged. Safe for incremental updates.</span></span>' +
             "</label>" +
             '<label class="atfrfo-sync-radio">' +
             '<input type="radio" name="atfrfo-sync-mode" value="clear" />' +
@@ -1325,7 +1325,6 @@
         '<ul style="margin:0 0 10px 16px;list-style:disc;font-size:13px;line-height:1.7">' +
         "<li><strong>Never run on a live / in-service website.</strong> Use staging or a local dev install only.</li>" +
         "<li><strong>Make a backup first.</strong> Export your Elementor kit before writing.</li>" +
-        "<li>ATFRFO runs 350+ automated tests, but makes no guarantees of compatibility with every Elementor configuration.</li>" +
         "<li>Writing to Elementor modifies the kit post meta directly. A failed write could corrupt variable data.</li>" +
         "</ul>" +
         versionNote;

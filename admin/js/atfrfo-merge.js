@@ -84,7 +84,7 @@
 		/**
 		 * Open the merge conflict resolution modal.
 		 *
-		 * The dialog always defaults to "Keep ATFRFO" for every row — the developer's
+		 * The dialog always defaults to "Keep AFF" for every row — the developer's
 		 * own data takes priority until they explicitly choose otherwise.
 		 *
 		 * @param {Array}    conflictVars  [{name, affValue, elValue}, ...]
@@ -120,7 +120,7 @@
 					+   '<label style="margin-right:10px;font-size:12px;cursor:pointer">'
 					+     '<input type="radio" name="' + radioName + '" value="aff"'
 					+     ' checked style="margin-right:3px;cursor:pointer">'
-					+     'Keep ATFRFO'
+					+     'Keep AFF'
 					+   '</label>'
 					+   '<label style="font-size:12px;cursor:pointer">'
 					+     '<input type="radio" name="' + radioName + '" value="el"'
@@ -136,7 +136,7 @@
 				'<p style="margin-bottom:12px">'
 				+ '<strong>' + conflictVars.length + '</strong> variable'
 				+ (plural ? 's have' : ' has')
-				+ ' different values in ATFRFO and Elementor.'
+				+ ' different values in AFF and Elementor.'
 				+ ' Choose which to keep for each row.</p>'
 				+ '<div style="overflow-x:auto;margin-bottom:10px">'
 				+ '<table style="width:100%;border-collapse:collapse">'
@@ -145,7 +145,7 @@
 				+ '<th style="padding:4px 8px 4px 0;text-align:left;font-size:11px'
 				+   ';color:var(--atfrfo-clr-muted);font-weight:600">Variable</th>'
 				+ '<th style="padding:4px 8px;text-align:left;font-size:11px'
-				+   ';color:var(--atfrfo-clr-muted);font-weight:600">ATFRFO value</th>'
+				+   ';color:var(--atfrfo-clr-muted);font-weight:600">AFF value</th>'
 				+ '<th style="padding:4px 8px;text-align:left;font-size:11px'
 				+   ';color:var(--atfrfo-clr-muted);font-weight:600">' + colLabel + '</th>'
 				+ '<th style="padding:4px 0 4px 8px;text-align:left;font-size:11px'
@@ -157,7 +157,7 @@
 				+ '</div>'
 				+ '<div style="display:flex;gap:8px">'
 				+ '<button class="atfrfo-btn atfrfo-btn--xs atfrfo-btn--secondary"'
-				+   ' id="atfrfo-merge-keep-all-aff">Keep all ATFRFO</button>'
+				+   ' id="atfrfo-merge-keep-all-aff">Keep all AFF</button>'
 				+ '<button class="atfrfo-btn atfrfo-btn--xs atfrfo-btn--secondary"'
 				+   ' id="atfrfo-merge-use-all-el">'
 				+   (isFetch ? 'Use all Elementor' : 'Keep all Elementor')
@@ -174,9 +174,10 @@
 			var mergeHandler;
 
 			ATFRFO.Modal.open({
-				title:   'Merge Conflicts',
-				body:    body,
-				footer:  footer,
+				title:     'Merge Conflicts',
+				className: 'atfrfo-modal--wide',
+				body:      body,
+				footer:    footer,
 				onClose: function () {
 					document.removeEventListener('click', mergeHandler);
 					if (onCancel) { onCancel(); }

@@ -163,7 +163,7 @@
 				// ── Header ──────────────────────────────────────────────────────
 				+ '<div class="atfrfo-prefs-header">'
 				+ '<h1 class="atfrfo-prefs-title">Preferences</h1>'
-				+ '<p class="atfrfo-prefs-subtitle">Customize the ATFRFO interface to suit your workflow.</p>'
+				+ '<p class="atfrfo-prefs-subtitle">Customize the AFF interface to suit your workflow.</p>'
 				+ '</div>'
 
 				// ── 1. Appearance ───────────────────────────────────────────
@@ -526,7 +526,7 @@
 				// ── What is ATFRFO ──────────────────────────────────────────────
 				+ '<section class="atfrfo-info-section">'
 				+ '<h2 class="atfrfo-info-section__title">What is Atomic Framework Forge for Elementor?</h2>'
-				+ '<p>Atomic Framework Forge for Elementor (ATFRFO) is a WordPress developer tool that provides a structured management interface for the CSS custom properties and asset definitions introduced by Elementor&nbsp;v4\'s atomic widget architecture.</p>'
+				+ '<p>Atomic Framework Forge for Elementor (<strong>AFF</strong>) is a WordPress developer tool that provides a structured management interface for the CSS custom properties and asset definitions introduced by Elementor&nbsp;v4\'s atomic widget architecture.</p>'
 				+ '</section>'
 
 				// ── Key Features ─────────────────────────────────────────────
@@ -557,7 +557,7 @@
 				// ── Current Phase ─────────────────────────────────────────────
 				+ '<section class="atfrfo-info-section">'
 				+ '<h2 class="atfrfo-info-section__title">Development Phase</h2>'
-				+ '<p>ATFRFO is in active development. Current capabilities and upcoming phases:</p>'
+				+ '<p>AFF is in active development. Current capabilities and upcoming phases:</p>'
 				+ '<ul class="atfrfo-info-list">'
 				+ '<li><span class="atfrfo-info-phase atfrfo-info-phase--current">v1.x \u2014 Current</span> Full Variables workflow: sync from Elementor, organize into categories, inline edit, versioned backups, commit back to the kit, light/dark mode</li>'
 				+ '<li><span class="atfrfo-info-phase atfrfo-info-phase--next">v2.0</span> Classes management \u2014 developer-defined CSS class names on atomic widgets; Change History log</li>'
@@ -609,7 +609,7 @@
 				+ '<section class="atfrfo-info-section">'
 				+ '<h2 class="atfrfo-info-section__title">Project Hub</h2>'
 				+ '<p>Visit <a href="https://jimrforge.com" target="_blank" rel="noopener noreferrer">jimrforge.com</a> for complete documentation and information on the whole Jim R Forge plugin family.</p>'
-				+ '<p>ATFRFO-specific docs: <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/QUICK-START.md" target="_blank" rel="noopener noreferrer">Quick-Start Guide</a> &middot; <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/USER-MANUAL.md" target="_blank" rel="noopener noreferrer">User’s Manual</a></p>'
+				+ '<p>AFF-specific docs: <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/QUICK-START.md" target="_blank" rel="noopener noreferrer">Quick-Start Guide</a> &middot; <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/USER-MANUAL.md" target="_blank" rel="noopener noreferrer">User’s Manual</a></p>'
 				+ '</section>'
 
 				// ── Support ───────────────────────────────────────────────────
