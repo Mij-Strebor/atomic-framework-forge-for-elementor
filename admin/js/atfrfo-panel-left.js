@@ -231,6 +231,98 @@
 		}
 
 		this._updateSubgroupCounts();
+		this._populateClassesList();
+		},
+
+		/**
+		 * Guarantee a locked 'Uncategorized' entry exists in
+		 * config.classCategories — mirrors _ensureUncategorized() in
+		 * atfrfo-variables.js/atfrfo-colors.js for Colors/Fonts/Numbers.
+		 * Unlike those three, Classes has no other pre-seeded default
+		 * categories (no Classes equivalent of Colors' Branding/Background or
+		 * Numbers' Spacing/Gaps/Grids/Radius) — Uncategorized is the only
+		 * guaranteed category until the user creates more (Phase 3.3).
+		 * Called at the top of _populateClassesList() so it fires on every
+		 * render (file load, sync, refresh) without needing to hook into
+		 * every load path separately.
+		 */
+		_ensureClassesUncategorized: function () {
+			if (!ATFRFO.state.config) { ATFRFO.state.config = {}; }
+			if (!Array.isArray(ATFRFO.state.config.classCategories)) {
+				ATFRFO.state.config.classCategories = [];
+			}
+			var cats     = ATFRFO.state.config.classCategories;
+			var hasUncat = false;
+			for (var i = 0; i < cats.length; i++) {
+				if (cats[i].name === 'Uncategorized') { hasUncat = true; break; }
+			}
+			if (!hasUncat) {
+				var maxOrder = 0;
+				for (var j = 0; j < cats.length; j++) {
+					if ((cats[j].order || 0) > maxOrder) { maxOrder = cats[j].order; }
+				}
+				cats.push({
+					id:     'default-uncategorized-classCategories',
+					name:   'Uncategorized',
+					order:  maxOrder + 1,
+					locked: true,
+				});
+			}
+		},
+
+		/**
+		 * Populate the Classes nav list from config.classCategories, counting
+		 * ATFRFO.state.classes per category. Separate from _populateList()
+		 * because Classes' counting rule differs from Variables' (no
+		 * 'deleted' status to exclude — see atfrfo-classes.js status
+		 * vocabulary note) and Classes has no sub-category nesting to
+		 * account for. Locked categories (Uncategorized) always render last,
+		 * matching docs/AFF-VISION-AND-ROADMAP.md §5.1.
+		 */
+		_populateClassesList: function () {
+			var list = document.getElementById('atfrfo-nav-classes-items');
+			if (!list) { return; }
+
+			this._ensureClassesUncategorized();
+
+			var config  = (ATFRFO.state && ATFRFO.state.config) ? ATFRFO.state.config : {};
+			var classes = (ATFRFO.state && ATFRFO.state.classes) ? ATFRFO.state.classes : [];
+			var cats    = (config.classCategories || []).slice().sort(function (a, b) {
+				if (!!a.locked !== !!b.locked) { return a.locked ? 1 : -1; }
+				return (a.order || 0) - (b.order || 0);
+			});
+
+			list.innerHTML = '';
+
+			cats.forEach(function (cat) {
+				var li  = document.createElement('li');
+				var btn = document.createElement('button');
+
+				btn.className = 'atfrfo-nav-item';
+				btn.setAttribute('type', 'button');
+				btn.setAttribute('data-category', cat.name);
+				btn.setAttribute('data-category-id', cat.id);
+
+				var nameSpan = document.createElement('span');
+				nameSpan.className   = 'atfrfo-nav-item__name';
+				nameSpan.textContent = cat.name;
+				btn.appendChild(nameSpan);
+
+				var count = ATFRFO.Utils.getClassesForCategory(cat.id, cat.name).length;
+				if (count > 0) {
+					var badge = document.createElement('span');
+					badge.className   = 'atfrfo-nav-count';
+					badge.textContent = count;
+					btn.appendChild(badge);
+				}
+
+				btn.addEventListener('click', function () {
+					this.selectItem(btn, 'atfrfo-nav-classes-items', cat.name, cat.id, 'Classes');
+				}.bind(this));
+
+				li.appendChild(btn);
+				list.appendChild(li);
+			}.bind(this));
 		},
 
 		/**
@@ -383,8 +475,10 @@
 		 * @param {string}       listId      The parent list ID (determines subgroup context).
 		 * @param {string}       category    The category name.
 		 * @param {string|null}  categoryId  Phase 2 category UUID (null for v1 string items).
+		 * @param {string}       [group]     Top-level group name. Defaults to 'Variables'
+		 *                                   for backward compatibility with existing callers.
 		 */
-		selectItem: function (btn, listId, category, categoryId) {
+		selectItem: function (btn, listId, category, categoryId, group) {
 			// Remove active class from all items
 			var allItems = this._panel.querySelectorAll('.atfrfo-nav-item');
 			for (var i = 0; i < allItems.length; i++) {
@@ -398,15 +492,16 @@
 
 			// Determine subgroup from listId
 			var subgroupMap = {
-				'atfrfo-nav-colors':  'Colors',
-				'atfrfo-nav-fonts':   'Fonts',
-				'atfrfo-nav-numbers': 'Numbers',
+				'atfrfo-nav-colors':        'Colors',
+				'atfrfo-nav-fonts':         'Fonts',
+				'atfrfo-nav-numbers':       'Numbers',
+				'atfrfo-nav-classes-items': 'Classes',
 			};
 			var subgroup = subgroupMap[listId] || listId;
 
 			// Update global selection state
 			ATFRFO.state.currentSelection = {
-				group:      'Variables',
+				group:      group || 'Variables',
 				subgroup:   subgroup,
 				category:   category,
 				categoryId: categoryId || null,
