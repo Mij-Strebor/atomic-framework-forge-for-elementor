@@ -1,6 +1,6 @@
 # ATFRFO Technical Debt Report
-# Atomic Framework Forge for Elementor — v1.4.0
-# Reviewed: 2026-05-18 · Re-verified against current source: 2026-08-02
+# Atomic Framework Forge for Elementor — v1.4.1 (master) / Classes Phase 3.1 (feature branch)
+# Reviewed: 2026-05-18 · Re-verified against current source: 2026-08-05
 
 > **Scope:** All PHP and JS source files. CSS and SVG assets excluded.
 > Issues are graded **Critical / High / Medium / Low**. Critical = active bug or
@@ -96,6 +96,35 @@ load. L-07 and L-08 doc comments fixed in the same pass.
 existing variables and import fresh from Elementor. Discards ATFRFO edits." The
 sync dialog itself was substantially rewritten as part of the toolbar/top-bar
 restructure (see git log), which appears to have carried this fix along.
+
+---
+
+### C-07 — Every AJAX endpoint fatal-errored, undetected through a WP.org submission — FIXED
+
+**File:** `includes/class-atfrfo-ajax-handler.php`
+
+**Status: FIXED (2026-08-04, v1.4.1).** `register_handlers()` builds callback method
+names as `'ajax_' . $action`. The AFF→ATFRFO prefix rename (v1.4.0) updated the
+action-name strings in the `$actions` array (`aff_save_file` → `atfrfo_save_file`,
+required by WordPress.org's 4-character prefix rule) but never updated the actual
+PHP method definitions, which stayed `ajax_aff_*`. Every `wp_ajax_atfrfo_*` hook
+pointed at a nonexistent method — Save, Load, Sync, all ~29 endpoints, completely
+non-functional. Shipped in v1.4.0 to WordPress.org review undetected, because
+Plugin Check is static analysis and never actually fires the hooks; every smoke
+test performed that day also used reflection (`method_exists()`), which tests a
+method's logic, not whether WordPress's real dispatch table can reach it at all.
+
+Caught by accident days later via a direct `do_action()` dispatch while starting
+unrelated Classes work — the first time that day a *real* hook fire was tested
+instead of a reflection call. Fixed by renaming all 29 `ajax_aff_*` definitions to
+`ajax_atfrfo_*`. v1.4.1 released same day with the fix; v1.4.0 was still sitting
+in WP.org's review queue non-functional at time of fix.
+
+**Prevention:** `/verify-ajax-wiring`, `/verify-js-ajax-actions`, and
+`/verify-nonce-consistency` (all `E:\projects\plugins\.claude\commands\`) now exist
+specifically to catch this bug class going forward, checking the live WordPress
+hook registry rather than static source or reflection. `/verify-ajax-wiring` is now
+a mandatory gate in `/push-to-github` (Step 4.5).
 
 ---
 
@@ -342,7 +371,7 @@ objects. This normalization runs in the AJAX response handler, making it
 invisible and fragile. If the server ever returns pre-normalized data, the
 normalization runs again (harmlessly but wastefully).
 
-**Fix:** Normalize server-side in `ATFRFO_Ajax_Handler::ajax_aff_get_config()` so
+**Fix:** Normalize server-side in `ATFRFO_Ajax_Handler::ajax_atfrfo_get_config()` so
 the client always receives the fully-structured format.
 
 ---
@@ -364,6 +393,34 @@ created — the field is effectively dead.
 **Fix:** Either default `created_at` to `null` in both `*_defaults()` methods
 (so `??` actually triggers), or check falsiness explicitly in
 `set_timestamps()`: `$item['created_at'] = $item['created_at'] ?: $now;`
+
+---
+
+### A-09 — `import_fetched_classes()` can't tell "zero classes" from "fetch failed" — OPEN (Classes Phase 3.1, feature branch only)
+
+**File:** `class-atfrfo-data-store.php` — `import_fetched_classes()`
+
+Found 2026-08-05 during a full code review of the new Classes work. If
+`ATFRFO_Classes_Reader::get_all()` returns an empty class list because the fetch
+genuinely failed (REST timeout, the Elementor Global Classes feature flag
+misreporting, kit lookup failure) rather than because the user actually has zero
+classes, and that empty list gets passed straight to `import_fetched_classes()`,
+every class already tracked in AFF's store gets marked `atfrfo-only` (i.e. "deleted
+in Elementor since last sync") — because nothing in an empty fetched set matches
+anything already stored. This silently corrupts sync state on a transient failure,
+even though nothing actually changed on the Elementor side.
+
+Not yet live — the AJAX endpoint that would call this (`atfrfo_sync_classes`)
+hasn't been built yet (next remaining piece of Classes Phase 3.1). A caller-side
+guard requirement has been documented directly in `import_fetched_classes()`'s
+docblock so it isn't missed when that endpoint gets built.
+
+**Fix:** the `atfrfo_sync_classes` handler must check
+`ATFRFO_Classes_Reader::get_all()['source']` before calling
+`import_fetched_classes()`, and refuse to call it at all when `source ===
+'unavailable'` — surface an error to the user instead ("couldn't reach Elementor's
+Global Classes data, sync aborted, nothing changed") rather than proceeding with a
+list that looks identical to "everything was deleted."
 
 ---
 
@@ -450,6 +507,7 @@ describes a legacy file that can still be read (backward compat).
 | C-04 | **Critical** | FIXED | Bug | `class-atfrfo-settings.php` | PHP default changed 14→16 to match CSS/JS (16 confirmed correct) |
 | C-05 | **Critical** | FIXED | Bug | `atfrfo-colors.js`, `atfrfo-panel-top.js` | `.eff.json` generation replaced with `.atfrfo.json` |
 | C-06 | **Critical** | FIXED | Bug | `atfrfo-panel-right.js` | Missing spaces in sync dialog — fixed, likely as part of dialog rewrite |
+| C-07 | **Critical** | FIXED | Bug | `class-atfrfo-ajax-handler.php` | Every AJAX endpoint broken by the rename (register_handlers built `ajax_atfrfo_*`, methods stayed `ajax_aff_*`) — shipped to WP.org undetected, fixed same day in v1.4.1 |
 | D-01 | **High** | FIXED | Dead code | `_patch_panel_right.js`, `_patch.ps1` | Both dead patch scripts deleted; found via real Plugin Check "illegal files" flag |
 | D-02 | **High** | FIXED | Dead code | `class-atfrfo-data-store.php` | `list_projects()` v1 removed; v2 renamed to `list_projects` |
 | D-03 | **High** | FIXED | Dead code | `atfrfo-panel-right.js` | `_getFilename()` deleted; stale doc comment fixed (L-08) |
@@ -467,6 +525,7 @@ describes a legacy file that can still be read (backward compat).
 | A-06 | **Medium** | FIXED | Architecture | `class-atfrfo-data-store.php` | `list_projects` sort now uses a precomputed sort key, zero extra filesystem calls |
 | A-07 | **Medium** | OPEN | Architecture | `atfrfo-app.js` | Category normalization done client-side, not server-side |
 | A-08 | **Medium** | OPEN | Architecture | `class-atfrfo-data-store.php` | `created_at` defaults to `''`, so `??` in `set_timestamps()` never sets it — dead field on every variable and class |
+| A-09 | **Medium** | OPEN (feature branch) | Architecture | `class-atfrfo-data-store.php` | `import_fetched_classes()` can't distinguish a failed fetch from genuinely zero classes — an empty list marks everything atfrfo-only |
 | L-01 | Low | OPEN | Naming | `atfrfo-panel-right.js` | Wrong `@package` tag — `ElementorFrameworkForge` |
 | L-02 | Low | FIXED | Naming | `class-atfrfo-data-store.php` | `list_projects_v2` name resolved — function renamed |
 | L-03 | Low | FIXED | Naming | `class-atfrfo-data-store.php` | Section renamed "BASELINE ADAPTER METHODS" — no longer misclaims md5() as WP-specific |
@@ -497,4 +556,11 @@ A-08 is a trivial one-line fix (found 2026-08-04) but touches both Variables
 and Classes data — worth its own small commit rather than folding into
 unrelated Classes work.
 
+A-09 must be fixed as part of building the `atfrfo_sync_classes` AJAX handler
+(next piece of Classes Phase 3.1) — not a standalone fix, a requirement on that
+handler's own implementation. Don't ship that endpoint without it.
+
 C-01 and D-04 are intentional stubs — wire up when the V3 import feature ships.
+
+C-07 is fixed and released (v1.4.1) — kept in this report as a permanent record
+of what happened and why it wasn't caught, not as an open item.

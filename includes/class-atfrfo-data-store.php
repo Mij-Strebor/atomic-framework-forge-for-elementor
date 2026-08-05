@@ -722,6 +722,14 @@ class ATFRFO_Data_Store {
 	 * marked 'atfrfo-only' (deleted in Elementor since last sync) rather than
 	 * removed — the user decides whether to delete them from AFF too.
 	 *
+	 * CALLER MUST GUARD AGAINST A FALSE-EMPTY $fetched (see TECH-DEBT.md A-09):
+	 * this method cannot distinguish "Elementor genuinely has zero classes now"
+	 * from "the fetch failed/feature flag is off and returned nothing." Passing
+	 * an empty array here marks every existing class atfrfo-only regardless of
+	 * which case it is. The caller (the not-yet-built atfrfo_sync_classes AJAX
+	 * handler) must check ATFRFO_Classes_Reader::get_all()['source'] first and
+	 * refuse to call this method at all when source === 'unavailable'.
+	 *
 	 * @param array $fetched Normalized stubs from ATFRFO_Classes_Reader::get_all()['classes'].
 	 * @return array{added:int,updated:int,atfrfo_only:int} Summary counts.
 	 */

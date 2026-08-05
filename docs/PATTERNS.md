@@ -175,7 +175,7 @@ Every AJAX handler that writes data must call `$this->verify_request()` as its
 first line. Missing this was a bug found in 0.3.4-beta. The pattern:
 
 ```php
-public function ajax_aff_save_something(): void {
+public function ajax_atfrfo_save_something(): void {
     $this->verify_request();   // ← always first — checks nonce + capability
 
     $name = sanitize_text_field( $_POST['name'] ?? '' );

@@ -111,7 +111,7 @@ atomic-framework-forge-for-elementor/
 ### 1. ATFRFO_CSS_Parser is read-only — write-back lives only in the AJAX handler
 `class-atfrfo-css-parser.php` only reads `post-{id}.css`. It **never writes to, modifies, or regenerates** Elementor's stylesheets.
 
-**The one intentional exception:** `ATFRFO_Ajax_Handler::ajax_aff_commit_to_elementor()` writes variable values back to the Elementor kit CSS. This is the **Phase 5 write-back feature** and is intentionally isolated in the AJAX handler layer only. It must never be merged into `ATFRFO_CSS_Parser` or any parser class. Every call site must carry the comment:
+**The one intentional exception:** `ATFRFO_Ajax_Handler::ajax_atfrfo_commit_to_elementor()` writes variable values back to the Elementor kit CSS. This is the **Phase 5 write-back feature** and is intentionally isolated in the AJAX handler layer only. It must never be merged into `ATFRFO_CSS_Parser` or any parser class. Every call site must carry the comment:
 ```php
 // Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
 ```
