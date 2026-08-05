@@ -17,8 +17,8 @@
 
 | | |
 |---|---|
-| **New to ATFRFO?** | **[Quick Start Guide →](QUICK-START.md)** — from zero to an organized project in about ten minutes |
-| **Looking up a feature?** | **[User Manual →](USER-MANUAL.md)** — complete reference for every panel and workflow |
+| **New to ATFRFO?** | **[Quick Start Guide →](docs/QUICK-START.md)** — from zero to an organized project in about ten minutes |
+| **Looking up a feature?** | **[User Manual →](docs/USER-MANUAL.md)** — complete reference for every panel and workflow |
 
 > Start with the Quick Start Guide — it covers installation through your first saved project and explains every part of the interface.
 
@@ -30,7 +30,7 @@ Atomic Framework Forge for Elementor (ATFRFO) is a WordPress developer tool that
 
 Instead of hunting through Elementor's generated CSS by hand, ATFRFO reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
 
-**Migrating from Elementor V3 to V4?** ATFRFO handles the hardest part of the transition. Import all your V3 Global Colors into ATFRFO with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](USER-MANUAL.md#15-v3--v4-migration-workflow)
+**Migrating from Elementor V3 to V4?** ATFRFO handles the hardest part of the transition. Import all your V3 Global Colors into ATFRFO with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](docs/USER-MANUAL.md#15-v3--v4-migration-workflow)
 
 ---
 
@@ -166,7 +166,7 @@ ln -s /path/to/eff /path/to/wp/wp-content/plugins/atomic-framework-forge-for-ele
 
 ## Quick Start
 
-> ### [Read the Quick Start Guide →](QUICK-START.md)
+> ### [Read the Quick Start Guide →](docs/QUICK-START.md)
 >
 > The Quick Start walks through installation, syncing variables, organizing into categories, saving your project, and using the backup system. Takes about ten minutes.
 

@@ -313,8 +313,8 @@ When bumping the version, update **all locations** in:
 - `readme.txt` (Stable tag, changelog, upgrade notice, beta heading)
 - `CHANGELOG.md` (new entry)
 - `README.md` (badge URLs + beta references + roadmap table)
-- `QUICK-START.md` (header + zip filenames)
-- `USER-MANUAL.md` (header)
+- `docs/QUICK-START.md` (header + zip filenames)
+- `docs/USER-MANUAL.md` (header)
 
 After all edits, search for the old version string — zero matches expected outside changelog/history sections.
 

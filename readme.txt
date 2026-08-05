@@ -17,8 +17,8 @@ Atomic Framework Forge for Elementor (ATFRFO) is a WordPress plugin that provide
 ATFRFO allows developers to organize, edit, and persist the three core asset types introduced by Elementor v4:
 
 * **Variables** — CSS custom properties used by atomic widgets
-* **Classes** — Developer-defined class names applied to atomic widget controls (ATFRFO v3)
-* **Components** — User-assembled widgets built within Elementor v4 (ATFRFO v4)
+* **Classes** — Developer-defined class names applied to atomic widget controls *(in development)*
+* **Components** — User-assembled widgets built within Elementor v4 *(planned)*
 
 **Requires Elementor and Elementor Pro.**
 
