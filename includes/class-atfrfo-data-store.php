@@ -335,6 +335,7 @@ class ATFRFO_Data_Store {
 			'Colors'  => 'categories',
 			'Fonts'   => 'fontCategories',
 			'Numbers' => 'numberCategories',
+			'Classes' => 'classCategories',
 		);
 		return $map[ $subgroup ] ?? 'categories';
 	}
@@ -630,7 +631,7 @@ class ATFRFO_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// CLASSES CRUD (v1 placeholder — Classes support arrives in ATFRFO v3)
+	// CLASSES CRUD (Phase 3.1)
 	// -----------------------------------------------------------------------
 
 	/**
@@ -638,6 +639,152 @@ class ATFRFO_Data_Store {
 	 */
 	public function get_classes(): array {
 		return $this->data['classes'];
+	}
+
+	/**
+	 * Add a new class. Returns the generated AFF UUID (not the Elementor ID).
+	 *
+	 * @param array $class Class data (elementor_id, label, etc.).
+	 * @return string UUID-style ID.
+	 */
+	public function add_class( array $class ): string {
+		$id          = $this->generate_id();
+		$class['id'] = $id;
+		$class       = array_merge( $this->class_defaults(), $class );
+		$class       = $this->set_timestamps( $class );
+
+		$this->data['classes'][] = $class;
+		$this->dirty              = true;
+
+		return $id;
+	}
+
+	/**
+	 * Update an existing class by AFF UUID.
+	 *
+	 * @param string $id   Class UUID.
+	 * @param array  $data Fields to update.
+	 * @return bool True if found and updated.
+	 */
+	public function update_class( string $id, array $data ): bool {
+		$k = $this->find_item_key( $this->data['classes'], 'id', $id );
+		if ( $k === null ) {
+			return false;
+		}
+
+		$data['updated_at'] = gmdate( 'c' );
+		if ( ! isset( $data['status'] ) ) {
+			$data['status'] = 'modified';
+		}
+		$this->data['classes'][ $k ] = array_merge( $this->data['classes'][ $k ], $data );
+		$this->dirty                 = true;
+
+		return true;
+	}
+
+	/**
+	 * Delete a class by AFF UUID.
+	 *
+	 * @param string $id Class UUID.
+	 * @return bool True if found and deleted.
+	 */
+	public function delete_class( string $id ): bool {
+		$k = $this->find_item_key( $this->data['classes'], 'id', $id );
+		if ( $k === null ) {
+			return false;
+		}
+
+		array_splice( $this->data['classes'], $k, 1 );
+		$this->dirty = true;
+
+		return true;
+	}
+
+	/**
+	 * Find a class by its Elementor ID (e.g. 'gc-0e2eff4039bbe56f').
+	 *
+	 * @param string $elementor_id Elementor's opaque class ID.
+	 * @return array|null Class array or null if not found.
+	 */
+	public function find_class_by_elementor_id( string $elementor_id ): ?array {
+		$k = $this->find_item_key( $this->data['classes'], 'elementor_id', $elementor_id );
+		return $k !== null ? $this->data['classes'][ $k ] : null;
+	}
+
+	/**
+	 * Merge a freshly-fetched Elementor class list (from ATFRFO_Classes_Reader)
+	 * into the AFF store. Non-destructive: existing AFF-local metadata
+	 * (category, category_id, notes) is preserved for classes that already
+	 * exist here; only elementor-sourced fields (label, has_styles, status,
+	 * last_synced_at) are updated or set.
+	 *
+	 * Classes present in AFF's store but missing from the fetched list are
+	 * marked 'atfrfo-only' (deleted in Elementor since last sync) rather than
+	 * removed — the user decides whether to delete them from AFF too.
+	 *
+	 * @param array $fetched Normalized stubs from ATFRFO_Classes_Reader::get_all()['classes'].
+	 * @return array{added:int,updated:int,atfrfo_only:int} Summary counts.
+	 */
+	public function import_fetched_classes( array $fetched ): array {
+		$now           = gmdate( 'c' );
+		$seen_elementor_ids = array();
+		$added         = 0;
+		$updated       = 0;
+
+		foreach ( $fetched as $stub ) {
+			$elementor_id         = $stub['elementor_id'] ?? '';
+			if ( '' === $elementor_id ) {
+				continue;
+			}
+			$seen_elementor_ids[] = $elementor_id;
+
+			$existing = $this->find_class_by_elementor_id( $elementor_id );
+			if ( $existing ) {
+				$this->update_class(
+					$existing['id'],
+					array(
+						'label'          => $stub['label'] ?? $existing['label'],
+						'has_styles'     => $stub['has_styles'] ?? $existing['has_styles'],
+						'status'         => 'synced',
+						'last_synced_at' => $now,
+					)
+				);
+				++$updated;
+			} else {
+				$this->add_class(
+					array(
+						'elementor_id'   => $elementor_id,
+						'label'          => $stub['label'] ?? '',
+						'has_styles'     => $stub['has_styles'] ?? false,
+						'source'         => 'elementor-fetched',
+						'status'         => 'synced',
+						'last_synced_at' => $now,
+					)
+				);
+				++$added;
+			}
+		}
+
+		// Anything in AFF's store not present in this fetch was deleted in
+		// Elementor since the last sync.
+		$seen_set    = array_flip( $seen_elementor_ids );
+		$atfrfo_only = 0;
+		foreach ( $this->data['classes'] as &$class ) {
+			$elementor_id = $class['elementor_id'] ?? '';
+			if ( '' !== $elementor_id && ! isset( $seen_set[ $elementor_id ] ) && 'atfrfo-only' !== $class['status'] ) {
+				$class['status']     = 'atfrfo-only';
+				$class['updated_at'] = $now;
+				$this->dirty         = true;
+				++$atfrfo_only;
+			}
+		}
+		unset( $class );
+
+		return array(
+			'added'       => $added,
+			'updated'     => $updated,
+			'atfrfo_only' => $atfrfo_only,
+		);
 	}
 
 	// -----------------------------------------------------------------------
@@ -990,6 +1137,36 @@ class ATFRFO_Data_Store {
 			'modified'            => false,
 			'created_at'          => '',
 			'updated_at'          => '',
+		);
+	}
+
+	/**
+	 * Return the default class data model.
+	 *
+	 * `elementor_id` is internal-only, used for REST calls back to Elementor.
+	 * `label` is the single name field — both the literal CSS class name and
+	 * what's shown to the user as "Name." `notes` is displayed to the user as
+	 * "Comment," matching Variables' terminology. See docs/AFF-VISION-AND-ROADMAP.md §4.3.
+	 *
+	 * @return array
+	 */
+	private function class_defaults(): array {
+		return array(
+			'id'             => '',
+			'elementor_id'   => null,
+			'label'          => '',
+			'type'           => 'global',
+			'source'         => 'elementor-fetched',
+			'status'         => 'synced',
+			'group'          => 'Classes',
+			'category'       => 'Uncategorized',
+			'category_id'    => '',
+			'order'          => 0,
+			'has_styles'     => false,
+			'notes'          => '',
+			'created_at'     => '',
+			'updated_at'     => '',
+			'last_synced_at' => '',
 		);
 	}
 
