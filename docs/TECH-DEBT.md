@@ -347,6 +347,26 @@ the client always receives the fully-structured format.
 
 ---
 
+### A-08 — `created_at` never actually gets set on creation — OPEN
+
+**File:** `class-atfrfo-data-store.php` — `variable_defaults()`, `class_defaults()`, `set_timestamps()`
+
+Found 2026-08-04 while verifying the new Classes CRUD methods, but the same
+pattern already existed for Variables — not new, just newly noticed.
+
+`variable_defaults()` and `class_defaults()` both default `created_at` to an
+empty string `''`. `set_timestamps()` sets it with `$item['created_at'] ??
+$now` — but `??` only falls through on `null`/unset, not on an empty string.
+Since the default is already `''` (not null) by the time `set_timestamps()`
+runs, `created_at` stays `''` forever on every variable and class ever
+created — the field is effectively dead.
+
+**Fix:** Either default `created_at` to `null` in both `*_defaults()` methods
+(so `??` actually triggers), or check falsiness explicitly in
+`set_timestamps()`: `$item['created_at'] = $item['created_at'] ?: $now;`
+
+---
+
 ## 5. Low — Naming & Cosmetic
 
 ### L-01 — Wrong `@package` tag in `atfrfo-panel-right.js` — OPEN
@@ -446,6 +466,7 @@ describes a legacy file that can still be read (backward compat).
 | A-05 | **Medium** | OPEN | Architecture | `class-atfrfo-css-parser.php` | `find_root_blocks` regex fails on nested braces in `:root` blocks |
 | A-06 | **Medium** | FIXED | Architecture | `class-atfrfo-data-store.php` | `list_projects` sort now uses a precomputed sort key, zero extra filesystem calls |
 | A-07 | **Medium** | OPEN | Architecture | `atfrfo-app.js` | Category normalization done client-side, not server-side |
+| A-08 | **Medium** | OPEN | Architecture | `class-atfrfo-data-store.php` | `created_at` defaults to `''`, so `??` in `set_timestamps()` never sets it — dead field on every variable and class |
 | L-01 | Low | OPEN | Naming | `atfrfo-panel-right.js` | Wrong `@package` tag — `ElementorFrameworkForge` |
 | L-02 | Low | FIXED | Naming | `class-atfrfo-data-store.php` | `list_projects_v2` name resolved — function renamed |
 | L-03 | Low | FIXED | Naming | `class-atfrfo-data-store.php` | Section renamed "BASELINE ADAPTER METHODS" — no longer misclaims md5() as WP-specific |
@@ -471,5 +492,9 @@ L-02, L-03, L-07, L-08~~ — all confirmed FIXED. Remaining, in priority order:
 
 Items A-05 and A-07, and DP-04, still require more careful design decisions
 before implementing and should be discussed first.
+
+A-08 is a trivial one-line fix (found 2026-08-04) but touches both Variables
+and Classes data — worth its own small commit rather than folding into
+unrelated Classes work.
 
 C-01 and D-04 are intentional stubs — wire up when the V3 import feature ships.
