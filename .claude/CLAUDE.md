@@ -15,7 +15,7 @@
 
 - **Plugin name:** Atomic Framework Forge for Elementor
 - **Acronym / folder:** `aff` → `E:\projects\plugins\aff`
-- **Version:** v1.4.0
+- **Version:** v1.4.1
 - **GitHub:** https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor
 - **Branding:** Always "Jim R Forge" — never "JimRWeb"
 - **Author URI:** https://jimrforge.com
@@ -31,7 +31,7 @@ ATFRFO is a WordPress admin plugin that provides a management interface for **El
 2. **Classes** — Developer-defined CSS class names on atomic widgets (future)
 3. **Components** — User-assembled widget compositions (future)
 
-**Current phase: v1.4.0.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes are planned for v2.0; Components for v3.0.
+**Current phase: v1.4.1.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes Phase 3.1 (data layer) is in progress on `feature/classes-phase-3.1`. See `docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
 
 ---
 
