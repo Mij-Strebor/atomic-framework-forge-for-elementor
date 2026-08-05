@@ -7,6 +7,14 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.1] — 2026-08-04
+
+### Fixed
+
+- **Critical: every AJAX endpoint was non-functional.** `register_handlers()` builds callback method names as `'ajax_' . $action`. The 1.4.0 AFF→ATFRFO prefix rename correctly updated the action-name strings (`aff_save_file` → `atfrfo_save_file`, required by WordPress.org's 4-character prefix rule) but never updated the corresponding PHP method definitions, which stayed `ajax_aff_*`. Every `wp_ajax_atfrfo_*` hook pointed at a nonexistent method, fatal-erroring on every real request — Save, Load, Sync, and all other admin actions were completely broken. Confirmed via direct `do_action()` dispatch, not just static inspection. All 29 method definitions renamed to `ajax_atfrfo_*` to match. This shipped in 1.4.0 undetected because WordPress.org's Plugin Check is static analysis and never actually fires the hooks.
+
+---
+
 ## [1.4.0] — 2026-08-04
 
 ### Added

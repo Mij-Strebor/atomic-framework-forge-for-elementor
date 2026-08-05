@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.4.0
+Stable tag:        1.4.1
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,6 +73,9 @@ In your WordPress uploads directory under `/uploads/atfrfo/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 1.4.1 =
+* Fixed: Critical — every AJAX endpoint (Save, Load, Sync, and all other admin actions) was non-functional due to a method-naming mismatch introduced during the 1.4.0 prefix rename. All endpoints restored.
 
 = 1.4.0 =
 * Added: "Take a look" notify sign — rising notification pointing new users at the Quick-Start guide, capped at 3 lifetime shows per user.
@@ -187,6 +190,9 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 * Initial release — Variables (Colors, Fonts, Numbers), Sync, Organize, Save, Commit, Dark Mode.
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Critical fix: all admin AJAX actions were broken in 1.4.0. Update immediately.
 
 = 1.0.0 =
 First stable release. Resolves all WordPress Plugin Check errors and warnings. Safe to install fresh.
