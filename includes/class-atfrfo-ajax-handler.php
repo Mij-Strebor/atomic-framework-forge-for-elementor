@@ -42,6 +42,9 @@ class ATFRFO_Ajax_Handler {
 			'atfrfo_rename_project',
 			'atfrfo_copy_project',
 			'atfrfo_delete_project_folder',
+			// Classes Phase 3.1 endpoints
+			'atfrfo_get_classes',
+			'atfrfo_sync_classes',
 			// Phase 2 — Colors endpoints
 			'atfrfo_save_category',
 			'atfrfo_delete_category',
@@ -658,6 +661,62 @@ class ATFRFO_Ajax_Handler {
 		}
 
 		wp_send_json_success( array( 'message' => __( 'Project deleted.', 'atomic-framework-forge-for-elementor' ) ) );
+	}
+
+	// -----------------------------------------------------------------------
+	// CLASSES PHASE 3.1 ENDPOINTS — Elementor Global Classes (read + sync)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Return the Classes list from the AFF store only — no Elementor contact.
+	 *
+	 * POST params: filename
+	 */
+	public function ajax_atfrfo_get_classes(): void {
+		$this->verify_request();
+
+		$filename = $this->get_filename_param();
+		$store    = $this->load_store( $filename );
+		$classes  = $store->get_classes();
+
+		wp_send_json_success(
+			array(
+				'classes' => $classes,
+				'count'   => count( $classes ),
+			)
+		);
+	}
+
+	/**
+	 * Fetch Global Classes from Elementor and merge into the AFF store.
+	 *
+	 * See docs/TECH-DEBT.md A-09: ATFRFO_Classes_Reader::get_all() cannot
+	 * distinguish "Elementor genuinely has zero classes" from "the fetch
+	 * failed" using an empty list alone — that's what the 'source' check
+	 * below is for. Refusing to import on 'unavailable' is the fix; do not
+	 * remove this check to "simplify" the endpoint.
+	 *
+	 * POST params: filename
+	 */
+	public function ajax_atfrfo_sync_classes(): void {
+		$this->with_store(
+			function ( ATFRFO_Data_Store $store ): array {
+				$reader = new ATFRFO_Classes_Reader();
+				$result = $reader->get_all();
+
+				if ( 'unavailable' === $result['source'] ) {
+					throw new \Exception( __( 'Could not reach Elementor Global Classes data. Sync aborted — nothing was changed. Confirm Global Classes is enabled in Elementor → Settings → Features.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				}
+
+				$summary = $store->import_fetched_classes( $result['classes'] );
+
+				return array(
+					'classes' => $store->get_classes(),
+					'summary' => $summary,
+					'source'  => $result['source'],
+				);
+			}
+		);
 	}
 
 	// -----------------------------------------------------------------------
