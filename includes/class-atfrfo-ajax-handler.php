@@ -69,7 +69,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Save file
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_save_file(): void {
+	public function ajax_atfrfo_save_file(): void {
 		$this->verify_request();
 
 		$project_name = $this->post_param( 'project_name' );
@@ -154,7 +154,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Load file
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_load_file(): void {
+	public function ajax_atfrfo_load_file(): void {
 		$this->verify_request();
 
 		$raw = $this->post_param( 'filename' );
@@ -224,7 +224,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Sync from Elementor CSS
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_sync_from_elementor(): void {
+	public function ajax_atfrfo_sync_from_elementor(): void {
 		$this->verify_request();
 
 		$parser = new ATFRFO_CSS_Parser();
@@ -314,7 +314,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Save user theme preference
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_save_user_theme(): void {
+	public function ajax_atfrfo_save_user_theme(): void {
 		$this->verify_request();
 
 		$theme = $this->post_param( 'theme', 'light' );
@@ -337,7 +337,7 @@ class ATFRFO_Ajax_Handler {
 	 * is the single source of truth for the cap (ATFRFO_NOTIFY_MAX_SHOWS), and
 	 * this endpoint has no meaningful failure mode the client needs to react to.
 	 */
-	public function ajax_aff_increment_notify_count(): void {
+	public function ajax_atfrfo_increment_notify_count(): void {
 		$this->verify_request();
 
 		$user_id = get_current_user_id();
@@ -354,7 +354,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Get project config
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_get_config(): void {
+	public function ajax_atfrfo_get_config(): void {
 		$this->verify_request();
 
 		// Saved config takes precedence over defaults file.
@@ -383,7 +383,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Save project config
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_save_config(): void {
+	public function ajax_atfrfo_save_config(): void {
 		$this->verify_request();
 
 		$config_raw = isset( $_POST['config'] ) ? wp_unslash( $_POST['config'] ) : '';
@@ -398,7 +398,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Save plugin settings
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_save_settings(): void {
+	public function ajax_atfrfo_save_settings(): void {
 		$this->verify_request();
 
 		$settings_raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
@@ -413,7 +413,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Get variable usage counts
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_get_usage_counts(): void {
+	public function ajax_atfrfo_get_usage_counts(): void {
 		$this->verify_request();
 
 		$names_raw = isset( $_POST['variable_names'] ) ? wp_unslash( $_POST['variable_names'] ) : '[]';
@@ -443,7 +443,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Get plugin settings
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_get_settings(): void {
+	public function ajax_atfrfo_get_settings(): void {
 		$this->verify_request();
 		wp_send_json_success( array( 'settings' => ATFRFO_Settings::get() ) );
 	}
@@ -452,7 +452,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: List projects
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_list_projects(): void {
+	public function ajax_atfrfo_list_projects(): void {
 		$this->verify_request();
 
 		$dir      = ATFRFO_Data_Store::get_wp_storage_dir();
@@ -465,7 +465,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: List backups for a project
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_list_backups(): void {
+	public function ajax_atfrfo_list_backups(): void {
 		$this->verify_request();
 
 		$slug    = $this->post_param( 'project_slug' );
@@ -480,7 +480,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Delete project (single backup)
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_delete_project(): void {
+	public function ajax_atfrfo_delete_project(): void {
 		$this->verify_request();
 
 		$raw = $this->post_param( 'filename' );
@@ -520,7 +520,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Rename a project (display name + folder slug)
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_rename_project(): void {
+	public function ajax_atfrfo_rename_project(): void {
 		$this->verify_request();
 
 		$old_slug = ATFRFO_Data_Store::sanitize_project_slug( $this->post_param( 'old_slug' ) );
@@ -572,7 +572,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Copy a project to a new project name
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_copy_project(): void {
+	public function ajax_atfrfo_copy_project(): void {
 		$this->verify_request();
 
 		$src_slug = ATFRFO_Data_Store::sanitize_project_slug( $this->post_param( 'source_slug' ) );
@@ -636,7 +636,7 @@ class ATFRFO_Ajax_Handler {
 	// ENDPOINT: Delete an entire project folder (all backups)
 	// -----------------------------------------------------------------------
 
-	public function ajax_aff_delete_project_folder(): void {
+	public function ajax_atfrfo_delete_project_folder(): void {
 		$this->verify_request();
 
 		$slug     = ATFRFO_Data_Store::sanitize_project_slug( $this->post_param( 'project_slug' ) );
@@ -673,7 +673,7 @@ class ATFRFO_Ajax_Handler {
 	 * parent_id (string|null) — UUID of the parent category for sub-categories,
 	 * or null/absent for top-level categories.
 	 */
-	public function ajax_aff_save_category(): void {
+	public function ajax_atfrfo_save_category(): void {
 		$subgroup     = $this->get_subgroup_param();
 		$category_raw = isset( $_POST['category'] ) ? wp_unslash( $_POST['category'] ) : '';
 		$category     = $this->safe_json_decode( $category_raw, __( 'Invalid category data.', 'atomic-framework-forge-for-elementor' ) );
@@ -740,7 +740,7 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'), category_id
 	 */
-	public function ajax_aff_delete_category(): void {
+	public function ajax_atfrfo_delete_category(): void {
 		$subgroup    = $this->get_subgroup_param();
 		$category_id = $this->post_param( 'category_id' );
 		$delete_vars = $this->post_param( 'delete_vars' ) !== '0';
@@ -769,7 +769,7 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'), category_id
 	 */
-	public function ajax_aff_clear_category(): void {
+	public function ajax_atfrfo_clear_category(): void {
 		$subgroup    = $this->get_subgroup_param();
 		$category_id = $this->post_param( 'category_id' );
 
@@ -797,7 +797,7 @@ class ATFRFO_Ajax_Handler {
 	 * POST params: filename, subgroup (optional, defaults to 'Colors'),
 	 *              ordered_ids (JSON array of category UUIDs in desired order)
 	 */
-	public function ajax_aff_reorder_categories(): void {
+	public function ajax_atfrfo_reorder_categories(): void {
 		$subgroup    = $this->get_subgroup_param();
 		$ids_raw     = isset( $_POST['ordered_ids'] ) ? wp_unslash( $_POST['ordered_ids'] ) : '[]';
 		$ordered_ids = $this->safe_json_decode( $ids_raw, __( 'Invalid ordered IDs format.', 'atomic-framework-forge-for-elementor' ) );
@@ -828,7 +828,7 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * POST params: filename, variable (JSON — full variable object or partial with `id`)
 	 */
-	public function ajax_aff_save_color(): void {
+	public function ajax_atfrfo_save_color(): void {
 		$variable_raw = isset( $_POST['variable'] ) ? wp_unslash( $_POST['variable'] ) : '';
 		$variable     = $this->safe_json_decode( $variable_raw, __( 'Invalid variable data.', 'atomic-framework-forge-for-elementor' ) );
 
@@ -935,7 +935,7 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * POST params: filename, variable_id, delete_children (optional, '1' to delete children)
 	 */
-	public function ajax_aff_delete_color(): void {
+	public function ajax_atfrfo_delete_color(): void {
 		$variable_id     = $this->post_param( 'variable_id' );
 		$delete_children = isset( $_POST['delete_children'] )
 			&& $_POST['delete_children'] !== '0'
@@ -969,7 +969,7 @@ class ATFRFO_Ajax_Handler {
 	 *   Shades:         --name-plus-{step*10} (e.g., --primary-plus-10; '+' encoded as '-plus-')
 	 *   Transparencies: --name{step*10}       (e.g., --primary10, --primary20; 9 fixed steps)
 	 */
-	public function ajax_aff_generate_children(): void {
+	public function ajax_atfrfo_generate_children(): void {
 		$parent_id     = $this->post_param( 'parent_id' );
 		$tint_steps    = max( 0, min( 10, isset( $_POST['tints'] ) ? (int) $_POST['tints'] : 0 ) );
 		$shade_steps   = max( 0, min( 10, isset( $_POST['shades'] ) ? (int) $_POST['shades'] : 0 ) );
@@ -1118,7 +1118,7 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * POST params: filename, variables (JSON array of {name, value})
 	 */
-	public function ajax_aff_save_baseline(): void {
+	public function ajax_atfrfo_save_baseline(): void {
 		$this->verify_request();
 
 		$filename      = $this->get_filename_param();
@@ -1152,7 +1152,7 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * POST params: filename
 	 */
-	public function ajax_aff_get_baseline(): void {
+	public function ajax_atfrfo_get_baseline(): void {
 		$this->verify_request();
 
 		$filename  = $this->get_filename_param();
@@ -1187,7 +1187,7 @@ class ATFRFO_Ajax_Handler {
 	 *   elementor_snapshot - JSON array of label names from last EV4 import
 	 */
 	// Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
-	public function ajax_aff_commit_to_elementor(): void {
+	public function ajax_atfrfo_commit_to_elementor(): void {
 		$this->verify_request();
 
 		$filename      = $this->get_filename_param();
@@ -2047,7 +2047,7 @@ class ATFRFO_Ajax_Handler {
 	 * and `custom_colors` as arrays of { _id, title, color } objects.
 	 * The CSS variable name is derived as `--e-global-color-{_id}`.
 	 */
-	public function ajax_aff_sync_v3_global_colors(): void {
+	public function ajax_atfrfo_sync_v3_global_colors(): void {
 		$this->verify_request();
 
 		$kit_id = ATFRFO_CSS_Parser::get_active_kit_id();
@@ -2113,7 +2113,7 @@ class ATFRFO_Ajax_Handler {
 	/**
 	 * Return a duplicate report for the current project file. No data is changed.
 	 */
-	public function ajax_aff_get_diagnostics(): void {
+	public function ajax_atfrfo_get_diagnostics(): void {
 		$this->verify_request();
 
 		$filename = $this->get_filename_param();
@@ -2135,7 +2135,7 @@ class ATFRFO_Ajax_Handler {
 	 * Remove duplicate variables and categories from the current project file,
 	 * save the result, and return a summary of what was removed.
 	 */
-	public function ajax_aff_deduplicate(): void {
+	public function ajax_atfrfo_deduplicate(): void {
 		$this->verify_request();
 
 		$filename = $this->get_filename_param();
