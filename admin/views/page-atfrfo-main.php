@@ -269,7 +269,7 @@ function atfrfo_icon( string $name ): string {
 					<button class="atfrfo-nav-group__header"
 					        aria-expanded="false"
 					        aria-controls="atfrfo-nav-classes"
-					        data-atfrfo-tooltip="<?php esc_attr_e( 'Classes — CSS class management (coming in ATFRFO v3)', 'atomic-framework-forge-for-elementor' ); ?>">
+					        data-atfrfo-tooltip="<?php esc_attr_e( 'Classes — Elementor V4 Global Classes', 'atomic-framework-forge-for-elementor' ); ?>">
 						<span class="atfrfo-nav-group__icon" aria-hidden="true">
 							<?php echo atfrfo_icon( 'classes' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						</span>
@@ -279,7 +279,9 @@ function atfrfo_icon( string $name ): string {
 						</span>
 					</button>
 					<div class="atfrfo-nav-group__children" id="atfrfo-nav-classes" hidden>
-						<p class="atfrfo-nav-coming-soon"><?php esc_html_e( 'Classes support coming in ATFRFO v3.', 'atomic-framework-forge-for-elementor' ); ?></p>
+						<ul class="atfrfo-nav-items" id="atfrfo-nav-classes-items" role="list">
+							<!-- Dynamically populated from config.classCategories -->
+						</ul>
 					</div>
 				</div>
 

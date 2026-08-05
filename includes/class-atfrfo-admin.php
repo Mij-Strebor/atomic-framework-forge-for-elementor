@@ -104,6 +104,14 @@ class ATFRFO_Admin {
 			$this->asset_version( 'admin/css/atfrfo-variables.css' )
 		);
 
+		// Classes CSS: Phase 3.1/3.2 — Elementor V4 Global Classes list view.
+		wp_enqueue_style(
+			'atfrfo-classes',
+			ATFRFO_PLUGIN_URL . 'admin/css/atfrfo-classes.css',
+			array( 'atfrfo-variables' ),
+			$this->asset_version( 'admin/css/atfrfo-classes.css' )
+		);
+
 		// Preferences CSS: accessibility overrides and preferences panel layout.
 		wp_enqueue_style(
 			'atfrfo-preferences',
@@ -158,6 +166,7 @@ class ATFRFO_Admin {
 			'atfrfo-edit-space'  => 'admin/js/atfrfo-edit-space.js',
 			'atfrfo-colors'      => 'admin/js/atfrfo-colors.js',     // Phase 2 — must load before atfrfo-app.
 			'atfrfo-variables'   => 'admin/js/atfrfo-variables.js',  // Phase 3 — must load before atfrfo-app.
+			'atfrfo-classes'     => 'admin/js/atfrfo-classes.js',    // Phase 3.1/3.2 — must load before atfrfo-app.
 			'atfrfo-app'         => 'admin/js/atfrfo-app.js',
 			'atfrfo-print'       => 'admin/js/atfrfo-print.js',    // Print / PDF — must load after atfrfo-app.
 			'atfrfo-notify'      => 'admin/js/atfrfo-notify.js',   // Must load after atfrfo-app (uses ATFRFO.App.ajax).

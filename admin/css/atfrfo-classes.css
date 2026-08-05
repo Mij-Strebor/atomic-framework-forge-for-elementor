@@ -1,0 +1,102 @@
+/**
+ * ATFRFO Classes CSS — Elementor V4 Global Classes (Phase 3.2: list view)
+ *
+ * Reuses .atfrfo-color-row (grid/hover), .atfrfo-drag-handle, .atfrfo-status-dot,
+ * .atfrfo-icon-btn, and the existing --atfrfo-status-* custom properties from
+ * atfrfo-colors.css / atfrfo-theme.css. Only overrides what genuinely differs:
+ * the column layout (Classes has 5 columns, not Colors' 9) and a handful of
+ * Classes-specific elements (name, category badge, styles flag, empty state).
+ *
+ * @package AtomicFrameworkForge
+ */
+
+.atfrfo-class-row {
+	grid-template-columns: 24px 8px 1fr 160px 100px;
+	column-gap: 10px;
+}
+
+.atfrfo-class-name {
+	font-family: var(--atfrfo-font-mono, monospace);
+	font-size:   var(--fs-sm, 0.875rem);
+	overflow:    hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.atfrfo-class-category-badge {
+	display:       inline-flex;
+	align-items:   center;
+	padding:       2px var(--sp-2);
+	border-radius: var(--radius-sm, 4px);
+	background:    var(--atfrfo-clr-bg-subtle, var(--atfrfo-clr-bg-hover));
+	color:         var(--atfrfo-clr-muted);
+	font-size:     var(--fs-xs, 0.75rem);
+	white-space:   nowrap;
+	overflow:      hidden;
+	text-overflow: ellipsis;
+}
+
+.atfrfo-class-styles-flag {
+	font-size: var(--fs-xs, 0.75rem);
+	color:     var(--atfrfo-clr-muted);
+	text-align: right;
+	white-space: nowrap;
+}
+
+.atfrfo-class-styles-flag[data-has-styles="true"] {
+	color: var(--atfrfo-clr-text);
+}
+
+/* ==========================================================================
+   VIEW HEADER
+   ========================================================================== */
+
+.atfrfo-classes-view {
+	padding: var(--sp-4) 0;
+}
+
+.atfrfo-classes-header {
+	display:         flex;
+	align-items:     center;
+	justify-content: space-between;
+	margin-bottom:   var(--sp-4);
+}
+
+.atfrfo-classes-title {
+	margin: 0;
+}
+
+.atfrfo-classes-list {
+	display: flex;
+	flex-direction: column;
+}
+
+/* ==========================================================================
+   EMPTY STATE
+   ========================================================================== */
+
+.atfrfo-classes-empty {
+	text-align: center;
+	padding:    var(--sp-9) var(--sp-4);
+	color:      var(--atfrfo-clr-muted);
+}
+
+.atfrfo-classes-empty p {
+	margin: 0 0 var(--sp-2);
+}
+
+/* ==========================================================================
+   RESPONSIVE — narrow left panel / small viewport
+   ========================================================================== */
+
+@media (max-width: 900px) {
+	.atfrfo-class-row {
+		grid-template-columns: 24px 8px 1fr 0 80px;
+		column-gap: 6px;
+	}
+
+	.atfrfo-class-category-badge {
+		visibility: hidden;
+		overflow:   hidden;
+	}
+}

@@ -237,6 +237,39 @@
 		},
 
 		/**
+		 * Find a class by its AFF UUID.
+		 *
+		 * @param {string} id Class UUID.
+		 * @returns {Object|null}
+		 */
+		findClassById: function (id) {
+			var classes = ATFRFO.state.classes || [];
+			for (var i = 0; i < classes.length; i++) {
+				if (classes[i].id === id) { return classes[i]; }
+			}
+			return null;
+		},
+
+		/**
+		 * Return all classes belonging to a given Classes category.
+		 *
+		 * Mirrors getVarsForCategoryId() but for ATFRFO.state.classes — Classes
+		 * has no 'deleted' status of its own (see class_defaults()/
+		 * atfrfo-classes.js status vocabulary note), so no status filter here.
+		 *
+		 * @param {string|null} catId   Category UUID, or null for name-only match.
+		 * @param {string}      catName Category name (matches 'Uncategorized' too).
+		 * @returns {Array}
+		 */
+		getClassesForCategory: function (catId, catName) {
+			return (ATFRFO.state.classes || []).filter(function (c) {
+				if (catId && c.category_id === catId) { return true; }
+				if (catName && !c.category_id && c.category === catName) { return true; }
+				return false;
+			});
+		},
+
+		/**
 		 * Show a positioned error tooltip below a form field.
 		 * Auto-dismisses after 3.5 s. Clears any existing tip first.
 		 *
@@ -2105,6 +2138,11 @@
 		if (ATFRFO.Variables) {
 			ATFRFO.Variables.initSet(FONTS_CFG);
 			ATFRFO.Variables.initSet(NUMBERS_CFG);
+		}
+
+		// 4d. Classes — intercepts EditSpace for the Classes group (Phase 3.2).
+		if (ATFRFO.Classes) {
+			ATFRFO.Classes.init();
 		}
 
 		// 5. Top bar (buttons + tooltips — needs Modal to be ready)
