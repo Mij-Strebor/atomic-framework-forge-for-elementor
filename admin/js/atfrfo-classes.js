@@ -2,8 +2,13 @@
  * ATFRFO Classes — Elementor V4 Global Classes (Phase 3.2: read-only list view)
  *
  * Intercepts ATFRFO.EditSpace.loadCategory() for selection.group === 'Classes'
- * and renders a read-only list view per category, plus a Sync Classes action
- * that calls the atfrfo_sync_classes AJAX endpoint.
+ * and renders a read-only list view per category.
+ *
+ * No standalone "Sync Classes" control — per Jim's direction (2026-08-06),
+ * Classes sync is not a separate action. It fires alongside Variables sync
+ * from the single top-bar "Sync with Elementor" control (V4 + Import), via
+ * ATFRFO.Classes.syncFromElementor(), called from atfrfo-panel-right.js.
+ * There is no V3 Classes concept, so this never fires for a V3 sync.
  *
  * Deliberately simpler than ATFRFO.Variables (atfrfo-variables.js): no expand
  * panel, no color picker, no inline value editing, no drag-reorder, no detail
@@ -80,9 +85,6 @@
 			var html = '<div class="atfrfo-classes-view">'
 				+ '<div class="atfrfo-classes-header">'
 				+ '<h2 class="atfrfo-classes-title">' + ATFRFO.Utils.escHtml(selection.category || 'Classes') + '</h2>'
-				+ '<button type="button" class="atfrfo-btn" id="atfrfo-btn-sync-classes">'
-				+ ATFRFO.Utils.escHtml('Sync Classes')
-				+ '</button>'
 				+ '</div>';
 
 			if (classes.length === 0) {
@@ -97,19 +99,20 @@
 
 			html += '</div>';
 			container.innerHTML = html;
-
-			this._bindSyncButton();
 		},
 
 		/**
 		 * Empty-state markup shown when a category has no synced classes yet.
+		 * No sync button here — Classes syncs alongside Variables from the
+		 * top-bar "Sync with Elementor" control (V4 + Import), not its own
+		 * action. Points the user there instead.
 		 *
 		 * @returns {string}
 		 */
 		_renderEmptyState: function () {
 			return '<div class="atfrfo-classes-empty">'
 				+ '<p>' + ATFRFO.Utils.escHtml('No Global Classes found in Elementor.') + '</p>'
-				+ '<p>' + ATFRFO.Utils.escHtml('Create classes in the Elementor Class Manager, then sync here.') + '</p>'
+				+ '<p>' + ATFRFO.Utils.escHtml('Use Sync (top bar) to pull classes from Elementor.') + '</p>'
 				+ '</div>';
 		},
 
@@ -184,44 +187,46 @@
 		// -------------------------------------------------------------------
 
 		/**
-		 * Bind the "Sync Classes" button rendered in the current view.
+		 * Sync Classes from Elementor. Called from atfrfo-panel-right.js
+		 * alongside Variables sync when the top-bar "Sync with Elementor"
+		 * modal is submitted with V4 + Import selected — not from any
+		 * Classes-specific UI control (there isn't one; see file header).
+		 *
+		 * @param {Object}  [options]
+		 * @param {boolean} [options.silent] Skip the result modal — used when
+		 *   the caller is presenting its own combined summary instead, or for
+		 *   a future silent/auto-sync path. Errors still surface even when
+		 *   silent — a failed sync (source: 'unavailable', see TECH-DEBT.md
+		 *   A-09) must never be swallowed entirely.
+		 * @returns {Promise<Object>} Resolves with {success, summary?, message?}
+		 *   so the caller can fold the result into a combined summary.
 		 */
-		_bindSyncButton: function () {
-			var btn = document.getElementById('atfrfo-btn-sync-classes');
-			if (!btn) { return; }
-			btn.addEventListener('click', function () {
-				ATFRFO.Classes._syncClasses();
-			});
-		},
+		syncFromElementor: function (options) {
+			var silent = !!(options && options.silent);
 
-		/**
-		 * Call atfrfo_sync_classes, apply the result to state, and re-render
-		 * the current view. Shows an info modal on both success and failure
-		 * — a failed sync (source: 'unavailable', see TECH-DEBT.md A-09) must
-		 * be visible to the user, not silently swallowed.
-		 */
-		_syncClasses: function () {
-			if (!ATFRFO.state.currentFile) { return; }
+			if (!ATFRFO.state.currentFile) {
+				return Promise.resolve( { success: false, message: 'No project open.' } );
+			}
 
-			var btn = document.getElementById('atfrfo-btn-sync-classes');
-			if (btn) { btn.setAttribute('disabled', 'disabled'); }
-
-			ATFRFO.App.ajax('atfrfo_sync_classes', { filename: ATFRFO.state.currentFile })
+			return ATFRFO.App.ajax('atfrfo_sync_classes', { filename: ATFRFO.state.currentFile })
 				.then(function (res) {
 					if (!res.success) {
 						var msg = (res.data && res.data.message) || 'Sync failed.';
-						ATFRFO.Modal.info('Sync failed', '<p>' + ATFRFO.Utils.escHtml(msg) + '</p>');
-						return;
+						ATFRFO.Modal.info('Classes sync failed', '<p>' + ATFRFO.Utils.escHtml(msg) + '</p>');
+						return { success: false, message: msg };
 					}
 
 					ATFRFO.state.classes = res.data.classes || [];
 					var s = res.data.summary || {};
-					var parts = [];
-					if (s.added)       { parts.push(s.added + ' added'); }
-					if (s.updated)     { parts.push(s.updated + ' updated'); }
-					if (s.atfrfo_only) { parts.push(s.atfrfo_only + ' no longer in Elementor'); }
-					var summaryText = parts.length ? parts.join(', ') + '.' : 'No changes.';
-					ATFRFO.Modal.info('Classes synced', '<p>' + ATFRFO.Utils.escHtml(summaryText) + '</p>');
+
+					if (!silent) {
+						var parts = [];
+						if (s.added)       { parts.push(s.added + ' added'); }
+						if (s.updated)     { parts.push(s.updated + ' updated'); }
+						if (s.atfrfo_only) { parts.push(s.atfrfo_only + ' no longer in Elementor'); }
+						var summaryText = parts.length ? parts.join(', ') + '.' : 'No changes.';
+						ATFRFO.Modal.info('Classes synced', '<p>' + ATFRFO.Utils.escHtml(summaryText) + '</p>');
+					}
 
 					if (ATFRFO.state.currentSelection && ATFRFO.state.currentSelection.group === 'Classes') {
 						ATFRFO.Classes.loadClasses(ATFRFO.state.currentSelection);
@@ -229,12 +234,14 @@
 					if (ATFRFO.PanelLeft) {
 						ATFRFO.PanelLeft.refresh();
 					}
+
+					return { success: true, summary: s };
 				})
 				.catch(function () {
-					ATFRFO.Modal.info('Sync failed', '<p>' + ATFRFO.Utils.escHtml('Could not reach the server.') + '</p>');
-				})
-				.then(function () {
-					if (btn) { btn.removeAttribute('disabled'); }
+					if (!silent) {
+						ATFRFO.Modal.info('Classes sync failed', '<p>' + ATFRFO.Utils.escHtml('Could not reach the server.') + '</p>');
+					}
+					return { success: false, message: 'Network error.' };
 				});
 		},
 	};

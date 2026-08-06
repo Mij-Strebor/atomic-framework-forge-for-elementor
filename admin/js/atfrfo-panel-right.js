@@ -1073,7 +1073,7 @@
     },
 
     // ------------------------------------------------------------------
-    // ELEMENTOR SYNC — pull variables from Elementor
+    // ELEMENTOR SYNC — pull variables and classes from Elementor
     // ------------------------------------------------------------------
 
     // ------------------------------------------------------------------
@@ -1092,20 +1092,40 @@
       var warnings = [
         "Beta — staging sites only. Sync reads from and writes to your Elementor kit data directly. A failed write could affect your V3 or V4 variable data. Always have a current backup before proceeding.",
         "Warning: Sync operations modify live kit data. Run this on a local or staging site only — never on production. Verify your UpdraftPlus backup before clicking Synchronize.",
-        "Caution: This feature is in beta. Importing replaces or extends your ATFRFO variable set. Exporting writes directly to Elementor’s stored kit. One bad sync can break your site’s design tokens.",
+        "Caution: This feature is in beta. Importing replaces or extends your AFF variables and classes. Exporting writes directly to Elementor’s stored kit. One bad sync can break your site’s design tokens.",
         "Beta reminder: Sync is a two-way bridge to Elementor’s internal data. If something goes wrong, your backup is the only recovery path. Confirm you have one before continuing.",
-        "Heads up: Sync is in beta and edge cases exist. Color format mismatches, missing kit saves, or version drift between Elementor and ATFRFO can cause unexpected results. Test on staging first.",
+        "Heads up: Sync is in beta and edge cases exist. Color format mismatches, missing kit saves, or version drift between Elementor and AFF can cause unexpected results. Test on staging first.",
       ];
       var warningText = warnings[Math.floor(Math.random() * warnings.length)];
 
       function getBody() {
         var ver  = document.querySelector('input[name="atfrfo-sync-ver"]:checked');
         var dir  = document.querySelector('input[name="atfrfo-sync-dir"]:checked');
-        var verV = ver ? ver.value : "v3";
+        var verV = ver ? ver.value : "v4";
         var dirV = dir ? dir.value : "import";
 
         var modeSection = "";
-        if (dirV === "import") {
+        if (dirV === "import" && verV === "v4") {
+          // V4 import also syncs Classes alongside Variables (no separate
+          // Classes control — see atfrfo-classes.js header comment). Classes
+          // has no "clear and replace" mode of its own; that option only
+          // affects Variables, called out explicitly below so it isn't
+          // assumed to also wipe Classes.
+          modeSection =
+            '<div class="atfrfo-sync-section">' +
+            '<div class="atfrfo-sync-section__label">Import mode</div>' +
+            '<label class="atfrfo-sync-radio">' +
+            '<input type="radio" name="atfrfo-sync-mode" value="name" checked />' +
+            "<span><strong>Sync by name</strong>" +
+            '<span class="atfrfo-sync-hint">Add new variables and classes; keep existing AFF values unchanged. Safe for incremental updates.</span></span>' +
+            "</label>" +
+            '<label class="atfrfo-sync-radio">' +
+            '<input type="radio" name="atfrfo-sync-mode" value="clear" />' +
+            "<span><strong>Clear and replace</strong>" +
+            '<span class="atfrfo-sync-hint">Remove all existing variables and import fresh from Elementor. Discards AFF edits. Classes are not affected by this option — classes always sync non-destructively.</span></span>' +
+            "</label>" +
+            "</div>";
+        } else if (dirV === "import" && verV === "v3") {
           modeSection =
             '<div class="atfrfo-sync-section">' +
             '<div class="atfrfo-sync-section__label">Import mode</div>' +
@@ -1117,7 +1137,7 @@
             '<label class="atfrfo-sync-radio">' +
             '<input type="radio" name="atfrfo-sync-mode" value="clear" />' +
             "<span><strong>Clear and replace</strong>" +
-            '<span class="atfrfo-sync-hint">Remove all existing variables and import fresh from Elementor. Discards ATFRFO edits.</span></span>' +
+            '<span class="atfrfo-sync-hint">Remove all existing variables and import fresh from Elementor. Discards AFF edits.</span></span>' +
             "</label>" +
             "</div>";
         } else if (verV === "v3" && dirV === "export") {
@@ -1249,6 +1269,14 @@
             if (clearMode) { ATFRFO.state.variables = []; }
             if (ATFRFO.PanelTop && ATFRFO.PanelTop._syncFromElementor) {
               ATFRFO.PanelTop._syncFromElementor({ clearMode: clearMode });
+            }
+            // Classes syncs alongside Variables here, not via any Classes-
+            // specific control — no V3 Classes concept, so this only ever
+            // fires for V4 + Import. clearMode does not apply to Classes
+            // (see the mode-section hint above); it always syncs
+            // non-destructively regardless of the Variables mode chosen.
+            if (ATFRFO.Classes && ATFRFO.Classes.syncFromElementor) {
+              ATFRFO.Classes.syncFromElementor();
             }
 
           } else if (verV === "v4" && dirV === "export") {
