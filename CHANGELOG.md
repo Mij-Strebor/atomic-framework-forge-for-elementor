@@ -29,6 +29,7 @@ phased roadmap.
 - **User-facing text incorrectly showed "ATFRFO"** (the internal code prefix) instead of "AFF" (the public brand name) in several places: the Merge Conflicts dialog (button labels, column header, body text), the WordPress admin sidebar menu label, the Help/About panel, the sync dialog hint text, and the print/PDF document title. The Help panel's plugin-name explainer is now the canonical place the acronym gets spelled out, bolded, so it stays familiar without repeating the explainer everywhere.
 - **Merge Conflicts dialog was too narrow** — the "Use Elementor" column required horizontal scrolling. Widened using the existing `atfrfo-modal--wide` variant already used elsewhere, rather than widening the shared modal component globally.
 - **Removed a false claim from the pre-write safety dialog** — "ATFRFO runs 350+ automated tests" was shown to users immediately before a destructive Elementor write, but no automated test suite exists anywhere in the codebase.
+- **readme.txt and README.md also still said "ATFRFO"** in the same places the above fix addressed for the plugin's own UI — the WordPress.org listing text and the GitHub repo README are equally user-facing. Also corrected a stale claim in README.md that write-to-Elementor is "the only" AFF operation on Elementor data — the actual behavior (already accurate in readme.txt) is a two-tier write: post meta primary, a direct CSS-file patch as a secondary best-effort step.
 
 ---
 
