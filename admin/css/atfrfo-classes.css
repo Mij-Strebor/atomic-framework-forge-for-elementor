@@ -1,45 +1,56 @@
 /**
- * ATFRFO Classes CSS — Elementor V4 Global Classes (Phase 3.2: list view)
+ * ATFRFO Classes CSS — Elementor V4 Global Classes (Phase 3.3: category-block view)
  *
- * Reuses .atfrfo-color-row (grid/hover), .atfrfo-drag-handle, .atfrfo-status-dot,
- * .atfrfo-icon-btn, and the existing --atfrfo-status-* custom properties from
- * atfrfo-colors.css / atfrfo-theme.css. Only overrides what genuinely differs:
- * the column layout (Classes has 5 columns, not Colors' 9) and a handful of
- * Classes-specific elements (name, category badge, styles flag, empty state).
+ * Classes render inside the same .atfrfo-category-block / .atfrfo-category-header
+ * / .atfrfo-color-list-header shell used by Colors/Fonts/Numbers (see
+ * atfrfo-colors.css / atfrfo-variables.css) — this file overrides what
+ * genuinely differs: the row's column layout (Classes has 6 columns — drag,
+ * status, name, has-styles flag, comment, expand — vs. Colors' 9 or Numbers'
+ * 8) and a handful of Classes-specific row elements.
+ *
+ * All grid-template-columns rules here are scoped under .atfrfo-classes-view
+ * to guarantee they win over the shared .atfrfo-color-row base rule in
+ * atfrfo-colors.css — both are single-class selectors of equal specificity,
+ * and relying on stylesheet load order alone to break that tie is fragile
+ * (Numbers/Fonts hit the same problem; see the .atfrfo-numbers-view-scoped
+ * overrides in atfrfo-variables.css for the established pattern).
  *
  * @package AtomicFrameworkForge
  */
 
-.atfrfo-class-row {
-	grid-template-columns: 24px 8px 1fr 160px 100px;
+.atfrfo-classes-view .atfrfo-color-list-header,
+.atfrfo-classes-view .atfrfo-color-row {
+	grid-template-columns: 24px 8px 240px 100px 1fr 28px;
 	column-gap: 10px;
 }
 
-.atfrfo-class-name {
-	font-family: var(--atfrfo-font-mono, monospace);
-	font-size:   var(--fs-sm, 0.875rem);
-	overflow:    hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+/* Name — matches .atfrfo-var-name-input (Numbers/Fonts) exactly: same
+   font-size, padding, background, monospace family. Editable — click to
+   rename. AFF-local only; does not rename the class inside Elementor. */
+.atfrfo-class-name-input {
+	width:         100%;
+	padding:       2px var(--sp-2);
+	background:    var(--atfrfo-bg-card);
+	border:        none;
+	font-size:     var(--fs-xs);
+	color:         var(--atfrfo-clr-secondary);
+	font-family:   monospace, monospace;
+	min-width:     0;
 }
 
-.atfrfo-class-category-badge {
-	display:       inline-flex;
-	align-items:   center;
-	padding:       2px var(--sp-2);
-	border-radius: var(--radius-sm, 4px);
-	background:    var(--atfrfo-clr-bg-subtle, var(--atfrfo-clr-bg-hover));
-	color:         var(--atfrfo-clr-muted);
-	font-size:     var(--fs-xs, 0.75rem);
-	white-space:   nowrap;
-	overflow:      hidden;
-	text-overflow: ellipsis;
+.atfrfo-class-name-input:not([readonly]) {
+	cursor:      text;
+	user-select: auto;
+}
+
+.atfrfo-class-name-input:focus {
+	outline: none;
 }
 
 .atfrfo-class-styles-flag {
-	font-size: var(--fs-xs, 0.75rem);
-	color:     var(--atfrfo-clr-muted);
-	text-align: right;
+	font-size:   var(--fs-xs, 0.75rem);
+	color:       var(--atfrfo-clr-muted);
+	text-align:  right;
 	white-space: nowrap;
 }
 
@@ -47,42 +58,146 @@
 	color: var(--atfrfo-clr-text);
 }
 
+/* Comment — matches .atfrfo-var-notes-input (Numbers/Fonts) exactly. */
+.atfrfo-class-notes-input {
+	width:         100%;
+	padding:       2px var(--sp-2);
+	background:    var(--atfrfo-bg-card);
+	border:        none;
+	font-size:     var(--fs-xs);
+	color:         var(--atfrfo-clr-secondary);
+	font-family:   monospace, monospace;
+	min-width:     0;
+}
+
+.atfrfo-class-notes-input:not([readonly]) {
+	cursor:      text;
+	user-select: auto;
+}
+
+.atfrfo-class-notes-input:focus {
+	outline: none;
+}
+
 /* ==========================================================================
-   VIEW HEADER
+   CLASS DETAIL CARD (read-only modal — see ATFRFO.Classes._openClassCard)
+   ========================================================================== */
+
+.atfrfo-class-card-meta {
+	display:        grid;
+	grid-template-columns: 1fr 1fr;
+	gap:            var(--sp-2) var(--sp-4);
+	padding-bottom: var(--sp-3);
+	margin-bottom:  var(--sp-3);
+	border-bottom:  1px solid var(--atfrfo-clr-border, #d6ccc2);
+}
+
+.atfrfo-class-card-label {
+	display:     block;
+	font-size:   var(--fs-xs, 0.75rem);
+	color:       var(--atfrfo-clr-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.atfrfo-class-card-value {
+	display:       block;
+	font-size:     var(--fs-sm, 0.875rem);
+	font-family:   monospace, monospace;
+	word-break:    break-word;
+}
+
+.atfrfo-class-card-props {
+	max-height: 50vh;
+	overflow-y: auto;
+}
+
+.atfrfo-class-variant-group {
+	padding:      var(--sp-2) 0;
+	border-bottom: 1px solid var(--atfrfo-clr-border, #d6ccc2);
+}
+
+.atfrfo-class-variant-group:last-child {
+	border-bottom: none;
+}
+
+.atfrfo-class-variant-label {
+	margin:      0 0 var(--sp-1);
+	font-weight: 600;
+	font-size:   var(--fs-sm, 0.875rem);
+}
+
+.atfrfo-class-variant-empty {
+	margin:    0;
+	font-size: var(--fs-xs, 0.75rem);
+	color:     var(--atfrfo-clr-muted);
+}
+
+.atfrfo-class-variant-props {
+	display:               grid;
+	grid-template-columns: minmax(120px, max-content) 1fr;
+	gap:                   4px var(--sp-3);
+	font-size:             var(--fs-xs, 0.75rem);
+	font-family:           monospace, monospace;
+}
+
+.atfrfo-class-prop-key {
+	color: var(--atfrfo-clr-muted);
+}
+
+.atfrfo-class-prop-value {
+	display:     flex;
+	align-items: baseline;
+	flex-wrap:   wrap;
+	gap:         6px;
+	word-break:  break-word;
+}
+
+.atfrfo-class-prop-badge {
+	display:        inline-block;
+	flex-shrink:    0;
+	padding:        1px 6px;
+	border-radius:  var(--radius-sm, 4px);
+	font-size:      10px;
+	font-weight:    600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.atfrfo-class-prop-badge--variable {
+	background: var(--atfrfo-status-synced, #2e7d32);
+	color:      #fff;
+}
+
+.atfrfo-class-prop-badge--hardcoded {
+	background: var(--atfrfo-status-modified, #b26a00);
+	color:      #fff;
+}
+
+.atfrfo-class-prop-varname {
+	font-weight: 600;
+}
+
+.atfrfo-class-prop-varval {
+	color: var(--atfrfo-clr-muted);
+}
+
+.atfrfo-class-variant-css {
+	margin:        4px 0 0;
+	padding:       var(--sp-2);
+	background:    var(--atfrfo-bg-card);
+	font-size:     var(--fs-xs, 0.75rem);
+	white-space:   pre-wrap;
+	word-break:    break-word;
+	border-radius: var(--radius-sm, 4px);
+}
+
+/* ==========================================================================
+   VIEW HEADER (filter bar, legend) — same shell as Colors/Fonts/Numbers
    ========================================================================== */
 
 .atfrfo-classes-view {
 	padding: var(--sp-4) 0;
-}
-
-.atfrfo-classes-header {
-	display:         flex;
-	align-items:     center;
-	justify-content: space-between;
-	margin-bottom:   var(--sp-4);
-}
-
-.atfrfo-classes-title {
-	margin: 0;
-}
-
-.atfrfo-classes-list {
-	display: flex;
-	flex-direction: column;
-}
-
-/* ==========================================================================
-   EMPTY STATE
-   ========================================================================== */
-
-.atfrfo-classes-empty {
-	text-align: center;
-	padding:    var(--sp-9) var(--sp-4);
-	color:      var(--atfrfo-clr-muted);
-}
-
-.atfrfo-classes-empty p {
-	margin: 0 0 var(--sp-2);
 }
 
 /* ==========================================================================
@@ -90,12 +205,13 @@
    ========================================================================== */
 
 @media (max-width: 900px) {
-	.atfrfo-class-row {
-		grid-template-columns: 24px 8px 1fr 0 80px;
+	.atfrfo-classes-view .atfrfo-color-list-header,
+	.atfrfo-classes-view .atfrfo-color-row {
+		grid-template-columns: 24px 8px 1fr 0 26% 28px;
 		column-gap: 6px;
 	}
 
-	.atfrfo-class-category-badge {
+	.atfrfo-classes-view .atfrfo-class-styles-flag {
 		visibility: hidden;
 		overflow:   hidden;
 	}

@@ -549,25 +549,22 @@
 					}
 
 					case 'collapse':
-						if (block && catId) {
-							var isColl = block.getAttribute('data-collapsed') === 'true';
-							block.setAttribute('data-collapsed', String(!isColl));
-							self._collapsedIds[catId] = !isColl;
-							if (!isColl) {
-								// Cascade collapse to sub-categories.
-								var _subBlocks = block.querySelectorAll('.atfrfo-category-block[data-depth="1"]');
-								for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
-									var _sb = _subBlocks[_sbi];
-									var _sbId = _sb.getAttribute('data-category-id');
-									_sb.setAttribute('data-collapsed', 'true');
-									if (_sbId) { self._collapsedIds[_sbId] = true; }
-								}
-							} else {
-								block.scrollIntoView({ behavior: 'smooth', block: 'start' });
-							}
-						}
+						if (block && catId) { self._toggleCategoryBlock(block, catId); }
 						break;
 				}
+			});
+
+			// ---- Click anywhere in a category header toggles collapse ----
+			// Ignores the editable name span (mousedown below starts a rename)
+			// and the actions toolbar (handled above via [data-action]).
+			container.addEventListener('click', function (e) {
+				if (!container.querySelector('.atfrfo-' + setLower + '-view')) { return; }
+				if (e.target.closest('[data-action]')) { return; }
+				var headerTop = e.target.closest('.atfrfo-cat-header-top');
+				if (!headerTop || e.target.closest('.atfrfo-category-name-input')) { return; }
+				var hBlock = headerTop.closest('.atfrfo-category-block');
+				var hCatId = hBlock ? hBlock.getAttribute('data-category-id') : null;
+				if (hBlock && hCatId) { self._toggleCategoryBlock(hBlock, hCatId); }
 			});
 
 			// ---- Column sort buttons (in .atfrfo-color-list-header) ----
@@ -1315,6 +1312,31 @@
 		// -------------------------------------------------------------------
 
 		/** Re-render the current view using the existing currentSelection. */
+		/**
+		 * Toggle a category block's collapsed state — shared by the explicit
+		 * collapse button and clicking anywhere else in the header.
+		 *
+		 * @param {HTMLElement} block
+		 * @param {string}      catId
+		 */
+		_toggleCategoryBlock: function (block, catId) {
+			var self   = this;
+			var isColl = block.getAttribute('data-collapsed') === 'true';
+			block.setAttribute('data-collapsed', String(!isColl));
+			self._collapsedIds[catId] = !isColl;
+			if (!isColl) {
+				var _subBlocks = block.querySelectorAll('.atfrfo-category-block[data-depth="1"]');
+				for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+					var _sb   = _subBlocks[_sbi];
+					var _sbId = _sb.getAttribute('data-category-id');
+					_sb.setAttribute('data-collapsed', 'true');
+					if (_sbId) { self._collapsedIds[_sbId] = true; }
+				}
+			} else {
+				block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		},
+
 		_rerenderView: function () {
 			var content   = document.getElementById('atfrfo-edit-content');
 			var editSpace = document.getElementById('atfrfo-edit-space');

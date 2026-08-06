@@ -449,7 +449,9 @@ class ATFRFO_Data_Store {
 		);
 
 		// Handle variables that belong to any of the removed categories.
-		if ( $delete_vars ) {
+		if ( 'Classes' === $subgroup ) {
+			$this->reassign_or_delete_classes( $all_ids_set, $cat_name, $delete_vars );
+		} elseif ( $delete_vars ) {
 			$this->data['variables'] = array_values(
 				array_filter(
 					$this->data['variables'],
@@ -483,6 +485,47 @@ class ATFRFO_Data_Store {
 
 		$this->dirty = true;
 		return true;
+	}
+
+	/**
+	 * Reassign or delete classes belonging to a set of removed category IDs.
+	 * Mirrors the variables handling in delete_category_for_subgroup(), but
+	 * operates on $this->data['classes'] and its category/category_id fields.
+	 *
+	 * @param array<string,int> $all_ids_set Flipped array of removed category IDs.
+	 * @param string             $cat_name   Name of the primary removed category (legacy name-match).
+	 * @param bool               $delete     True = delete matching classes; false = move to Uncategorized.
+	 */
+	private function reassign_or_delete_classes( array $all_ids_set, string $cat_name, bool $delete ): void {
+		if ( $delete ) {
+			$this->data['classes'] = array_values(
+				array_filter(
+					$this->data['classes'],
+					static function ( array $c ) use ( $all_ids_set, $cat_name ): bool {
+						$cid = $c['category_id'] ?? '';
+						if ( $cid !== '' && isset( $all_ids_set[ $cid ] ) ) {
+							return false;
+						}
+						if ( $cat_name !== '' && $cid === '' && ( $c['category'] ?? '' ) === $cat_name ) {
+							return false;
+						}
+						return true;
+					}
+				)
+			);
+			return;
+		}
+
+		foreach ( $this->data['classes'] as &$c ) {
+			$cid          = $c['category_id'] ?? '';
+			$matches_id   = $cid !== '' && isset( $all_ids_set[ $cid ] );
+			$matches_name = $cat_name !== '' && $cid === '' && ( $c['category'] ?? '' ) === $cat_name;
+			if ( $matches_id || $matches_name ) {
+				$c['category_id'] = '';
+				$c['category']    = '';
+			}
+		}
+		unset( $c );
 	}
 
 	/**
@@ -525,23 +568,27 @@ class ATFRFO_Data_Store {
 			)
 		);
 
-		// Delete all variables in the target category and its former descendants.
-		$this->data['variables'] = array_values(
-			array_filter(
-				$this->data['variables'],
-				static function ( array $v ) use ( $all_ids_set, $cat_name ): bool {
-					$cid = $v['category_id'] ?? '';
-					if ( $cid !== '' && isset( $all_ids_set[ $cid ] ) ) {
-						return false;
+		if ( 'Classes' === $subgroup ) {
+			$this->reassign_or_delete_classes( $all_ids_set, $cat_name, true );
+		} else {
+			// Delete all variables in the target category and its former descendants.
+			$this->data['variables'] = array_values(
+				array_filter(
+					$this->data['variables'],
+					static function ( array $v ) use ( $all_ids_set, $cat_name ): bool {
+						$cid = $v['category_id'] ?? '';
+						if ( $cid !== '' && isset( $all_ids_set[ $cid ] ) ) {
+							return false;
+						}
+						// Legacy: name match for variables in the target with no ID.
+						if ( $cat_name !== '' && $cid === '' && ( $v['category'] ?? '' ) === $cat_name ) {
+							return false;
+						}
+						return true;
 					}
-					// Legacy: name match for variables in the target with no ID.
-					if ( $cat_name !== '' && $cid === '' && ( $v['category'] ?? '' ) === $cat_name ) {
-						return false;
-					}
-					return true;
-				}
-			)
-		);
+				)
+			);
+		}
 
 		$this->dirty = true;
 		return true;
@@ -746,6 +793,14 @@ class ATFRFO_Data_Store {
 			}
 			$seen_elementor_ids[] = $elementor_id;
 
+			// The per-breakpoint/state style props (see docs/AFF-VISION-AND-ROADMAP.md
+			// §3.1 "Variant structure") — stored for the read-only class detail card
+			// (Phase 3.4), always overwritten from Elementor's current data on sync
+			// since AFF does not (yet) edit properties locally.
+			$variants = ( isset( $stub['raw']['variants'] ) && is_array( $stub['raw']['variants'] ) )
+				? $stub['raw']['variants']
+				: array();
+
 			$existing = $this->find_class_by_elementor_id( $elementor_id );
 			if ( $existing ) {
 				$this->update_class(
@@ -753,6 +808,7 @@ class ATFRFO_Data_Store {
 					array(
 						'label'          => $stub['label'] ?? $existing['label'],
 						'has_styles'     => $stub['has_styles'] ?? $existing['has_styles'],
+						'variants'       => $variants,
 						'status'         => 'synced',
 						'last_synced_at' => $now,
 					)
@@ -764,6 +820,7 @@ class ATFRFO_Data_Store {
 						'elementor_id'   => $elementor_id,
 						'label'          => $stub['label'] ?? '',
 						'has_styles'     => $stub['has_styles'] ?? false,
+						'variants'       => $variants,
 						'source'         => 'elementor-fetched',
 						'status'         => 'synced',
 						'last_synced_at' => $now,
@@ -1171,6 +1228,7 @@ class ATFRFO_Data_Store {
 			'category_id'    => '',
 			'order'          => 0,
 			'has_styles'     => false,
+			'variants'       => array(),
 			'notes'          => '',
 			'created_at'     => '',
 			'updated_at'     => '',

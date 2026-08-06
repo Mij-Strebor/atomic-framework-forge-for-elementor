@@ -45,6 +45,7 @@ class ATFRFO_Ajax_Handler {
 			// Classes Phase 3.1 endpoints
 			'atfrfo_get_classes',
 			'atfrfo_sync_classes',
+			'atfrfo_update_class',
 			// Phase 2 — Colors endpoints
 			'atfrfo_save_category',
 			'atfrfo_delete_category',
@@ -714,6 +715,57 @@ class ATFRFO_Ajax_Handler {
 					'classes' => $store->get_classes(),
 					'summary' => $summary,
 					'source'  => $result['source'],
+				);
+			}
+		);
+	}
+
+	/**
+	 * Update an existing class's AFF-local metadata (Comment/notes,
+	 * category/category_id reassignment). Does not touch Elementor —
+	 * this only edits the AFF store's copy of the class.
+	 *
+	 * POST params: filename, class (JSON: {id, notes?, category?, category_id?})
+	 */
+	public function ajax_atfrfo_update_class(): void {
+		$class_raw = isset( $_POST['class'] ) ? wp_unslash( $_POST['class'] ) : '';
+		$class     = $this->safe_json_decode( $class_raw, __( 'Invalid class data.', 'atomic-framework-forge-for-elementor' ) );
+
+		$id = isset( $class['id'] ) ? sanitize_text_field( $class['id'] ) : '';
+		if ( empty( $id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Class ID is required.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$data = array();
+		if ( array_key_exists( 'notes', $class ) ) {
+			$data['notes'] = sanitize_textarea_field( (string) $class['notes'] );
+		}
+		if ( array_key_exists( 'category', $class ) ) {
+			$data['category'] = sanitize_text_field( (string) $class['category'] );
+		}
+		if ( array_key_exists( 'category_id', $class ) ) {
+			$data['category_id'] = sanitize_text_field( (string) $class['category_id'] );
+		}
+		if ( array_key_exists( 'label', $class ) ) {
+			// AFF-local only — renaming here does not rename the class inside
+			// Elementor, and it is not permanent: import_fetched_classes()
+			// always overwrites 'label' from Elementor's fetched value on the
+			// next sync (see class-atfrfo-data-store.php), so a local rename
+			// here will be reverted the next time Classes are synced.
+			$data['label'] = sanitize_text_field( (string) $class['label'] );
+		}
+		if ( array_key_exists( 'order', $class ) ) {
+			$data['order'] = (int) $class['order'];
+		}
+
+		$this->with_store(
+			function ( ATFRFO_Data_Store $store ) use ( $id, $data ): array {
+				if ( ! $store->update_class( $id, $data ) ) {
+					throw new \Exception( __( 'Class not found.', 'atomic-framework-forge-for-elementor' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				}
+				return array(
+					'classes' => $store->get_classes(),
+					'message' => __( 'Class updated.', 'atomic-framework-forge-for-elementor' ),
 				);
 			}
 		);

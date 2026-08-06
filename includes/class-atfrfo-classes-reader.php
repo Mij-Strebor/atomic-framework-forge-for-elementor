@@ -185,6 +185,8 @@ class ATFRFO_Classes_Reader {
 			}
 		}
 
+		$var_index = $this->get_variable_index();
+
 		$result = array();
 		foreach ( $ordered_ids as $id ) {
 			if ( ! isset( $items[ $id ] ) || ! is_array( $items[ $id ] ) ) {
@@ -192,6 +194,10 @@ class ATFRFO_Classes_Reader {
 			}
 			$item     = $items[ $id ];
 			$variants = isset( $item['variants'] ) && is_array( $item['variants'] ) ? $item['variants'] : array();
+
+			if ( ! empty( $var_index ) ) {
+				$item['variants'] = $this->resolve_variable_refs( $variants, $var_index );
+			}
 
 			$result[] = array(
 				'elementor_id' => (string) ( $item['id'] ?? $id ),
@@ -202,5 +208,97 @@ class ATFRFO_Classes_Reader {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Build an id => {label, value} index of Elementor's live (non-deleted)
+	 * Global Variables, used to decode a class variant prop's `e-gv-XXXXXXX`
+	 * reference into the human-readable name and literal value for display
+	 * in AFF's class detail card. Read-only, same in-process pattern as
+	 * read_from_repository() for classes.
+	 *
+	 * Storage note: unlike Global Classes, Elementor's Global Variables have
+	 * NOT moved off the `_elementor_global_variables` postmeta blob as of
+	 * Elementor 4.2.1 (confirmed live 2026-08-06: entries are soft-deleted
+	 * in place via a `deleted_at` field, not removed from the meta) — so
+	 * reading it here is safe, unlike the stale-meta trap documented above
+	 * for classes (TECH-DEBT.md C-08). If Elementor ever migrates Variables
+	 * to a repository/per-post model the way it did Classes, this must be
+	 * rewritten the same way read_from_repository() was — do not assume this
+	 * meta read stays valid forever.
+	 *
+	 * @return array<string,array{label:string,value:mixed}> Keyed by e-gv- ID.
+	 */
+	private function get_variable_index(): array {
+		if ( ! class_exists( '\Elementor\Modules\Variables\Storage\Repository' )
+			|| ! class_exists( '\Elementor\Plugin' )
+		) {
+			return array();
+		}
+
+		$kit = \Elementor\Plugin::$instance->kits_manager->get_active_kit();
+		if ( ! $kit ) {
+			return array();
+		}
+
+		try {
+			$repo = new \Elementor\Modules\Variables\Storage\Repository( $kit );
+			$vars = $repo->variables();
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+
+		if ( ! is_array( $vars ) ) {
+			return array();
+		}
+
+		$index = array();
+		foreach ( $vars as $var_id => $var ) {
+			if ( ! is_array( $var ) || ! empty( $var['deleted_at'] ) ) {
+				continue; // Soft-deleted — must not resolve refs to these.
+			}
+			$index[ $var_id ] = array(
+				'name'  => (string) ( $var['label'] ?? '' ), // 'name' to match prop._resolved.name in atfrfo-classes.js.
+				'value' => $var['value'] ?? null, // Same {$$type,value} shape as a literal prop.
+			);
+		}
+
+		return $index;
+	}
+
+	/**
+	 * Decode each `global-*-variable` prop in a class's variants by
+	 * attaching a `_resolved` {name, value} pair looked up from $var_index.
+	 * Literal (non-variable) props are left untouched. A reference to a
+	 * variable not found in the index (e.g. deleted since the class was
+	 * styled) is also left unresolved — the card falls back to showing the
+	 * raw ID plus a "not found" note rather than guessing.
+	 *
+	 * @param array $variants  A class's `variants` array.
+	 * @param array $var_index Output of get_variable_index().
+	 * @return array The same variants structure with `_resolved` added where possible.
+	 */
+	private function resolve_variable_refs( array $variants, array $var_index ): array {
+		foreach ( $variants as &$variant ) {
+			if ( ! isset( $variant['props'] ) || ! is_array( $variant['props'] ) ) {
+				continue;
+			}
+			foreach ( $variant['props'] as &$prop ) {
+				if ( ! is_array( $prop ) || ! isset( $prop['$$type'], $prop['value'] ) ) {
+					continue;
+				}
+				if ( 0 !== strpos( (string) $prop['$$type'], 'global-' ) ) {
+					continue; // Literal value, not a variable reference.
+				}
+				$ref_id = (string) $prop['value'];
+				if ( isset( $var_index[ $ref_id ] ) ) {
+					$prop['_resolved'] = $var_index[ $ref_id ];
+				}
+			}
+			unset( $prop );
+		}
+		unset( $variant );
+
+		return $variants;
 	}
 }

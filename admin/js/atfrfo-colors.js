@@ -1240,32 +1240,7 @@
           }
 
           case "collapse":
-            if (block) {
-              var isCollapsed = block.getAttribute("data-collapsed") === "true";
-              var newCollapsed = !isCollapsed;
-              block.setAttribute("data-collapsed", String(newCollapsed));
-              if (catId) {
-                self._collapsedIds[catId] = newCollapsed;
-              }
-              if (newCollapsed) {
-                // Cascade collapse to sub-categories.
-                var _subBlocks = block.querySelectorAll('.atfrfo-category-block[data-depth="1"]');
-                for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
-                  var _sb = _subBlocks[_sbi];
-                  var _sbId = _sb.getAttribute("data-category-id");
-                  _sb.setAttribute("data-collapsed", "true");
-                  if (_sbId) { self._collapsedIds[_sbId] = true; }
-                }
-                // Close any open expand panel when the user collapses a category.
-                self._closeExpandPanel(container, true);
-              } else {
-                // Scroll the newly expanded block into view.
-                var _expBlock = block;
-                setTimeout(function () {
-                  _expBlock.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                }, 50);
-              }
-            }
+            if (block && catId) { self._toggleCategoryBlock(block, catId, container); }
             break;
 
           case "expand": {
@@ -1349,6 +1324,19 @@
             break;
           }
         }
+      });
+
+      // Click anywhere in a category header toggles collapse — ignores the
+      // editable name span (mousedown elsewhere starts a rename) and the
+      // actions toolbar (handled above via [data-action]).
+      container.addEventListener("click", function (e) {
+        if (!container.querySelector(".atfrfo-colors-view")) { return; }
+        if (e.target.closest("[data-action]")) { return; }
+        var headerTop = e.target.closest(".atfrfo-cat-header-top");
+        if (!headerTop || e.target.closest(".atfrfo-category-name-input")) { return; }
+        var hBlock = headerTop.closest(".atfrfo-category-block");
+        var hCatId = hBlock ? hBlock.getAttribute("data-category-id") : null;
+        if (hBlock && hCatId) { self._toggleCategoryBlock(hBlock, hCatId, container); }
       });
 
       // Right-click shortcut: expand a collapsed category/subcategory, or open a color's expand panel.
@@ -4337,6 +4325,37 @@
      * Clears focused category (so collapse state is preserved, not overridden
      * by the nav-click behaviour) then re-renders with current selection.
      */
+    /**
+     * Toggle a category block's collapsed state — shared by the explicit
+     * collapse button and clicking anywhere else in the header.
+     *
+     * @param {HTMLElement} block
+     * @param {string}      catId
+     * @param {HTMLElement} container
+     */
+    _toggleCategoryBlock: function (block, catId, container) {
+      var self = this;
+      var isCollapsed = block.getAttribute("data-collapsed") === "true";
+      var newCollapsed = !isCollapsed;
+      block.setAttribute("data-collapsed", String(newCollapsed));
+      self._collapsedIds[catId] = newCollapsed;
+      if (newCollapsed) {
+        var _subBlocks = block.querySelectorAll('.atfrfo-category-block[data-depth="1"]');
+        for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+          var _sb = _subBlocks[_sbi];
+          var _sbId = _sb.getAttribute("data-category-id");
+          _sb.setAttribute("data-collapsed", "true");
+          if (_sbId) { self._collapsedIds[_sbId] = true; }
+        }
+        self._closeExpandPanel(container, true);
+      } else {
+        var _expBlock = block;
+        setTimeout(function () {
+          _expBlock.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 50);
+      }
+    },
+
     _rerenderView: function () {
       var content   = document.getElementById("atfrfo-edit-content");
       var editSpace = document.getElementById("atfrfo-edit-space");

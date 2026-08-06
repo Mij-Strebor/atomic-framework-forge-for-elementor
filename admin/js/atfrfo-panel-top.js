@@ -709,14 +709,17 @@
       var fontsStr = _catsToStr(cfg.fontCategories) || "Titles, Text";
       var numbersStr =
         _catsToStr(cfg.numberCategories) || "Spacing, Gaps, Grids, Radius";
-      function _catPanel(label, id, value) {
+      var classesStr =
+        _catsToStr(cfg.classCategories) || "Layout, Typography, Buttons, Cards, Utility";
+      function _catPanel(label, id, value, description) {
         return (
           '<div style="margin-bottom:16px">' +
           '<p class="atfrfo-field-label" style="margin-bottom:4px">' +
           label +
-          " Categories</p>" +
+          "</p>" +
           '<p style="font-size:12px;color:var(--atfrfo-clr-muted);margin-bottom:6px">' +
-          "Comma-separated. \u201cUncategorized\u201d is added automatically.</p>" +
+          description +
+          "</p>" +
           '<input type="text" class="atfrfo-field-input" id="' +
           id +
           '"' +
@@ -726,6 +729,12 @@
           "</div>"
         );
       }
+      var _defaultCatDesc =
+        "Comma-separated. \u201cUncategorized\u201d is added automatically.";
+      var _classCatDesc =
+        "Organize your Elementor Global Classes here \u2014 e.g. by role (Layout, Buttons) " +
+        "or by the component they style (Cards, Nav). Comma-separated. " +
+        "\u201cUncategorized\u201d is added automatically.";
       var projNameEscaped = ATFRFO.Utils.escHtml(projName);
       var body =
         '<div style="margin-bottom:20px">' +
@@ -745,15 +754,28 @@
         "</div>" +
         '<div style="border-top:1px solid var(--atfrfo-clr-border,#d6ccc2);padding-top:16px">' +
         _catPanel(
-          "Colors",
+          "Colors Variables Categories",
           "atfrfo-proj-cat-colors",
           ATFRFO.Utils.escHtml(colorsStr),
+          _defaultCatDesc,
         ) +
-        _catPanel("Fonts", "atfrfo-proj-cat-fonts", ATFRFO.Utils.escHtml(fontsStr)) +
         _catPanel(
-          "Numbers",
+          "Fonts Variables Categories",
+          "atfrfo-proj-cat-fonts",
+          ATFRFO.Utils.escHtml(fontsStr),
+          _defaultCatDesc,
+        ) +
+        _catPanel(
+          "Numbers Variables Categories",
           "atfrfo-proj-cat-numbers",
           ATFRFO.Utils.escHtml(numbersStr),
+          _defaultCatDesc,
+        ) +
+        _catPanel(
+          "Classes Categories",
+          "atfrfo-proj-cat-classes",
+          ATFRFO.Utils.escHtml(classesStr),
+          _classCatDesc,
         ) +
         "</div>" +
         '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--atfrfo-clr-border,#d6ccc2)">' +
@@ -905,6 +927,7 @@
       var colCatEl = document.getElementById("atfrfo-proj-cat-colors");
       var fntCatEl = document.getElementById("atfrfo-proj-cat-fonts");
       var numCatEl = document.getElementById("atfrfo-proj-cat-numbers");
+      var clsCatEl = document.getElementById("atfrfo-proj-cat-classes");
       var projName = (
         projNameEl ? projNameEl.value.trim() : ATFRFO.state.projectName || ""
       ).replace(/(?:\.eff)+(?:\.json)?$/i, "");
@@ -961,6 +984,7 @@
       var colNewNames = _parseCsvNames(colCatEl);
       var fntNewNames = _parseCsvNames(fntCatEl);
       var numNewNames = _parseCsvNames(numCatEl);
+      var clsNewNames = _parseCsvNames(clsCatEl);
 
       var newColCats = _buildCatArray(
         colNewNames,
@@ -968,6 +992,7 @@
       );
       var newFntCats = _buildCatArray(fntNewNames, cfg.fontCategories || []);
       var newNumCats = _buildCatArray(numNewNames, cfg.numberCategories || []);
+      var newClsCats = _buildCatArray(clsNewNames, cfg.classCategories || []);
 
       // Find IDs of categories that were removed per set, so their variables can be reassigned.
       function _removedIds(existingArr, newNames) {
@@ -999,9 +1024,11 @@
       );
       var removedFntIds = _removedIds(cfg.fontCategories || [], fntNewNames);
       var removedNumIds = _removedIds(cfg.numberCategories || [], numNewNames);
+      var removedClsIds = _removedIds(cfg.classCategories || [], clsNewNames);
       var colUncatId = _uncatIdFor(newColCats);
       var fntUncatId = _uncatIdFor(newFntCats);
       var numUncatId = _uncatIdFor(newNumCats);
+      var clsUncatId = _uncatIdFor(newClsCats);
 
       // Reassign variables from removed categories to Uncategorized.
       var saveVarPromises = [];
@@ -1023,9 +1050,34 @@
             v.category = "Uncategorized";
             v.category_id = newCatId;
             saveVarPromises.push(
-              ATFRFO.App.ajax("atfrfo_save_color", { variable: JSON.stringify(v) }),
+              ATFRFO.App.ajax("atfrfo_save_color", {
+                filename: ATFRFO.state.currentFile,
+                variable: JSON.stringify(v),
+              }),
             );
           }
+        }
+      }
+
+      // Reassign classes from removed categories to Uncategorized. Unlike
+      // variables (atfrfo_save_color, one AJAX call per changed variable),
+      // classes go through atfrfo_update_class (see class-atfrfo-ajax-handler.php).
+      var classes = ATFRFO.state.classes || [];
+      for (var ci = 0; ci < classes.length; ci++) {
+        var c = classes[ci];
+        if (c.category_id && removedClsIds[c.category_id]) {
+          c.category = "Uncategorized";
+          c.category_id = clsUncatId;
+          saveVarPromises.push(
+            ATFRFO.App.ajax("atfrfo_update_class", {
+              filename: ATFRFO.state.currentFile,
+              class: JSON.stringify({
+                id: c.id,
+                category: c.category,
+                category_id: c.category_id,
+              }),
+            }),
+          );
         }
       }
 
@@ -1036,6 +1088,7 @@
         colorCategories: newColCats,
         fontCategories: newFntCats,
         numberCategories: newNumCats,
+        classCategories: newClsCats,
         categories: newColCats, // backward-compat alias
         groups: cfg.groups || {},
       };
@@ -1080,6 +1133,14 @@
               ATFRFO.state.currentSelection.subgroup === "Colors"
             ) {
               ATFRFO.Colors._rerenderView();
+            }
+            if (
+              ATFRFO.Classes &&
+              ATFRFO.Classes._rerenderView &&
+              ATFRFO.state.currentSelection &&
+              ATFRFO.state.currentSelection.group === "Classes"
+            ) {
+              ATFRFO.Classes._rerenderView();
             }
             ATFRFO.Modal.close();
           } else {

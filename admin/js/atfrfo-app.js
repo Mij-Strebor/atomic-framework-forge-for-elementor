@@ -1418,10 +1418,23 @@
 
 	};
 
-	// atfrfo-colors.js and atfrfo-variables.js load before atfrfo-app.js, so their
-	// module objects are already defined by the time this runs.
+	// atfrfo-colors.js, atfrfo-variables.js, and atfrfo-classes.js load before
+	// atfrfo-app.js, so their module objects are already defined by the time
+	// this runs.
 	Object.assign(ATFRFO.Colors, ATFRFO.CatMixin);
 	Object.assign(ATFRFO.Variables._proto, ATFRFO.CatMixin);
+
+	// Classes only reuses the category primitives that are genuinely generic
+	// (add category, add sub-category, reorder, drag-init). Delete/clear/
+	// rename/duplicate are implemented locally in atfrfo-classes.js instead —
+	// the mixin's versions are hard-wired to ATFRFO.state.variables and
+	// atfrfo_save_color, and classes are sync-sourced from Elementor rather
+	// than user-created, so "duplicate category" must not fabricate rows.
+	ATFRFO.Classes._addCategory           = ATFRFO.CatMixin._addCategory;
+	ATFRFO.Classes._addSubCategory        = ATFRFO.CatMixin._addSubCategory;
+	ATFRFO.Classes._ajaxReorderCategories = ATFRFO.CatMixin._ajaxReorderCategories;
+	ATFRFO.Classes._jumpToCategory        = ATFRFO.CatMixin._jumpToCategory;
+	ATFRFO.Classes._initCatDrag           = ATFRFO.CatMixin._initCatDrag;
 
 	// -----------------------------------------------------------------------
 	// UNIFIED VARIABLE DRAG-AND-DROP
