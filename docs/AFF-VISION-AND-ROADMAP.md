@@ -77,14 +77,31 @@ Global Classes are Elementor V4's reusable CSS class system. Each class:
 
 ### 3.1 Storage Format
 
-**Post meta keys** (`modules/global-classes/global-classes-repository.php`, lines 15-16), both on the active kit post — the same post AFF already reads for Variables:
+**CORRECTED 2026-08-06 — this section originally described the storage as a single
+post-meta JSON blob. That was accurate against Elementor's source as it existed
+when this document was first written (2026-05-21), but Elementor has since moved
+to a different storage architecture (confirmed against Elementor 4.2.1, live, on
+two real sites). The old meta keys below still exist and still return non-empty
+data, but that data is stale/legacy and does not reflect the real class list —
+this caused a real, live bug (TECH-DEBT.md C-08) where AFF silently read 10 stale
+items instead of the true 54/73. The meta-blob shape is kept documented below for
+historical/diagnostic reference only — AFF does not read it.**
+
+**Current real storage (Elementor 4.2.1):** each Global Class is its own
+`Global_Class_Post` (a distinct WordPress post), not an entry in a JSON blob. The
+canonical read path is Elementor's own `\Elementor\Modules\GlobalClasses\Global_Classes_Repository`
+class, called directly in-process — confirmed to return the correct, complete
+list matching Elementor's own editor UI exactly. See §6.1 for how AFF's reader
+calls this.
+
+**Legacy post meta keys** (historical — `modules/global-classes/global-classes-repository.php`, lines 15-16 as of the 2026-05-21 source), both on the active kit post:
 
 ```php
 const META_KEY_FRONTEND = '_elementor_global_classes';
 const META_KEY_PREVIEW  = '_elementor_global_classes_preview';
 ```
 
-**Structure** — a PHP array with exactly two keys:
+**Legacy structure** — a PHP array with exactly two keys:
 
 ```json
 {
@@ -95,13 +112,13 @@ const META_KEY_PREVIEW  = '_elementor_global_classes_preview';
   "order": ["g-8e879b6", "g-19ae5e7"]
 }
 ```
-(Confirmed: `global-classes-repository.php` line 58.)
+(Confirmed: `global-classes-repository.php` line 58, as of the 2026-05-21 source read.)
 
-**Item fields**, validated by `Global_Classes_Parser::parse_items()`:
+**Item fields — confirmed still accurate for the current per-post storage too** (verified against a real item returned by `Global_Classes_Repository` on 2026-08-06), validated by `Global_Classes_Parser::parse_items()`:
 
 | Field | Type | Description |
 |---|---|---|
-| `id` | string | Opaque ID, `g-` prefix + 7 hex chars |
+| `id` | string | Opaque ID — **not one fixed format**: both short (`g-c42a90c`, 7 hex chars) and long (`gc-0e2eff4039bbe56f`, different prefix and length) IDs coexist on the same real site. Phase 3.4's writer must not assume a single pattern. |
 | `type` | `"class"` | Always `"class"` |
 | `label` | string | The CSS class name; max 50 chars |
 | `variants` | array | Per-breakpoint/state style objects; may be empty |
@@ -268,13 +285,13 @@ A "New Class" button opens a modal for the class name. On confirm: AFF generates
 
 ### 6.1 New PHP Files
 
-**`includes/class-atfrfo-classes-reader.php`** — read-only, parallel to `ATFRFO_CSS_Parser`:
+**`includes/class-atfrfo-classes-reader.php`** — read-only, parallel to `ATFRFO_CSS_Parser`. **Updated 2026-08-06 (TECH-DEBT.md C-08):** the primary path is `read_from_repository()`, calling Elementor's own `Global_Classes_Repository` class directly in-process — not a post-meta read. The original plan's meta-blob read turned out to be reading stale/legacy data on current Elementor (confirmed live, two real sites) and was removed entirely rather than kept as a fallback, since it can't be told apart from a genuinely-correct-but-empty result:
 ```php
 class ATFRFO_Classes_Reader {
-    public function read_from_postmeta(): array { ... }   // primary
-    public function fetch_from_rest(): array { ... }       // fallback
-    public function normalize( array $raw ): array { ... } // handles both shapes
-    public function get_all(): array { ... }                // entry point
+    public function read_from_repository(): array { ... }  // primary — Elementor's own repository class, in-process
+    public function fetch_from_rest(): array { ... }        // fallback — only if the repository class doesn't exist
+    public function normalize( array $raw ): array { ... }  // handles both shapes
+    public function get_all(): array { ... }                 // entry point
 }
 ```
 
@@ -322,7 +339,15 @@ Each write method fetches the current full class list first, then constructs the
 
 **7.2 (RESOLVED) Storage structure.** `{ items: { [g-id]: {...} }, order: [...] }`; REST wraps this as `{ data: ..., meta: { order: ... } }`. Source: `global-classes-repository.php` line 58, `global-classes-rest-api.php` lines 148-155.
 
-**7.3 (RESOLVED — confirmed by direct usage) Can a class property value reference a global Variable?** Yes. This is a common, established Elementor idiom: rather than setting a variable directly on a widget property, a user creates a class whose property value points at the variable, then applies that class — future changes to the variable propagate everywhere the class is used, without touching individual widgets. Taken to its extreme, a class could exist for every single variable in the system as a reusable pass-through. This confirmation de-risks Phase 3.5 significantly — it moves from "foundational, unknown if even possible" to "the mechanism is proven, only the exact `$$type` wire format needs a quick check." **Remaining detail, not a blocker:** confirm the precise `$$type` shape for a variable-reference value (vs. a literal) by styling a class property with a Global Variable picker in the Elementor editor and inspecting the resulting `_elementor_global_classes` meta — a five-minute check during Phase 3.5 implementation, not a planning-stage gate.
+**7.3 (RESOLVED — confirmed by direct usage AND by source, 2026-08-06) Can a class property value reference a global Variable?** Yes, fully confirmed both ways now. Jim's direct experience: rather than setting a variable directly on a widget property, a user creates a class whose property value points at the variable, then applies that class — future changes to the variable propagate everywhere the class is used, without touching individual widgets. Taken to its extreme, a class could exist for every single variable in the system as a reusable pass-through.
+
+**Wire format confirmed from a live sample item** (via `Global_Classes_Repository` directly, `staging14.jimrforge.com`, 2026-08-06):
+```json
+"font-family":     { "$$type": "global-font-variable",  "value": "e-gv-b95e1d9" },
+"color":           { "$$type": "global-color-variable",  "value": "e-gv-c896161" },
+"font-size":       { "$$type": "global-size-variable",   "value": "e-gv-a8f79f2" }
+```
+Pattern: `$$type` is `global-{color|font|size}-variable` (property-type-specific, not one generic reference type), and `value` is the referenced Variable's own ID string (`e-gv-` prefix). This is the exact mechanism Phase 3.5 needs — fully de-risked, no remaining open detail. A property holding a literal instead looks like `{"$$type": "color", "value": "#ff0000"}` (no `global-` prefix, no reference) — Phase 3.5's editor must handle both forms per property.
 
 **7.4 (RESOLVED) `sync_to_v3` field handling.** The `design-system-sync` module adds a `sync_to_v3` boolean to class items. AFF's writer must preserve this field verbatim when constructing PUT payloads — merge onto original item data, never rebuild items from scratch, or V3 sync breaks silently for users who have it enabled.
 
@@ -330,9 +355,9 @@ Each write method fetches the current full class list first, then constructs the
 
 **7.6 (RESOLVED) REST authentication.** Standard `wp_rest` nonce for GET; custom capability `elementor_global_classes_update_class` for PUT (administrator only by default).
 
-**7.7 (RESOLVED — verified 2026-08-04) Feature flag status on the dev site.** Confirmed active on `claude-wordpress-integration-novamira` — the REST route `/elementor/v1/global-classes` exists and 10 real classes were read back successfully. `ATFRFO_Classes_Reader::is_feature_available()` checks for this route directly, so AFF can always tell "feature disabled" apart from "zero classes" going forward, on any site.
+**7.7 (RESOLVED — verified 2026-08-04) Feature flag status on the dev site.** Confirmed active on `claude-wordpress-integration-novamira` — the REST route `/elementor/v1/global-classes` exists. `ATFRFO_Classes_Reader::is_feature_available()` checks for this route directly, so AFF can always tell "feature disabled" apart from "zero classes" going forward, on any site. (Note: this check originally reported "10 real classes read back" as supporting evidence — that count was later found to be stale/wrong, see C-08 in TECH-DEBT.md and §3.1/§7.3 above. The feature-flag confirmation itself is unaffected; only the class *count* used as an example was wrong.)
 
-**7.8 (RESOLVED — verified 2026-08-04) `get_post_meta()` raw value type.** Confirmed `string` — a JSON-encoded string, as expected, decoded correctly by the `is_string($raw)` branch. `ATFRFO_Classes_Reader::read_from_postmeta()` in Phase 3.1 handles this correctly as built.
+**7.8 (SUPERSEDED 2026-08-06) `get_post_meta()` raw value type.** Originally confirmed `string` (a JSON-encoded string) via the now-removed `read_from_postmeta()` method. Moot — that method and its meta-key read were removed entirely as part of fixing C-08 (TECH-DEBT.md); the primary read path no longer touches post meta at all. Kept here as historical record, not as guidance for current code.
 
 **7.9 (RESOLVED) CSS selector prefix.** `Styles_Renderer` uses `.elementor` as a selector prefix — rendered output is `.elementor .primary-btn { ... }`, not bare. Informational only for Phases 3.1-3.3 (display-only, no CSS rendering by AFF).
 

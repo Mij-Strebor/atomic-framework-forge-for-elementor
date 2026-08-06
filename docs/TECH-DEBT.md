@@ -128,6 +128,53 @@ a mandatory gate in `/push-to-github` (Step 4.5).
 
 ---
 
+### C-08 — `ATFRFO_Classes_Reader` read stale/incomplete data on current Elementor — FIXED
+
+**File:** `includes/class-atfrfo-classes-reader.php`
+
+**Status: FIXED (2026-08-06).** The reader's primary path read the raw
+`_elementor_global_classes` post meta key directly, falling back to Elementor's
+REST API only if that meta was empty. As of Elementor 4.2.1, Global Classes are
+actually stored as individual `Global_Class_Post` posts (see
+`Global_Classes_Repository::all_from_posts()` in Elementor's own source) — the
+old meta key still exists and still returns *something*, but it's stale/legacy
+data that no longer reflects the real class list. Because the fallback logic
+only triggered on an *empty* result, and the stale meta was never empty, the
+reader silently returned wrong, incomplete data with no error and no signal
+anything was wrong.
+
+**Confirmed live on two real sites during Classes Phase 3.1/3.2 testing:** the
+meta read returned 10 items on both; the true counts (verified via Elementor's
+REST API and by calling `Global_Classes_Repository` directly) were 54 and 73.
+Every "confirmed N real classes" result reported during Phase 3.1/3.2
+development and testing was reading this stale data — the sync/merge logic
+itself was correct throughout, but the input to it was wrong the whole time.
+
+**Fix:** rewrote the primary read path to call
+`\Elementor\Modules\GlobalClasses\Global_Classes_Repository` directly, in-process
+— the same class both Elementor's own editor UI and its REST controller use
+internally, so it's exactly as authoritative as REST without the HTTP
+round-trip. Guarded with `class_exists()` so it degrades gracefully to the REST
+fallback on any Elementor version where this class doesn't exist. The raw
+meta-blob read was removed entirely, not just demoted — it cannot be
+distinguished from a genuinely-empty-and-correct result, so it must never be
+part of the trusted fallback chain again. If a future Elementor version
+deprecates `Global_Classes_Repository` too, add a new primary path for
+whatever replaces it; do not resurrect the meta read.
+
+**Bonus finding while fixing this:** the item shape returned by the repository
+directly confirms `docs/AFF-VISION-AND-ROADMAP.md` §7.3 (previously "confirmed
+by direct usage" from Jim's own experience, not source) — a real sample item's
+`font-family` property was `{"$$type": "global-font-variable", "value":
+"e-gv-b95e1d9"}`. Class properties genuinely reference global Variables via
+`$$type: "global-{color|font|size}-variable"` with an `e-gv-` prefixed
+variable ID as the value. Also noted: class IDs are not one fixed format —
+both `g-c42a90c` (short) and `gc-0e2eff4039bbe56f` (long, different prefix)
+exist side by side on the same real site — Phase 3.4's writer must not assume
+a single ID pattern.
+
+---
+
 ## 2. High — Dead Code
 
 ### D-01 — `_patch_panel_right.js` committed to the repo — FIXED
@@ -506,6 +553,7 @@ describes a legacy file that can still be read (backward compat).
 | C-05 | **Critical** | FIXED | Bug | `atfrfo-colors.js`, `atfrfo-panel-top.js` | `.eff.json` generation replaced with `.atfrfo.json` |
 | C-06 | **Critical** | FIXED | Bug | `atfrfo-panel-right.js` | Missing spaces in sync dialog — fixed, likely as part of dialog rewrite |
 | C-07 | **Critical** | FIXED | Bug | `class-atfrfo-ajax-handler.php` | Every AJAX endpoint broken by the rename (register_handlers built `ajax_atfrfo_*`, methods stayed `ajax_aff_*`) — shipped to WP.org undetected, fixed same day in v1.4.1 |
+| C-08 | **Critical** | FIXED | Bug | `class-atfrfo-classes-reader.php` | Reader's primary path read stale legacy post meta (10 items) instead of the real class list (54/73 on two real sites) — fallback never triggered since stale data isn't empty. Rewrote to call Elementor's `Global_Classes_Repository` directly |
 | D-01 | **High** | FIXED | Dead code | `_patch_panel_right.js`, `_patch.ps1` | Both dead patch scripts deleted; found via real Plugin Check "illegal files" flag |
 | D-02 | **High** | FIXED | Dead code | `class-atfrfo-data-store.php` | `list_projects()` v1 removed; v2 renamed to `list_projects` |
 | D-03 | **High** | FIXED | Dead code | `atfrfo-panel-right.js` | `_getFilename()` deleted; stale doc comment fixed (L-08) |
@@ -557,6 +605,13 @@ unrelated Classes work.
 A-09 fixed 2026-08-05 as part of building the `atfrfo_sync_classes` AJAX handler,
 completing Classes Phase 3.1 (data layer). Phase 3.2 (left panel + list view) is
 next per `docs/AFF-VISION-AND-ROADMAP.md`.
+
+C-08 fixed 2026-08-06 — found via real-site testing on staging14.jimrforge.com
+(73 real classes vs. 10 read) after Jim connected a second live test environment.
+Everything built and tested in Phase 3.1/3.2 up to this point was working against
+stale data; re-verified end to end after the fix (dev site now correctly reads
+54, not 10). No UI/data-store logic needed changes — only the reader's data
+source was wrong, not how it was consumed.
 
 C-01 and D-04 are intentional stubs — wire up when the V3 import feature ships.
 
