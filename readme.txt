@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.4.1
+Stable tag:        2.0.0-dev
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,9 +12,9 @@ Professional management interface for Elementor Version 4 (atomic widget archite
 
 == Description ==
 
-Atomic Framework Forge for Elementor (ATFRFO) is a WordPress plugin that provides a professional management interface for Elementor Version 4 (atomic widget architecture) assets.
+Atomic Framework Forge for Elementor (**AFF**) is a WordPress plugin that provides a professional management interface for Elementor Version 4 (atomic widget architecture) assets.
 
-ATFRFO allows developers to organize, edit, and persist the three core asset types introduced by Elementor v4:
+AFF allows developers to organize, edit, and persist the three core asset types introduced by Elementor v4:
 
 * **Variables** — CSS custom properties used by atomic widgets
 * **Classes** — Developer-defined class names applied to atomic widget controls *(in development)*
@@ -22,47 +22,47 @@ ATFRFO allows developers to organize, edit, and persist the three core asset typ
 
 **Requires Elementor and Elementor Pro.**
 
-= How ATFRFO Interacts with Elementor =
+= How AFF Interacts with Elementor =
 
-**Read:** ATFRFO reads global variables directly from the active Elementor kit's _elementor_global_variables post meta -- the same authoritative data store Elementor itself uses. This happens only when you click "Fetch Elementor Data". It is purely read-only; nothing in Elementor is touched.
+**Read:** AFF reads global variables directly from the active Elementor kit's _elementor_global_variables post meta -- the same authoritative data store Elementor itself uses. This happens only when you click "Fetch Elementor Data". It is purely read-only; nothing in Elementor is touched.
 
-**Write:** When you click "Write to Elementor", ATFRFO writes the current variable values back to _elementor_global_variables on the kit post -- the same authoritative data store, updated the same way Elementor itself updates it. This is the primary and authoritative write. As a secondary, best-effort step, ATFRFO also patches the active kit's generated CSS file directly, so the page reflects the change immediately instead of waiting for Elementor's own regeneration on next load; if this secondary step is skipped or fails for any reason, Elementor's own cache-clear and regeneration (triggered by the post meta update) still produces the correct CSS. ATFRFO writes to no other Elementor data.
+**Write:** When you click "Write to Elementor", AFF writes the current variable values back to _elementor_global_variables on the kit post -- the same authoritative data store, updated the same way Elementor itself updates it. This is the primary and authoritative write. As a secondary, best-effort step, AFF also patches the active kit's generated CSS file directly, so the page reflects the change immediately instead of waiting for Elementor's own regeneration on next load; if this secondary step is skipped or fails for any reason, Elementor's own cache-clear and regeneration (triggered by the post meta update) still produces the correct CSS. AFF writes to no other Elementor data.
 
-Every write is user-triggered (no background or automatic writes, ever), preceded by a confirmation dialog showing exactly what will change, and limited to variables you have managed in ATFRFO. ATFRFO does not touch anything else in your Elementor configuration.
+Every write is user-triggered (no background or automatic writes, ever), preceded by a confirmation dialog showing exactly what will change, and limited to variables you have managed in AFF. AFF does not touch anything else in your Elementor configuration.
 
 **Use on staging or a local development environment only.** A corrupted write could damage your Elementor kit's variable data. Always export a project backup before writing to Elementor.
 
 === Key Features ===
 
-* **Full Elementor V4 Variable Management** — ATFRFO reads, classifies, and lets you fully edit every CSS custom property exposed by Elementor V4's atomic widget architecture, organized into Colors, Fonts, and Numbers, with user-defined sub-classifications for each.
+* **Full Elementor V4 Variable Management** — AFF reads, classifies, and lets you fully edit every CSS custom property exposed by Elementor V4's atomic widget architecture, organized into Colors, Fonts, and Numbers, with user-defined sub-classifications for each.
 * **Color Variables** — Visual Pickr color picker (HEX / RGB / HSL + alpha) with live palette refresh; generate up to 10 tints, 10 shades, and 9 transparency variants per color variable.
 * **Font Variables** — Organize and edit font-related CSS custom properties by classification.
 * **Number Variables** — Full control over spacing, sizing, and other numeric variables, with unit-aware editing (px, rem, em, %, vw, vh, ch, and function mode).
-* **Light / Dark Mode** — ATFRFO's own interface supports both, as a per-user preference persisted to WordPress usermeta.
-* **V3 → V4 Color Migration** — Import all Elementor V3 Global Colors (system and custom) into ATFRFO with a single click. The four Elementor system colors (Primary, Secondary, Text, Accent) are automatically annotated with their standard usage roles so you never lose track of what each color controls. Use ATFRFO to map V3 colors to their V4 equivalents side-by-side as you rebuild pages.
+* **Light / Dark Mode** — AFF's own interface supports both, as a per-user preference persisted to WordPress usermeta.
+* **V3 → V4 Color Migration** — Import all Elementor V3 Global Colors (system and custom) into AFF with a single click. The four Elementor system colors (Primary, Secondary, Text, Accent) are automatically annotated with their standard usage roles so you never lose track of what each color controls. Use AFF to map V3 colors to their V4 equivalents side-by-side as you rebuild pages.
 * **Sync from Elementor V4** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
 * **Commit to Elementor V4** — Write modified variable values back to the active kit CSS. Commit summary shows modified / new / deleted counts before writing.
 * **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
 * **Multi-project support** — Multiple independent named projects per WordPress site.
-* **Export / Import** — Download the current project as a portable `.atfrfo.json` file; import on any WordPress site running ATFRFO.
+* **Export / Import** — Download the current project as a portable `.atfrfo.json` file; import on any WordPress site running AFF.
 * **Four-panel interface** — Top menu bar, collapsible left navigation tree, center edit space, right data management panel.
 
 === Architecture ===
 
-ATFRFO is built for future portability. The data layer contains no WordPress dependencies and is designed to be ported to a standalone Windows or Mac application in a future phase.
+AFF is built for future portability. The data layer contains no WordPress dependencies and is designed to be ported to a standalone Windows or Mac application in a future phase.
 
 == Installation ==
 
 1. Upload the plugin folder to `/wp-content/plugins/`
 2. Ensure **Elementor** and **Elementor Pro** are installed and active
 3. Activate the plugin through the 'Plugins' screen in WordPress
-4. Navigate to **ATFRFO** in the WordPress admin sidebar
+4. Navigate to **AFF** in the WordPress admin sidebar
 
 == Frequently Asked Questions ==
 
-= Does ATFRFO modify my Elementor CSS files? =
+= Does AFF modify my Elementor CSS files? =
 
-Not by default. ATFRFO is read-first and non-destructive — it reads your Elementor kit CSS but never modifies it unless you explicitly click **↑ Variables** (Commit to Elementor) in the right panel. A summary dialog shows exactly what will be written before you confirm.
+Not by default. AFF is read-first and non-destructive — it reads your Elementor kit CSS but never modifies it unless you explicitly click **↑ Variables** (Commit to Elementor) in the right panel. A summary dialog shows exactly what will be written before you confirm.
 
 = Where are .atfrfo.json files stored? =
 

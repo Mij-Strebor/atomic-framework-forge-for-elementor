@@ -19,6 +19,7 @@
 8. Elementor's Likely Direction (flagged speculation)
 9. Roadmap Summary
 10. Next Steps
+11. Branching & Release Strategy
 
 ---
 
@@ -375,3 +376,16 @@ Everything in this section is inference from confirmed facts about the current s
 5. Ship first WordPress release at the end of 3.3.
 6. Stop and reassess before starting Phase 3.4 — first phase with real Elementor writes. Go slow and careful from here.
 7. Retire `docs/CLASSES-PLAN.md` once this document has been reviewed and confirmed as the sole source of truth for Classes planning.
+
+---
+
+## 11. Branching & Release Strategy
+
+**Decided 2026-08-05.** Two permanent, parallel lines, not one branch trying to serve both:
+
+- **`master` — the 1.4.x maintenance line.** Every emergency or routine bug fix lands here directly and ships as its own patch release (1.4.1, 1.4.2, ...) on whatever schedule the fix needs, completely independent of Classes progress. This is how the AJAX-wiring critical fix (v1.4.1) and the ATFRFO→AFF terminology/dialog-width/false-claim fixes were handled, and is now the standing pattern, not a one-off.
+- **`develop` — the 2.0.0 line.** Persists across all of Classes' phases (3.1 through 3.5) and eventually Components, rather than a new branch per phase (the original `feature/classes-phase-3.1` branch was renamed into this on 2026-08-05 once it became clear the single-phase branch name didn't fit a persistent line). Regularly merges **from** `master` to absorb 1.4.x fixes — `master` never merges from `develop` until 2.0.0 is actually ready to ship.
+
+**Version number:** `develop` runs `2.0.0-dev` in the plugin header/constant/readme — never a bare `2.0.0` while in progress, and never `master`'s 1.4.x number (that was the actual confusion this decision resolves). The `-dev` suffix means this can never be mistaken for a real release and never requires a formal WP.org/GitHub prerelease publish just because development is ongoing. Bump to a real `2.0.0-alpha.1`-style tag once there's something demo-able beyond internal testing, and to a bare `2.0.0` only at actual ship time (end of Phase 3.3 per §9/§10 — no Elementor writes in that first release).
+
+**Why this over a single branch or a single version line:** the alternative — doing everything on one branch/version — is exactly what produced the confusion this decision responds to: a bug fix either has to wait behind unfinished Classes work, or Classes work has to be rushed out alongside an unrelated hotfix. Two independent lines mean neither blocks the other.

@@ -7,6 +7,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.0-dev] — in progress on `develop`
+
+Classes management (Elementor V4 Global Classes). Not yet released. Tracked separately
+from the `[Unreleased]` section below, which holds 1.4.x maintenance fixes that ship
+independently on `master` — see `docs/AFF-VISION-AND-ROADMAP.md` for the full plan and
+phased roadmap.
+
+### Added
+
+- **Classes Phase 3.1 (data layer)** — `ATFRFO_Classes_Reader` (reads Elementor V4 Global Classes via post meta, REST fallback), Classes CRUD and non-destructive sync merge in the data store, `atfrfo_get_classes`/`atfrfo_sync_classes` AJAX endpoints.
+- **Classes Phase 3.2 (list view UI)** — Left-panel category tree with counts, read-only list view per category, Sync Classes action. Guarantees a locked "Uncategorized" category the same way Colors/Fonts/Numbers do.
+- **Version** — Bumped to 2.0.0-dev on this branch only; `master` remains on the 1.4.x line. See the branching note in `docs/AFF-VISION-AND-ROADMAP.md`.
+
+---
+
 ## [Unreleased]
 
 ### Fixed
