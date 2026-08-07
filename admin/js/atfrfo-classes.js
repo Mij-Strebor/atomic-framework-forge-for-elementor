@@ -300,9 +300,9 @@
 				+ ATFRFO.Icons.sortBtnSVG(_ns)
 				+ '</button>'
 				+ '</span>' // col3: name sort
-				+ '<span></span>' // col4: has-styles flag
-				+ '<span></span>' // col5: comment
-				+ '<span></span>' // col6: expand
+				+ '<span></span>' // col4: styles button
+				+ '<span class="atfrfo-class-categories-header">Categories</span>' // col5: style categories
+				+ '<span></span>' // col6: comment
 				+ '</div>';
 
 			html += '<div class="atfrfo-color-list atfrfo-class-list">';
@@ -334,10 +334,16 @@
 		 * @returns {string}
 		 */
 		_buildClassRow: function (cls) {
-			var meta       = ATFRFO.Classes._statusMeta(cls.status);
-			var styleLabel = cls.has_styles ? 'has styles' : 'no styles';
-			var styleTip   = cls.has_styles
-				? 'This class has one or more style properties set in Elementor.'
+			var meta = ATFRFO.Classes._statusMeta(cls.status);
+
+			// Styles button doubles as the "open detail card" trigger — see
+			// item 4 of the 2026-08-06 UX pass. Disabled (not just styled
+			// grey) when there are no properties, since there's nothing for
+			// the card to show; the browser blocks the click natively so no
+			// extra JS guard is needed.
+			var stylesLabel = cls.has_styles ? 'View Styles' : 'No Styles';
+			var stylesTip   = cls.has_styles
+				? 'View this class’s style properties by breakpoint and state'
 				: 'This class exists but has no style properties set yet.';
 
 			return '<div class="atfrfo-color-row atfrfo-class-row" data-class-id="' + ATFRFO.Utils.escAttr(cls.id) + '">'
@@ -357,10 +363,14 @@
 				+ ' aria-label="Class name"'
 				+ ' data-atfrfo-tooltip="Class name — click to edit (AFF-local; reverts on next sync)"'
 				+ ' spellcheck="false">'
-				+ '<span class="atfrfo-class-styles-flag" data-has-styles="' + (cls.has_styles ? 'true' : 'false') + '"'
-				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(styleTip) + '">'
-				+ ATFRFO.Utils.escHtml(styleLabel)
-				+ '</span>'
+				+ '<button type="button" class="atfrfo-class-styles-btn" data-action="expand-class"'
+				+ ' data-class-id="' + ATFRFO.Utils.escAttr(cls.id) + '"'
+				+ (cls.has_styles ? '' : ' disabled')
+				+ ' aria-label="' + ATFRFO.Utils.escAttr(stylesLabel) + '"'
+				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(stylesTip) + '">'
+				+ ATFRFO.Utils.escHtml(stylesLabel)
+				+ '</button>'
+				+ ATFRFO.Classes._buildCategoriesCell(cls)
 				+ '<input type="text" class="atfrfo-class-notes-input"'
 				+ ' value="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
 				+ ' data-original="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
@@ -369,15 +379,29 @@
 				+ ' aria-label="Class comment"'
 				+ ' data-atfrfo-tooltip="Comment — click to edit"'
 				+ ' spellcheck="false">'
-				+ '<button class="atfrfo-icon-btn atfrfo-class-expand-btn"'
-				+ ' data-action="expand-class"'
-				+ ' data-class-id="' + ATFRFO.Utils.escAttr(cls.id) + '"'
-				+ ' aria-label="View class details"'
-				+ ' data-atfrfo-tooltip="View class details"'
-				+ ' data-atfrfo-tooltip-long="Open a read-only card showing this class’s style properties by breakpoint and state">'
-				+ ATFRFO.Icons.chevronSVG()
-				+ '</button>'
 				+ '</div>';
+		},
+
+		/**
+		 * Build the "Style Categories" cell: which Elementor style-panel
+		 * sections (Layout, Spacing, Size, Position, Typography, Background,
+		 * Border, Effects, Custom CSS) this class actually sets properties
+		 * in. Computed server-side (class-atfrfo-classes-reader.php
+		 * get_style_categories(), sourced directly from Elementor's own
+		 * compiled editor bundle — see that method's docblock) and persisted
+		 * on `cls.style_categories` during sync. Text truncates naturally via
+		 * CSS ellipsis when there isn't room for the full list; the tooltip
+		 * always shows the complete list.
+		 *
+		 * @param {Object} cls
+		 * @returns {string}
+		 */
+		_buildCategoriesCell: function (cls) {
+			var cats = Array.isArray(cls.style_categories) ? cls.style_categories : [];
+			var text = cats.join(', ');
+			return '<span class="atfrfo-class-categories"'
+				+ (text ? ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(text) + '"' : '')
+				+ '>' + (text ? ATFRFO.Utils.escHtml(text) : '') + '</span>';
 		},
 
 		/**
@@ -395,6 +419,21 @@
 				'orphaned':    { color: 'var(--atfrfo-status-new)',      label: 'Orphaned' },
 			};
 			return map[status] || map.synced;
+		},
+
+		/**
+		 * Format an ISO 8601 UTC timestamp (PHP gmdate('c'), e.g.
+		 * "2026-08-06T22:15:21+00:00") as HH:MM:SS in the browser's local
+		 * timezone — the full ISO string with a UTC offset was noise for a
+		 * value that's only ever "how long ago was this."
+		 *
+		 * @param {string} iso
+		 * @returns {string}
+		 */
+		_formatLocalTime: function (iso) {
+			var d = new Date(iso);
+			if (isNaN(d.getTime())) { return iso; }
+			return d.toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 		},
 
 		// -------------------------------------------------------------------
@@ -426,7 +465,7 @@
 				+ '<span class="atfrfo-status-dot" style="background:' + meta.color + ';display:inline-block;margin-right:6px;vertical-align:middle"></span>'
 				+ ATFRFO.Utils.escHtml(meta.label) + '</span></div>'
 				+ '<div><span class="atfrfo-class-card-label">Comment</span><span class="atfrfo-class-card-value">' + ATFRFO.Utils.escHtml(cls.notes || '—') + '</span></div>'
-				+ (cls.last_synced_at ? '<div><span class="atfrfo-class-card-label">Last synced</span><span class="atfrfo-class-card-value">' + ATFRFO.Utils.escHtml(cls.last_synced_at) + '</span></div>' : '')
+				+ (cls.last_synced_at ? '<div><span class="atfrfo-class-card-label">Last synced</span><span class="atfrfo-class-card-value">' + ATFRFO.Utils.escHtml(ATFRFO.Classes._formatLocalTime(cls.last_synced_at)) + '</span></div>' : '')
 				+ '</div>'; // .atfrfo-class-card-meta
 
 			body += '<div class="atfrfo-class-card-props">';

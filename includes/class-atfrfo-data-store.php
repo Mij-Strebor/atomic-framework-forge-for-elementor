@@ -801,29 +801,35 @@ class ATFRFO_Data_Store {
 				? $stub['raw']['variants']
 				: array();
 
+			$style_categories = isset( $stub['style_categories'] ) && is_array( $stub['style_categories'] )
+				? $stub['style_categories']
+				: array();
+
 			$existing = $this->find_class_by_elementor_id( $elementor_id );
 			if ( $existing ) {
 				$this->update_class(
 					$existing['id'],
 					array(
-						'label'          => $stub['label'] ?? $existing['label'],
-						'has_styles'     => $stub['has_styles'] ?? $existing['has_styles'],
-						'variants'       => $variants,
-						'status'         => 'synced',
-						'last_synced_at' => $now,
+						'label'            => $stub['label'] ?? $existing['label'],
+						'has_styles'       => $stub['has_styles'] ?? $existing['has_styles'],
+						'variants'         => $variants,
+						'style_categories' => $style_categories,
+						'status'           => 'synced',
+						'last_synced_at'   => $now,
 					)
 				);
 				++$updated;
 			} else {
 				$this->add_class(
 					array(
-						'elementor_id'   => $elementor_id,
-						'label'          => $stub['label'] ?? '',
-						'has_styles'     => $stub['has_styles'] ?? false,
-						'variants'       => $variants,
-						'source'         => 'elementor-fetched',
-						'status'         => 'synced',
-						'last_synced_at' => $now,
+						'elementor_id'     => $elementor_id,
+						'label'            => $stub['label'] ?? '',
+						'has_styles'       => $stub['has_styles'] ?? false,
+						'variants'         => $variants,
+						'style_categories' => $style_categories,
+						'source'           => 'elementor-fetched',
+						'status'           => 'synced',
+						'last_synced_at'   => $now,
 					)
 				);
 				++$added;
@@ -1229,6 +1235,7 @@ class ATFRFO_Data_Store {
 			'order'          => 0,
 			'has_styles'     => false,
 			'variants'       => array(),
+			'style_categories' => array(),
 			'notes'          => '',
 			'created_at'     => '',
 			'updated_at'     => '',

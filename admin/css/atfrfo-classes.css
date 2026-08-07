@@ -5,8 +5,8 @@
  * / .atfrfo-color-list-header shell used by Colors/Fonts/Numbers (see
  * atfrfo-colors.css / atfrfo-variables.css) — this file overrides what
  * genuinely differs: the row's column layout (Classes has 6 columns — drag,
- * status, name, has-styles flag, comment, expand — vs. Colors' 9 or Numbers'
- * 8) and a handful of Classes-specific row elements.
+ * status, name, styles button, style categories, comment — vs. Colors' 9 or
+ * Numbers' 8) and a handful of Classes-specific row elements.
  *
  * All grid-template-columns rules here are scoped under .atfrfo-classes-view
  * to guarantee they win over the shared .atfrfo-color-row base rule in
@@ -20,7 +20,7 @@
 
 .atfrfo-classes-view .atfrfo-color-list-header,
 .atfrfo-classes-view .atfrfo-color-row {
-	grid-template-columns: 24px 8px 240px 100px 1fr 28px;
+	grid-template-columns: 24px 8px 240px 110px minmax(140px, 240px) 1fr;
 	column-gap: 10px;
 }
 
@@ -47,15 +47,51 @@
 	outline: none;
 }
 
-.atfrfo-class-styles-flag {
-	font-size:   var(--fs-xs, 0.75rem);
-	color:       var(--atfrfo-clr-muted);
-	text-align:  right;
-	white-space: nowrap;
+/* Styles button — doubles as the "open detail card" trigger. Active
+   (has_styles) uses the same green as the "Variable" prop badge; disabled
+   (no styles) is greyed via the native :disabled state, not just color, so
+   it reads as genuinely non-interactive, not just visually muted. */
+.atfrfo-class-styles-btn {
+	width:          100%;
+	padding:        3px var(--sp-2);
+	border:         none;
+	border-radius:  var(--radius-sm, 4px);
+	font-size:      var(--fs-xs, 0.75rem);
+	font-weight:    600;
+	white-space:    nowrap;
+	background:     var(--atfrfo-status-synced, #2e7d32);
+	color:          #fff;
+	cursor:         pointer;
 }
 
-.atfrfo-class-styles-flag[data-has-styles="true"] {
-	color: var(--atfrfo-clr-text);
+.atfrfo-class-styles-btn:hover:not(:disabled) {
+	filter: brightness(1.1);
+}
+
+.atfrfo-class-styles-btn:disabled {
+	background: var(--atfrfo-clr-bg-subtle, var(--atfrfo-clr-bg-hover));
+	color:      var(--atfrfo-clr-muted);
+	cursor:     default;
+}
+
+/* Style categories — which Elementor style-panel sections (Layout, Spacing,
+   Size, Position, Typography, Background, Border, Effects, Custom CSS) this
+   class sets properties in. Truncates with an ellipsis when the list is
+   wider than the column; the tooltip always has the full list. */
+.atfrfo-class-categories-header {
+	font-size:      var(--fs-xs, 0.75rem);
+	color:          var(--atfrfo-clr-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.atfrfo-class-categories {
+	display:       block;
+	font-size:     var(--fs-xs, 0.75rem);
+	color:         var(--atfrfo-clr-muted);
+	white-space:   nowrap;
+	overflow:      hidden;
+	text-overflow: ellipsis;
 }
 
 /* Comment — matches .atfrfo-var-notes-input (Numbers/Fonts) exactly. */
@@ -207,11 +243,12 @@
 @media (max-width: 900px) {
 	.atfrfo-classes-view .atfrfo-color-list-header,
 	.atfrfo-classes-view .atfrfo-color-row {
-		grid-template-columns: 24px 8px 1fr 0 26% 28px;
+		grid-template-columns: 24px 8px 1fr 80px 0 26%;
 		column-gap: 6px;
 	}
 
-	.atfrfo-classes-view .atfrfo-class-styles-flag {
+	.atfrfo-classes-view .atfrfo-class-categories,
+	.atfrfo-classes-view .atfrfo-class-categories-header {
 		visibility: hidden;
 		overflow:   hidden;
 	}

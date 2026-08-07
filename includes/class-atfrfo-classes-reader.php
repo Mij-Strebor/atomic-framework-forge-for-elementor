@@ -200,14 +200,151 @@ class ATFRFO_Classes_Reader {
 			}
 
 			$result[] = array(
-				'elementor_id' => (string) ( $item['id'] ?? $id ),
-				'label'        => (string) ( $item['label'] ?? '' ),
-				'has_styles'   => count( $variants ) > 0,
-				'raw'          => $item,
+				'elementor_id'     => (string) ( $item['id'] ?? $id ),
+				'label'            => (string) ( $item['label'] ?? '' ),
+				'has_styles'       => count( $variants ) > 0,
+				'style_categories' => $this->get_style_categories( $item['variants'] ?? $variants ),
+				'raw'              => $item,
 			);
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Maps a CSS property key (as it appears in a class variant's `props`
+	 * object) to Elementor's own editor-panel section label — the same
+	 * groupings ("Layout", "Spacing", "Size", "Position", "Typography",
+	 * "Background", "Border", "Effects") shown as tabs in the style panel.
+	 *
+	 * SOURCED, NOT GUESSED — extracted 2026-08-07 directly from Elementor's
+	 * own compiled editor bundle (assets/js/packages/editor-editing-panel/
+	 * editor-editing-panel.js, non-minified), by reading each style-section
+	 * field component's `bind: "prop-key"` prop, e.g. z-index-field.tsx
+	 * contains `StylesField, { bind: "z-index" }` inside
+	 * .../style-sections/position-section/z-index-field.tsx — the directory
+	 * name IS the section. This is Elementor's own source of truth, not an
+	 * inference from CSS semantics (e.g. "z-index" living under "Position"
+	 * rather than a hypothetical "Layer" section is Elementor's own product
+	 * decision, confirmed this way, not assumed from general CSS knowledge).
+	 *
+	 * Coverage caveat: border-radius's four individual corner sub-controls
+	 * bind to compound keys assembled from a template literal in the source
+	 * (not a plain string), so they could not be extracted with the same
+	 * confidence as the rest of this table — all border-radius props are
+	 * bucketed under 'border' without distinguishing corners, which is fine
+	 * for AFF's purposes (this table answers "which section," not "which
+	 * exact control"). If Elementor's bundle changes on a future update,
+	 * this table needs re-extracting the same way, not hand-edited from memory.
+	 *
+	 * @var array<string,string>
+	 */
+	private const PROP_CATEGORY_MAP = array(
+		// Background
+		'background'         => 'Background',
+		// Border
+		'border-color'       => 'Border',
+		'border-style'       => 'Border',
+		'border-width'       => 'Border',
+		'border-radius'      => 'Border',
+		// Effects
+		'backdrop-filter'    => 'Effects',
+		'box-shadow'         => 'Effects',
+		'filter'             => 'Effects',
+		'mix-blend-mode'     => 'Effects',
+		'opacity'            => 'Effects',
+		'transform'          => 'Effects',
+		'transition'         => 'Effects',
+		// Layout
+		'align-content'      => 'Layout',
+		'align-items'        => 'Layout',
+		'align-self'         => 'Layout',
+		'display'            => 'Layout',
+		'flex'               => 'Layout',
+		'flex-direction'     => 'Layout',
+		'flex-wrap'          => 'Layout',
+		'flex-basis'         => 'Layout',
+		'flex-grow'          => 'Layout',
+		'flex-shrink'        => 'Layout',
+		'gap'                => 'Layout',
+		'grid-auto-columns'  => 'Layout',
+		'grid-auto-flow'     => 'Layout',
+		'grid-auto-rows'     => 'Layout',
+		'justify-content'    => 'Layout',
+		'justify-items'      => 'Layout',
+		'order'              => 'Layout',
+		// Position
+		'position'           => 'Position',
+		'scroll-margin-top'  => 'Position',
+		'z-index'            => 'Position',
+		'inset-block-start'  => 'Position',
+		'inset-block-end'    => 'Position',
+		'inset-inline-start' => 'Position',
+		'inset-inline-end'   => 'Position',
+		// Size
+		'aspect-ratio'       => 'Size',
+		'height'             => 'Size',
+		'max-height'         => 'Size',
+		'max-width'          => 'Size',
+		'min-height'         => 'Size',
+		'min-width'          => 'Size',
+		'object-fit'         => 'Size',
+		'object-position'    => 'Size',
+		'overflow'           => 'Size',
+		'width'              => 'Size',
+		// Spacing
+		'margin'             => 'Spacing',
+		'padding'            => 'Spacing',
+		// Typography
+		'color'              => 'Typography',
+		'column-count'       => 'Typography',
+		'column-gap'         => 'Typography',
+		'direction'          => 'Typography',
+		'font-family'        => 'Typography',
+		'font-size'          => 'Typography',
+		'font-style'         => 'Typography',
+		'font-weight'        => 'Typography',
+		'letter-spacing'     => 'Typography',
+		'line-height'        => 'Typography',
+		'text-align'         => 'Typography',
+		'text-decoration'    => 'Typography',
+		'text-transform'     => 'Typography',
+		'word-spacing'       => 'Typography',
+	);
+
+	/**
+	 * Determine which Elementor style-panel sections a class actually uses,
+	 * by mapping every prop key across all of its variants (all breakpoints/
+	 * states) through PROP_CATEGORY_MAP, plus 'Custom CSS' if any variant
+	 * has a non-empty custom_css.raw. Order matches Jim's stated category
+	 * order, not alphabetical or discovery order.
+	 *
+	 * An unrecognized prop key is silently skipped rather than guessed —
+	 * PROP_CATEGORY_MAP is deliberately not exhaustive of every Elementor
+	 * control that could ever exist, only what was confirmed in the bundle
+	 * read above.
+	 *
+	 * @param array $variants A class's `variants` array.
+	 * @return string[] Category labels, in Jim's preferred display order.
+	 */
+	private function get_style_categories( array $variants ): array {
+		$found = array();
+		$order = array( 'Layout', 'Spacing', 'Size', 'Position', 'Typography', 'Background', 'Border', 'Effects', 'Custom CSS' );
+
+		foreach ( $variants as $variant ) {
+			if ( isset( $variant['props'] ) && is_array( $variant['props'] ) ) {
+				foreach ( array_keys( $variant['props'] ) as $prop_key ) {
+					if ( isset( self::PROP_CATEGORY_MAP[ $prop_key ] ) ) {
+						$found[ self::PROP_CATEGORY_MAP[ $prop_key ] ] = true;
+					}
+				}
+			}
+			if ( ! empty( $variant['custom_css']['raw'] ) ) {
+				$found['Custom CSS'] = true;
+			}
+		}
+
+		return array_values( array_intersect( $order, array_keys( $found ) ) );
 	}
 
 	/**
