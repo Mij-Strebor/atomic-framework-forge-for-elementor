@@ -47,6 +47,7 @@ class ATFRFO_Ajax_Handler {
 			'atfrfo_sync_classes',
 			'atfrfo_update_class',
 			'atfrfo_get_class_usage',
+			'atfrfo_delete_class_from_elementor',
 			// Phase 2 — Colors endpoints
 			'atfrfo_save_category',
 			'atfrfo_delete_category',
@@ -735,6 +736,93 @@ class ATFRFO_Ajax_Handler {
 
 		$reader = new ATFRFO_Classes_Reader();
 		wp_send_json_success( array( 'usage' => $reader->get_usage_map() ) );
+	}
+
+	/**
+	 * Delete a Global Class from Elementor itself — not just AFF's local
+	 * copy. Intentional write-back exception (see ATFRFO CLAUDE.md Critical
+	 * Rule #1) — the classes reader stays read-only; this lives here.
+	 *
+	 * Confirmed safe to delete a class that is currently applied to
+	 * elements (2026-08-08, read Elementor's own source): deleting via the
+	 * proper Global_Classes_Repository::apply_changes() path fires
+	 * `elementor/global_classes/cleanup`, which Elementor's own
+	 * Global_Classes_Cleanup listener uses to walk every affected
+	 * page/post and strip the deleted class ID from every element's
+	 * `classes` prop — the same automatic cleanup Elementor's own editor
+	 * relies on when a user deletes a class there. It is not reversible
+	 * (undoing does not restore the class to the elements it was stripped
+	 * from), but it does not corrupt or orphan anything.
+	 *
+	 * Deletion only needs the target ID and the resulting order —
+	 * Global_Classes_Repository::persist_class_batch_mutations() ignores
+	 * $touched_items entirely for deletions (confirmed by reading it), so
+	 * this does not need to resend every other class's full data.
+	 *
+	 * POST params: filename, elementor_id (Elementor's class ID, e.g. 'gc-...')
+	 */
+	// Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
+	public function ajax_atfrfo_delete_class_from_elementor(): void {
+		$this->verify_request();
+
+		$elementor_id = $this->post_param( 'elementor_id' );
+		if ( empty( $elementor_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Elementor class ID is required.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		if ( ! class_exists( '\Elementor\Modules\GlobalClasses\Global_Classes_Repository' ) || ! class_exists( '\Elementor\Plugin' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Elementor Global Classes are not available on this site.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$kit = \Elementor\Plugin::$instance->kits_manager->get_active_kit();
+		if ( ! $kit ) {
+			wp_send_json_error( array( 'message' => __( 'No active Elementor kit found.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		try {
+			$repo    = new \Elementor\Modules\GlobalClasses\Global_Classes_Repository( $kit );
+			$order   = $repo->get_order();
+			$new_order = array_values(
+				array_filter(
+					$order,
+					static function ( $id ) use ( $elementor_id ) {
+						return $id !== $elementor_id;
+					}
+				)
+			);
+
+			if ( count( $new_order ) === count( $order ) ) {
+				wp_send_json_error( array( 'message' => __( 'That class was not found in Elementor — it may already have been deleted.', 'atomic-framework-forge-for-elementor' ) ) );
+			}
+
+			$repo->apply_changes(
+				array(),
+				array(
+					'added'    => array(),
+					'deleted'  => array( $elementor_id ),
+					'modified' => array(),
+					'order'    => true,
+				),
+				$new_order
+			);
+		} catch ( \Throwable $e ) {
+			wp_send_json_error( array( 'message' => __( 'Elementor rejected the delete: ', 'atomic-framework-forge-for-elementor' ) . $e->getMessage() ) );
+		}
+
+		// Mirror the deletion into AFF's own store so the class disappears
+		// from the Classes list without waiting for the next sync.
+		$this->with_store(
+			function ( ATFRFO_Data_Store $store ) use ( $elementor_id ): array {
+				$existing = $store->find_class_by_elementor_id( $elementor_id );
+				if ( $existing ) {
+					$store->delete_class( $existing['id'] );
+				}
+				return array(
+					'classes' => $store->get_classes(),
+					'message' => __( 'Class deleted from Elementor.', 'atomic-framework-forge-for-elementor' ),
+				);
+			}
+		);
 	}
 
 	/**

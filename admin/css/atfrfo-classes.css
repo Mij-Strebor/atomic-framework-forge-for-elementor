@@ -4,11 +4,12 @@
  * Classes render inside the same .atfrfo-category-block / .atfrfo-category-header
  * / .atfrfo-color-list-header shell used by Colors/Fonts/Numbers (see
  * atfrfo-colors.css / atfrfo-variables.css) — this file overrides what
- * genuinely differs: the row's column layout (Classes has 6 columns — drag,
- * status, name, comment, style categories, styles button — vs. Colors' 9 or
- * Numbers' 8) and a handful of Classes-specific row elements. No column
- * header text labels, matching Colors/Fonts/Numbers (see .atfrfo-color-
- * list-header usage there — icon-only / empty column headers throughout).
+ * genuinely differs: the row's column layout (Classes has 7 columns — drag,
+ * status, name, comment, style categories, styles button, delete — vs.
+ * Colors' 9 or Numbers' 8) and a handful of Classes-specific row elements.
+ * No column header text labels, matching Colors/Fonts/Numbers (see
+ * .atfrfo-color-list-header usage there — icon-only / empty column headers
+ * throughout).
  *
  * All grid-template-columns rules here are scoped under .atfrfo-classes-view
  * to guarantee they win over the shared .atfrfo-color-row base rule in
@@ -22,8 +23,16 @@
 
 .atfrfo-classes-view .atfrfo-color-list-header,
 .atfrfo-classes-view .atfrfo-color-row {
-	grid-template-columns: 24px 8px 240px 600px 1fr 110px;
+	grid-template-columns: 24px 8px 240px 600px 1fr 110px 28px;
 	column-gap: 10px;
+}
+
+.atfrfo-class-delete-btn {
+	opacity: 0;
+}
+
+.atfrfo-class-row:hover .atfrfo-class-delete-btn {
+	opacity: 1;
 }
 
 /* Name — matches .atfrfo-var-name-input (Numbers/Fonts) exactly: same
@@ -321,7 +330,7 @@
 @media (max-width: 900px) {
 	.atfrfo-classes-view .atfrfo-color-list-header,
 	.atfrfo-classes-view .atfrfo-color-row {
-		grid-template-columns: 24px 8px 1fr 26% 0 80px;
+		grid-template-columns: 24px 8px 1fr 26% 0 80px 28px;
 		column-gap: 6px;
 	}
 

@@ -300,9 +300,10 @@
 				+ ATFRFO.Icons.sortBtnSVG(_ns)
 				+ '</button>'
 				+ '</span>' // col3: name sort
-				+ '<span></span>' // col4: styles button
-				+ '<span></span>' // col5: comment
-				+ '<span></span>' // col6: style categories
+				+ '<span></span>' // col4: comment
+				+ '<span></span>' // col5: style categories
+				+ '<span></span>' // col6: styles button
+				+ '<span></span>' // col7: delete
 				+ '</div>';
 
 			html += '<div class="atfrfo-color-list atfrfo-class-list">';
@@ -379,6 +380,11 @@
 				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(stylesTip) + '">'
 				+ ATFRFO.Utils.escHtml(stylesLabel)
 				+ '</button>'
+				+ '<button type="button" class="atfrfo-icon-btn atfrfo-class-delete-btn" data-action="delete-class"'
+				+ ' data-class-id="' + ATFRFO.Utils.escAttr(cls.id) + '"'
+				+ ' aria-label="Delete class"'
+				+ ' data-atfrfo-tooltip="Delete class"'
+				+ ' data-atfrfo-tooltip-long="Delete this class from Elementor entirely — not just from AFF">&#x1F5D1;</button>'
 				+ '</div>';
 		},
 
@@ -524,24 +530,32 @@
 		 * @param {string} elementorId The class's Elementor ID (cls.elementor_id).
 		 */
 		_loadUsageIntoCard: function (elementorId) {
-			var render = function () {
+			ATFRFO.Classes._fetchUsageMap().then(function (map) {
 				var section = document.getElementById('atfrfo-class-usage-section');
-				if (!section) { return; }
-				var entry = (ATFRFO.state.classUsageMap && ATFRFO.state.classUsageMap[elementorId]) || null;
-				section.innerHTML = ATFRFO.Classes._renderUsageSection(entry);
-			};
-
-			if (ATFRFO.state.classUsageMap) { render(); return; }
-
-			ATFRFO.App.ajax('atfrfo_get_class_usage', {}).then(function (res) {
-				ATFRFO.state.classUsageMap = (res.success && res.data) ? (res.data.usage || {}) : {};
-				render();
+				if (!section) { return; } // card closed before the fetch resolved
+				section.innerHTML = ATFRFO.Classes._renderUsageSection(map[elementorId] || null);
 			}).catch(function () {
 				var section = document.getElementById('atfrfo-class-usage-section');
 				if (section) {
 					section.innerHTML = '<span class="atfrfo-class-card-label">Usage</span>'
 						+ '<p class="atfrfo-class-variant-empty">Could not load usage data.</p>';
 				}
+			});
+		},
+
+		/**
+		 * Fetch the site-wide class usage map once per session and cache it
+		 * in ATFRFO.state.classUsageMap. Shared by the detail card and the
+		 * delete-confirmation flow, both of which need an accurate count
+		 * before showing anything to the user.
+		 *
+		 * @returns {Promise<Object>}
+		 */
+		_fetchUsageMap: function () {
+			if (ATFRFO.state.classUsageMap) { return Promise.resolve(ATFRFO.state.classUsageMap); }
+			return ATFRFO.App.ajax('atfrfo_get_class_usage', {}).then(function (res) {
+				ATFRFO.state.classUsageMap = (res.success && res.data) ? (res.data.usage || {}) : {};
+				return ATFRFO.state.classUsageMap;
 			});
 		},
 
@@ -580,6 +594,88 @@
 
 			html += '</div>';
 			return html;
+		},
+
+		/**
+		 * Delete a class from Elementor itself (not just AFF) after
+		 * confirmation. Fetches current usage first so the confirmation
+		 * shows an accurate count — deleting a used class is allowed
+		 * (Elementor auto-strips it from every element that had it applied;
+		 * confirmed via source, see ajax_atfrfo_delete_class_from_elementor()
+		 * docblock in class-atfrfo-ajax-handler.php) but the user should see
+		 * the real number before doing it, not guess.
+		 *
+		 * @param {string} classId AFF UUID (cls.id, not cls.elementor_id).
+		 */
+		_deleteClassFromElementor: function (classId) {
+			var self = this;
+			var cls = ATFRFO.Utils.findClassById(classId);
+			if (!cls) { return; }
+			if (!ATFRFO.state.currentFile) { self._noFileModal(); return; }
+
+			ATFRFO.Classes._fetchUsageMap().then(function (map) {
+				var entry = map[cls.elementor_id] || null;
+				var label = ATFRFO.Utils.escHtml(cls.label || 'this class');
+
+				var bodyText = '<p>Delete <strong>' + label + '</strong> from Elementor?</p>';
+				if (entry && entry.total) {
+					bodyText += '<p style="margin-top:var(--sp-2);color:var(--atfrfo-status-modified,#b26a00)">'
+						+ 'Currently used on <strong>' + entry.total + ' element' + (entry.total === 1 ? '' : 's') + '</strong> across '
+						+ entry.pages.length + ' page' + (entry.pages.length === 1 ? '' : 's') + '. '
+						+ 'Elementor will automatically remove this class from every one of them — they will lose whatever '
+						+ 'this class was styling, but nothing will break or go undefined.</p>';
+				} else {
+					bodyText += '<p style="margin-top:var(--sp-2);color:var(--atfrfo-clr-muted)">Not currently used anywhere on the site.</p>';
+				}
+				bodyText += '<p style="margin-top:var(--sp-2);font-size:12px;color:var(--atfrfo-clr-muted)">'
+					+ 'This deletes the class from Elementor permanently, not just from AFF. It cannot be undone from here.</p>';
+
+				ATFRFO.Modal.open({
+					title:   'Delete Class',
+					body:    bodyText,
+					footer:  '<div style="display:flex;justify-content:flex-end;gap:8px">'
+						+ '<button class="atfrfo-btn atfrfo-btn--secondary" id="atfrfo-modal-delclass-cancel">Cancel</button>'
+						+ '<button class="atfrfo-btn atfrfo-btn--danger" id="atfrfo-modal-delclass-ok">Delete</button>'
+						+ '</div>',
+					onClose: function () { document.removeEventListener('click', handleClick); },
+				});
+				setTimeout(function () {
+					var btn = document.getElementById('atfrfo-modal-delclass-cancel');
+					if (btn) { btn.focus(); }
+				}, 50);
+
+				function doDelete() {
+					ATFRFO.Modal.close();
+					document.removeEventListener('click', handleClick);
+					ATFRFO.App.ajax('atfrfo_delete_class_from_elementor', {
+						filename:     ATFRFO.state.currentFile,
+						elementor_id: cls.elementor_id,
+					}).then(function (res) {
+						if (res.success && res.data) {
+							ATFRFO.state.classes = res.data.classes || ATFRFO.state.classes;
+							delete ATFRFO.state.classUsageMap; // stale now — target no longer exists
+							if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
+							self._rerenderView();
+							if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
+						} else {
+							var errMsg = (res.data && res.data.message) ? res.data.message : 'Delete failed.';
+							ATFRFO.Modal.open({ title: 'Delete failed', body: '<p>' + ATFRFO.Utils.escHtml(errMsg) + '</p>' });
+						}
+					}).catch(function () {
+						ATFRFO.Modal.open({ title: 'Connection error', body: '<p>Connection error during delete.</p>' });
+					});
+				}
+
+				function handleClick(e) {
+					if (e.target.id === 'atfrfo-modal-delclass-cancel') {
+						ATFRFO.Modal.close();
+						document.removeEventListener('click', handleClick);
+					} else if (e.target.id === 'atfrfo-modal-delclass-ok') {
+						doDelete();
+					}
+				}
+				document.addEventListener('click', handleClick);
+			});
 		},
 
 		/**
@@ -1618,6 +1714,11 @@
 					case 'expand-class': {
 						var expClassId = btn.getAttribute('data-class-id');
 						if (expClassId) { self._openClassCard(expClassId); }
+						break;
+					}
+					case 'delete-class': {
+						var delClassId = btn.getAttribute('data-class-id');
+						if (delClassId) { self._deleteClassFromElementor(delClassId); }
 						break;
 					}
 					}
