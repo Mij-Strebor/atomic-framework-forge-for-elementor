@@ -326,10 +326,10 @@
 		 * Render one class as a category-block row.
 		 *
 		 * Columns: drag handle (reorder within category — local display order
-		 * only, does not affect Elementor), status dot, name (editable —
-		 * AFF-local rename; NOT pushed to Elementor, and overwritten back to
-		 * Elementor's value on the next sync), has-styles flag, inline-editable
-		 * Comment.
+		 * only, does not affect Elementor), status dot, name (editable — a
+		 * real rename, pushed straight to Elementor via
+		 * atfrfo_rename_class_in_elementor(); not just an AFF-local edit),
+		 * has-styles flag, inline-editable Comment.
 		 *
 		 * @param {Object} cls Class object (see class_defaults() in PHP).
 		 * @returns {string}
@@ -362,7 +362,7 @@
 				+ ' data-original="' + ATFRFO.Utils.escAttr(cls.label || '') + '"'
 				+ ' readonly'
 				+ ' aria-label="Class name"'
-				+ ' data-atfrfo-tooltip="Class name — click to edit (AFF-local; reverts on next sync)"'
+				+ ' data-atfrfo-tooltip="Class name — click to edit (renames the class in Elementor)"'
 				+ ' spellcheck="false">'
 				+ '<input type="text" class="atfrfo-class-notes-input"'
 				+ ' value="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
@@ -1337,17 +1337,29 @@
 				return;
 			}
 
-			ATFRFO.App.ajax('atfrfo_update_class', {
-				filename: ATFRFO.state.currentFile,
-				class:    JSON.stringify({ id: classId, label: newName }),
+			var cls = ATFRFO.Utils.findClassById(classId);
+			if (!cls || !cls.elementor_id) {
+				nameInput.value = oldName;
+				return;
+			}
+
+			// Renames for real now — pushes the new label to Elementor itself
+			// (not AFF-local-only), so it survives the next sync instead of
+			// being silently overwritten back by it. See
+			// ajax_atfrfo_rename_class_in_elementor() docblock for why.
+			ATFRFO.App.ajax('atfrfo_rename_class_in_elementor', {
+				filename:     ATFRFO.state.currentFile,
+				elementor_id: cls.elementor_id,
+				label:        newName,
 			}).then(function (res) {
 				if (res.success) {
-					var cls = ATFRFO.Utils.findClassById(classId);
-					if (cls) { cls.label = newName; }
+					cls.label = newName;
 					nameInput.setAttribute('data-original', newName);
 					if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
 				} else {
 					nameInput.value = oldName;
+					var errMsg = (res.data && res.data.message) ? res.data.message : 'Rename failed.';
+					ATFRFO.Modal.open({ title: 'Rename failed', body: '<p>' + ATFRFO.Utils.escHtml(errMsg) + '</p>' });
 				}
 			}).catch(function () { nameInput.value = oldName; });
 		},

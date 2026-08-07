@@ -48,6 +48,7 @@ class ATFRFO_Ajax_Handler {
 			'atfrfo_update_class',
 			'atfrfo_get_class_usage',
 			'atfrfo_delete_class_from_elementor',
+			'atfrfo_rename_class_in_elementor',
 			// Phase 2 — Colors endpoints
 			'atfrfo_save_category',
 			'atfrfo_delete_category',
@@ -826,6 +827,95 @@ class ATFRFO_Ajax_Handler {
 	}
 
 	/**
+	 * Rename a class for real — pushes the new label to Elementor itself,
+	 * not just AFF's local copy. Intentional write-back exception (see
+	 * ATFRFO CLAUDE.md Critical Rule #1).
+	 *
+	 * Why this exists: the AFF-local-only rename (ajax_atfrfo_update_class,
+	 * 'label' field) is silently overwritten back to Elementor's stored
+	 * label on the next Classes sync (import_fetched_classes() always trusts
+	 * Elementor as the source of truth for 'label') — reported 2026-08-08 as
+	 * "rename doesn't work." Renaming for real removes the conflict at the
+	 * source: once Elementor's own label matches, sync has nothing to
+	 * revert.
+	 *
+	 * Confirmed safe via Elementor's own source: Global_Classes_Repository's
+	 * update path (`modified` in apply_changes()) keeps the class's
+	 * immutable ID and only changes the label field on the existing post —
+	 * it does not delete-and-recreate, so every element referencing this
+	 * class by ID keeps working and immediately shows the new name.
+	 * Verified live 2026-08-08 that Global_Class_Post::to_array() returns
+	 * the exact {id, label, type, variants} shape apply_changes() expects
+	 * for a 'modified' item — the existing variants must be sent back
+	 * unchanged, or Elementor's normalizer would treat missing variants as
+	 * "clear all styles."
+	 *
+	 * POST params: filename, elementor_id, label (new name)
+	 */
+	// Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
+	public function ajax_atfrfo_rename_class_in_elementor(): void {
+		$this->verify_request();
+
+		$elementor_id = $this->post_param( 'elementor_id' );
+		$new_label    = sanitize_text_field( $this->post_param( 'label' ) );
+
+		if ( empty( $elementor_id ) || '' === $new_label ) {
+			wp_send_json_error( array( 'message' => __( 'Class ID and new name are both required.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		if ( ! class_exists( '\Elementor\Modules\GlobalClasses\Global_Classes_Repository' ) || ! class_exists( '\Elementor\Plugin' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Elementor Global Classes are not available on this site.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$kit = \Elementor\Plugin::$instance->kits_manager->get_active_kit();
+		if ( ! $kit ) {
+			wp_send_json_error( array( 'message' => __( 'No active Elementor kit found.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		try {
+			$repo    = new \Elementor\Modules\GlobalClasses\Global_Classes_Repository( $kit );
+			$current = $repo->get_by_ids( array( $elementor_id ) );
+
+			if ( empty( $current[ $elementor_id ] ) ) {
+				wp_send_json_error( array( 'message' => __( 'That class was not found in Elementor.', 'atomic-framework-forge-for-elementor' ) ) );
+			}
+
+			$item          = $current[ $elementor_id ];
+			$item['label'] = $new_label;
+
+			$order = $repo->get_order();
+
+			$repo->apply_changes(
+				array( $elementor_id => $item ),
+				array(
+					'added'    => array(),
+					'deleted'  => array(),
+					'modified' => array( $elementor_id ),
+					'order'    => false,
+				),
+				$order
+			);
+		} catch ( \Throwable $e ) {
+			wp_send_json_error( array( 'message' => __( 'Elementor rejected the rename: ', 'atomic-framework-forge-for-elementor' ) . $e->getMessage() ) );
+		}
+
+		// Mirror into AFF's own store so the new name shows immediately,
+		// without waiting for the next sync.
+		$this->with_store(
+			function ( ATFRFO_Data_Store $store ) use ( $elementor_id, $new_label ): array {
+				$existing = $store->find_class_by_elementor_id( $elementor_id );
+				if ( $existing ) {
+					$store->update_class( $existing['id'], array( 'label' => $new_label ) );
+				}
+				return array(
+					'classes' => $store->get_classes(),
+					'message' => __( 'Class renamed in Elementor.', 'atomic-framework-forge-for-elementor' ),
+				);
+			}
+		);
+	}
+
+	/**
 	 * Update an existing class's AFF-local metadata (Comment/notes,
 	 * category/category_id reassignment). Does not touch Elementor —
 	 * this only edits the AFF store's copy of the class.
@@ -851,14 +941,13 @@ class ATFRFO_Ajax_Handler {
 		if ( array_key_exists( 'category_id', $class ) ) {
 			$data['category_id'] = sanitize_text_field( (string) $class['category_id'] );
 		}
-		if ( array_key_exists( 'label', $class ) ) {
-			// AFF-local only — renaming here does not rename the class inside
-			// Elementor, and it is not permanent: import_fetched_classes()
-			// always overwrites 'label' from Elementor's fetched value on the
-			// next sync (see class-atfrfo-data-store.php), so a local rename
-			// here will be reverted the next time Classes are synced.
-			$data['label'] = sanitize_text_field( (string) $class['label'] );
-		}
+		// 'label' is deliberately NOT handled here — an AFF-local-only rename
+		// used to be possible via this endpoint, but it silently reverted on
+		// the next Classes sync (reported 2026-08-08) since
+		// import_fetched_classes() always trusts Elementor's stored label.
+		// Renaming now goes through ajax_atfrfo_rename_class_in_elementor(),
+		// which pushes the new name to Elementor itself so there's nothing
+		// left for a sync to revert.
 		if ( array_key_exists( 'order', $class ) ) {
 			$data['order'] = (int) $class['order'];
 		}
