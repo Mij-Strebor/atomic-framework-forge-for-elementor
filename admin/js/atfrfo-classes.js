@@ -1284,6 +1284,26 @@
 				var targetRow = elBelow ? elBelow.closest('.atfrfo-class-row') : null;
 				var forceAfter = false;
 
+				// If hovering a COLLAPSED category, expand it immediately and
+				// re-probe so a row (or the now-visible list body) can be found
+				// on this same mouse event. Without this, a collapsed category
+				// was never a valid drop target — Colors/Fonts/Numbers already
+				// do this in ATFRFO.VarDrag; Classes' row drag never had it.
+				if (!targetRow && elBelow) {
+					var collapsedBlock = elBelow.closest('.atfrfo-category-block');
+					if (collapsedBlock && collapsedBlock.getAttribute('data-collapsed') === 'true') {
+						collapsedBlock.setAttribute('data-collapsed', 'false');
+						var _cbId = collapsedBlock.getAttribute('data-category-id');
+						if (_cbId) { self._collapsedIds[_cbId] = false; }
+						d.ghost.style.display = 'none';
+						var elBelow2 = document.elementFromPoint(e.clientX, e.clientY);
+						d.ghost.style.display = '';
+						var newRow = elBelow2 ? elBelow2.closest('.atfrfo-class-row') : null;
+						if (newRow) { targetRow = newRow; }
+						elBelow = elBelow2 || elBelow;
+					}
+				}
+
 				// Not directly over a row — if hovering anywhere else inside an
 				// expanded category block (its header, empty-state text, list
 				// body, etc.), fall back to the last row in that block (or the
