@@ -5,8 +5,10 @@
  * / .atfrfo-color-list-header shell used by Colors/Fonts/Numbers (see
  * atfrfo-colors.css / atfrfo-variables.css) — this file overrides what
  * genuinely differs: the row's column layout (Classes has 6 columns — drag,
- * status, name, styles button, style categories, comment — vs. Colors' 9 or
- * Numbers' 8) and a handful of Classes-specific row elements.
+ * status, name, styles button, comment, style categories — vs. Colors' 9 or
+ * Numbers' 8) and a handful of Classes-specific row elements. No column
+ * header text labels, matching Colors/Fonts/Numbers (see .atfrfo-color-
+ * list-header usage there — icon-only / empty column headers throughout).
  *
  * All grid-template-columns rules here are scoped under .atfrfo-classes-view
  * to guarantee they win over the shared .atfrfo-color-row base rule in
@@ -78,13 +80,6 @@
    Size, Position, Typography, Background, Border, Effects, Custom CSS) this
    class sets properties in. Truncates with an ellipsis when the list is
    wider than the column; the tooltip always has the full list. */
-.atfrfo-class-categories-header {
-	font-size:      var(--fs-xs, 0.75rem);
-	color:          var(--atfrfo-clr-muted);
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
 .atfrfo-class-categories {
 	display:       block;
 	font-size:     var(--fs-xs, 0.75rem);
@@ -243,12 +238,11 @@
 @media (max-width: 900px) {
 	.atfrfo-classes-view .atfrfo-color-list-header,
 	.atfrfo-classes-view .atfrfo-color-row {
-		grid-template-columns: 24px 8px 1fr 80px 0 26%;
+		grid-template-columns: 24px 8px 1fr 80px 26% 0;
 		column-gap: 6px;
 	}
 
-	.atfrfo-classes-view .atfrfo-class-categories,
-	.atfrfo-classes-view .atfrfo-class-categories-header {
+	.atfrfo-classes-view .atfrfo-class-categories {
 		visibility: hidden;
 		overflow:   hidden;
 	}

@@ -301,8 +301,8 @@
 				+ '</button>'
 				+ '</span>' // col3: name sort
 				+ '<span></span>' // col4: styles button
-				+ '<span class="atfrfo-class-categories-header">Categories</span>' // col5: style categories
-				+ '<span></span>' // col6: comment
+				+ '<span></span>' // col5: comment
+				+ '<span></span>' // col6: style categories
 				+ '</div>';
 
 			html += '<div class="atfrfo-color-list atfrfo-class-list">';
@@ -370,7 +370,6 @@
 				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(stylesTip) + '">'
 				+ ATFRFO.Utils.escHtml(stylesLabel)
 				+ '</button>'
-				+ ATFRFO.Classes._buildCategoriesCell(cls)
 				+ '<input type="text" class="atfrfo-class-notes-input"'
 				+ ' value="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
 				+ ' data-original="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
@@ -379,6 +378,7 @@
 				+ ' aria-label="Class comment"'
 				+ ' data-atfrfo-tooltip="Comment — click to edit"'
 				+ ' spellcheck="false">'
+				+ ATFRFO.Classes._buildCategoriesCell(cls)
 				+ '</div>';
 		},
 
@@ -1191,7 +1191,7 @@
 		 */
 		_initRowDrag: function (container) {
 			var self = this;
-			var d = { active: false, classId: null, listEl: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+			var d = { active: false, classId: null, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
 
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector('.atfrfo-classes-view')) { return; }
@@ -1203,8 +1203,15 @@
 				if (!row) { return; }
 				d.classId = row.getAttribute('data-class-id');
 				if (!d.classId) { return; }
-				d.listEl = row.closest('.atfrfo-color-list');
-				if (!d.listEl) { return; }
+				// Identify "same category" by ID, not by DOM node reference —
+				// a stale node reference (e.g. from a re-render triggered by
+				// an in-progress Comment/name edit losing focus when the drag
+				// starts) silently breaks the same-list check below, which
+				// looked like "drag works but no drop indicator ever appears
+				// and drops never complete" (reported 2026-08-07).
+				var block = row.closest('.atfrfo-category-block');
+				d.catId = block ? block.getAttribute('data-category-id') : null;
+				if (!d.catId) { return; }
 
 				d.active = true;
 				d.startY = e.clientY;
@@ -1244,9 +1251,11 @@
 				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
 				d.ghost.style.display = '';
 
-				var targetRow = elBelow ? elBelow.closest('.atfrfo-class-row') : null;
-				// Only allow dropping within the same category's row list.
-				if (targetRow && targetRow.closest('.atfrfo-color-list') === d.listEl
+				var targetRow   = elBelow ? elBelow.closest('.atfrfo-class-row') : null;
+				var targetBlock = targetRow ? targetRow.closest('.atfrfo-category-block') : null;
+				var targetCatId = targetBlock ? targetBlock.getAttribute('data-category-id') : null;
+				// Only allow dropping within the same category.
+				if (targetRow && targetCatId === d.catId
 					&& targetRow.getAttribute('data-class-id') !== d.classId) {
 					var trRect = targetRow.getBoundingClientRect();
 					var above  = e.clientY < trRect.top + trRect.height / 2;
@@ -1281,7 +1290,7 @@
 				d._dropTargetId = null;
 				d._dropAbove    = null;
 				d.classId       = null;
-				d.listEl        = null;
+				d.catId         = null;
 			});
 		},
 
