@@ -102,7 +102,14 @@ class ATFRFO_Data_Store {
 			return false;
 		}
 
-		if ( false === file_put_contents( $file_path, $json ) ) {
+		// LOCK_EX: without it, two concurrent writes to the same project file
+		// (two browser tabs, an overlapping autosave, anything writing to this
+		// exact path at the same time) can interleave mid-write and corrupt
+		// the JSON — every subsequent AJAX save then fails to parse the file
+		// and silently no-ops client-side (e.g. a category rename reverting
+		// with no visible error). Confirmed and fixed a real occurrence of
+		// this on 2026-08-07.
+		if ( false === file_put_contents( $file_path, $json, LOCK_EX ) ) {
 			return false;
 		}
 
