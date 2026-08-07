@@ -1794,15 +1794,15 @@
 		/**
 		 * Set or clear the unsaved-changes flag and update the Save Changes button.
 		 *
-		 * @param {boolean} isDirty
+		 * @param {boolean} hasUnsavedChanges
 		 */
-		setDirty: function (isDirty) {
-			ATFRFO.state.hasUnsavedChanges = isDirty;
+		setDirty: function (hasUnsavedChanges) {
+			ATFRFO.state.hasUnsavedChanges = hasUnsavedChanges;
 			if (ATFRFO.PanelRight) {
 				ATFRFO.PanelRight.updateSaveChangesBtn();
 			}
 			var saveBtn = document.getElementById('atfrfo-btn-save-changes');
-			if (saveBtn) { saveBtn.classList.toggle('has-changes', !!isDirty); }
+			if (saveBtn) { saveBtn.classList.toggle('has-changes', !!hasUnsavedChanges); }
 		},
 
 		/**
@@ -2187,14 +2187,15 @@
 			}
 
 			// Auto-load last used file and cache settings.
-			// Tech debt DP-05: ATFRFO.PanelTop.init() (called above) also fires atfrfo_get_settings
-			// to load tooltip preferences. Two identical HTTP requests go to admin-ajax.php
-			// within ~100ms of each other on every page load. Fix: make one call here, then
-			// pass the settings object to ATFRFO.PanelTop._applyTooltipSettings(settings).
+			// Single startup atfrfo_get_settings call (tech debt DP-05 — this used to
+			// be duplicated by ATFRFO.PanelTop.init() firing an identical request).
 			ATFRFO.App.ajax('atfrfo_get_settings', {}).then(function (res) {
 				if (res.success && res.data && res.data.settings) {
 					ATFRFO.state.settings = res.data.settings;
 					ATFRFO.App.applyA11y(res.data.settings);
+					if (ATFRFO.PanelTop) {
+						ATFRFO.PanelTop._applyTooltipSettings(res.data.settings);
+					}
 				}
 				var lf = res.success && res.data && res.data.settings && res.data.settings.last_file;
 				if (lf && ATFRFO.PanelRight) {

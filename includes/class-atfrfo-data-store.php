@@ -1399,11 +1399,17 @@ class ATFRFO_Data_Store {
 	/**
 	 * Generate a timestamped backup filename.
 	 *
+	 * A short uniqid suffix follows the seconds-resolution timestamp so that
+	 * copying several backups within the same second (see copy_project()) never
+	 * collides — without it, callers had to sleep() and retry (tech debt A-04).
+	 * The suffix comes after the full timestamp, so filenames still sort
+	 * correctly as strings (timestamp resolves first, suffix only breaks ties).
+	 *
 	 * @param string $project_slug Slug.
-	 * @return string e.g. "my-demo_2026-03-18_14-30-00.atfrfo.json"
+	 * @return string e.g. "my-demo_2026-03-18_14-30-00_a1b2.atfrfo.json"
 	 */
 	public static function generate_backup_filename( string $project_slug ): string {
-		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '.atfrfo.json';
+		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . substr( uniqid(), -4 ) . '.atfrfo.json';
 	}
 
 	/**

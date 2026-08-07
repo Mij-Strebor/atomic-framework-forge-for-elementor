@@ -22,11 +22,11 @@
   // Falls back to the Desktop on first use.
   // ------------------------------------------------------------------
 
-  var _effPickerDB = null;
+  var _affPickerDB = null;
 
-  function _effPickerDbOpen(cb) {
-    if (_effPickerDB) {
-      cb(_effPickerDB);
+  function _affPickerDbOpen(cb) {
+    if (_affPickerDB) {
+      cb(_affPickerDB);
       return;
     }
     var req = indexedDB.open("atfrfo-picker", 1);
@@ -34,16 +34,16 @@
       e.target.result.createObjectStore("handles");
     };
     req.onsuccess = function (e) {
-      _effPickerDB = e.target.result;
-      cb(_effPickerDB);
+      _affPickerDB = e.target.result;
+      cb(_affPickerDB);
     };
     req.onerror = function () {
       cb(null);
     };
   }
 
-  function _effPickerGet(key, cb) {
-    _effPickerDbOpen(function (db) {
+  function _affPickerGet(key, cb) {
+    _affPickerDbOpen(function (db) {
       if (!db) {
         cb(null);
         return;
@@ -58,8 +58,8 @@
     });
   }
 
-  function _effPickerSave(key, handle) {
-    _effPickerDbOpen(function (db) {
+  function _affPickerSave(key, handle) {
+    _affPickerDbOpen(function (db) {
       if (!db) {
         return;
       }
@@ -82,31 +82,41 @@
 
     /**
      * Initialize all top bar interactions.
+     *
+     * Tooltip preferences are applied separately via _applyTooltipSettings(),
+     * called by ATFRFO.App once its single startup atfrfo_get_settings fetch
+     * resolves (tech debt DP-05 — this used to make its own duplicate
+     * atfrfo_get_settings request here).
      */
     init: function () {
       this._tooltip = document.getElementById("atfrfo-tooltip");
 
       this._bindTooltips();
       this._bindButtons();
+    },
 
-      // Load tooltip preferences from settings (async, non-blocking)
-      var _panelTop = this;
-      ATFRFO.App.ajax("atfrfo_get_settings", {})
-        .then(function (res) {
-          if (res.success && res.data && res.data.settings) {
-            var s = res.data.settings;
-            if (s.show_tooltips === false || s.show_tooltips === "false") {
-              _panelTop._showTooltips = false;
-            }
-            if (
-              s.extended_tooltips === true ||
-              s.extended_tooltips === "true"
-            ) {
-              _panelTop._extendedTooltips = true;
-            }
-          }
-        })
-        .catch(function () {});
+    /**
+     * Apply tooltip-related preferences from a settings object already
+     * fetched elsewhere (see ATFRFO.App's startup atfrfo_get_settings call).
+     *
+     * @param {Object} settings  Settings object (res.data.settings shape).
+     */
+    _applyTooltipSettings: function (settings) {
+      if (!settings) {
+        return;
+      }
+      if (
+        settings.show_tooltips === false ||
+        settings.show_tooltips === "false"
+      ) {
+        this._showTooltips = false;
+      }
+      if (
+        settings.extended_tooltips === true ||
+        settings.extended_tooltips === "true"
+      ) {
+        this._extendedTooltips = true;
+      }
     },
 
     // ------------------------------------------------------------------
@@ -1591,7 +1601,7 @@
       var json = JSON.stringify(payload, null, 2);
 
       if (typeof window.showSaveFilePicker === "function") {
-        _effPickerGet("export", function (remembered) {
+        _affPickerGet("export", function (remembered) {
           window
             .showSaveFilePicker({
               suggestedName: suggestedName,
@@ -1604,7 +1614,7 @@
               ],
             })
             .then(function (fileHandle) {
-              _effPickerSave("export", fileHandle);
+              _affPickerSave("export", fileHandle);
               return fileHandle.createWritable().then(function (writable) {
                 return writable.write(json).then(function () {
                   return writable.close();
@@ -1637,7 +1647,7 @@
       var self = this;
 
       if (typeof window.showOpenFilePicker === "function") {
-        _effPickerGet("import", function (remembered) {
+        _affPickerGet("import", function (remembered) {
           window
             .showOpenFilePicker({
               startIn: remembered || "desktop",
@@ -1651,7 +1661,7 @@
             })
             .then(function (fileHandles) {
               var fileHandle = fileHandles[0];
-              _effPickerSave("import", fileHandle);
+              _affPickerSave("import", fileHandle);
               return fileHandle
                 .getFile()
                 .then(function (file) {

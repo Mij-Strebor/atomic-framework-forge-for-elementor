@@ -28,7 +28,7 @@
  *   — Value cell rendering delegated to cfg.renderValueCell(v)
  *
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  * @version 1.0.0
  */
 

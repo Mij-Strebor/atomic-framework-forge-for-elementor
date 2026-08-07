@@ -13,7 +13,7 @@
  *   Phase 2e: Status dots (rendered; sync decision tree in atfrfo-app.js)
  *
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 (function () {

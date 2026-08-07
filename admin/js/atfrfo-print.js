@@ -13,6 +13,7 @@
  * @package AtomicFrameworkForge
  */
 
+/* global ATFRFOData */
 (function () {
 	'use strict';
 

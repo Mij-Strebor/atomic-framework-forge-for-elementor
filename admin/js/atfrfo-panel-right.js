@@ -8,7 +8,7 @@
  *  - Export / Import section (bound via atfrfo-panel-top.js by element ID)
  *  - Live asset count display (variables, classes, components)
  *
- * @package ElementorFrameworkForge
+ * @package AtomicFrameworkForge
  */
 
 /* global ATFRFOData */
@@ -95,6 +95,75 @@
 
 
     /**
+     * Apply a successful atfrfo_load_file response to ATFRFO.state.
+     * Shared by _loadFile and _autoLoadFile (tech debt DP-03).
+     *
+     * @param {Object} res           Successful AJAX response.
+     * @param {string} fallbackName  Name to derive the project name from if
+     *                               res.data.filename is empty (the path/filename
+     *                               originally requested).
+     */
+    _applyLoadedData: function (res, fallbackName) {
+      ATFRFO.state.variables = res.data.data.variables || [];
+      ATFRFO.Utils.migrateUnclassifiedVars(ATFRFO.state.variables);
+      ATFRFO.state.classes = res.data.data.classes || [];
+      ATFRFO.state.components = res.data.data.components || [];
+      ATFRFO.state.metadata = res.data.data.metadata || {};
+      var _oldGroups = ATFRFO.state.config && ATFRFO.state.config.groups;
+      ATFRFO.state.config = res.data.data.config || {};
+      if (!ATFRFO.state.config.groups && _oldGroups) {
+        ATFRFO.state.config.groups = _oldGroups;
+      }
+      // Preserve Phase 2 category arrays from globalConfig when the file's
+      // config doesn't have them (e.g. older files saved before categories existed).
+      if (ATFRFO.state.globalConfig) {
+        var _gc = ATFRFO.state.globalConfig;
+        if (
+          (!ATFRFO.state.config.categories ||
+            !ATFRFO.state.config.categories.length) &&
+          _gc.categories &&
+          _gc.categories.length
+        ) {
+          ATFRFO.state.config.categories = _gc.categories.slice();
+        }
+        if (
+          (!ATFRFO.state.config.fontCategories ||
+            !ATFRFO.state.config.fontCategories.length) &&
+          _gc.fontCategories &&
+          _gc.fontCategories.length
+        ) {
+          ATFRFO.state.config.fontCategories = _gc.fontCategories.slice();
+        }
+        if (
+          (!ATFRFO.state.config.numberCategories ||
+            !ATFRFO.state.config.numberCategories.length) &&
+          _gc.numberCategories &&
+          _gc.numberCategories.length
+        ) {
+          ATFRFO.state.config.numberCategories = _gc.numberCategories.slice();
+        }
+      }
+      ATFRFO.state.currentFile = res.data.filename;
+
+      // Prefer the name stored in the project's config, then fall back to
+      // the project slug (first path component only — never use the full
+      // relative path, which would cascade into an ever-growing slug on save).
+      var displayName =
+        (res.data.data.config && res.data.data.config.projectName) ||
+        (res.data.filename || fallbackName || "")
+          .split("/")[0]
+          .replace(/(?:\.atfrfo|\.eff)+(?:\.json)?$/i, "");
+      this._setProjectName(displayName);
+
+      ATFRFO.App.refreshCounts();
+      if (ATFRFO.PanelLeft) {
+        ATFRFO.PanelLeft.refresh();
+      }
+      // Scan widget usage for loaded variables (async, non-blocking).
+      ATFRFO.App.fetchUsageCounts();
+    },
+
+    /**
      * Execute an AJAX load for the given file path.
      * path can be a relative backup path (slug/slug_date.eff.json) or legacy flat name.
      *
@@ -106,66 +175,8 @@
       ATFRFO.App.ajax("atfrfo_load_file", { filename: path })
         .then(function (res) {
           if (res.success) {
-            // Tech debt DP-03: the ~40 lines below that apply the server response to
-            // ATFRFO.state are duplicated verbatim in _autoLoadFile. The only differences
-            // are that _loadFile closes the modal, clears dirty state, and shows a toast.
-            // When fixing DP-03, extract this block to a shared _applyLoadedData(res, opts).
-            ATFRFO.state.variables = res.data.data.variables || [];
-            ATFRFO.Utils.migrateUnclassifiedVars(ATFRFO.state.variables);
-            ATFRFO.state.classes = res.data.data.classes || [];
-            ATFRFO.state.components = res.data.data.components || [];
-            ATFRFO.state.metadata = res.data.data.metadata || {};
-            var _oldGroups = ATFRFO.state.config && ATFRFO.state.config.groups;
-            ATFRFO.state.config = res.data.data.config || {};
-            if (!ATFRFO.state.config.groups && _oldGroups) {
-              ATFRFO.state.config.groups = _oldGroups;
-            }
-            // Preserve Phase 2 category arrays from globalConfig when the file's
-            // config doesn't have them (e.g. older files saved before categories existed).
-            if (ATFRFO.state.globalConfig) {
-              var _gc = ATFRFO.state.globalConfig;
-              if (
-                (!ATFRFO.state.config.categories ||
-                  !ATFRFO.state.config.categories.length) &&
-                _gc.categories &&
-                _gc.categories.length
-              ) {
-                ATFRFO.state.config.categories = _gc.categories.slice();
-              }
-              if (
-                (!ATFRFO.state.config.fontCategories ||
-                  !ATFRFO.state.config.fontCategories.length) &&
-                _gc.fontCategories &&
-                _gc.fontCategories.length
-              ) {
-                ATFRFO.state.config.fontCategories = _gc.fontCategories.slice();
-              }
-              if (
-                (!ATFRFO.state.config.numberCategories ||
-                  !ATFRFO.state.config.numberCategories.length) &&
-                _gc.numberCategories &&
-                _gc.numberCategories.length
-              ) {
-                ATFRFO.state.config.numberCategories =
-                  _gc.numberCategories.slice();
-              }
-            }
-            ATFRFO.state.currentFile = res.data.filename;
+            self._applyLoadedData(res, path);
 
-            // Prefer the name stored in the project's config, then fall back to
-            // the project slug (first path component only — never use the full
-            // relative path, which would cascade into an ever-growing slug on save).
-            var displayName =
-              (res.data.data.config && res.data.data.config.projectName) ||
-              (res.data.filename || path || "")
-                .split("/")[0]
-                .replace(/(?:\.atfrfo|\.eff)+(?:\.json)?$/i, "");
-            self._setProjectName(displayName);
-
-            ATFRFO.App.refreshCounts();
-            if (ATFRFO.PanelLeft) {
-              ATFRFO.PanelLeft.refresh();
-            }
             ATFRFO.App.setDirty(false);
             ATFRFO.Modal.close();
 
@@ -179,9 +190,6 @@
             if (res.data.created) {
               self._showToast("Project created");
             }
-
-            // Scan widget usage for loaded variables (async, non-blocking).
-            ATFRFO.App.fetchUsageCounts();
           } else {
             ATFRFO.Modal.open({
               title: "Load error",
@@ -209,63 +217,7 @@
       ATFRFO.App.ajax("atfrfo_load_file", { filename: filename })
         .then(function (res) {
           if (res.success) {
-            // Tech debt DP-03: this ~40-line state assignment block is duplicated from
-            // _loadFile above. The only difference is that _autoLoadFile is silent on
-            // failure (no modal, no dirty-flag reset). Extract to _applyLoadedData(res, opts).
-            ATFRFO.state.variables = res.data.data.variables || [];
-            ATFRFO.Utils.migrateUnclassifiedVars(ATFRFO.state.variables);
-            ATFRFO.state.classes = res.data.data.classes || [];
-            ATFRFO.state.components = res.data.data.components || [];
-            ATFRFO.state.metadata = res.data.data.metadata || {};
-            var _oldGroupsAL = ATFRFO.state.config && ATFRFO.state.config.groups;
-            ATFRFO.state.config = res.data.data.config || {};
-            if (!ATFRFO.state.config.groups && _oldGroupsAL) {
-              ATFRFO.state.config.groups = _oldGroupsAL;
-            }
-            // Preserve Phase 2 category arrays from globalConfig when the file's
-            // config doesn't have them (e.g. older files saved before categories existed).
-            if (ATFRFO.state.globalConfig) {
-              var _gcAL = ATFRFO.state.globalConfig;
-              if (
-                (!ATFRFO.state.config.categories ||
-                  !ATFRFO.state.config.categories.length) &&
-                _gcAL.categories &&
-                _gcAL.categories.length
-              ) {
-                ATFRFO.state.config.categories = _gcAL.categories.slice();
-              }
-              if (
-                (!ATFRFO.state.config.fontCategories ||
-                  !ATFRFO.state.config.fontCategories.length) &&
-                _gcAL.fontCategories &&
-                _gcAL.fontCategories.length
-              ) {
-                ATFRFO.state.config.fontCategories = _gcAL.fontCategories.slice();
-              }
-              if (
-                (!ATFRFO.state.config.numberCategories ||
-                  !ATFRFO.state.config.numberCategories.length) &&
-                _gcAL.numberCategories &&
-                _gcAL.numberCategories.length
-              ) {
-                ATFRFO.state.config.numberCategories =
-                  _gcAL.numberCategories.slice();
-              }
-            }
-            ATFRFO.state.currentFile = res.data.filename;
-
-            var displayName =
-              (res.data.data.config && res.data.data.config.projectName) ||
-              (res.data.filename || "")
-                .split("/")[0]
-                .replace(/(?:\.atfrfo|\.eff)+(?:\.json)?$/i, "");
-            self._setProjectName(displayName);
-
-            ATFRFO.App.refreshCounts();
-            if (ATFRFO.PanelLeft) {
-              ATFRFO.PanelLeft.refresh();
-            }
-            ATFRFO.App.fetchUsageCounts();
+            self._applyLoadedData(res, filename);
           }
           // Silent on failure — user will see empty state as expected.
         })
@@ -376,9 +328,9 @@
       }
 
       var isPending = ATFRFO.state.pendingSaveCount > 0;
-      var isDirty   = ATFRFO.state.hasUnsavedChanges;
+      var hasUnsavedChanges = ATFRFO.state.hasUnsavedChanges;
 
-      if (isDirty && !isPending) {
+      if (hasUnsavedChanges && !isPending) {
         this._saveChangesBtn.classList.add("atfrfo-icon-btn--dirty");
         this._saveChangesBtn.setAttribute("aria-label", "Save Changes \u2014 unsaved changes pending");
       } else {
