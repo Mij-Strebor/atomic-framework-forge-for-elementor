@@ -95,6 +95,7 @@ body {
 .atfrfo-print-section-badge--color  { background: #4361b5; }
 .atfrfo-print-section-badge--font   { background: #c25e1a; }
 .atfrfo-print-section-badge--number { background: #2a7a4b; }
+.atfrfo-print-section-badge--class  { background: #86400e; }
 
 .atfrfo-print-section-count {
 	font-size:      9pt;
@@ -346,4 +347,185 @@ body {
 
 .atfrfo-print-section + .atfrfo-print-section {
 	page-break-before: auto;
+}
+
+/* ==========================================================================
+   Classes — card layout (div-based, not a table; see atfrfo-print.js
+   _buildClassesSection()/_buildClassCard() for why classes don't fit the
+   name/value/format row shape the other three sets use). Class category
+   headers reuse the .atfrfo-print-cat-row/-subcat-row *visual language*
+   but under different class names, since those originals are td-scoped.
+   ========================================================================== */
+
+.atfrfo-print-class-cat-row {
+	padding:        4pt 6pt 4pt 10pt;
+	margin-top:     8pt;
+	font-size:      7pt;
+	font-weight:    700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color:          #7a3a0e;
+	background:     #faf0e8;
+	border-top:     1pt solid #ccc;
+	border-bottom:  0.5pt solid #ccc;
+	border-left:    3pt solid #86400e;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.atfrfo-print-class-subcat-row {
+	padding:        3pt 6pt 3pt 20pt;
+	margin-top:     4pt;
+	font-size:      7pt;
+	font-weight:    600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color:          #7a3a0e;
+	background:     #fdf5ee;
+	border-left:    3pt solid #c99a6e;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.atfrfo-print-class-card {
+	border:            0.5pt solid #ddd;
+	border-radius:     2pt;
+	padding:           6pt 8pt;
+	margin:            5pt 0;
+	page-break-inside: avoid;
+}
+
+.atfrfo-print-class-card__head {
+	display:         flex;
+	justify-content: space-between;
+	align-items:     baseline;
+	margin-bottom:   3pt;
+}
+
+.atfrfo-print-class-card__name {
+	font-family: 'Courier New', Courier, monospace;
+	font-size:   9.5pt;
+	font-weight: 700;
+	color:       #2a2a8a;
+}
+
+.atfrfo-print-class-card__status {
+	font-size: 7.5pt;
+	color:     #555;
+}
+
+.atfrfo-print-status-dot {
+	display:        inline-block;
+	width:          6pt;
+	height:         6pt;
+	border-radius:  50%;
+	margin-right:   3pt;
+	vertical-align: middle;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.atfrfo-print-class-card__comment {
+	margin: 0 0 4pt;
+	padding-left: 0;
+}
+
+.atfrfo-print-class-card__body {
+	display:               grid;
+	grid-template-columns: 1.4fr 1fr;
+	gap:                   0 10pt;
+}
+
+.atfrfo-print-class-card__usage-label {
+	margin:         0 0 2pt;
+	font-size:      7pt;
+	font-weight:    700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color:          #777;
+}
+
+.atfrfo-print-class-card__usage-total {
+	margin:    0 0 2pt;
+	font-size: 7.5pt;
+	color:     #333;
+}
+
+.atfrfo-print-usage-pages {
+	margin:      0;
+	padding-left: 10pt;
+	font-size:   7pt;
+	color:       #555;
+}
+
+.atfrfo-print-usage-count {
+	color: #888;
+}
+
+/* Reused verbatim from the on-screen class detail card (atfrfo-classes.css)
+   — same class names, restyled here for print since the print window loads
+   only this stylesheet, not the admin CSS. */
+.atfrfo-class-variant-group {
+	padding:       2pt 0;
+	border-bottom: 0.5pt solid #eee;
+}
+
+.atfrfo-class-variant-group:last-child { border-bottom: none; }
+
+.atfrfo-class-variant-label {
+	margin:      0 0 1pt;
+	font-weight: 700;
+	font-size:   7.5pt;
+}
+
+.atfrfo-class-variant-empty {
+	margin:    0;
+	font-size: 7pt;
+	color:     #999;
+}
+
+.atfrfo-class-variant-props {
+	display:               grid;
+	grid-template-columns: minmax(50pt, max-content) 1fr;
+	gap:                   1pt 6pt;
+	font-size:             7pt;
+	font-family:           'Courier New', Courier, monospace;
+}
+
+.atfrfo-class-prop-key { color: #888; }
+
+.atfrfo-class-prop-value {
+	display:    flex;
+	flex-wrap:  wrap;
+	gap:        3pt;
+	word-break: break-word;
+}
+
+.atfrfo-class-prop-badge {
+	display:        inline-block;
+	padding:        0.5pt 3pt;
+	border-radius:  1.5pt;
+	font-size:      5.5pt;
+	font-weight:    700;
+	text-transform: uppercase;
+	color:          #fff;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.atfrfo-class-prop-badge--variable { background: #2a7a4b; }
+.atfrfo-class-prop-badge--hardcoded { background: #b26a00; }
+
+.atfrfo-class-prop-varname { font-weight: 700; }
+.atfrfo-class-prop-varval  { color: #888; }
+
+.atfrfo-class-variant-css {
+	margin:      2pt 0 0;
+	padding:     3pt;
+	background:  #f7f7f7;
+	font-size:   7pt;
+	white-space: pre-wrap;
+	word-break:  break-word;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
 }
