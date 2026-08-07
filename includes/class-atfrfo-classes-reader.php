@@ -159,6 +159,50 @@ class ATFRFO_Classes_Reader {
 	}
 
 	/**
+	 * Where a class is actually used across the site — same data Elementor's
+	 * own editor computes for its class manager, read from Elementor's own
+	 * usage-tracking module rather than reimplemented. Scans every Elementor
+	 * document (page/post/template) on every call — there is no cache in
+	 * Elementor's own class, so this is deliberately NOT called during a
+	 * regular Classes sync; call it lazily (e.g. when a class detail card is
+	 * opened) and cache the result client-side for the session.
+	 *
+	 * Confirmed live 2026-08-07: ~440ms for 44 used classes across ~10
+	 * documents on the dev site. Cost scales with document + class count,
+	 * so treat as "occasionally, on demand," not "every page load."
+	 *
+	 * @return array<string, array{total:int, pages:array}> Keyed by Elementor
+	 *   class ID (e.g. 'gc-0e2eff4039bbe56f'). Each entry: total usage count
+	 *   across the whole site, and a list of pages
+	 *   {pageId, title, type, total, elements}.
+	 */
+	public function get_usage_map(): array {
+		if ( ! class_exists( '\Elementor\Modules\GlobalClasses\Usage\Applied_Global_Classes_Usage' ) ) {
+			return array();
+		}
+
+		try {
+			$detailed = ( new \Elementor\Modules\GlobalClasses\Usage\Applied_Global_Classes_Usage() )->get_detailed_usage();
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+
+		$map = array();
+		foreach ( $detailed as $class_id => $pages ) {
+			$total = 0;
+			foreach ( $pages as $page ) {
+				$total += (int) ( $page['total'] ?? 0 );
+			}
+			$map[ $class_id ] = array(
+				'total' => $total,
+				'pages' => array_values( $pages ),
+			);
+		}
+
+		return $map;
+	}
+
+	/**
 	 * Normalize either the repository shape ({items, order}) or the REST
 	 * shape ({data, meta.order}) into an order-respecting array of class
 	 * stubs. Deliberately minimal — category/status/notes assignment is the

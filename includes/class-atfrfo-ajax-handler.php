@@ -46,6 +46,7 @@ class ATFRFO_Ajax_Handler {
 			'atfrfo_get_classes',
 			'atfrfo_sync_classes',
 			'atfrfo_update_class',
+			'atfrfo_get_class_usage',
 			// Phase 2 — Colors endpoints
 			'atfrfo_save_category',
 			'atfrfo_delete_category',
@@ -718,6 +719,22 @@ class ATFRFO_Ajax_Handler {
 				);
 			}
 		);
+	}
+
+	/**
+	 * Return where every Global Class is actually used across the site —
+	 * reads Elementor's own usage-tracking module (see
+	 * ATFRFO_Classes_Reader::get_usage_map() docblock). Does not touch the
+	 * .atfrfo.json project file at all, so no filename param and no
+	 * with_store() wrapper — this is pure Elementor-side data.
+	 *
+	 * POST params: none beyond the standard nonce.
+	 */
+	public function ajax_atfrfo_get_class_usage(): void {
+		$this->verify_request();
+
+		$reader = new ATFRFO_Classes_Reader();
+		wp_send_json_success( array( 'usage' => $reader->get_usage_map() ) );
 	}
 
 	/**

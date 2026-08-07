@@ -232,6 +232,7 @@
 
 		this._updateSubgroupCounts();
 		this._populateClassesList();
+		this._updateGroupCounts();
 		},
 
 		/**
@@ -443,6 +444,39 @@
 		},
 
 		/**
+		 * Update the total-count badge on each top-level group header
+		 * (Variables / Classes / Components) — replaces the old expand/
+		 * collapse chevron. The header is already a <button> spanning the
+		 * whole row, so clicking anywhere on it (not just this badge) still
+		 * opens the group; this is purely a "how many" indicator.
+		 */
+		_updateGroupCounts: function () {
+			var groups = [
+				{ selector: '[data-group="variables"] .atfrfo-nav-group__header', count: this._variablesTotalCount() },
+				{ selector: '[data-group="classes"] .atfrfo-nav-group__header',   count: (ATFRFO.state.classes || []).length },
+				{ selector: '[data-group="components"] .atfrfo-nav-group__header', count: (ATFRFO.state.components || []).length },
+			];
+			groups.forEach(function (g) {
+				var btn = document.querySelector(g.selector);
+				if (!btn) { return; }
+				var existing = btn.querySelector('.atfrfo-nav-group-count');
+				if (existing) { existing.remove(); }
+				if (g.count > 0) {
+					var badge = document.createElement('span');
+					badge.className   = 'atfrfo-nav-group-count';
+					badge.textContent = g.count;
+					btn.appendChild(badge);
+				}
+			});
+		},
+
+		/** Total live (non-deleted) variables across Colors/Fonts/Numbers. */
+		_variablesTotalCount: function () {
+			var vars = (ATFRFO.state && ATFRFO.state.variables) ? ATFRFO.state.variables : [];
+			return vars.filter(function (v) { return v.status !== 'deleted'; }).length;
+		},
+
+		/**
 		 * Update the variable count shown at the right of each subgroup header button
 		 * (Colors / Fonts / Numbers), aligned with the per-category count badges.
 		 */
@@ -534,6 +568,7 @@
 		refresh: function () {
 			this._loadNavItems();
 			this._updateSubgroupCounts();
+			this._updateGroupCounts();
 		},
 	};
 }());

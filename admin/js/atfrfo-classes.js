@@ -474,6 +474,14 @@
 				+ '</textarea>'
 				+ '</div>';
 
+			// Usage — fetched lazily below (see _loadUsageIntoCard); this scans
+			// every Elementor document on the site (~400ms+), so it only runs
+			// when a card is actually opened, not on every sync.
+			body += '<div class="atfrfo-class-card-usage" id="atfrfo-class-usage-section">'
+				+ '<span class="atfrfo-class-card-label">Usage</span>'
+				+ '<p class="atfrfo-class-variant-empty">Loading…</p>'
+				+ '</div>';
+
 			body += '<div class="atfrfo-class-card-props">';
 			if (variants.length === 0) {
 				body += '<p class="atfrfo-colors-empty" style="padding:var(--sp-4) 0">No style properties set on this class yet.</p>';
@@ -498,6 +506,75 @@
 				var closeBtn = document.getElementById('atfrfo-class-card-close');
 				if (closeBtn) { closeBtn.addEventListener('click', function () { ATFRFO.Modal.close(); }); }
 			}, 0);
+
+			ATFRFO.Classes._loadUsageIntoCard(cls.elementor_id);
+		},
+
+		/**
+		 * Fetch (once per session, then cached) where every class is used
+		 * site-wide, and fill in the "Usage" section of an already-open card.
+		 * Safe to call even if the card has since been closed — just checks
+		 * the section still exists in the DOM before touching it.
+		 *
+		 * @param {string} elementorId The class's Elementor ID (cls.elementor_id).
+		 */
+		_loadUsageIntoCard: function (elementorId) {
+			var render = function () {
+				var section = document.getElementById('atfrfo-class-usage-section');
+				if (!section) { return; }
+				var entry = (ATFRFO.state.classUsageMap && ATFRFO.state.classUsageMap[elementorId]) || null;
+				section.innerHTML = ATFRFO.Classes._renderUsageSection(entry);
+			};
+
+			if (ATFRFO.state.classUsageMap) { render(); return; }
+
+			ATFRFO.App.ajax('atfrfo_get_class_usage', {}).then(function (res) {
+				ATFRFO.state.classUsageMap = (res.success && res.data) ? (res.data.usage || {}) : {};
+				render();
+			}).catch(function () {
+				var section = document.getElementById('atfrfo-class-usage-section');
+				if (section) {
+					section.innerHTML = '<span class="atfrfo-class-card-label">Usage</span>'
+						+ '<p class="atfrfo-class-variant-empty">Could not load usage data.</p>';
+				}
+			});
+		},
+
+		/**
+		 * Render the "Usage" section body: total count and a per-page
+		 * breakdown, matching what Elementor's own class manager shows.
+		 * Sourced from Elementor's own usage-tracking module — see
+		 * ATFRFO_Classes_Reader::get_usage_map() docblock.
+		 *
+		 * @param {{total:number, pages:Array}|null} entry
+		 * @returns {string}
+		 */
+		_renderUsageSection: function (entry) {
+			if (!entry || !entry.total) {
+				return '<span class="atfrfo-class-card-label">Usage</span>'
+					+ '<p class="atfrfo-class-variant-empty">Not used anywhere on the site.</p>';
+			}
+
+			var html = '<span class="atfrfo-class-card-label">Usage — '
+				+ entry.total + ' element' + (entry.total === 1 ? '' : 's')
+				+ ' across ' + entry.pages.length + ' page' + (entry.pages.length === 1 ? '' : 's')
+				+ '</span>'
+				+ '<div class="atfrfo-class-usage-pages">';
+
+			entry.pages.forEach(function (p) {
+				html += '<div class="atfrfo-class-usage-page">'
+					+ '<span class="atfrfo-class-usage-page-title">' + ATFRFO.Utils.escHtml(p.title || '(untitled)') + '</span>'
+					+ '<span class="atfrfo-class-usage-page-count">' + (p.total || 0) + '</span>'
+					+ '</div>';
+				if (Array.isArray(p.elements) && p.elements.length > 0) {
+					html += '<div class="atfrfo-class-usage-elements">'
+						+ ATFRFO.Utils.escHtml(p.elements.join(', '))
+						+ '</div>';
+				}
+			});
+
+			html += '</div>';
+			return html;
 		},
 
 		/**

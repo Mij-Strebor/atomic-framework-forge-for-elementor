@@ -488,6 +488,28 @@
 	border-radius:   8px;
 }
 
+/* Top-level group total (Variables/Classes/Components) — same dot shape as
+   .atfrfo-nav-count but brown, not gold, so it reads as a distinct "grand
+   total" rather than another per-category count. Replaces the expand/
+   collapse chevron on these three rows; the whole header row is a <button>
+   already, so clicking the title (or anywhere else on the row) still opens
+   the group. */
+.atfrfo-nav-group-count {
+	flex-shrink:     0;
+	display:         inline-flex;
+	align-items:     center;
+	justify-content: center;
+	min-width:       18px;
+	height:          16px;
+	padding:         0 4px;
+	background:      var(--atfrfo-clr-tertiary, #86400e);
+	color:           #fff;
+	font-size:       10px;
+	font-weight:     var(--fw-semibold);
+	line-height:     1;
+	border-radius:   8px;
+}
+
 /* Subgroup label fills available space so the count badge right-aligns */
 .atfrfo-nav-subgroup__label {
 	flex: 1;

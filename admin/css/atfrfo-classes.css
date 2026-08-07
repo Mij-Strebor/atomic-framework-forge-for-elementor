@@ -168,6 +168,52 @@
 	outline: none;
 }
 
+.atfrfo-class-card-usage {
+	padding-bottom: var(--sp-3);
+	margin-bottom:  var(--sp-3);
+	border-bottom:  1px solid var(--atfrfo-clr-border, #d6ccc2);
+}
+
+.atfrfo-class-card-usage .atfrfo-class-card-label {
+	display:       block;
+	margin-bottom: 4px;
+}
+
+.atfrfo-class-usage-pages {
+	max-height: 160px;
+	overflow-y: auto;
+}
+
+.atfrfo-class-usage-page {
+	display:         flex;
+	justify-content: space-between;
+	align-items:     baseline;
+	gap:             var(--sp-3);
+	font-size:       var(--fs-sm, 0.875rem);
+	padding:         3px 0;
+}
+
+.atfrfo-class-usage-page-title {
+	overflow:      hidden;
+	text-overflow: ellipsis;
+	white-space:   nowrap;
+}
+
+.atfrfo-class-usage-page-count {
+	flex-shrink: 0;
+	color:       var(--atfrfo-clr-muted);
+	font-family: monospace, monospace;
+	font-size:   var(--fs-xs, 0.75rem);
+}
+
+.atfrfo-class-usage-elements {
+	font-size:     var(--fs-xs, 0.75rem);
+	color:         var(--atfrfo-clr-muted);
+	font-family:   monospace, monospace;
+	margin:        0 0 var(--sp-1);
+	word-break:    break-word;
+}
+
 .atfrfo-class-card-props {
 	max-height: 50vh;
 	overflow-y: auto;

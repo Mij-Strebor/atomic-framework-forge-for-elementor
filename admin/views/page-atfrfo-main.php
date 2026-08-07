@@ -209,9 +209,6 @@ function atfrfo_icon( string $name ): string {
 							<?php echo atfrfo_icon( 'variables' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						</span>
 						<span class="atfrfo-nav-group__label"><?php esc_html_e( 'Variables', 'atomic-framework-forge-for-elementor' ); ?></span>
-						<span class="atfrfo-nav-group__chevron" aria-hidden="true">
-							<?php echo atfrfo_icon( 'chevron-left' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						</span>
 					</button>
 
 					<div class="atfrfo-nav-group__children" id="atfrfo-nav-variables" hidden>
@@ -274,9 +271,6 @@ function atfrfo_icon( string $name ): string {
 							<?php echo atfrfo_icon( 'classes' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						</span>
 						<span class="atfrfo-nav-group__label"><?php esc_html_e( 'Classes', 'atomic-framework-forge-for-elementor' ); ?></span>
-						<span class="atfrfo-nav-group__chevron" aria-hidden="true">
-							<?php echo atfrfo_icon( 'chevron-left' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						</span>
 					</button>
 					<div class="atfrfo-nav-group__children" id="atfrfo-nav-classes" hidden>
 						<ul class="atfrfo-nav-items" id="atfrfo-nav-classes-items" role="list">
@@ -295,9 +289,6 @@ function atfrfo_icon( string $name ): string {
 							<?php echo atfrfo_icon( 'components' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						</span>
 						<span class="atfrfo-nav-group__label"><?php esc_html_e( 'Components', 'atomic-framework-forge-for-elementor' ); ?></span>
-						<span class="atfrfo-nav-group__chevron" aria-hidden="true">
-							<?php echo atfrfo_icon( 'chevron-left' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						</span>
 					</button>
 					<div class="atfrfo-nav-group__children" id="atfrfo-nav-components" hidden>
 						<p class="atfrfo-nav-coming-soon"><?php esc_html_e( 'Components support coming in ATFRFO v4.', 'atomic-framework-forge-for-elementor' ); ?></p>
