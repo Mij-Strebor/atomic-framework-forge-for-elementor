@@ -608,19 +608,9 @@ class ATFRFO_Ajax_Handler {
 			if ( isset( $raw['config'] ) && is_array( $raw['config'] ) ) {
 				$raw['config']['projectName'] = $new_name;
 			}
+			// generate_backup_filename() now appends a uniqid suffix, so filenames from
+			// rapid successive calls no longer collide within the same second.
 			$dest = $new_dir . ATFRFO_Data_Store::generate_backup_filename( $new_slug );
-			// Avoid filename collisions when multiple files are copied in the same second.
-			// generate_backup_filename() uses 1-second resolution (gmdate 'Y-m-d_H-i-s'),
-			// so copying several backups in rapid succession produces identical filenames.
-			// The sleep forces a new second so the next call returns a different timestamp.
-			// Tech debt A-04: eliminate the sleep by adding microseconds/a counter to the
-			// filename — then the loop and sleep can be removed entirely.
-			$attempt = 0;
-			while ( file_exists( $dest ) && $attempt < 10 ) {
-				sleep( 1 );
-				$dest = $new_dir . ATFRFO_Data_Store::generate_backup_filename( $new_slug );
-				++$attempt;
-			}
 			file_put_contents( $dest, wp_json_encode( $raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		}
 
