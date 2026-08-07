@@ -66,7 +66,7 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Status
 
-Version **1.4.1**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional. Classes management is planned for v3; Components registry for v4.
+Version **1.4.1**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional. Classes management is planned for v2.0.0; Components registry for v3.0.0.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
@@ -98,8 +98,8 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 | Auto-prune — oldest backups removed at configurable limit | ✅ Working |
 | Export project to `.atfrfo.json` | ✅ Working |
 | Import project from `.atfrfo.json` | ✅ Working |
-| Classes management | 🔜 Phase 3 |
-| Components registry | 🔜 Phase 4 |
+| Classes management | 🔜 v2.0.0 |
+| Components registry | 🔜 v3.0.0 |
 | Sync options dialog (Sync by name / Clear and replace) | ✅ Working |
 | Commit summary dialog | ✅ Working |
 | Elementor V3 Global Colors import | ✅ Working |
@@ -113,7 +113,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 
 **Four panels:**
 - **Top bar** — Preferences, Manage Project, Functions, History, Search, Help
-- **Left nav** — Collapsible tree: Variables (Colors / Fonts / Numbers) · Classes *(Phase 3)* · Components *(Phase 4)*
+- **Left nav** — Collapsible tree: Variables (Colors / Fonts / Numbers) · Classes *(v2.0.0)* · Components *(v3.0.0)*
 - **Center edit space** — Category blocks, variable rows, inline editing
 - **Right panel** — All data management: active project, save & backups, Elementor sync, V3 import, export/import
 
@@ -270,9 +270,9 @@ atomic-framework-forge-for-elementor/
 | **1.3.0** | V3 import result modal, system color auto-notes, expand modal two-row header, sticky filter bar. Print hierarchy: sub-categories indented, comments toggle. Modal DRY refactor. Title fade fix. |
 | **1.4.0** | "Take a look" notify sign. New blacksmith-hammer brand assets. Help panel content refresh. Security fix (HTML-escape consolidation). Font-size default correction. Dead patch-script cleanup. |
 | **1.4.1** | Critical fix: every AJAX endpoint was non-functional due to a method-naming mismatch from the 1.4.0 prefix rename. All endpoints restored. |
-| **1.0.0** | Classes management. Components registry. |
-| **2.0.0** | Components registry. Elementor Kit Manager API write-back. |
-| **Future** | Standalone Windows / Mac desktop application. |
+| **2.0.0** | Classes management. |
+| **3.0.0** | Components registry. |
+| **Future** | Elementor Kit Manager API write-back. Standalone Windows / Mac desktop application. |
 
 ---
 
