@@ -3139,8 +3139,8 @@
         indicator.style.display = 'none';
         indicator.style.pointerEvents = 'none';
         var _appEl  = document.getElementById('atfrfo-app');
-        var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
-        if (!_accent) { _accent = '#f4c542'; }
+        var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-drop-indicator').trim() : '';
+        if (!_accent) { _accent = '#8a7259'; }
         indicator.style.background = 'linear-gradient(to right, transparent, ' + _accent + ' 15%, ' + _accent + ' 85%, transparent)';
         document.body.appendChild(indicator);
         d.indicator = indicator;
@@ -3167,8 +3167,8 @@
             d.indicator.style.display = '';
             d.indicator.style.left    = tbRect.left + 'px';
             d.indicator.style.width   = tbRect.width + 'px';
-            d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
-            d.indicator.style.height  = '4px';
+            d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 5 + 'px';
+            d.indicator.style.height  = '10px';
             d._dropTargetId = targetBlock.getAttribute('data-category-id');
             d._dropAbove    = above;
             return;

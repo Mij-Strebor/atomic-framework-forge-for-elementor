@@ -464,9 +464,15 @@
 				+ '<div><span class="atfrfo-class-card-label">Status</span><span class="atfrfo-class-card-value">'
 				+ '<span class="atfrfo-status-dot" style="background:' + meta.color + ';display:inline-block;margin-right:6px;vertical-align:middle"></span>'
 				+ ATFRFO.Utils.escHtml(meta.label) + '</span></div>'
-				+ '<div><span class="atfrfo-class-card-label">Comment</span><span class="atfrfo-class-card-value">' + ATFRFO.Utils.escHtml(cls.notes || '—') + '</span></div>'
 				+ (cls.last_synced_at ? '<div><span class="atfrfo-class-card-label">Last synced</span><span class="atfrfo-class-card-value">' + ATFRFO.Utils.escHtml(ATFRFO.Classes._formatLocalTime(cls.last_synced_at)) + '</span></div>' : '')
 				+ '</div>'; // .atfrfo-class-card-meta
+
+			body += '<div class="atfrfo-class-card-comment-wrap">'
+				+ '<span class="atfrfo-class-card-label">Comment</span>'
+				+ '<textarea class="atfrfo-class-card-comment" rows="4" readonly tabindex="-1">'
+				+ ATFRFO.Utils.escHtml(cls.notes || '')
+				+ '</textarea>'
+				+ '</div>';
 
 			body += '<div class="atfrfo-class-card-props">';
 			if (variants.length === 0) {
@@ -1275,17 +1281,58 @@
 				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
 				d.ghost.style.display = '';
 
-				var targetRow   = elBelow ? elBelow.closest('.atfrfo-class-row') : null;
+				var targetRow = elBelow ? elBelow.closest('.atfrfo-class-row') : null;
+				var forceAfter = false;
+
+				// Not directly over a row — if hovering anywhere else inside an
+				// expanded category block (its header, empty-state text, list
+				// body, etc.), fall back to the last row in that block (or the
+				// block itself if it has none yet). Without this, a category
+				// with no rows near the cursor — including a genuinely empty
+				// one — was never a valid drop target at all.
+				if (!targetRow && elBelow) {
+					var hoverBlock = elBelow.closest('.atfrfo-category-block');
+					if (hoverBlock && hoverBlock.getAttribute('data-collapsed') !== 'true') {
+						var blockRows = hoverBlock.querySelectorAll('.atfrfo-class-row');
+						var lastOther = null;
+						for (var bi = 0; bi < blockRows.length; bi++) {
+							if (blockRows[bi].getAttribute('data-class-id') !== d.classId) { lastOther = blockRows[bi]; }
+						}
+						if (lastOther) {
+							targetRow  = lastOther;
+							forceAfter = true;
+						} else {
+							// Empty category (or only the dragged row itself) —
+							// show the indicator across the list body and drop
+							// with no specific target row, just the category.
+							var emptyBody = hoverBlock.querySelector('.atfrfo-color-list');
+							var catIdOnly = hoverBlock.getAttribute('data-category-id');
+							if (emptyBody && catIdOnly) {
+								var ebRect = emptyBody.getBoundingClientRect();
+								d.indicator.style.display = '';
+								d.indicator.style.left    = ebRect.left + 'px';
+								d.indicator.style.width   = ebRect.width + 'px';
+								d.indicator.style.top     = (ebRect.top + Math.min(ebRect.height, 20) / 2 - 5) + 'px';
+								d.indicator.style.height  = '10px';
+								d._dropTargetId    = null;
+								d._dropTargetCatId = catIdOnly;
+								d._dropAbove       = true;
+								return;
+							}
+						}
+					}
+				}
+
 				var targetBlock = targetRow ? targetRow.closest('.atfrfo-category-block') : null;
 				var targetCatId = targetBlock ? targetBlock.getAttribute('data-category-id') : null;
 				if (targetRow && targetCatId && targetRow.getAttribute('data-class-id') !== d.classId) {
 					var trRect = targetRow.getBoundingClientRect();
-					var above  = e.clientY < trRect.top + trRect.height / 2;
+					var above  = forceAfter ? false : (e.clientY < trRect.top + trRect.height / 2);
 					d.indicator.style.display = '';
 					d.indicator.style.left    = trRect.left + 'px';
 					d.indicator.style.width   = trRect.width + 'px';
-					d.indicator.style.top     = (above ? trRect.top : trRect.bottom) - 2 + 'px';
-					d.indicator.style.height  = '4px';
+					d.indicator.style.top     = (above ? trRect.top : trRect.bottom) - 5 + 'px';
+					d.indicator.style.height  = '10px';
 					d._dropTargetId    = targetRow.getAttribute('data-class-id');
 					d._dropTargetCatId = targetCatId;
 					d._dropAbove       = above;
@@ -1308,7 +1355,7 @@
 				var draggingRow = container.querySelector('.atfrfo-class-row[data-class-id="' + d.classId + '"]');
 				if (draggingRow) { draggingRow.style.opacity = ''; }
 
-				if (d._dropTargetId && d.classId && d._dropTargetId !== d.classId) {
+				if (d._dropTargetCatId && d.classId) {
 					self._onDropClassRow(d.classId, d._dropTargetId, d._dropAbove, d._dropTargetCatId);
 				}
 				d._dropTargetId    = null;
@@ -1351,11 +1398,14 @@
 
 			var ordered = self._getClassesForCategory(targetCat).slice();
 			// Ensure src is represented exactly once in the target list, then
-			// position it relative to the target row.
+			// position it relative to the target row — or at the end, when
+			// dropped on an empty category (no targetId at all).
 			ordered = ordered.filter(function (c) { return c.id !== srcId; });
 			var tgtIdx = -1;
-			for (var j = 0; j < ordered.length; j++) {
-				if (ordered[j].id === targetId) { tgtIdx = j; break; }
+			if (targetId) {
+				for (var j = 0; j < ordered.length; j++) {
+					if (ordered[j].id === targetId) { tgtIdx = j; break; }
+				}
 			}
 			if (tgtIdx === -1) { ordered.push(src); }
 			else { ordered.splice(above ? tgtIdx : tgtIdx + 1, 0, src); }

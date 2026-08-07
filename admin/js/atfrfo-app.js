@@ -1243,8 +1243,8 @@
 					d.indicator.style.display = '';
 					d.indicator.style.left    = tbRect.left + 'px';
 					d.indicator.style.width   = tbRect.width + 'px';
-					d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
-					d.indicator.style.height  = '4px';
+					d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 5 + 'px';
+					d.indicator.style.height  = '10px';
 					d._dropTargetId = targetBlock.getAttribute('data-category-id');
 					d._dropAbove    = above;
 				} else {
@@ -1715,7 +1715,7 @@
 							if (emptyBody) {
 								var er = emptyBody.getBoundingClientRect();
 								drag.indicator.style.display    = 'block';
-								drag.indicator.style.top        = (er.top + er.height / 2 - 2) + 'px';
+								drag.indicator.style.top        = (er.top + er.height / 2 - 5) + 'px';
 								drag.indicator.style.left       = er.left + 'px';
 								drag.indicator.style.width      = er.width + 'px';
 								drag.indicator._targetVarId     = '__empty-cat__';
@@ -1731,7 +1731,7 @@
 					var midY   = rect.top + rect.height / 2;
 					var before = drag._forceAfter ? false : (e.clientY < midY);
 					drag.indicator.style.display   = 'block';
-					drag.indicator.style.top       = (before ? rect.top : rect.bottom) - 2 + 'px';
+					drag.indicator.style.top       = (before ? rect.top : rect.bottom) - 5 + 'px';
 					drag.indicator.style.left      = rect.left + 'px';
 					drag.indicator.style.width     = rect.width + 'px';
 					drag.indicator._targetVarId    = targetRow.getAttribute('data-var-id');

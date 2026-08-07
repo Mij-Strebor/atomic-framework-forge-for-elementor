@@ -697,7 +697,7 @@ button.atfrfo-pickr-btn:focus-visible {
 
 .atfrfo-drop-indicator {
 	position:      fixed;
-	height:        4px;
+	height:        10px;
 	background:    var(--atfrfo-clr-drop-indicator); /* overridden inline by JS gradient */
 	z-index:       9998;
 	pointer-events: none;

@@ -22,7 +22,7 @@
 
 .atfrfo-classes-view .atfrfo-color-list-header,
 .atfrfo-classes-view .atfrfo-color-row {
-	grid-template-columns: 24px 8px 240px minmax(140px, 240px) 1fr 110px;
+	grid-template-columns: 24px 8px 240px 600px 1fr 110px;
 	column-gap: 10px;
 }
 
@@ -135,6 +135,37 @@
 	font-size:     var(--fs-sm, 0.875rem);
 	font-family:   monospace, monospace;
 	word-break:    break-word;
+}
+
+.atfrfo-class-card-comment-wrap {
+	padding-bottom: var(--sp-3);
+	margin-bottom:  var(--sp-3);
+	border-bottom:  1px solid var(--atfrfo-clr-border, #d6ccc2);
+}
+
+.atfrfo-class-card-comment-wrap .atfrfo-class-card-label {
+	margin-bottom: 4px;
+}
+
+/* Read-only — sized to ~4 lines, wraps long comments instead of clipping. */
+.atfrfo-class-card-comment {
+	display:       block;
+	width:         100%;
+	resize:        none;
+	padding:       var(--sp-2);
+	background:    var(--atfrfo-bg-card);
+	border:        1px solid var(--atfrfo-clr-border, #d6ccc2);
+	border-radius: var(--radius-sm, 4px);
+	font-size:     var(--fs-sm, 0.875rem);
+	font-family:   monospace, monospace;
+	color:         var(--atfrfo-clr-secondary);
+	white-space:   pre-wrap;
+	word-break:    break-word;
+	cursor:        default;
+}
+
+.atfrfo-class-card-comment:focus {
+	outline: none;
 }
 
 .atfrfo-class-card-props {
