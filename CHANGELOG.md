@@ -12,13 +12,36 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Classes management (Elementor V4 Global Classes). Not yet released. Tracked separately
 from the `[Unreleased]` section below, which holds 1.4.x maintenance fixes that ship
 independently on `master` — see `docs/AFF-VISION-AND-ROADMAP.md` for the full plan and
-phased roadmap.
+current scope.
 
 ### Added
 
-- **Classes Phase 3.1 (data layer)** — `ATFRFO_Classes_Reader` (reads Elementor V4 Global Classes via post meta, REST fallback), Classes CRUD and non-destructive sync merge in the data store, `atfrfo_get_classes`/`atfrfo_sync_classes` AJAX endpoints.
-- **Classes Phase 3.2 (list view UI)** — Left-panel category tree with counts, read-only list view per category, Sync Classes action. Guarantees a locked "Uncategorized" category the same way Colors/Fonts/Numbers do.
-- **Version** — Bumped to 2.0.0-dev on this branch only; `master` remains on the 1.4.x line. See the branching note in `docs/AFF-VISION-AND-ROADMAP.md`.
+- **Data layer** — `ATFRFO_Classes_Reader` reads Elementor V4 Global Classes directly from `Global_Classes_Repository` (Elementor's own in-process source, not the legacy stale post-meta blob — see the C-08 note below), with a REST fallback for older Elementor versions. Classes CRUD and non-destructive sync merge in the data store; `atfrfo_get_classes`/`atfrfo_sync_classes` endpoints.
+- **Full category-block UI** — Classes now use the same category-block system as Colors/Fonts/Numbers: drag-reorder within and **between** categories, add/rename/duplicate/clear/delete category (reusing `ATFRFO.CatMixin` where genuinely generic), subcategories, collapse/expand, a locked "Uncategorized" category guaranteed the same way the other three sets get one. New default starter categories (Layout, Typography, Buttons, Cards, Utility) seeded for new projects, matching Colors/Fonts/Numbers' existing behavior.
+- **Class row editing** — inline-editable Comment field; class name is a **real rename pushed to Elementor** (not an AFF-local edit that reverts on sync — see Fixed, below). A "View Styles"/"No Styles" button (disabled when there's nothing to show) doubles as the trigger for the read-only detail card.
+- **Class detail card** — name, category, status, last-synced time (local `HH:MM:SS`), a 4-line wrapping Comment box, a labeled "Style Properties" section grouped by breakpoint/state, and a "Usage" section showing real site-wide usage (total element count + per-page breakdown with element IDs), sourced from Elementor's own `Applied_Global_Classes_Usage` module — the same data its own class manager computes, not a reimplementation.
+- **Variable references decoded** — a class property that references an Elementor global variable (e.g. `{"$$type":"global-color-variable","value":"e-gv-..."}`) now resolves to the variable's real name and value instead of showing the opaque ID, reading Elementor's `Variables\Storage\Repository` directly (excluding soft-deleted entries). Literal (non-variable) values are flagged with a "Hardcoded" badge — doubles as a lightweight design-system audit view.
+- **Style Categories column** — shows which Elementor style-panel sections (Layout, Spacing, Size, Position, Typography, Background, Border, Effects, Custom CSS) a class actually sets properties in. The prop-key → section mapping is extracted directly from Elementor's own compiled editor bundle, not guessed from CSS semantics.
+- **Delete a class from Elementor itself**, not just AFF — confirmed safe via Elementor's own source (deleting fires its own cleanup hook that strips the class from every element that had it applied; not reversible, but never corrupts or orphans anything). Confirmation shows real usage data first.
+- **Left nav**: Variables/Classes/Components group headers show a total-count badge (brown, distinct from the per-category gold dot) in place of the old expand/collapse chevron.
+- Unified the drag-and-drop drop indicator (color and thickness) across every drag type in the app — category blocks, variable rows, class rows.
+
+### Fixed
+
+- **CRITICAL (C-08)** — Classes Reader was reading a legacy, stale post-meta key that no longer reflects Elementor's real class list as of Elementor 4.2.1 (classes moved to per-post storage). Silently returned plausible-but-wrong counts (10 instead of 54/73) throughout Phase 3.1/3.2 development. Rewritten to call `Global_Classes_Repository` directly.
+- **CRITICAL** — `get_subgroup_param()` (gates all four category CRUD endpoints: save/delete/clear/reorder category) had no `'Classes'` entry in its allowlist, silently downgrading every Classes category request to `'Colors'`. Renaming, deleting, clearing, or reordering a Classes category all failed silently (looked up the ID in the wrong category array) with no visible error.
+- Class row drag-and-drop into a different category didn't work at all: the code only recognized an existing row directly under the cursor as a valid drop target, and separately never auto-expanded a collapsed category the way `ATFRFO.VarDrag` (Colors/Fonts/Numbers) already does. Both fixed; Classes drag-and-drop now matches Variables' behavior.
+- **Class rename was AFF-local only and silently reverted on the next sync** — `import_fetched_classes()` correctly trusts Elementor's stored label as the source of truth, so a local-only rename was always going to be overwritten back. Renaming now pushes the new label to Elementor itself (new `atfrfo_rename_class_in_elementor` endpoint), so there's nothing left for a sync to revert.
+- `save_to_file()` used plain `file_put_contents()` with no locking — two concurrent writes to the same project file (e.g. two browser tabs, an overlapping request) could interleave mid-write and corrupt the JSON, after which every subsequent AJAX save failed silently. Added `LOCK_EX`.
+- A `.atfrfo-class-row` CSS specificity collision with the shared `.atfrfo-color-row` base rule (used by Colors) was silently discarding the Classes row's column layout, cramming the class name into an 8px-wide track.
+
+### Out of scope (explicit, not deferred)
+
+Decided 2026-08-08, not just left undone: **creating** new classes from AFF, **editing style properties** from AFF (Phase 3.5 in earlier planning), and a custom usage scanner for Variables (Elementor has no native usage-tracking for variables, only for classes — confirmed by inspecting its source). None of these are planned for a future phase either; Classes management stops at sync, organize, rename, delete, and read-only detail/usage — see `docs/AFF-VISION-AND-ROADMAP.md`.
+
+### Version
+
+- Bumped to 2.0.0-dev on this branch only; `master` remains on the 1.4.x line. See the branching note in `docs/AFF-VISION-AND-ROADMAP.md`.
 
 ---
 

@@ -1,7 +1,7 @@
 # AFF Product Plan — Variables, Classes, Components
 
-**Document version:** 2.0
-**Date:** 2026-08-04
+**Document version:** 2.1 (status update 2026-08-08 — Classes shipped, see §6/§9/§10)
+**Date:** 2026-08-04 (original), updated 2026-08-08
 **Status:** Living plan — scope, architecture, and roadmap for AFF's three asset pillars.
 **Supersedes:** `docs/CLASSES-PLAN.md` v2.0 (2026-05-21) — its confirmed technical findings and implementation plan are folded into this document (Sections 3-6). That file's own text can be retired once this document is reviewed; nothing here contradicts it, only reorganizes and extends it.
 
@@ -30,7 +30,7 @@ AFF's stated identity (readme.txt) is a management interface for the three asset
 | Pillar | Status | Notes |
 |---|---|---|
 | Variables | Shipped, mature | Full CRUD, categorization, tints/shades/alpha generation, usage-count scanning, versioned backups, multi-project support, V3→V4 color migration |
-| Classes | Planned in detail, unbuilt | Technical plan complete and source-verified (Sections 3-7); no code written yet |
+| Classes | Shipped on `develop` (2.0.0-dev), not yet merged to `master` | Sync, full category-block organization (drag within/between categories, rename/duplicate/clear/delete category), inline Comment, real rename push-to-Elementor, delete-from-Elementor with usage-aware confirmation, read-only detail card (properties, decoded variable refs, style categories, real usage data). **Explicitly out of scope, decided 2026-08-08**: creating new classes, editing style properties from AFF, a Variables usage scanner — see §6.5. |
 | Components | Named, undesigned | No technical investigation has been done; Elementor's own implementation may not be stable yet |
 
 This document exists to close the gap between "three pillars" being a stated identity and each pillar having an actual, current, honest plan.
@@ -283,6 +283,46 @@ A "New Class" button opens a modal for the class name. On confirm: AFF generates
 
 ## 6. Classes — Implementation Plan & Phased Delivery
 
+**STATUS UPDATE 2026-08-08 — this section is historical planning; §6.4/§9/§10 below have
+been superseded by what actually shipped.** The phase numbers (3.1-3.5) were planned before
+implementation started and the real build didn't track them exactly — some phases merged,
+scope moved between them, and two phases were explicitly cancelled rather than deferred.
+What actually shipped, in one list, replaces the phase-by-phase tracking below:
+
+- **Data layer & sync** — reader, non-destructive merge, sync endpoint. (Was 3.1; also
+  absorbed the C-08 rewrite, which happened mid-stream, not as planned work.)
+- **Full category-block UI** — the plan's 3.2 (read-only list) turned out to be the wrong
+  target; Jim asked for parity with Colors/Fonts/Numbers' full category-block system
+  (drag-reorder within *and between* categories, add/rename/duplicate/clear/delete category,
+  subcategories) and that's what shipped instead.
+- **Category management** — comment editing, category CRUD, drag-reorder. (Was 3.3, shipped
+  as planned, reusing `ATFRFO.CatMixin`.)
+- **Rename and delete, both writing to Elementor for real** — narrower than the planned 3.4
+  (no **create**; see below) but real Elementor writes nonetheless, each independently
+  source-verified safe before being built (rename: `apply_changes()` 'modified' path keeps
+  the class's ID; delete: fires Elementor's own cleanup hook that strips the class from every
+  element that had it).
+- **Read-only detail card with real usage data** — properties by breakpoint/state, decoded
+  variable references, Style Categories, and a genuine site-wide usage count/location sourced
+  from Elementor's own usage-tracking module. Not in the original plan at all; added in
+  response to direct requests once the rest was in place.
+
+**Decided out of scope 2026-08-08 (Jim, explicit) — not deferred, cancelled:**
+- **Creating new classes from AFF** ("we don't have the ability to be creating classes").
+  Half of the planned Phase 3.4 never happens.
+- **Phase 3.5 (editing style property values from AFF)** ("editing properties seems too much
+  of a task also"). The variable-reference decoding this phase would have needed already
+  shipped as part of the read-only detail card — that work wasn't wasted, it just stops at
+  *showing* the properties, not editing them.
+- **A custom usage-tracking scanner for Variables** ("no need to scan"). Elementor has no
+  native equivalent for variables (confirmed by inspecting its source — no `usage/`
+  subdirectory under `modules/variables/`, unlike `modules/global-classes/usage/`), so this
+  would have been built from scratch, not read from an existing API. Not happening.
+
+Sections 6.1-6.3 and 7-8 below are kept for their still-accurate technical findings (wire
+formats, confirmed Elementor internals) even where the phase numbers they reference no longer
+match reality.
+
 ### 6.1 New PHP Files
 
 **`includes/class-atfrfo-classes-reader.php`** — read-only, parallel to `ATFRFO_CSS_Parser`. **Updated 2026-08-06 (TECH-DEBT.md C-08):** the primary path is `read_from_repository()`, calling Elementor's own `Global_Classes_Repository` class directly in-process — not a post-meta read. The original plan's meta-blob read turned out to be reading stale/legacy data on current Elementor (confirmed live, two real sites) and was removed entirely rather than kept as a fallback, since it can't be told apart from a genuinely-correct-but-empty result:
@@ -378,29 +418,56 @@ Everything in this section is inference from confirmed facts about the current s
 
 ## 9. Roadmap Summary
 
-| Phase | Scope | Elementor writes? | Risk | Depends on |
-|---|---|---|---|---|
-| 3.1 — Foundation | Sync classes into AFF's data store (read-only) | No | Low | Nothing new |
-| 3.2 — List view + categories | Left-panel tree, list view, empty state | No | Low | 3.1 |
-| 3.3 — Detail modal + metadata | Comment editing, category reassignment, category CRUD, drag-reorder | No (AFF-side only) | Low | 3.2 |
-| 3.4 — Lifecycle writes | Create/rename/delete via REST PUT | Yes | Medium | 3.3 |
-| 3.5 — Style editing | Edit property values, incl. variable references (confirmed real pattern, §7.3) | Yes | High | 3.4 stable in production |
-| Ongoing | Variables gap-closing (§2) | Varies | Low | Independent, interleave anytime |
-| Unscheduled | Components | TBD | Unknown | Elementor shipping a stable Components API; fresh source-inspection pass |
+**Superseded 2026-08-08 — see the status update at the top of §6 for what actually shipped.**
+Classes management is functionally complete for AFF's purposes: sync, full category
+organization, rename and delete (both real Elementor writes, both source-verified safe before
+building), and a read-only detail card with genuine usage data. Create-new-class, style-property
+editing, and a Variables usage scanner are decided **not** happening — see §6's cancelled-scope
+list, not "later."
 
-**First WordPress release: Phases 3.1 + 3.2 + 3.3.** No Elementor writes anywhere in this scope — sync, categorized list view, detail metadata, category CRUD, drag-reorder. Matches AFF's own established identity — readme.txt's FAQ already promises read-first, non-destructive behavior for Elementor CSS; 3.1-3.3 is that same promise applied to Classes. Phase 3.4 (the first phase with real Elementor writes) is deliberately held back from this release — proceed slow and careful once write operations are on the table.
+| Area | Status | Elementor writes? |
+|---|---|---|
+| Classes — sync, categories, rename, delete, detail/usage | **Shipped on `develop` (2.0.0-dev)**, not yet merged to `master` | Yes (rename, delete) — both source-verified before shipping |
+| Classes — create new class | **Cancelled**, not planned | — |
+| Classes — edit style property values | **Cancelled**, not planned | — |
+| Variables — usage scanner | **Cancelled**, not planned | — |
+| Variables — gap-closing (§2) | Ongoing, independent of Classes | Varies |
+| Components | Unscheduled | Unknown — needs Elementor to ship a stable Components API first |
+
+**Before merging `develop` to `master` / cutting a real 2.0.0 release**, still open as of
+2026-08-08:
+- Decide whether "Commit to Elementor" for Variables (Colors/Fonts/Numbers) has the same
+  rename problem Classes had — it currently matches existing Elementor entries by **name**,
+  not by a stored Elementor ID (Classes always stored `elementor_id`; Variables never has).
+  Renaming a variable in AFF and then committing may create a duplicate in Elementor instead
+  of truly renaming it — flagged 2026-08-08, not yet confirmed or fixed. Circumstantial
+  evidence: a "Button"/"Buttons" duplicate found in live project data during Classes
+  debugging.
+- No automated test suite exists anywhere in this codebase (confirmed, not just undocumented).
+  Whether to introduce one, and what it would actually cover, is still an open question — see
+  the note in the session that prompted this doc update.
+- `docs/TECH-DEBT.md` still has open Medium/Low items (naming inconsistencies, some code
+  duplication) — none release-blocking, worth a pass for cleanliness.
 
 ---
 
 ## 10. Next Steps
 
-1. Resolve open questions §7.3, §7.7, §7.8 in a single verification session against the development site (~10-15 minutes).
-2. Build Phase 3.1 per §6.1/§6.2/§6.4 — data layer, no UI yet.
-3. Build Phase 3.2 per §5.1/§5.2/§6.3/§6.4 — left panel, list view.
-4. Build Phase 3.3 per §5.3/§6.2/§6.4 — detail modal, category CRUD, drag-reorder.
-5. Ship first WordPress release at the end of 3.3.
-6. Stop and reassess before starting Phase 3.4 — first phase with real Elementor writes. Go slow and careful from here.
-7. Retire `docs/CLASSES-PLAN.md` once this document has been reviewed and confirmed as the sole source of truth for Classes planning.
+**Superseded 2026-08-08.** All of items 1-6 below are done (in a different shape than
+planned — see §6's status update). Kept for historical record.
+
+1. ~~Resolve open questions §7.3, §7.7, §7.8~~ — done, folded into §7 below.
+2. ~~Build Phase 3.1~~ — done (data layer, later rewritten for C-08).
+3. ~~Build Phase 3.2~~ — done, but shipped as the full category-block UI, not the planned read-only list.
+4. ~~Build Phase 3.3~~ — done (detail card, category CRUD, drag-reorder within *and between* categories).
+5. ~~Ship first WordPress release at the end of 3.3~~ — not yet released to WordPress.org; `develop` is pushed to GitHub but not merged to `master`.
+6. ~~Stop and reassess before Phase 3.4~~ — reassessed 2026-08-08: rename and delete shipped (both real Elementor writes, source-verified first); create was cancelled.
+7. Retire `docs/CLASSES-PLAN.md` — still outstanding.
+
+**Actual next steps, as of 2026-08-08:**
+1. Decide the Variables rename/commit duplicate question above.
+2. Decide on automated testing — see the open question above.
+3. Merge `develop` into `master` and cut a real 2.0.0 release (WordPress.org + GitHub), once 1-2 are resolved.
 
 ---
 
