@@ -1217,8 +1217,8 @@
 				indicator.style.display = 'none';
 				indicator.style.pointerEvents = 'none';
 				var _appEl  = document.getElementById('atfrfo-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
-				if (!_accent) { _accent = '#f4c542'; }
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-drop-indicator').trim() : '';
+				if (!_accent) { _accent = '#8a7259'; }
 				indicator.style.background = 'linear-gradient(to right, transparent, '
 					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
 				document.body.appendChild(indicator);
@@ -1641,8 +1641,8 @@
 				indicator.style.display      = 'none';
 				indicator.style.pointerEvents = 'none';
 				var _appEl  = document.getElementById('atfrfo-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
-				if (!_accent) { _accent = '#f4c542'; }
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-drop-indicator').trim() : '';
+				if (!_accent) { _accent = '#8a7259'; }
 				indicator.style.background = 'linear-gradient(to right, transparent,'
 					+ _accent + ' 15%,' + _accent + ' 85%, transparent)';
 				indicator.style.boxShadow = '0 0 6px ' + _accent;
@@ -1715,7 +1715,7 @@
 							if (emptyBody) {
 								var er = emptyBody.getBoundingClientRect();
 								drag.indicator.style.display    = 'block';
-								drag.indicator.style.top        = (er.top + er.height / 2 - 1) + 'px';
+								drag.indicator.style.top        = (er.top + er.height / 2 - 2) + 'px';
 								drag.indicator.style.left       = er.left + 'px';
 								drag.indicator.style.width      = er.width + 'px';
 								drag.indicator._targetVarId     = '__empty-cat__';
@@ -1731,7 +1731,7 @@
 					var midY   = rect.top + rect.height / 2;
 					var before = drag._forceAfter ? false : (e.clientY < midY);
 					drag.indicator.style.display   = 'block';
-					drag.indicator.style.top       = (before ? rect.top : rect.bottom) - 1 + 'px';
+					drag.indicator.style.top       = (before ? rect.top : rect.bottom) - 2 + 'px';
 					drag.indicator.style.left      = rect.left + 'px';
 					drag.indicator.style.width     = rect.width + 'px';
 					drag.indicator._targetVarId    = targetRow.getAttribute('data-var-id');

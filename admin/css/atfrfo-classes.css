@@ -5,7 +5,7 @@
  * / .atfrfo-color-list-header shell used by Colors/Fonts/Numbers (see
  * atfrfo-colors.css / atfrfo-variables.css) — this file overrides what
  * genuinely differs: the row's column layout (Classes has 6 columns — drag,
- * status, name, styles button, comment, style categories — vs. Colors' 9 or
+ * status, name, comment, style categories, styles button — vs. Colors' 9 or
  * Numbers' 8) and a handful of Classes-specific row elements. No column
  * header text labels, matching Colors/Fonts/Numbers (see .atfrfo-color-
  * list-header usage there — icon-only / empty column headers throughout).
@@ -22,7 +22,7 @@
 
 .atfrfo-classes-view .atfrfo-color-list-header,
 .atfrfo-classes-view .atfrfo-color-row {
-	grid-template-columns: 24px 8px 240px 110px minmax(140px, 240px) 1fr;
+	grid-template-columns: 24px 8px 240px minmax(140px, 240px) 1fr 110px;
 	column-gap: 10px;
 }
 
@@ -49,8 +49,7 @@
 	outline: none;
 }
 
-/* Styles button — doubles as the "open detail card" trigger. Active
-   (has_styles) uses the same green as the "Variable" prop badge; disabled
+/* Styles button — doubles as the "open detail card" trigger. Disabled
    (no styles) is greyed via the native :disabled state, not just color, so
    it reads as genuinely non-interactive, not just visually muted. */
 .atfrfo-class-styles-btn {
@@ -61,7 +60,7 @@
 	font-size:      var(--fs-xs, 0.75rem);
 	font-weight:    600;
 	white-space:    nowrap;
-	background:     var(--atfrfo-status-synced, #2e7d32);
+	background:     var(--atfrfo-clr-tertiary, #86400e);
 	color:          #fff;
 	cursor:         pointer;
 }
@@ -238,7 +237,7 @@
 @media (max-width: 900px) {
 	.atfrfo-classes-view .atfrfo-color-list-header,
 	.atfrfo-classes-view .atfrfo-color-row {
-		grid-template-columns: 24px 8px 1fr 80px 26% 0;
+		grid-template-columns: 24px 8px 1fr 26% 0 80px;
 		column-gap: 6px;
 	}
 

@@ -363,13 +363,6 @@
 				+ ' aria-label="Class name"'
 				+ ' data-atfrfo-tooltip="Class name — click to edit (AFF-local; reverts on next sync)"'
 				+ ' spellcheck="false">'
-				+ '<button type="button" class="atfrfo-class-styles-btn" data-action="expand-class"'
-				+ ' data-class-id="' + ATFRFO.Utils.escAttr(cls.id) + '"'
-				+ (cls.has_styles ? '' : ' disabled')
-				+ ' aria-label="' + ATFRFO.Utils.escAttr(stylesLabel) + '"'
-				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(stylesTip) + '">'
-				+ ATFRFO.Utils.escHtml(stylesLabel)
-				+ '</button>'
 				+ '<input type="text" class="atfrfo-class-notes-input"'
 				+ ' value="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
 				+ ' data-original="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
@@ -379,6 +372,13 @@
 				+ ' data-atfrfo-tooltip="Comment — click to edit"'
 				+ ' spellcheck="false">'
 				+ ATFRFO.Classes._buildCategoriesCell(cls)
+				+ '<button type="button" class="atfrfo-class-styles-btn" data-action="expand-class"'
+				+ ' data-class-id="' + ATFRFO.Utils.escAttr(cls.id) + '"'
+				+ (cls.has_styles ? '' : ' disabled')
+				+ ' aria-label="' + ATFRFO.Utils.escAttr(stylesLabel) + '"'
+				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(stylesTip) + '">'
+				+ ATFRFO.Utils.escHtml(stylesLabel)
+				+ '</button>'
 				+ '</div>';
 		},
 
@@ -607,8 +607,32 @@
 
 		_getCatsForSet: function () {
 			var catKey = this._cfg.catKey;
-			var arr    = (ATFRFO.state.config && ATFRFO.state.config[catKey]) || [];
+			var arr = (ATFRFO.state.config && ATFRFO.state.config[catKey])
+				? ATFRFO.state.config[catKey]
+				: this._getDefaultCategories();
 			return arr.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+		},
+
+		/**
+		 * Starter categories shown for a brand-new project — mirrors
+		 * ATFRFO.Colors._getDefaultCategories() (same fallback contract: only
+		 * used when config[catKey] is entirely absent, not merely empty/
+		 * Uncategorized-only — a project that's had its categories edited
+		 * down to nothing keeps that choice, it doesn't get defaults back).
+		 * Matches the suggested names shown in the Manage Projects "Classes
+		 * Categories" panel (atfrfo-panel-top.js).
+		 *
+		 * @returns {Array}
+		 */
+		_getDefaultCategories: function () {
+			return [
+				{ id: 'default-class-layout',        name: 'Layout',        order: 0, locked: false, parent_id: null },
+				{ id: 'default-class-typography',     name: 'Typography',    order: 1, locked: false, parent_id: null },
+				{ id: 'default-class-buttons',        name: 'Buttons',       order: 2, locked: false, parent_id: null },
+				{ id: 'default-class-cards',          name: 'Cards',         order: 3, locked: false, parent_id: null },
+				{ id: 'default-class-utility',        name: 'Utility',       order: 4, locked: false, parent_id: null },
+				{ id: 'default-class-uncategorized',  name: 'Uncategorized', order: 5, locked: true,  parent_id: null },
+			];
 		},
 
 		_getSubCategoriesOf: function (catId, allCats) {
@@ -1182,16 +1206,16 @@
 		// -------------------------------------------------------------------
 
 		/**
-		 * Mouse-based drag-and-drop to reorder class rows within a single
-		 * category block. Display order only — classes are not moved
-		 * between categories this way (see the category-block drag in
-		 * ATFRFO.CatMixin._initCatDrag for that). Modeled on _initCatDrag.
+		 * Mouse-based drag-and-drop to reorder class rows, including moving a
+		 * class into a different category (drop it on any row belonging to
+		 * that category — reassigns category/category_id, not just display
+		 * order). Modeled on ATFRFO.CatMixin._initCatDrag.
 		 *
 		 * @param {HTMLElement} container
 		 */
 		_initRowDrag: function (container) {
 			var self = this;
-			var d = { active: false, classId: null, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+			var d = { active: false, classId: null, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropTargetCatId: null, _dropAbove: null };
 
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector('.atfrfo-classes-view')) { return; }
@@ -1232,8 +1256,8 @@
 				indicator.style.display = 'none';
 				indicator.style.pointerEvents = 'none';
 				var _appEl  = document.getElementById('atfrfo-app');
-				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
-				if (!_accent) { _accent = '#f4c542'; }
+				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-drop-indicator').trim() : '';
+				if (!_accent) { _accent = '#8a7259'; }
 				indicator.style.background = 'linear-gradient(to right, transparent, '
 					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
 				document.body.appendChild(indicator);
@@ -1254,9 +1278,7 @@
 				var targetRow   = elBelow ? elBelow.closest('.atfrfo-class-row') : null;
 				var targetBlock = targetRow ? targetRow.closest('.atfrfo-category-block') : null;
 				var targetCatId = targetBlock ? targetBlock.getAttribute('data-category-id') : null;
-				// Only allow dropping within the same category.
-				if (targetRow && targetCatId === d.catId
-					&& targetRow.getAttribute('data-class-id') !== d.classId) {
+				if (targetRow && targetCatId && targetRow.getAttribute('data-class-id') !== d.classId) {
 					var trRect = targetRow.getBoundingClientRect();
 					var above  = e.clientY < trRect.top + trRect.height / 2;
 					d.indicator.style.display = '';
@@ -1264,11 +1286,13 @@
 					d.indicator.style.width   = trRect.width + 'px';
 					d.indicator.style.top     = (above ? trRect.top : trRect.bottom) - 2 + 'px';
 					d.indicator.style.height  = '4px';
-					d._dropTargetId = targetRow.getAttribute('data-class-id');
-					d._dropAbove    = above;
+					d._dropTargetId    = targetRow.getAttribute('data-class-id');
+					d._dropTargetCatId = targetCatId;
+					d._dropAbove       = above;
 				} else {
 					d.indicator.style.display = 'none';
-					d._dropTargetId = null;
+					d._dropTargetId    = null;
+					d._dropTargetCatId = null;
 				}
 			});
 
@@ -1285,78 +1309,84 @@
 				if (draggingRow) { draggingRow.style.opacity = ''; }
 
 				if (d._dropTargetId && d.classId && d._dropTargetId !== d.classId) {
-					self._onDropClassRow(d.classId, d._dropTargetId, d._dropAbove);
+					self._onDropClassRow(d.classId, d._dropTargetId, d._dropAbove, d._dropTargetCatId);
 				}
-				d._dropTargetId = null;
-				d._dropAbove    = null;
-				d.classId       = null;
-				d.catId         = null;
+				d._dropTargetId    = null;
+				d._dropTargetCatId = null;
+				d._dropAbove       = null;
+				d.classId          = null;
+				d.catId            = null;
 			});
 		},
 
 		/**
-		 * Handle a completed row drop: reorder classes within their shared
-		 * category and persist the new `order` for each affected class via
-		 * atfrfo_update_class. Display order only.
+		 * Handle a completed row drop: reassign the dragged class to the
+		 * target row's category (if different from its current one) and
+		 * position it relative to the target row, persisting category,
+		 * category_id, and order via atfrfo_update_class.
 		 *
 		 * @param {string}  srcId
 		 * @param {string}  targetId
 		 * @param {boolean} above
+		 * @param {string}  targetCatId Category ID the target row belongs to.
 		 */
-		_onDropClassRow: function (srcId, targetId, above) {
+		_onDropClassRow: function (srcId, targetId, above, targetCatId) {
 			var self = this;
-			var src    = ATFRFO.Utils.findClassById(srcId);
-			var target = ATFRFO.Utils.findClassById(targetId);
-			if (!src || !target) { return; }
+			var src = ATFRFO.Utils.findClassById(srcId);
+			if (!src) { return; }
 
-			// Both rows were confirmed same-list at drop time; rebuild that
-			// category's ordered list from current state to compute new orders.
 			var cats = self._getCatsForSet();
-			var cat  = null;
+			var targetCat = null;
 			for (var i = 0; i < cats.length; i++) {
-				var members = self._getClassesForCategory(cats[i]);
-				if (members.some(function (c) { return c.id === srcId; })
-					&& members.some(function (c) { return c.id === targetId; })) {
-					cat = cats[i];
-					break;
-				}
+				if (cats[i].id === targetCatId) { targetCat = cats[i]; break; }
 			}
-			if (!cat) { return; }
+			if (!targetCat) { return; }
 
-			var ordered = self._getClassesForCategory(cat).slice();
-			var srcIdx = -1, tgtIdx = -1;
+			// Reassign category if the drop landed in a different one than
+			// the class currently belongs to.
+			if (src.category_id !== targetCat.id) {
+				src.category_id = targetCat.id;
+				src.category    = targetCat.name;
+			}
+
+			var ordered = self._getClassesForCategory(targetCat).slice();
+			// Ensure src is represented exactly once in the target list, then
+			// position it relative to the target row.
+			ordered = ordered.filter(function (c) { return c.id !== srcId; });
+			var tgtIdx = -1;
 			for (var j = 0; j < ordered.length; j++) {
-				if (ordered[j].id === srcId)    { srcIdx = j; }
-				if (ordered[j].id === targetId) { tgtIdx = j; }
+				if (ordered[j].id === targetId) { tgtIdx = j; break; }
 			}
-			if (srcIdx === -1 || tgtIdx === -1) { return; }
+			if (tgtIdx === -1) { ordered.push(src); }
+			else { ordered.splice(above ? tgtIdx : tgtIdx + 1, 0, src); }
 
-			var moved = ordered.splice(srcIdx, 1)[0];
-			tgtIdx = -1;
-			for (var k = 0; k < ordered.length; k++) {
-				if (ordered[k].id === targetId) { tgtIdx = k; break; }
-			}
-			ordered.splice(above ? tgtIdx : tgtIdx + 1, 0, moved);
-
-			var changed = [];
+			var changed = [src];
 			for (var m = 0; m < ordered.length; m++) {
-				if ((ordered[m].order || 0) !== m) {
+				if (ordered[m].id !== srcId && (ordered[m].order || 0) !== m) {
 					ordered[m].order = m;
 					changed.push(ordered[m]);
+				} else if (ordered[m].id === srcId) {
+					src.order = m;
 				}
 			}
 
 			self._rerenderView();
 
-			if (!ATFRFO.state.currentFile || changed.length === 0) { return; }
+			if (!ATFRFO.state.currentFile) { return; }
 			var promises = changed.map(function (c) {
+				var payload = { id: c.id, order: c.order };
+				if (c.id === srcId) {
+					payload.category    = c.category;
+					payload.category_id = c.category_id;
+				}
 				return ATFRFO.App.ajax('atfrfo_update_class', {
 					filename: ATFRFO.state.currentFile,
-					class:    JSON.stringify({ id: c.id, order: c.order }),
+					class:    JSON.stringify(payload),
 				});
 			});
 			Promise.all(promises).then(function () {
 				if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
+				if (ATFRFO.PanelLeft && ATFRFO.PanelLeft.refresh) { ATFRFO.PanelLeft.refresh(); }
 			}).catch(function () {});
 		},
 

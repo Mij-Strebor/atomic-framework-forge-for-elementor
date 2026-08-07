@@ -122,6 +122,11 @@
 	--atfrfo-clr-accent:     #f4c542;   /* Primary accent — buttons, highlights */
 	--atfrfo-clr-accent-hov: #dda824;   /* Accent hover (15% darker) */
 
+	/* Drag-and-drop indicator — deliberately soft/muted, not the bold accent
+	   gold, since it's UI chrome (a positional hint) not a call to action.
+	   Shared by every drag type: category blocks, variable rows, class rows. */
+	--atfrfo-clr-drop-indicator: var(--atfrfo-clr-secondary);
+
 	/* Links */
 	--atfrfo-clr-link:       #ce6565;   /* Coral red */
 	--atfrfo-clr-link-hov:   #b54545;   /* Darker coral */
@@ -195,6 +200,9 @@
 	/* Gold accent — same in dark mode */
 	--atfrfo-clr-accent:     #f4c542;
 	--atfrfo-clr-accent-hov: #dda824;
+
+	/* Drag-and-drop indicator — see light theme block for rationale. */
+	--atfrfo-clr-drop-indicator: var(--atfrfo-clr-secondary);
 
 	/* Links */
 	--atfrfo-clr-link:       #e08080;   /* Lighter coral for dark bg */

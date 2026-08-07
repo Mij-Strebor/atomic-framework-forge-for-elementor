@@ -698,11 +698,11 @@ button.atfrfo-pickr-btn:focus-visible {
 .atfrfo-drop-indicator {
 	position:      fixed;
 	height:        4px;
-	background:    var(--atfrfo-clr-accent); /* overridden inline by JS gradient */
+	background:    var(--atfrfo-clr-drop-indicator); /* overridden inline by JS gradient */
 	z-index:       9998;
 	pointer-events: none;
 	border-radius: 2px;
-	box-shadow:    0 0 6px var(--atfrfo-clr-accent);
+	box-shadow:    0 0 6px var(--atfrfo-clr-drop-indicator);
 }
 
 /* Expand chevron (seventh column — 28px, matches category collapse btn) */
