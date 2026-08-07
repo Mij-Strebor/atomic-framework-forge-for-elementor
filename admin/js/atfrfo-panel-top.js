@@ -291,7 +291,6 @@
         "atfrfo-btn-history": self._openHistory.bind(self),
         "atfrfo-btn-export": self._openExport.bind(self),
         "atfrfo-btn-import": self._openImport.bind(self),
-        "atfrfo-btn-history": self._openHistory.bind(self),
         "atfrfo-btn-help": self._openHelp.bind(self),
       };
 

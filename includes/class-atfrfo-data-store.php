@@ -1213,7 +1213,9 @@ class ATFRFO_Data_Store {
 			'source'              => 'user-defined',
 			'status'              => 'synced',
 			'modified'            => false,
-			'created_at'          => '',
+			// null, not '' -- set_timestamps() only fills this via `??`, which
+			// doesn't trigger on an empty string (A-08 fix, 2026-08-07).
+			'created_at'          => null,
 			'updated_at'          => '',
 			// Set after the first successful "Commit to Elementor" (see
 			// ajax_atfrfo_commit_to_elementor()'s id_map in the response).
@@ -1251,7 +1253,9 @@ class ATFRFO_Data_Store {
 			'variants'       => array(),
 			'style_categories' => array(),
 			'notes'          => '',
-			'created_at'     => '',
+			// null, not '' -- set_timestamps() only fills this via `??`, which
+			// doesn't trigger on an empty string (A-08 fix, 2026-08-07).
+			'created_at'     => null,
 			'updated_at'     => '',
 			'last_synced_at' => '',
 		);

@@ -2000,13 +2000,12 @@
 						}
 
 						ATFRFO.state.config = cfg;
-						// globalConfig and config point to the same object reference here. config is
-						// replaced when _loadFile() assigns res.data.data.config, so after a project
-						// loads the two fields diverge. globalConfig is used as an immutable baseline
-						// to backfill missing category arrays on older project files.
-						// Risk (tech debt A-02): any mutation of ATFRFO.state.config before a file loads
-						// also mutates globalConfig — fix by deep-cloning: JSON.parse(JSON.stringify(cfg)).
-						ATFRFO.state.globalConfig = cfg;
+						// globalConfig is a deep copy, not the same reference as config (fixed A-02,
+						// 2026-08-07) — it's meant to stay an immutable baseline used to backfill
+						// missing category arrays on older project files, even if config gets
+						// mutated before a project loads. config itself is replaced wholesale when
+						// _loadFile() assigns res.data.data.config.
+						ATFRFO.state.globalConfig = JSON.parse(JSON.stringify(cfg));
 						if (cfg.projectName) {
 							ATFRFO.state.projectName = cfg.projectName;
 						}
