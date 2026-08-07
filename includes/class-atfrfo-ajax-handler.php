@@ -1746,12 +1746,21 @@ class ATFRFO_Ajax_Handler {
 	 *
 	 * Returns 'Colors' as the default for backward compatibility.
 	 *
-	 * @return string One of 'Colors', 'Fonts', 'Numbers'.
+	 * 'Classes' added 2026-08-07 — this allowlist gates all four category
+	 * CRUD endpoints (save/delete/clear/reorder category). Omitting it here
+	 * silently downgraded every Classes category request to 'Colors', so
+	 * e.g. renaming a Classes category looked up the ID in the Colors
+	 * category array, found nothing, and failed with no visible error —
+	 * exactly the bug this was fixing. get_categories_for_subgroup() /
+	 * subgroup_to_cat_key() already mapped 'Classes' correctly; this
+	 * allowlist was the one place that hadn't been updated to match.
+	 *
+	 * @return string One of 'Colors', 'Fonts', 'Numbers', 'Classes'.
 	 */
 	private function get_subgroup_param(): string {
 		$subgroup = $this->post_param( 'subgroup', 'Colors' );
 
-		$allowed = array( 'Colors', 'Fonts', 'Numbers' );
+		$allowed = array( 'Colors', 'Fonts', 'Numbers', 'Classes' );
 		return in_array( $subgroup, $allowed, true ) ? $subgroup : 'Colors';
 	}
 
