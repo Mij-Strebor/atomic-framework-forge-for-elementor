@@ -474,14 +474,11 @@
 				+ '</textarea>'
 				+ '</div>';
 
-			// Usage — fetched lazily below (see _loadUsageIntoCard); this scans
-			// every Elementor document on the site (~400ms+), so it only runs
-			// when a card is actually opened, not on every sync.
-			body += '<div class="atfrfo-class-card-usage" id="atfrfo-class-usage-section">'
-				+ '<span class="atfrfo-class-card-label">Usage</span>'
-				+ '<p class="atfrfo-class-variant-empty">Loading…</p>'
-				+ '</div>';
-
+			// "Style Properties" — the section header this card never had.
+			// Each group inside is one breakpoint/state combination (e.g.
+			// "Desktop", "Tablet — hover") — that's Elementor's own style-
+			// panel structure, not this card's own invention.
+			body += '<span class="atfrfo-class-card-label">Style Properties</span>';
 			body += '<div class="atfrfo-class-card-props">';
 			if (variants.length === 0) {
 				body += '<p class="atfrfo-colors-empty" style="padding:var(--sp-4) 0">No style properties set on this class yet.</p>';
@@ -491,6 +488,14 @@
 				}
 			}
 			body += '</div>';
+
+			// Usage — fetched lazily below (see _loadUsageIntoCard); this scans
+			// every Elementor document on the site (~400ms+), so it only runs
+			// when a card is actually opened, not on every sync.
+			body += '<div class="atfrfo-class-card-usage" id="atfrfo-class-usage-section">'
+				+ '<span class="atfrfo-class-card-label">Usage</span>'
+				+ '<p class="atfrfo-class-variant-empty">Loading…</p>'
+				+ '</div>';
 
 			body += '<p style="font-size:12px;color:var(--atfrfo-clr-muted);margin-top:var(--sp-3)">'
 				+ 'Read-only — reflects Elementor as of the last sync. Edit these properties in Elementor.</p>';

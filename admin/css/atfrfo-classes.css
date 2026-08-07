@@ -214,9 +214,16 @@
 	word-break:    break-word;
 }
 
+.atfrfo-class-card-label + .atfrfo-class-card-props {
+	margin-top: 4px;
+}
+
 .atfrfo-class-card-props {
-	max-height: 50vh;
-	overflow-y: auto;
+	max-height:    50vh;
+	overflow-y:    auto;
+	margin-bottom: var(--sp-3);
+	padding-bottom: var(--sp-2);
+	border-bottom: 1px solid var(--atfrfo-clr-border, #d6ccc2);
 }
 
 .atfrfo-class-variant-group {
