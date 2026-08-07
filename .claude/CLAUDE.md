@@ -28,10 +28,10 @@ ATFRFO is a WordPress admin plugin that provides a management interface for **El
 
 **Three asset types managed:**
 1. **Variables** — CSS custom properties from the Elementor v4 `:root` block (Colors, Fonts, Numbers — fully implemented)
-2. **Classes** — Developer-defined CSS class names on atomic widgets (future)
-3. **Components** — User-assembled widget compositions (future)
+2. **Classes** — Global Classes on atomic widgets: read, organize, rename, delete, usage lookup (fully implemented on `develop`)
+3. **Components** — User-assembled widget compositions (future, unscheduled)
 
-**Current phase: v1.4.1.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes Phase 3.1 (data layer) is in progress on `feature/classes-phase-3.1`. See `docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
+**Current: v1.4.1 released on `master`.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes management is fully built on `develop` (2.0.0-dev) — data layer, category-block UI, drag-and-drop, rename/delete write-back to Elementor, usage lookup, and print support are all working; not yet merged to `master`. See `docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
 
 ---
 
@@ -57,6 +57,10 @@ JimRForge website/NovaMira work. Both purposes share this one site.
 
 ## File Structure
 
+**Verified against the actual file tree 2026-08-07** — re-check with Glob before
+trusting this if it's been a while; this list drifted badly out of date once
+before (missed the entire Classes feature).
+
 ```
 atomic-framework-forge-for-elementor/
 ├── atomic-framework-forge-for-elementor.php  # Main plugin file, headers, bootstrap
@@ -64,8 +68,10 @@ atomic-framework-forge-for-elementor/
 │   ├── class-atfrfo-loader.php             # Hook registration
 │   ├── class-atfrfo-admin.php              # Admin page registration
 │   ├── class-atfrfo-css-parser.php         # Reads/parses post-{id}.css  ← READ-ONLY
+│   ├── class-atfrfo-classes-reader.php     # Reads Elementor Global Classes  ← READ-ONLY (see Elementor Data Structures below)
+│   ├── class-atfrfo-usage-scanner.php      # Scans widget data for variable/class usage counts
 │   ├── class-atfrfo-data-store.php         # Variable/class/component persistence
-│   ├── class-atfrfo-ajax-handler.php       # AJAX endpoints
+│   ├── class-atfrfo-ajax-handler.php       # AJAX endpoints (incl. the 3 Phase 5 write-back exceptions, Critical Rule #1)
 │   └── class-atfrfo-settings.php          # Plugin preferences
 ├── admin/
 │   ├── views/page-atfrfo-main.php          # Root PHP template for the admin page
@@ -73,22 +79,36 @@ atomic-framework-forge-for-elementor/
 │   │   ├── atfrfo-app.js                   # Main JS entry point, ATFRFO.state init
 │   │   ├── atfrfo-panel-left.js            # Left nav tree
 │   │   ├── atfrfo-panel-right.js           # Right panel: project, sync, backup
-│   │   ├── atfrfo-panel-top.js             # Top bar: project name, Switch Project
+│   │   ├── atfrfo-panel-top.js             # Top bar: project name, Switch Project, tooltips
+│   │   ├── atfrfo-edit-space.js            # Center panel content area
 │   │   ├── atfrfo-colors.js                # Colors variable set (full edit UI)
 │   │   ├── atfrfo-variables.js             # Generic variable set factory (Fonts, Numbers)
+│   │   ├── atfrfo-classes.js               # Classes: category blocks, drag-drop, detail card, rename/delete
+│   │   ├── atfrfo-fonts.js                 # Font picker (aff_get_font_list)
+│   │   ├── atfrfo-print.js                 # Print/PDF: variables + classes
 │   │   ├── atfrfo-merge.js                 # Merge/conflict resolution utilities
 │   │   ├── atfrfo-modal.js                 # Single-instance modal system
+│   │   ├── atfrfo-notify.js                # "Take a look" notify sign
 │   │   └── atfrfo-theme.js                 # Light/dark mode toggle
 │   └── css/
 │       ├── atfrfo-layout.css               # Panel layout and structure
-│       └── atfrfo-theme.css                # Light/dark mode CSS variables
+│       ├── atfrfo-theme.css                # Light/dark mode CSS variables
+│       ├── atfrfo-colors.css               # Colors variable set styling
+│       ├── atfrfo-variables.css            # Fonts/Numbers variable set styling
+│       ├── atfrfo-classes.css              # Classes category blocks + detail card
+│       ├── atfrfo-print.css                # Print selection modal
+│       ├── atfrfo-print-page.css           # Print output document
+│       ├── atfrfo-preferences.css          # Preferences modal (incl. a11y font-size overrides)
+│       └── atfrfo-notify.css               # Notify sign styling
 ├── assets/
 │   ├── fonts/                           # Inter WOFF2 files (4 weights)
 │   └── icons/                           # SVG icon set
 ├── data/
 │   └── atfrfo-defaults.json               # Default subgroup definitions
 └── docs/
-    └── ATFRFO-Framework-Forge-Spec.md      # Full spec document
+    ├── ATFRFO-Framework-Forge-Spec.md      # Full spec document
+    ├── AFF-VISION-AND-ROADMAP.md           # Living roadmap, most current planning doc
+    └── TECH-DEBT.md                        # Open tech-debt tracker
 ```
 
 ---
@@ -111,10 +131,16 @@ atomic-framework-forge-for-elementor/
 ### 1. ATFRFO_CSS_Parser is read-only — write-back lives only in the AJAX handler
 `class-atfrfo-css-parser.php` only reads `post-{id}.css`. It **never writes to, modifies, or regenerates** Elementor's stylesheets.
 
-**The one intentional exception:** `ATFRFO_Ajax_Handler::ajax_atfrfo_commit_to_elementor()` writes variable values back to the Elementor kit CSS. This is the **Phase 5 write-back feature** and is intentionally isolated in the AJAX handler layer only. It must never be merged into `ATFRFO_CSS_Parser` or any parser class. Every call site must carry the comment:
+**The intentional exceptions — three, all in `ATFRFO_Ajax_Handler`, all Phase 5 write-back:**
+- `ajax_atfrfo_commit_to_elementor()` — writes Variable values back to the Elementor kit CSS.
+- `ajax_atfrfo_delete_class_from_elementor()` — deletes a Global Class in Elementor.
+- `ajax_atfrfo_rename_class_in_elementor()` — renames a Global Class in Elementor.
+
+All three are intentionally isolated in the AJAX handler layer only. None may be merged into `ATFRFO_CSS_Parser`, `ATFRFO_Classes_Reader`, or any other reader/parser class. Every call site must carry the comment:
 ```php
 // Intentional Phase 5 write-back exception — see ATFRFO CLAUDE.md Critical Rule #1.
 ```
+When a new write-back endpoint is added, add it to this list — an unlisted write-back endpoint is exactly the kind of drift this rule exists to prevent.
 
 ### 2. Portable data layer
 `class-atfrfo-data-store.php`, `class-atfrfo-ajax-handler.php`, and all business logic classes must have **no WordPress dependencies**. All WordPress-specific code belongs in thin adapter classes only. ATFRFO is architecturally intended for future port to a standalone Windows/Mac app. The `.atfrfo.json` storage format must remain platform-agnostic.
@@ -248,14 +274,27 @@ All icons are **inline SVG** from `assets/icons/`. No icon fonts. All use `fill:
 ### ATFRFO.state — global state object (atfrfo-app.js)
 
 ```js
+// Real shape, verified against atfrfo-app.js:31-45 — do not hand-edit this block
+// from memory again; re-check the source if it looks wrong.
 ATFRFO.state = {
-    variables:  [],       // flat array of all variable objects
-    categories: {},       // { Colors: [...], Fonts: [...], Numbers: [...] }
-    config:     {},       // project config (name, backup limit, etc.)
-    currentFile: null,    // active project slug
-    isDirty:    false,    // unsaved changes exist
-    activeSet:  'Colors', // currently visible variable set
+    hasUnsavedChanges:         false, // drives Save Changes button
+    hasPendingElementorCommit: false, // drives Commit button
+    pendingSaveCount:          0,     // in-flight per-variable AJAX saves; blocks file save
+    currentSelection:          null,
+    currentFile:               null,  // active project slug
+    projectName:               '',    // set via Manage Project modal
+    theme:                     'light', // or 'dark', from ATFRFOData.theme
+    variables:                 [],    // flat array of all variable objects
+    classes:                   [],    // flat array of all class objects
+    components:                [],
+    config:                    {},    // project config (name, categories, backup limit, etc.)
+    usageCounts:                {},   // { '--varname': count } — from fetchUsageCounts()
+    settings:                  {},    // cached from atfrfo_get_settings on startup
+    metadata:                  {},    // { elementor_snapshot, ... } — from _loadFile()/_autoLoadFile()
 }
+// globalConfig is NOT in the initial literal above — loadConfig() assigns it
+// dynamically (ATFRFO.state.globalConfig = cfg) as a WordPress-options baseline
+// used to backfill missing category arrays on older project files.
 ```
 
 ### Shared Container — the root cause of cross-module bugs
@@ -264,9 +303,10 @@ ATFRFO.state = {
 
 ### Module Architecture
 
-- **`atfrfo-colors.js`** — self-contained module for the Colors variable set. Uses module-level `_drag` object.
-- **`atfrfo-variables.js`** — factory function `ATFRFO.Variables(config)` for Fonts and Numbers.
-- Both use `_effEventsBound` / `_effVarsEventsBound` flags on the container DOM node to prevent re-binding. **These flags persist even when innerHTML is replaced** — never clear them by destroying the node.
+- **`atfrfo-colors.js`** — self-contained module for the Colors variable set. Uses module-level `_drag` object. Rebind guard flag: `container._affEventsBound`.
+- **`atfrfo-variables.js`** — factory function `ATFRFO.Variables(config)` for Fonts and Numbers. Rebind guard flag: `_effVarsEventsBound_<setname>` — **still carries the old `_eff` prefix** (a loose end outside the L-06 tech-debt fix, which only covered `atfrfo-panel-top.js`'s IndexedDB helpers; rename this one too if it's ever touched).
+- **`atfrfo-classes.js`** — Classes category-block UI, drag-and-drop, detail card, rename/delete write-back.
+- Both `colors.js` and `variables.js` set their rebind-guard flag on the container DOM node to prevent re-binding. **These flags persist even when innerHTML is replaced** — never clear them by destroying the node.
 
 ---
 
@@ -278,8 +318,13 @@ ATFRFO.state = {
 | Kit CSS file | `wp-content/uploads/elementor/css/post-{id}.css` |
 | Global variables meta key | `_elementor_global_variables` on the kit post |
 | V3 colors meta key | `_elementor_page_settings` → `system_colors` / `custom_colors` |
+| Global Classes storage | Individual `Global_Class_Post` posts, read via `\Elementor\Modules\GlobalClasses\Global_Classes_Repository` — **never** the legacy `_elementor_global_classes` meta key |
+| Class usage data | `\Elementor\Modules\GlobalClasses\Applied_Global_Classes_Usage` |
+| Class → Variable references | Class properties reference global Variables via `$$type: "global-{color\|font\|size}-variable"`, value = `e-gv-`-prefixed variable ID |
 
-`ATFRFO_CSS_Parser::read_from_kit_meta()` reads directly from post meta (primary path). CSS file parsing is the fallback.
+`ATFRFO_CSS_Parser::read_from_kit_meta()` reads Variables directly from post meta (primary path). CSS file parsing is the fallback.
+
+**Classes — the `_elementor_global_classes` meta key is a trap (C-08 incident, `docs/TECH-DEBT.md`):** it still exists and still returns data, but it's stale/legacy and does NOT reflect the real class list once Elementor 4.2.1+ moves classes to individual posts. A real site returned 10 items from the meta key when the true count was 54/73 via `Global_Classes_Repository`. `ATFRFO_Classes_Reader`'s primary path must always call `Global_Classes_Repository` directly (guarded with `class_exists()`, falling back to REST only if that class doesn't exist) — never resurrect a raw meta-key read as part of the trusted path, even as a fallback, because an empty result from it is indistinguishable from a genuinely-empty-and-correct one.
 
 ---
 
@@ -297,10 +342,10 @@ ATFRFO.state = {
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Current — 1.4.0** |
-| **v2.0** | Classes management; Change History log (currently a placeholder button, no log behind it) | Planned |
-| **v3.0** | Components registry; Elementor Kit Manager API write-back | Planned |
-| **Future** | Standalone Windows/Mac desktop application | Roadmap |
+| **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Released — 1.4.1 (`master`)** |
+| **v2.0.0** | Classes management | Built on `develop` (2.0.0-dev), not yet merged to `master` |
+| **v3.0.0** | Components registry | Planned |
+| **Future** | Elementor Kit Manager API write-back; Change History log (currently a placeholder button — `atfrfo-panel-top.js:_openHistory()` shows "arrives in ATFRFO v5", a version number that doesn't match this table; needs reconciling when scheduled); standalone Windows/Mac desktop application | Roadmap |
 
 Do not build ahead of the current phase without explicit instruction from Jim.
 
