@@ -304,7 +304,7 @@ ATFRFO.state = {
 ### Module Architecture
 
 - **`atfrfo-colors.js`** — self-contained module for the Colors variable set. Uses module-level `_drag` object. Rebind guard flag: `container._affEventsBound`.
-- **`atfrfo-variables.js`** — factory function `ATFRFO.Variables(config)` for Fonts and Numbers. Rebind guard flag: `_effVarsEventsBound_<setname>` — **still carries the old `_eff` prefix** (a loose end outside the L-06 tech-debt fix, which only covered `atfrfo-panel-top.js`'s IndexedDB helpers; rename this one too if it's ever touched).
+- **`atfrfo-variables.js`** — factory function `ATFRFO.Variables(config)` for Fonts and Numbers. Rebind guard flag: `_affVarsEventsBound_<setname>` (fixed 2026-08-07, was `_eff`).
 - **`atfrfo-classes.js`** — Classes category-block UI, drag-and-drop, detail card, rename/delete write-back.
 - Both `colors.js` and `variables.js` set their rebind-guard flag on the container DOM node to prevent re-binding. **These flags persist even when innerHTML is replaced** — never clear them by destroying the node.
 

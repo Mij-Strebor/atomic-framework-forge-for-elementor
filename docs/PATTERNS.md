@@ -74,7 +74,7 @@ flag so the second set to load doesn't skip binding because the first set alread
 shared flag:
 
 ```js
-var _boundFlag = '_effVarsEventsBound_' + setLower;  // e.g. _effVarsEventsBound_fonts
+var _boundFlag = '_affVarsEventsBound_' + setLower;  // e.g. _affVarsEventsBound_fonts
 if (container[_boundFlag]) { return; }
 container[_boundFlag] = true;
 ```

@@ -472,7 +472,7 @@
 		 * may not exist until after render.
 		 *
 		 * Delegated listeners (click, mousedown, focusout, keydown, change,
-		 * input) are bound once and guarded by _effVarsEventsBound to prevent
+		 * input) are bound once and guarded by _affVarsEventsBound to prevent
 		 * accumulation across re-renders.
 		 *
 		 * @param {HTMLElement} container
@@ -518,7 +518,7 @@
 			// ---- Delegated events — bound only once per container, per set ----
 			// Each set (Fonts, Numbers) needs its own flag so the second set to load
 			// doesn't skip binding because the first set already set the shared flag.
-			var _boundFlag = '_effVarsEventsBound_' + setLower;
+			var _boundFlag = '_affVarsEventsBound_' + setLower;
 			if (container[_boundFlag]) { return; }
 			container[_boundFlag] = true;
 

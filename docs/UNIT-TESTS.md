@@ -661,7 +661,7 @@ File: `admin/js/atfrfo-variables.js`
 
 | # | Scenario | Expected |
 |---|----------|----------|
-| 1 | Render called twice | `container._effVarsEventsBound` is set; second bind is skipped |
+| 1 | Render called twice | `container._affVarsEventsBound_<setname>` is set; second bind is skipped |
 | 2 | Only one click handler for each event type | Event fires once per click, not twice |
 
 ### 10.5 Drag/drop — object identity
