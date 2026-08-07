@@ -1215,6 +1215,13 @@ class ATFRFO_Data_Store {
 			'modified'            => false,
 			'created_at'          => '',
 			'updated_at'          => '',
+			// Set after the first successful "Commit to Elementor" (see
+			// ajax_atfrfo_commit_to_elementor()'s id_map in the response).
+			// Once set, commits match this exact Elementor entry by ID instead
+			// of by name, so renaming a variable and recommitting updates it in
+			// place instead of deleting the old name and creating a new ID under
+			// the new one — fixed 2026-08-08, see docs/AFF-VISION-AND-ROADMAP.md §9.
+			'elementor_id'        => '',
 		);
 	}
 

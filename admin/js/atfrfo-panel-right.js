@@ -1637,6 +1637,8 @@
           cssValue = numMatch ? numMatch[1] + unit : v.value;
         }
         return {
+          id: v.id,
+          elementor_id: v.elementor_id || "",
           name: v.name,
           value: cssValue,
           type: v.type || "",
@@ -1663,6 +1665,19 @@
             var created = res.data.created || [];
             var deleted = res.data.deleted || [];
             var skipped = res.data.skipped || [];
+
+            // Store the Elementor ID this commit resolved each variable to —
+            // every future commit matches this exact entry by ID instead of by
+            // name, so a rename updates it in place instead of deleting the old
+            // name and creating a new ID under the new one. See
+            // ajax_atfrfo_commit_to_elementor()'s id_map docblock.
+            var idMap = res.data.id_map || {};
+            if (Object.keys(idMap).length > 0) {
+              for (var mi = 0; mi < ATFRFO.state.variables.length; mi++) {
+                var mv = ATFRFO.state.variables[mi];
+                if (idMap[mv.id]) { mv.elementor_id = idMap[mv.id]; }
+              }
+            }
 
             // Update in-memory snapshot to current ATFRFO variable names so the
             // next commit correctly detects future deletions.

@@ -1513,6 +1513,10 @@ class ATFRFO_Ajax_Handler {
 		$ev4_updated = array(); // labels updated in existing EV4 entries
 		$ev4_created = array(); // labels added as new EV4 entries
 		$ev4_deleted = array(); // labels removed from EV4
+		// AFF variable UUID -> Elementor ID. Returned so the client can store
+		// elementor_id on each variable for future commits — see the ID-first
+		// matching block below for why this replaces name-only matching.
+		$id_map      = array();
 
 		if ( $kit_id ) {
 			$raw = get_post_meta( $kit_id, '_elementor_global_variables', true );
@@ -1536,11 +1540,32 @@ class ATFRFO_Ajax_Handler {
 			$now       = current_time( 'Y-m-d H:i:s' );
 
 			// Build a case-insensitive label → EV4 entry ID map for fast lookup.
+			// Legacy fallback only — see the ID-first matching below. A variable
+			// AFF has never committed before (or committed prior to 2026-08-08,
+			// before AFF started storing elementor_id) has no ID to match on yet,
+			// so name-matching remains the only option for it.
 			$label_index = array();
 			foreach ( $existing as $eid => $entry ) {
 				$lc = strtolower( $entry['label'] ?? '' );
 				if ( '' !== $lc ) {
 					$label_index[ $lc ] = $eid;
+				}
+			}
+
+			// IDs that any current variable is explicitly bound to. These must
+			// survive the deletion pass below even if their OLD label is in the
+			// snapshot (a rename looks exactly like "old name gone, new name
+			// appeared" from a name-only point of view) — deleting-then-
+			// recreating a renamed variable would assign it a brand new ID,
+			// silently orphaning every class/widget property that referenced
+			// the old one. Fixed 2026-08-08 (see docs/AFF-VISION-AND-ROADMAP.md
+			// §9 — found while investigating the same class of bug in Classes'
+			// own rename, which AFF's own class objects side-stepped by always
+			// storing elementor_id; variables never did until now).
+			$bound_ids = array();
+			foreach ( $variables as $v ) {
+				if ( is_array( $v ) && ! empty( $v['elementor_id'] ) && isset( $existing[ $v['elementor_id'] ] ) ) {
+					$bound_ids[ $v['elementor_id'] ] = true;
 				}
 			}
 
@@ -1552,11 +1577,13 @@ class ATFRFO_Ajax_Handler {
 				}
 			}
 
-			// Deletions: snapshot labels no longer present in ATFRFO.
+			// Deletions: snapshot labels no longer present in ATFRFO — but never
+			// an ID a current variable is bound to (see $bound_ids above; that's
+			// a rename, not a real deletion).
 			foreach ( $snapshot as $snap_label ) {
 				$snap_lc = strtolower( (string) $snap_label );
 				if ( ! in_array( $snap_lc, $current_names_lc, true ) ) {
-					if ( isset( $label_index[ $snap_lc ] ) ) {
+					if ( isset( $label_index[ $snap_lc ] ) && ! isset( $bound_ids[ $label_index[ $snap_lc ] ] ) ) {
 						$eid = $label_index[ $snap_lc ];
 						unset( $existing[ $eid ], $label_index[ $snap_lc ] );
 						$ev4_deleted[] = (string) $snap_label;
@@ -1585,20 +1612,39 @@ class ATFRFO_Ajax_Handler {
 					continue;
 				}
 
-				$css_value  = sanitize_text_field( $v['value'] ?? '' );
-				$atfrfo_type   = sanitize_text_field( $v['type'] ?? '' );
-				$subgroup   = sanitize_text_field( $v['subgroup'] ?? '' );
-				$format     = sanitize_text_field( $v['format'] ?? '' );
-				$label_lc   = strtolower( $label );
-				$meta_value = $this->build_elementor_meta_value( $css_value, $atfrfo_type, $subgroup, $format );
+				$css_value    = sanitize_text_field( $v['value'] ?? '' );
+				$atfrfo_type  = sanitize_text_field( $v['type'] ?? '' );
+				$subgroup     = sanitize_text_field( $v['subgroup'] ?? '' );
+				$format       = sanitize_text_field( $v['format'] ?? '' );
+				$label_lc     = strtolower( $label );
+				$bound_id     = ! empty( $v['elementor_id'] ) ? sanitize_text_field( $v['elementor_id'] ) : '';
+				$meta_value   = $this->build_elementor_meta_value( $css_value, $atfrfo_type, $subgroup, $format );
 
-				if ( isset( $label_index[ $label_lc ] ) ) {
-					// Update existing — preserve original EV4 label casing.
-					$eid                            = $label_index[ $label_lc ];
-					$existing[ $eid ]['value']      = $meta_value;
-					$existing[ $eid ]['updated_at'] = $now;
+				if ( '' !== $bound_id && isset( $existing[ $bound_id ] ) ) {
+					// ID-matched — a true update-in-place, including rename: the
+					// label can differ from what's currently stored and this is
+					// still the same entry, same ID, nothing else referencing it
+					// breaks.
+					$existing[ $bound_id ]['label']      = $label;
+					$existing[ $bound_id ]['value']      = $meta_value;
+					$existing[ $bound_id ]['updated_at'] = $now;
 					++$watermark;
 					$ev4_updated[] = $label;
+					if ( isset( $v['id'] ) ) {
+						$id_map[ $v['id'] ] = $bound_id;
+					}
+				} elseif ( isset( $label_index[ $label_lc ] ) ) {
+					// Legacy fallback: no stored ID yet, matched by name instead —
+					// still an update-in-place (preserves the ID), just via a
+					// weaker signal. Backfills the ID for next time.
+					$eid                            = $label_index[ $label_lc ];
+					$existing[ $eid ]['value']       = $meta_value;
+					$existing[ $eid ]['updated_at']  = $now;
+					++$watermark;
+					$ev4_updated[] = $label;
+					if ( isset( $v['id'] ) ) {
+						$id_map[ $v['id'] ] = $eid;
+					}
 				} else {
 					// Create new entry.
 					$new_id   = $this->generate_elementor_var_id();
@@ -1614,6 +1660,9 @@ class ATFRFO_Ajax_Handler {
 					);
 					++$watermark;
 					$ev4_created[] = $label;
+					if ( isset( $v['id'] ) ) {
+						$id_map[ $v['id'] ] = $new_id;
+					}
 				}
 			}
 
@@ -1759,6 +1808,7 @@ class ATFRFO_Ajax_Handler {
 				'created'   => $ev4_created,
 				'deleted'   => $ev4_deleted,
 				'skipped'   => $css_skipped,
+				'id_map'    => $id_map,
 				'message'   => $msg,
 			)
 		);
