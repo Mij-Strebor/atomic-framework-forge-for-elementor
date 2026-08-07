@@ -3,7 +3,7 @@
 **Document version:** 2.1 (status update 2026-08-08 — Classes shipped, see §6/§9/§10)
 **Date:** 2026-08-04 (original), updated 2026-08-08
 **Status:** Living plan — scope, architecture, and roadmap for AFF's three asset pillars.
-**Supersedes:** `docs/CLASSES-PLAN.md` v2.0 (2026-05-21) — its confirmed technical findings and implementation plan are folded into this document (Sections 3-6). That file's own text can be retired once this document is reviewed; nothing here contradicts it, only reorganizes and extends it.
+**Supersedes:** `docs/CLASSES-PLAN.md` v2.0 (2026-05-21) — its confirmed technical findings and implementation plan were folded into this document (Sections 3-6). That file itself has been deleted (commit `280c62c`); this document is now the sole source for Classes planning.
 
 ---
 
@@ -462,7 +462,7 @@ planned — see §6's status update). Kept for historical record.
 4. ~~Build Phase 3.3~~ — done (detail card, category CRUD, drag-reorder within *and between* categories).
 5. ~~Ship first WordPress release at the end of 3.3~~ — not yet released to WordPress.org; `develop` is pushed to GitHub but not merged to `master`.
 6. ~~Stop and reassess before Phase 3.4~~ — reassessed 2026-08-08: rename and delete shipped (both real Elementor writes, source-verified first); create was cancelled.
-7. Retire `docs/CLASSES-PLAN.md` — still outstanding.
+7. ~~Retire `docs/CLASSES-PLAN.md`~~ — done; the file was already deleted (commit `280c62c`), this checklist just hadn't caught up.
 
 **Actual next steps, as of 2026-08-08:**
 1. Decide the Variables rename/commit duplicate question above.
