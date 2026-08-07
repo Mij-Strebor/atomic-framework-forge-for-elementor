@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.4.1
+Stable tag:        1.4.2
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,6 +73,11 @@ In your WordPress uploads directory under `/uploads/atfrfo/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 1.4.2 =
+* Fixed: Project file writes now use LOCK_EX, preventing JSON corruption from concurrent writes (two tabs, an overlapping autosave) to the same project file.
+* Fixed: Commit to Elementor now matches Variables by their stored Elementor ID first, not name alone — renaming a Variable and recommitting now updates the existing entry in place instead of silently creating a new one and orphaning any class or widget already referencing the old ID.
+* Fixed: Backup filename collisions during Copy Project no longer require a blocking sleep() retry loop.
 
 = 1.4.1 =
 * Fixed: Critical — every AJAX endpoint (Save, Load, Sync, and all other admin actions) was non-functional due to a method-naming mismatch introduced during the 1.4.0 prefix rename. All endpoints restored.
@@ -190,6 +195,9 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 * Initial release — Variables (Colors, Fonts, Numbers), Sync, Organize, Save, Commit, Dark Mode.
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+Fixes a project-file corruption risk and a silent Elementor-reference bug on Variable rename + commit. Recommended for all users.
 
 = 1.4.1 =
 Critical fix: all admin AJAX actions were broken in 1.4.0. Update immediately.

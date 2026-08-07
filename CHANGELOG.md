@@ -9,8 +9,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [1.4.2] — 2026-08-07
+
 ### Fixed
 
+- **Project file writes could be corrupted by concurrent writes.** `file_put_contents()` in `ATFRFO_Data_Store::save_to_file()` had no lock — two overlapping writes to the same project file (two browser tabs, an overlapping autosave) could interleave mid-write and corrupt the JSON, causing every subsequent AJAX save to silently fail with no visible error. Added `LOCK_EX`.
+- **Commit to Elementor could silently orphan class/widget references on a Variable rename.** The commit handler matched existing Elementor entries by name only — renaming a variable and recommitting deleted the old-named entry and created a new one with a brand-new Elementor ID, breaking any class or widget property already referencing the old ID. Variables now carry a stored `elementor_id` and commits match by that ID first (true update-in-place, rename included), falling back to name-matching only for variables that predate this fix. Confirmed via live round-trip test in both directions.
+- **Copying a project with multiple backups could block for up to 10 seconds.** `generate_backup_filename()`'s 1-second timestamp resolution meant rapid successive backups collided, forcing a `sleep()`-based retry loop. Filenames now include a short unique suffix instead.
 - **User-facing text incorrectly showed "ATFRFO"** (the internal code prefix) instead of "AFF" (the public brand name) in several places: the Merge Conflicts dialog (button labels, column header, body text), the WordPress admin sidebar menu label, the Help/About panel, the sync dialog hint text, and the print/PDF document title. The Help panel's plugin-name explainer is now the canonical place the acronym gets spelled out, bolded, so it stays familiar without repeating the explainer everywhere.
 - **Merge Conflicts dialog was too narrow** — the "Use Elementor" column required horizontal scrolling. Widened using the existing `atfrfo-modal--wide` variant already used elsewhere, rather than widening the shared modal component globally.
 - **Removed a false claim from the pre-write safety dialog** — "ATFRFO runs 350+ automated tests" was shown to users immediately before a destructive Elementor write, but no automated test suite exists anywhere in the codebase.
