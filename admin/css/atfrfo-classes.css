@@ -311,6 +311,7 @@
 	display:               grid;
 	grid-template-columns: minmax(120px, max-content) 1fr;
 	gap:                   4px var(--sp-3);
+	padding-left:          8ch;
 	font-size:             var(--fs-xs, 0.75rem);
 	font-family:           monospace, monospace;
 }

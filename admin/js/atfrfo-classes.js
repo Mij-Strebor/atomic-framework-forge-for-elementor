@@ -876,8 +876,7 @@
 					html += '<div class="atfrfo-class-variant-props">';
 					for (var pi = 0; pi < group.keys.length; pi++) {
 						var key = group.keys[pi];
-						html += '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + '</span>'
-							+ ATFRFO.Classes._renderPropValue(props[key]);
+						html += ATFRFO.Classes._renderPropRows(key, props[key]);
 					}
 					html += '</div>';
 				}
@@ -891,6 +890,53 @@
 			}
 
 			html += '</div>';
+			return html;
+		},
+
+		/** Logical side => the visual label Elementor's own editor shows (LTR). */
+		_DIMENSION_SIDE_LABELS: {
+			'block-start':  'Top',
+			'inline-end':   'Right',
+			'block-end':    'Bottom',
+			'inline-start': 'Left',
+		},
+
+		/**
+		 * Render one property as one or more key/value row pairs. Most props
+		 * are a single row. A 'dimensions'-type prop (padding, margin — see
+		 * Dimensions_Prop_Type in Elementor core) bundles four independently-
+		 * set sides in one prop, each of which can itself be a literal or a
+		 * different variable reference — exactly what Elementor's own style
+		 * panel shows as four separate Top/Right/Bottom/Left fields. Dumping
+		 * that nested object as a single JSON-ish value (the previous
+		 * behavior, via _formatPropValue's JSON.stringify fallback) is not
+		 * readable; breaking it into one row per side, using the same
+		 * variable/hardcoded rendering as any other prop, matches what's
+		 * actually seen when inspecting the element in Elementor.
+		 *
+		 * @param {string} key
+		 * @param {*} prop
+		 * @returns {string}
+		 */
+		_renderPropRows: function (key, prop) {
+			var self = ATFRFO.Classes;
+			var isDimensions = !!(prop && typeof prop === 'object' && prop.$$type === 'dimensions'
+				&& prop.value && typeof prop.value === 'object');
+
+			if (!isDimensions) {
+				return '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + '</span>'
+					+ self._renderPropValue(prop);
+			}
+
+			var sideOrder = ['block-start', 'inline-end', 'block-end', 'inline-start'];
+			var html = '';
+			for (var i = 0; i < sideOrder.length; i++) {
+				var side = sideOrder[i];
+				if (!(side in prop.value)) { continue; }
+				var sideLabel = self._DIMENSION_SIDE_LABELS[side] || side;
+				html += '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + ' — ' + sideLabel + '</span>'
+					+ self._renderPropValue(prop.value[side]);
+			}
 			return html;
 		},
 
@@ -936,11 +982,14 @@
 			if (isVarRef) {
 				if (prop._resolved) {
 					var varName = ATFRFO.Utils.escHtml(prop._resolved.name || prop.value);
-					var varVal  = ATFRFO.Utils.escHtml(ATFRFO.Classes._formatPropValue(prop._resolved.value));
+					// Resolved value is the variable's own current value --
+					// redundant to show next to the name (the whole point of
+					// a variable reference is that the name IS the value).
+					// Kept as a tooltip rather than dropped outright.
+					var varValTip = ATFRFO.Utils.escAttr(ATFRFO.Classes._formatPropValue(prop._resolved.value));
 					return '<span class="atfrfo-class-prop-value">'
 						+ '<span class="atfrfo-class-prop-badge atfrfo-class-prop-badge--variable" data-atfrfo-tooltip="Linked to an Elementor global variable">Variable</span>'
-						+ '<span class="atfrfo-class-prop-varname">' + varName + '</span>'
-						+ '<span class="atfrfo-class-prop-varval">' + varVal + '</span>'
+						+ '<span class="atfrfo-class-prop-varname" data-atfrfo-tooltip="' + varValTip + '">' + varName + '</span>'
 						+ '</span>';
 				}
 				// Reference exists but couldn't be resolved (e.g. the variable

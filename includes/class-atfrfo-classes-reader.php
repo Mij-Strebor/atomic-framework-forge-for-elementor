@@ -525,6 +525,13 @@ class ATFRFO_Classes_Reader {
 	 * styled) is also left unresolved — the card falls back to showing the
 	 * raw ID plus a "not found" note rather than guessing.
 	 *
+	 * A 'dimensions'-type prop (padding, margin — see Dimensions_Prop_Type
+	 * in Elementor core) is a nested object of four independently-set
+	 * sides (block-start/inline-end/block-end/inline-start), each of which
+	 * can itself be a variable reference — Elementor's own style panel
+	 * shows exactly that (e.g. top/bottom literal, right/left different
+	 * variables). Resolve those nested refs too, not just top-level props.
+	 *
 	 * @param array $variants  A class's `variants` array.
 	 * @param array $var_index Output of get_variable_index().
 	 * @return array The same variants structure with `_resolved` added where possible.
@@ -535,21 +542,44 @@ class ATFRFO_Classes_Reader {
 				continue;
 			}
 			foreach ( $variant['props'] as &$prop ) {
-				if ( ! is_array( $prop ) || ! isset( $prop['$$type'], $prop['value'] ) ) {
+				if ( ! is_array( $prop ) || ! isset( $prop['$$type'] ) ) {
 					continue;
 				}
-				if ( 0 !== strpos( (string) $prop['$$type'], 'global-' ) ) {
-					continue; // Literal value, not a variable reference.
+				if ( 'dimensions' === $prop['$$type'] && isset( $prop['value'] ) && is_array( $prop['value'] ) ) {
+					foreach ( $prop['value'] as &$side ) {
+						$this->resolve_one_ref( $side, $var_index );
+					}
+					unset( $side );
+					continue;
 				}
-				$ref_id = (string) $prop['value'];
-				if ( isset( $var_index[ $ref_id ] ) ) {
-					$prop['_resolved'] = $var_index[ $ref_id ];
-				}
+				$this->resolve_one_ref( $prop, $var_index );
 			}
 			unset( $prop );
 		}
 		unset( $variant );
 
 		return $variants;
+	}
+
+	/**
+	 * Attach `_resolved` to a single prop (or dimensions side) if it's a
+	 * `global-*` variable reference found in $var_index. No-op for
+	 * anything else — shared by resolve_variable_refs()'s top-level and
+	 * per-side passes so both stay in sync.
+	 *
+	 * @param mixed $prop      Passed by reference; mutated in place.
+	 * @param array $var_index Output of get_variable_index().
+	 */
+	private function resolve_one_ref( &$prop, array $var_index ): void {
+		if ( ! is_array( $prop ) || ! isset( $prop['$$type'], $prop['value'] ) ) {
+			return;
+		}
+		if ( 0 !== strpos( (string) $prop['$$type'], 'global-' ) ) {
+			return; // Literal value, not a variable reference.
+		}
+		$ref_id = (string) $prop['value'];
+		if ( isset( $var_index[ $ref_id ] ) ) {
+			$prop['_resolved'] = $var_index[ $ref_id ];
+		}
 	}
 }
