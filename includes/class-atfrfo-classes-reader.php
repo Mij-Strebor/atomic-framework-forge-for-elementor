@@ -174,7 +174,8 @@ class ATFRFO_Classes_Reader {
 	 * @return array<string, array{total:int, pages:array}> Keyed by Elementor
 	 *   class ID (e.g. 'gc-0e2eff4039bbe56f'). Each entry: total usage count
 	 *   across the whole site, and a list of pages
-	 *   {pageId, title, type, total, elements}.
+	 *   {pageId, title, type, total, elements}, where `elements` is a list of
+	 *   widget/element type labels (e.g. 'e-heading'), not raw element IDs.
 	 */
 	public function get_usage_map(): array {
 		if ( ! class_exists( '\Elementor\Modules\GlobalClasses\Usage\Applied_Global_Classes_Usage' ) ) {
@@ -187,19 +188,80 @@ class ATFRFO_Classes_Reader {
 			return array();
 		}
 
+		// Elementor's own tracker (Document_Usage::analyze() in Elementor core)
+		// only records each element's opaque node ID, not its widget type —
+		// meaningless in the AFF UI, since there's no way to tell which
+		// element on the page it actually is. Resolve each ID to its widget
+		// type by walking each referenced page's element tree once (cached
+		// per page here, since several classes typically share the same
+		// pages) and swap the raw ID for that label before returning.
+		$page_element_labels = array();
+
 		$map = array();
 		foreach ( $detailed as $class_id => $pages ) {
-			$total = 0;
+			$total          = 0;
+			$resolved_pages = array();
 			foreach ( $pages as $page ) {
-				$total += (int) ( $page['total'] ?? 0 );
+				$total   = $total + (int) ( $page['total'] ?? 0 );
+				$page_id = (int) ( $page['pageId'] ?? 0 );
+
+				if ( ! isset( $page_element_labels[ $page_id ] ) ) {
+					$page_element_labels[ $page_id ] = $this->get_page_element_labels( $page_id );
+				}
+				$labels = $page_element_labels[ $page_id ];
+
+				$element_ids       = is_array( $page['elements'] ?? null ) ? $page['elements'] : array();
+				$page['elements']  = array_map(
+					function ( $id ) use ( $labels ) {
+						return $labels[ $id ] ?? $id;
+					},
+					$element_ids
+				);
+				$resolved_pages[] = $page;
 			}
 			$map[ $class_id ] = array(
 				'total' => $total,
-				'pages' => array_values( $pages ),
+				'pages' => $resolved_pages,
 			);
 		}
 
 		return $map;
+	}
+
+	/**
+	 * Map every element ID in a document to its widget type (or element
+	 * type, for non-widget elements like containers), by walking the raw
+	 * element tree once. Used to turn Elementor's opaque per-element usage
+	 * IDs into something a user can actually recognize on the page.
+	 *
+	 * @param int $page_id
+	 * @return array<string, string> Element ID => widget/element type label.
+	 */
+	private function get_page_element_labels( int $page_id ): array {
+		if ( ! $page_id || ! class_exists( '\Elementor\Plugin' ) ) {
+			return array();
+		}
+
+		$document = \Elementor\Plugin::$instance->documents->get( $page_id );
+		if ( ! $document ) {
+			return array();
+		}
+
+		$labels = array();
+		$walk   = function ( array $elements ) use ( &$walk, &$labels ) {
+			foreach ( $elements as $element ) {
+				$id = $element['id'] ?? '';
+				if ( $id ) {
+					$labels[ $id ] = (string) ( $element['widgetType'] ?? $element['elType'] ?? 'element' );
+				}
+				if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
+					$walk( $element['elements'] );
+				}
+			}
+		};
+		$walk( $document->get_elements_raw_data() ?? array() );
+
+		return $labels;
 	}
 
 	/**

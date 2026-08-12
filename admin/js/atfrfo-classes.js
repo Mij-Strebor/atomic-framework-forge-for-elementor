@@ -180,10 +180,42 @@
 
 			container.innerHTML = html;
 			self._bindEvents(container);
+			self._annotateUnusedClasses(container);
 
 			if (self._focusedCatId) {
 				self._jumpToCategory(self._focusedCatId, container);
 			}
+		},
+
+		/**
+		 * Mark rows for classes that exist in Elementor but have zero usage
+		 * site-wide with a small "Unused" badge next to the name. Runs after
+		 * the initial render so rows appear immediately without waiting on
+		 * the usage fetch; badges pop in once it resolves. Uses the same
+		 * cached site-wide fetch as the detail card and delete-confirmation
+		 * flow (_fetchUsageMap) — no extra AJAX cost beyond the one call.
+		 *
+		 * @param {HTMLElement} container
+		 */
+		_annotateUnusedClasses: function (container) {
+			var wraps = container.querySelectorAll('.atfrfo-class-name-wrap[data-elementor-id]');
+			var withId = [];
+			for (var i = 0; i < wraps.length; i++) {
+				if (wraps[i].getAttribute('data-elementor-id')) { withId.push(wraps[i]); }
+			}
+			if (withId.length === 0) { return; }
+
+			ATFRFO.Classes._fetchUsageMap().then(function (map) {
+				for (var i = 0; i < withId.length; i++) {
+					var elId  = withId[i].getAttribute('data-elementor-id');
+					var entry = map[elId];
+					var badge = withId[i].querySelector('.atfrfo-class-unused-badge');
+					if (badge) { badge.hidden = !!(entry && entry.total); }
+				}
+			}).catch(function () {
+				// Usage annotation is non-critical — silently skip on failure,
+				// rows already rendered without it.
+			});
 		},
 
 		_rerenderView: function () {
@@ -357,6 +389,7 @@
 				+ ' data-atfrfo-tooltip="' + ATFRFO.Utils.escAttr(meta.label) + '"'
 				+ ' aria-label="Status: ' + ATFRFO.Utils.escAttr(meta.label) + '">'
 				+ '</span>'
+				+ '<div class="atfrfo-class-name-wrap" data-elementor-id="' + ATFRFO.Utils.escAttr(cls.elementor_id || '') + '">'
 				+ '<input type="text" class="atfrfo-class-name-input"'
 				+ ' value="' + ATFRFO.Utils.escAttr(cls.label || '') + '"'
 				+ ' data-original="' + ATFRFO.Utils.escAttr(cls.label || '') + '"'
@@ -364,6 +397,9 @@
 				+ ' aria-label="Class name"'
 				+ ' data-atfrfo-tooltip="Class name — click to edit (renames the class in Elementor)"'
 				+ ' spellcheck="false">'
+				+ '<span class="atfrfo-class-unused-badge" hidden'
+				+ ' data-atfrfo-tooltip="Not used anywhere on the site">Unused</span>'
+				+ '</div>'
 				+ '<input type="text" class="atfrfo-class-notes-input"'
 				+ ' value="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'
 				+ ' data-original="' + ATFRFO.Utils.escAttr(cls.notes || '') + '"'

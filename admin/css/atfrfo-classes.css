@@ -23,7 +23,7 @@
 
 .atfrfo-classes-view .atfrfo-color-list-header,
 .atfrfo-classes-view .atfrfo-color-row {
-	grid-template-columns: 24px 8px 240px 600px 1fr 110px 28px;
+	grid-template-columns: 24px 8px 240px 1fr 160px 110px 28px;
 	column-gap: 10px;
 }
 
@@ -35,11 +35,21 @@
 	opacity: 1;
 }
 
+/* Name wrap — holds the name input plus the "Unused" badge (see
+   ATFRFO.Classes._annotateUnusedClasses). A single grid item, same as the
+   input alone was before, so it doesn't change the row's column count. */
+.atfrfo-class-name-wrap {
+	display:     flex;
+	align-items: center;
+	gap:         var(--sp-1, 4px);
+	min-width:   0;
+}
+
 /* Name — matches .atfrfo-var-name-input (Numbers/Fonts) exactly: same
    font-size, padding, background, monospace family. Editable — click to
    rename. AFF-local only; does not rename the class inside Elementor. */
 .atfrfo-class-name-input {
-	width:         100%;
+	flex:          1 1 auto;
 	padding:       2px var(--sp-2);
 	background:    var(--atfrfo-bg-card);
 	border:        none;
@@ -47,6 +57,22 @@
 	color:         var(--atfrfo-clr-secondary);
 	font-family:   monospace, monospace;
 	min-width:     0;
+}
+
+/* Set once the site-wide usage fetch resolves and finds zero usage for a
+   class that exists in Elementor (see _annotateUnusedClasses). Classes not
+   yet committed to Elementor (no elementor_id) never get this badge — being
+   uncommitted isn't the same claim as being unused once live. */
+.atfrfo-class-unused-badge {
+	flex-shrink:   0;
+	padding:       1px var(--sp-1, 4px);
+	border-radius: var(--radius-sm, 4px);
+	font-size:     10px;
+	font-weight:   600;
+	line-height:   1.4;
+	white-space:   nowrap;
+	color:         var(--atfrfo-clr-muted);
+	background:    var(--atfrfo-clr-bg-subtle, var(--atfrfo-clr-bg-hover));
 }
 
 .atfrfo-class-name-input:not([readonly]) {
