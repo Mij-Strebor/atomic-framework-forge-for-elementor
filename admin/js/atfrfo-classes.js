@@ -898,28 +898,57 @@
 		 * props — a small, closed, shared-by-every-widget set defined once
 		 * in Elementor core (modules/atomic-widgets/prop-types/*.php), not
 		 * something that varies per element or needs re-discovering per
-		 * widget. Sourced directly from those classes' define_shape():
-		 * 'dimensions' (padding, margin) from Dimensions_Prop_Type, 'flex'
-		 * (flex) from Flex_Prop_Type. Add an entry here — field key => the
-		 * label Elementor's own style panel shows for it — the one time a
-		 * new compound prop type needs breaking down; PHP-side resolution
-		 * (resolve_ref_recursive() in class-atfrfo-classes-reader.php)
-		 * already handles any compound shape generically, no matching
-		 * change needed there.
+		 * widget. Sourced directly from those classes' define_shape(). Add
+		 * an entry here — field key => the label Elementor's own style
+		 * panel shows for it — the one time a new *flat* compound prop type
+		 * (an Object_Prop_Type with a fixed field list) needs breaking
+		 * down; PHP-side resolution (resolve_ref_recursive() in
+		 * class-atfrfo-classes-reader.php) already handles any compound
+		 * shape generically, no matching change needed there.
+		 *
+		 * NOT covered here — genuinely different shapes, not just missing
+		 * map entries: box-shadow and filter/backdrop-filter are each a
+		 * *list* of function-call-like items (Array_Prop_Type, e.g. several
+		 * stacked shadows or filter functions); transform and transition
+		 * nest further Object_Prop_Types inside their fields (e.g.
+		 * transform-functions is itself a list). Rendering those well needs
+		 * a list/function-call renderer, not a field-label map — build one
+		 * if/when a real card actually needs it, same as this map was.
 		 *
 		 * @type {Object<string, Object<string,string>>}
 		 */
 		_COMPOUND_PROP_FIELDS: {
+			// Dimensions_Prop_Type — padding, margin.
 			dimensions: {
 				'block-start':  'Top',
 				'inline-end':   'Right',
 				'block-end':    'Bottom',
 				'inline-start': 'Left',
 			},
+			// Flex_Prop_Type — flex.
 			flex: {
 				'flexGrow':   'Grow',
 				'flexShrink': 'Shrink',
 				'flexBasis':  'Basis',
+			},
+			// Border_Width_Prop_Type — border-width (same side names as dimensions).
+			'border-width-v2': {
+				'block-start':  'Top',
+				'inline-end':   'Right',
+				'block-end':    'Bottom',
+				'inline-start': 'Left',
+			},
+			// Border_Radius_Prop_Type — border-radius, one field per corner.
+			'border-radius-v2': {
+				'start-start': 'Top Left',
+				'start-end':   'Top Right',
+				'end-start':   'Bottom Left',
+				'end-end':     'Bottom Right',
+			},
+			// Layout_Direction_Prop_Type — gap.
+			'layout-direction': {
+				'row':    'Row',
+				'column': 'Column',
 			},
 		},
 
