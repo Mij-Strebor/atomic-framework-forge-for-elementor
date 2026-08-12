@@ -65,14 +65,15 @@
    uncommitted isn't the same claim as being unused once live. */
 .atfrfo-class-unused-badge {
 	flex-shrink:   0;
-	padding:       1px var(--sp-1, 4px);
-	border-radius: var(--radius-sm, 4px);
+	padding:       1px var(--sp-2);
+	border:        1px solid var(--atfrfo-clr-error);
+	border-radius: 999px;
 	font-size:     10px;
 	font-weight:   600;
 	line-height:   1.4;
 	white-space:   nowrap;
-	color:         var(--atfrfo-clr-muted);
-	background:    var(--atfrfo-clr-bg-subtle, var(--atfrfo-clr-bg-hover));
+	color:         var(--atfrfo-clr-error);
+	background:    var(--atfrfo-clr-error-bg);
 }
 
 .atfrfo-class-name-input:not([readonly]) {

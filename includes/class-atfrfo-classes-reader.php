@@ -252,7 +252,15 @@ class ATFRFO_Classes_Reader {
 			foreach ( $elements as $element ) {
 				$id = $element['id'] ?? '';
 				if ( $id ) {
-					$labels[ $id ] = (string) ( $element['widgetType'] ?? $element['elType'] ?? 'element' );
+					$type = (string) ( $element['widgetType'] ?? $element['elType'] ?? 'element' );
+					// Elementor's atomic widget/element type strings are all
+					// prefixed 'e-' (e-heading, e-flexbox, e-div-block) —
+					// strip that and the dashes for a readable label
+					// ("heading", "flexbox", "div block").
+					if ( 0 === strpos( $type, 'e-' ) ) {
+						$type = substr( $type, 2 );
+					}
+					$labels[ $id ] = str_replace( '-', ' ', $type );
 				}
 				if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
 					$walk( $element['elements'] );

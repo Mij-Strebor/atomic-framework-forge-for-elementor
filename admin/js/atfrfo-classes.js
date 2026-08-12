@@ -622,8 +622,27 @@
 					+ '<span class="atfrfo-class-usage-page-count">' + (p.total || 0) + '</span>'
 					+ '</div>';
 				if (Array.isArray(p.elements) && p.elements.length > 0) {
+					// Elements arrive as one label per instance (e.g. three
+					// "flexbox" entries for three flexboxes on this page) —
+					// count occurrences per label rather than listing each
+					// one, since individual elements aren't otherwise
+					// distinguishable from each other in this data.
+					var counts = {};
+					var order  = [];
+					for (var ei = 0; ei < p.elements.length; ei++) {
+						var label = p.elements[ei];
+						if (!counts.hasOwnProperty(label)) {
+							counts[label] = 0;
+							order.push(label);
+						}
+						counts[label]++;
+					}
+					var parts = [];
+					for (var oi = 0; oi < order.length; oi++) {
+						parts.push(order[oi] + ' ' + counts[order[oi]]);
+					}
 					html += '<div class="atfrfo-class-usage-elements">'
-						+ ATFRFO.Utils.escHtml(p.elements.join(', '))
+						+ ATFRFO.Utils.escHtml(parts.join(', '))
 						+ '</div>';
 				}
 			});
