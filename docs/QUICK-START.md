@@ -12,10 +12,10 @@
 You will need:
 
 - A working **WordPress** installation (local or staging — not a live production site)
-- **Elementor** and **Elementor Pro** both installed and active — ATFRFO refuses to load without both
+- **Elementor** and **Elementor Pro** both installed and active — Atomic Framework Forge (AFF) refuses to load without both
 - An active **Elementor Kit** (created automatically when Elementor is first installed)
 
-ATFRFO works with both **Elementor V3** (Global Colors) and **Elementor V4** (CSS custom property variables). You do not need to be on V4 to get started. Note: only **Variables** (Colors, Fonts, Numbers) are functional today — Classes and Components appear in the left navigation as future-phase placeholders and cannot be synced from either Elementor version yet.
+AFF works with both **Elementor V3** (Global Colors) and **Elementor V4 Atomic Elements** (CSS custom property variables, classes, and components). You do not need to be on V4 to get started. Note: only **Variables** (Colors, Fonts, Numbers) and **Classes** are functional today — Components appears in the left navigation as future-phase placeholders and cannot be synced from either Elementor version yet.
 
 ---
 
@@ -47,8 +47,8 @@ You will see the three-panel interface:
 | Area | Purpose |
 |------|---------|
 | **Top bar** | Logo, project name, and all action buttons |
-| **Left panel** | Variable tree — Colors / Fonts / Numbers — with counts |
-| **Center** | Edit space — category blocks, variable rows, inline editing |
+| **Left panel** | Variables, Classes, Components — with  element counts |
+| **Center** | Edit space — category blocks, component rows, inline editing |
 
 ---
 
@@ -74,7 +74,7 @@ There is **no separate gear/functions/help icon** next to the logo — Preferenc
 
 Click **▦ Manage Projects**. This opens the project **settings** modal (name, category lists, max backups, default formats).
 
-Click **Project Manager…** at the top of that modal to reach the actual project picker. Type a name in the **New project name** field and click **Create**. ATFRFO initializes an empty project and the name appears in the toolbar center.
+Click **Project Manager…** at the top of that modal to reach the actual project picker. Type a name in the **New project name** field and click **Create**. AFF initializes an empty project and the name appears in the toolbar center.
 
 Your project is saved under `wp-content/uploads/atfrfo/<your-project>/`.
 
@@ -84,16 +84,16 @@ Your project is saved under `wp-content/uploads/atfrfo/<your-project>/`.
 
 Click the **⟳ Sync** button. The Sync modal opens with two toggles:
 
-- **Elementor version** — V3 or V4. Version 3 has only the Elementor System Colors and any Custom Colors; there is nothing else to pull from V3 today. Version 4 provides the full CSS custom-property variable set.
+- **Elementor version** — V3 or V4. Version 3 has only the Elementor System Colors and any Custom Colors; there is nothing else to pull from V3. Version 4 provides the full CSS custom-property variable set, the classes, and the components.
 - **Direction** — leave set to **Import**.
 
 On a new project the data set is empty, so the **Import Mode** choice (Sync by name / Clear and replace) doesn't matter yet.
 
-Click **Synchronize**. ATFRFO reads the active Elementor kit's variable data and classifies everything into Colors, Fonts, and Numbers.
+Click **Synchronize**. AFF reads the active Elementor kit's variable, class, and components data and will load them as memebers of the Unclasified category under the appropriate Atomic framework.
 
-> **V3 → V4 migration:** Import your V3 System Colors and Custom Colors, then also import V4 and map the two sets to each other inside ATFRFO. See the User Manual's [V3 → V4 Migration Workflow](USER-MANUAL.md#16-v3--v4-migration-workflow) for the full walkthrough.
+> **V3 → V4 migration:** Import your V3 System Colors and Custom Colors, then also import V4 and map the two sets to each other inside AFF. See the User Manual's [V3 → V4 Migration Workflow](USER-MANUAL.md#16-v3--v4-migration-workflow) for the full walkthrough.
 
-> **Conflicts:** If you re-sync a project that already has ATFRFO edits, and a variable's value differs on both sides, a **Merge Conflicts** dialog opens so you can choose which value wins, row by row. See the [User Manual](USER-MANUAL.md#15-conflict-resolution--merge-dialog).
+> **Conflicts:** If you re-sync a project that already has AFF edits, and a variable's value differs on both sides, a **Merge Conflicts** dialog opens so you can choose which value wins, row by row. See the [User Manual](USER-MANUAL.md#15-conflict-resolution--merge-dialog).
 
 ---
 
@@ -186,7 +186,7 @@ Click the **value** field directly in any row to type a value.
 
 The **💾 Save** icon in the toolbar glows red when you have unsaved changes. Click it to update your current project in place — every save writes a new timestamped backup snapshot, so nothing is silently overwritten.
 
-> ATFRFO remembers your last active project and **reloads it automatically** on the next page load. There is no auto-*save* — you must click 💾 (or Save from the Project Manager) yourself.
+> AFF remembers your last active project and **reloads it automatically** on the next page load. There is no auto-*save* — you must click 💾 (or Save from the Project Manager) yourself.
 
 ---
 
@@ -195,8 +195,8 @@ The **💾 Save** icon in the toolbar glows red when you have unsaved changes. C
 When you are ready to push your edited values to Elementor V4:
 
 1. Click **⟳ Sync**, set the version toggle to **V4** and direction to **Export**.
-2. ATFRFO shows a mandatory safety confirmation ("Stop, Before You Write To Elementor") — read it and click **I Understand – Continue**.
-3. ATFRFO checks for conflicts against Elementor's current values; resolve any that appear, then a commit summary shows counts of modified / new / removed variables.
+2. AFF shows a mandatory safety confirmation ("Stop, Before You Write To Elementor") — read it and click **I Understand – Continue**.
+3. AFF checks for conflicts against Elementor's current values; resolve any that appear, then a commit summary shows counts of modified / new / removed variables.
 4. Click **Commit** (labelled **Synchronize** in the Sync modal, **Commit** in the summary dialog) to write the values to Elementor's kit data.
 5. **Refresh the browser page** — Elementor's own Variables Manager reads from its stored data on page load, so you won't see the update reflected there until you reload.
 
@@ -229,10 +229,10 @@ For the full list of Preferences settings, see the [User Manual](USER-MANUAL.md#
 → Go to **Elementor → Site Settings → Save Changes** to regenerate the kit data, then sync again.
 
 **Variables appear in the wrong set**
-→ ATFRFO classifies by value pattern. Drag to the correct category manually.
+→ AFF classifies by value pattern. Drag to the correct category manually.
 
 **A "Merge Conflicts" dialog appears unexpectedly**
-→ Normal behavior when a variable's value differs between ATFRFO and Elementor. Pick a winner per row (or "Keep all ATFRFO" / "Use all Elementor") and click **Apply & Continue**.
+→ Normal behavior when a variable's value differs between AFF and Elementor. Pick a winner per row (or "Keep all AFF" / "Use all Elementor") and click **Apply & Continue**.
 
 **Panel looks unstyled or broken**
 → Hard refresh (`Ctrl+Shift+R`). If the issue persists, deactivate and reactivate the plugin.
