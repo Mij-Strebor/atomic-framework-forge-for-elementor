@@ -22,13 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Template helper: proxy to ATFRFO_Admin::get_icon().
+ * Template helper: echoes an icon's SVG markup, escaped at this — the
+ * actual output — point via wp_kses(), not just upstream in get_icon().
  *
  * @param string $name Icon filename without .svg extension.
- * @return string SVG markup or empty string if file not found.
  */
-function atfrfo_icon( string $name ): string {
-	return ATFRFO_Admin::get_icon( $name );
+function atfrfo_icon( string $name ): void {
+	echo wp_kses( ATFRFO_Admin::get_icon( $name ), ATFRFO_Admin::get_icon_allowed_tags() );
 }
 ?>
 <!-- Mobile restriction overlay — shown below 1024px -->
@@ -80,7 +80,7 @@ function atfrfo_icon( string $name ): string {
 			        aria-label="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Manage Projects — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo atfrfo_icon( 'grid' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<?php atfrfo_icon( 'grid' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
@@ -89,12 +89,12 @@ function atfrfo_icon( string $name ): string {
 			        aria-label="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Save Changes — updates the current project file in place', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo atfrfo_icon( 'save' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<?php atfrfo_icon( 'save' ); ?>
 			</button>
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-history"
 			        aria-label="<?php esc_attr_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo atfrfo_icon( 'history' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<?php atfrfo_icon( 'history' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
@@ -103,7 +103,7 @@ function atfrfo_icon( string $name ): string {
 			        aria-label="<?php esc_attr_e( 'Sync with Elementor', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Sync', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Sync — import variables from Elementor or export ATFRFO data back to Elementor (V3 and V4)', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php echo atfrfo_icon( 'sync' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<?php atfrfo_icon( 'sync' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
@@ -116,13 +116,13 @@ function atfrfo_icon( string $name ): string {
 				        aria-expanded="false"
 				        data-atfrfo-tooltip="<?php esc_attr_e( 'More', 'atomic-framework-forge-for-elementor' ); ?>"
 				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'More — print, export, and import actions', 'atomic-framework-forge-for-elementor' ); ?>">
-					<?php echo atfrfo_icon( 'more' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+					<?php atfrfo_icon( 'more' ); ?>
 				</button>
 				<ul class="atfrfo-dropdown" id="atfrfo-dropdown-more" role="menu" aria-labelledby="atfrfo-btn-more">
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-btn-preferences" role="menuitem"
 						        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php echo atfrfo_icon( 'gear' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'gear' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
@@ -131,9 +131,9 @@ function atfrfo_icon( string $name ): string {
 						        aria-haspopup="true"
 						        aria-expanded="false"
 						        aria-label="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php echo atfrfo_icon( 'function' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'function' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?></span>
-							<span class="atfrfo-dropdown__icon atfrfo-dropdown__submenu-arrow" aria-hidden="true"><?php echo atfrfo_icon( 'chevron-right' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon atfrfo-dropdown__submenu-arrow" aria-hidden="true"><?php atfrfo_icon( 'chevron-right' ); ?></span>
 						</button>
 						<ul class="atfrfo-dropdown atfrfo-dropdown--nested" id="atfrfo-dropdown-functions" role="menu" aria-labelledby="atfrfo-btn-functions">
 							<li class="atfrfo-dropdown__item" data-action="change-types" role="menuitem">
@@ -148,28 +148,28 @@ function atfrfo_icon( string $name ): string {
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-btn-print" role="menuitem"
 						        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php echo atfrfo_icon( 'print' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'print' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-btn-export" role="menuitem"
 						        aria-label="<?php esc_attr_e( 'Export project as .atfrfo.json', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php echo atfrfo_icon( 'export' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'export' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Export', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-btn-import" role="menuitem"
 						        aria-label="<?php esc_attr_e( 'Import project from .atfrfo.json', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php echo atfrfo_icon( 'import' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'import' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Import', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-btn-help" role="menuitem"
 						        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php echo atfrfo_icon( 'help' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'help' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
@@ -206,7 +206,7 @@ function atfrfo_icon( string $name ): string {
 					        aria-controls="atfrfo-nav-variables"
 					        data-atfrfo-tooltip="<?php esc_attr_e( 'Variables — CSS custom properties: Colors, Fonts, Numbers', 'atomic-framework-forge-for-elementor' ); ?>">
 						<span class="atfrfo-nav-group__icon" aria-hidden="true">
-							<?php echo atfrfo_icon( 'variables' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							<?php atfrfo_icon( 'variables' ); ?>
 						</span>
 						<span class="atfrfo-nav-group__label"><?php esc_html_e( 'Variables', 'atomic-framework-forge-for-elementor' ); ?></span>
 						<span class="atfrfo-nav-group__chevron" aria-hidden="true">
@@ -222,7 +222,7 @@ function atfrfo_icon( string $name ): string {
 							        aria-expanded="false"
 							        aria-controls="atfrfo-nav-colors">
 								<span class="atfrfo-nav-subgroup__icon" aria-hidden="true">
-									<?php echo atfrfo_icon( 'colors' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+									<?php atfrfo_icon( 'colors' ); ?>
 								</span>
 								<span class="atfrfo-nav-subgroup__label"><?php esc_html_e( 'Colors', 'atomic-framework-forge-for-elementor' ); ?></span>
 							</button>
@@ -237,7 +237,7 @@ function atfrfo_icon( string $name ): string {
 							        aria-expanded="false"
 							        aria-controls="atfrfo-nav-fonts">
 								<span class="atfrfo-nav-subgroup__icon" aria-hidden="true">
-									<?php echo atfrfo_icon( 'fonts' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+									<?php atfrfo_icon( 'fonts' ); ?>
 								</span>
 								<span class="atfrfo-nav-subgroup__label"><?php esc_html_e( 'Fonts', 'atomic-framework-forge-for-elementor' ); ?></span>
 							</button>
@@ -252,7 +252,7 @@ function atfrfo_icon( string $name ): string {
 							        aria-expanded="false"
 							        aria-controls="atfrfo-nav-numbers">
 								<span class="atfrfo-nav-subgroup__icon" aria-hidden="true">
-									<?php echo atfrfo_icon( 'numbers' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+									<?php atfrfo_icon( 'numbers' ); ?>
 								</span>
 								<span class="atfrfo-nav-subgroup__label"><?php esc_html_e( 'Numbers', 'atomic-framework-forge-for-elementor' ); ?></span>
 							</button>
@@ -271,7 +271,7 @@ function atfrfo_icon( string $name ): string {
 					        aria-controls="atfrfo-nav-classes"
 					        data-atfrfo-tooltip="<?php esc_attr_e( 'Classes — CSS class management (coming in ATFRFO v3)', 'atomic-framework-forge-for-elementor' ); ?>">
 						<span class="atfrfo-nav-group__icon" aria-hidden="true">
-							<?php echo atfrfo_icon( 'classes' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							<?php atfrfo_icon( 'classes' ); ?>
 						</span>
 						<span class="atfrfo-nav-group__label"><?php esc_html_e( 'Classes', 'atomic-framework-forge-for-elementor' ); ?></span>
 						<span class="atfrfo-nav-group__chevron" aria-hidden="true">
@@ -290,7 +290,7 @@ function atfrfo_icon( string $name ): string {
 					        aria-controls="atfrfo-nav-components"
 					        data-atfrfo-tooltip="<?php esc_attr_e( 'Components — widget composition registry (coming in ATFRFO v4)', 'atomic-framework-forge-for-elementor' ); ?>">
 						<span class="atfrfo-nav-group__icon" aria-hidden="true">
-							<?php echo atfrfo_icon( 'components' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							<?php atfrfo_icon( 'components' ); ?>
 						</span>
 						<span class="atfrfo-nav-group__label"><?php esc_html_e( 'Components', 'atomic-framework-forge-for-elementor' ); ?></span>
 						<span class="atfrfo-nav-group__chevron" aria-hidden="true">
@@ -345,7 +345,7 @@ function atfrfo_icon( string $name ): string {
 				<button class="atfrfo-icon-btn atfrfo-modal__close"
 				        id="atfrfo-modal-close"
 				        aria-label="<?php esc_attr_e( 'Close modal', 'atomic-framework-forge-for-elementor' ); ?>">
-					<?php echo atfrfo_icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+					<?php atfrfo_icon( 'close' ); ?>
 				</button>
 			</div>
 
