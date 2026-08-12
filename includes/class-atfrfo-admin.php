@@ -338,7 +338,20 @@ class ATFRFO_Admin {
 
 		$svg = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
-		$allowed_svg = array(
+		return wp_kses( $svg, self::get_icon_allowed_tags() );
+	}
+
+	/**
+	 * Allow-list of SVG tags/attributes for icon output, shared by get_icon()
+	 * and the atfrfo_icon() template helper — the same list is used both
+	 * where the icon markup is built and, again, where it is finally echoed,
+	 * so escaping happens at the actual output point per WordPress.org's
+	 * "escape late" review requirement, not only upstream.
+	 *
+	 * @return array<string, array<string, bool>> wp_kses()-compatible allow-list.
+	 */
+	public static function get_icon_allowed_tags(): array {
+		return array(
 			'svg'      => array(
 				'xmlns'   => true,
 				'viewbox' => true,
@@ -390,8 +403,6 @@ class ATFRFO_Admin {
 				'stroke-linejoin' => true,
 			),
 		);
-
-		return wp_kses( $svg, $allowed_svg );
 	}
 
 	/**
