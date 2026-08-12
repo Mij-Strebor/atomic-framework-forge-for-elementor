@@ -31,7 +31,7 @@ ATFRFO is a WordPress admin plugin that provides a management interface for **El
 2. **Classes** — Global Classes on atomic widgets: read, organize, rename, delete, usage lookup (fully implemented on `develop`)
 3. **Components** — User-assembled widget compositions (future, unscheduled)
 
-**Current: v1.4.1 released on `master`.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes management is fully built on `develop` (2.0.0-dev) — data layer, category-block UI, drag-and-drop, rename/delete write-back to Elementor, usage lookup, and print support are all working; not yet merged to `master`. See `docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
+**Current: v1.4.3 released on `master`.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes management is at v2.0.0-beta.1 on `develop` — data layer, category-block UI, drag-and-drop, rename/delete write-back to Elementor, usage lookup, and print support are all working; not yet merged to `master`. See `docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
 
 ---
 
@@ -342,8 +342,8 @@ ATFRFO.state = {
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Released — 1.4.1 (`master`)** |
-| **v2.0.0** | Classes management | Built on `develop` (2.0.0-dev), not yet merged to `master` |
+| **v1.x** | Full Variables workflow: sync, organize, edit, backup, commit to Elementor | **Released — 1.4.3 (`master`)** |
+| **v2.0.0** | Classes management | Beta — 2.0.0-beta.1 on `develop`, not yet merged to `master` |
 | **v3.0.0** | Components registry | Planned |
 | **Future** | Elementor Kit Manager API write-back; Change History log (currently a placeholder button — `atfrfo-panel-top.js:_openHistory()` shows "arrives in ATFRFO v5", a version number that doesn't match this table; needs reconciling when scheduled); standalone Windows/Mac desktop application | Roadmap |
 

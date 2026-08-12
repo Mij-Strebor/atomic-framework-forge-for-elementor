@@ -4,8 +4,8 @@
 
 **A professional management interface for Elementor Version 4 CSS assets.**
 
-[![Development](https://img.shields.io/badge/status-In%20Development%202.0.0--dev-b45309?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
-[![Version](https://img.shields.io/badge/version-2.0.0--dev-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Development](https://img.shields.io/badge/status-Beta%202.0.0--beta.1-b45309?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0--beta.1-f4c542?style=flat-square&labelColor=3d2f1f)](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B%20tested%207.0-21759b?style=flat-square)](https://wordpress.org)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square)](https://php.net)
 [![Requires](https://img.shields.io/badge/requires-Elementor%20Pro-cc2b5e?style=flat-square)](https://elementor.com/pro)
@@ -66,13 +66,13 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Status
 
-Version **2.0.0-dev**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional and stable on the 1.4.x line. Classes management is actively in development on this branch (data layer and list-view UI in place; lifecycle writes and style editing still to come — see `docs/AFF-VISION-AND-ROADMAP.md`). Components registry is unscheduled.
+Version **2.0.0-beta.1**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional and stable on the 1.4.x line. Classes management is in beta on this branch — sync, categorize, rename, delete (both push real changes to Elementor, not just AFF-local), and a read-only style/usage detail card are all working. Creating new classes and editing style properties from AFF are explicitly out of scope, not planned — see `docs/AFF-VISION-AND-ROADMAP.md`. Components registry is unscheduled.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
 ---
 
-## What Works in v2.0.0-dev
+## What Works in v2.0.0-beta.1
 
 | Feature | Status |
 |---------|--------|
@@ -264,13 +264,15 @@ atomic-framework-forge-for-elementor/
 | **0.3.4-beta** | Renamed EFF → ATFRFO for WordPress.org compatibility. Sync reads Elementor kit meta directly. Category defaults and AJAX action name fixes. |
 | **0.3.5-beta** | Load Project modal improvements (save count, inline rename, copy, delete). Cross-module event contamination fix. Drag fixes in Numbers view. Write to Elementor auto-regenerates missing kit CSS. Duplicate variable name prevention. Removed forced `--` prefix while typing. |
 | **0.4.1-beta** | Placeholder sign background transparency fix. |
-| **1.0.0-beta** *(this release)* | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
+| **1.0.0-beta** | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
 | **0.4.0-beta** | Numbers editing overhaul (pure storage, autofill suffix, unitless type, fₓ display). Nav variable counts. Double-chevron collapse buttons. Drag/drop and scroll bug fixes. QUICK-START.md corrections. |
 | **0.5.x-beta** | Super Categories — two-level nesting within Colors, Fonts, and Numbers. Top-level category contains sub-categories only; sub-categories contain variables only. Elementor commit remains flat. Requested for large design systems (382-variable projects). |
 | **1.3.0** | V3 import result modal, system color auto-notes, expand modal two-row header, sticky filter bar. Print hierarchy: sub-categories indented, comments toggle. Modal DRY refactor. Title fade fix. |
 | **1.4.0** | "Take a look" notify sign. New blacksmith-hammer brand assets. Help panel content refresh. Security fix (HTML-escape consolidation). Font-size default correction. Dead patch-script cleanup. |
 | **1.4.1** | Critical fix: every AJAX endpoint was non-functional due to a method-naming mismatch from the 1.4.0 prefix rename. All endpoints restored. |
-| **2.0.0-dev** *(in progress)* | Classes management — Elementor V4 Global Classes read, sync, categorize, list view. See `docs/AFF-VISION-AND-ROADMAP.md` for phased plan. |
+| **1.4.2** | Project file writes use LOCK_EX (prevents JSON corruption from concurrent writes). Commit to Elementor matches Variables by stored Elementor ID first, not name alone (rename + recommit no longer orphans class/widget references). Backup filename collisions no longer need a blocking sleep() retry. |
+| **1.4.3** | WordPress.org review fix: icon SVG output escaped via wp_kses() at the point of echo, not only upstream (19 call sites). |
+| **2.0.0-beta.1** *(this release, in beta)* | Classes management — Elementor V4 Global Classes read, sync, categorize, rename/delete (pushed to Elementor), read-only style/usage detail card. See `docs/AFF-VISION-AND-ROADMAP.md` for phased plan. |
 | **Future** | Standalone Windows / Mac desktop application. |
 
 ---

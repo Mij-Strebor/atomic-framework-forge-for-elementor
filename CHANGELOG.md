@@ -7,7 +7,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [2.0.0-dev] — in progress on `develop`
+## [2.0.0-beta.1] — 2026-08-12
 
 Classes management (Elementor V4 Global Classes). Not yet released. Tracked separately
 from the `[Unreleased]` section below, which holds 1.4.x maintenance fixes that ship
@@ -34,6 +34,18 @@ current scope.
 - **Class rename was AFF-local only and silently reverted on the next sync** — `import_fetched_classes()` correctly trusts Elementor's stored label as the source of truth, so a local-only rename was always going to be overwritten back. Renaming now pushes the new label to Elementor itself (new `atfrfo_rename_class_in_elementor` endpoint), so there's nothing left for a sync to revert.
 - `save_to_file()` used plain `file_put_contents()` with no locking — two concurrent writes to the same project file (e.g. two browser tabs, an overlapping request) could interleave mid-write and corrupt the JSON, after which every subsequent AJAX save failed silently. Added `LOCK_EX`.
 - A `.atfrfo-class-row` CSS specificity collision with the shared `.atfrfo-color-row` base rule (used by Colors) was silently discarding the Classes row's column layout, cramming the class name into an 8px-wide track.
+- **Icon SVG output was escaped upstream, not at the point of echo** — WordPress.org review finding, also backported to `master`/1.4.3. `wp_kses()` ran two calls deep inside a helper the review's escaping check doesn't see; the helper now echoes `wp_kses(...)` directly.
+- Classes category-list rows had a fixed 600px comment column, unlike every other row type's flexible width — clipped the styles/delete buttons off the visible edge on a narrower panel.
+- Class detail card's Usage section listed raw Elementor element IDs with no way to tell what they were; now resolves each to its widget/element type and aggregates per-page counts (e.g. "flexbox: 3, heading: 6") instead of listing every instance.
+- Class card title was forced through the shared `.atfrfo-app h2` capitalize rule, altering the class label's own casing; now preserves it verbatim.
+- Style properties were a flat, unsorted list; now grouped by Elementor's own style-panel section (Layout, Spacing, Size, Position, Typography, Background, Border, Effects) in that order, with breakpoint headings reading "Desktop/Tablet/Mobile Device."
+- Variable-referenced values showed the resolved value redundantly next to the variable name; now shows only the name, with the value available as a hover tooltip.
+- Compound-shaped properties (`padding`/`margin`, `flex`, `border-width`, `border-radius`, `gap`) dumped as raw JSON-ish text — none of these are a single scalar value in Elementor's own schema. Now broken into one row per field (e.g. padding's Top/Right/Bottom/Left), matching what Elementor's own style panel shows; variable resolution now recurses into these nested fields too; a value bound to a different variable per side (e.g. padding-right and padding-left on two different variables) previously never resolved at all.
+- Added an "Unused" badge to the category-list row for any class that exists in Elementor with zero usage site-wide.
+
+### Known gaps (deliberately deferred, not missed)
+
+- `box-shadow`, `filter`/`backdrop-filter`, `transform`, and `transition` properties still render as raw JSON — these are list-of-function-call shapes in Elementor's schema, not flat field grids, and need a dedicated renderer rather than the field-label map used for the props above.
 
 ### Out of scope (explicit, not deferred)
 
@@ -41,7 +53,7 @@ Decided 2026-08-08, not just left undone: **creating** new classes from AFF, **e
 
 ### Version
 
-- Bumped to 2.0.0-dev on this branch only; `master` remains on the 1.4.x line. See the branching note in `docs/AFF-VISION-AND-ROADMAP.md`.
+- Bumped to 2.0.0-beta.1 for beta testing, on this branch only; `master` remains on the 1.4.x line. See the branching note in `docs/AFF-VISION-AND-ROADMAP.md`.
 
 ---
 

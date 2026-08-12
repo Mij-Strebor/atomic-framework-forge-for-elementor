@@ -30,7 +30,7 @@ AFF's stated identity (readme.txt) is a management interface for the three asset
 | Pillar | Status | Notes |
 |---|---|---|
 | Variables | Shipped, mature | Full CRUD, categorization, tints/shades/alpha generation, usage-count scanning, versioned backups, multi-project support, V3→V4 color migration |
-| Classes | Shipped on `develop` (2.0.0-dev), not yet merged to `master` | Sync, full category-block organization (drag within/between categories, rename/duplicate/clear/delete category), inline Comment, real rename push-to-Elementor, delete-from-Elementor with usage-aware confirmation, read-only detail card (properties, decoded variable refs, style categories, real usage data). **Explicitly out of scope, decided 2026-08-08**: creating new classes, editing style properties from AFF, a Variables usage scanner — see §6.5. |
+| Classes | Beta on `develop` (2.0.0-beta.1), not yet merged to `master` | Sync, full category-block organization (drag within/between categories, rename/duplicate/clear/delete category), inline Comment, real rename push-to-Elementor, delete-from-Elementor with usage-aware confirmation, read-only detail card (properties, decoded variable refs, style categories, real usage data). **Explicitly out of scope, decided 2026-08-08**: creating new classes, editing style properties from AFF, a Variables usage scanner — see §6.5. |
 | Components | Named, undesigned | No technical investigation has been done; Elementor's own implementation may not be stable yet |
 
 This document exists to close the gap between "three pillars" being a stated identity and each pillar having an actual, current, honest plan.
@@ -427,7 +427,7 @@ list, not "later."
 
 | Area | Status | Elementor writes? |
 |---|---|---|
-| Classes — sync, categories, rename, delete, detail/usage | **Shipped on `develop` (2.0.0-dev)**, not yet merged to `master` | Yes (rename, delete) — both source-verified before shipping |
+| Classes — sync, categories, rename, delete, detail/usage | **Beta on `develop` (2.0.0-beta.1)**, not yet merged to `master` | Yes (rename, delete) — both source-verified before shipping |
 | Classes — create new class | **Cancelled**, not planned | — |
 | Classes — edit style property values | **Cancelled**, not planned | — |
 | Variables — usage scanner | **Cancelled**, not planned | — |
@@ -478,6 +478,6 @@ planned — see §6's status update). Kept for historical record.
 - **`master` — the 1.4.x maintenance line.** Every emergency or routine bug fix lands here directly and ships as its own patch release (1.4.1, 1.4.2, ...) on whatever schedule the fix needs, completely independent of Classes progress. This is how the AJAX-wiring critical fix (v1.4.1) and the ATFRFO→AFF terminology/dialog-width/false-claim fixes were handled, and is now the standing pattern, not a one-off.
 - **`develop` — the 2.0.0 line.** Persists across all of Classes' phases (3.1 through 3.5) and eventually Components, rather than a new branch per phase (the original `feature/classes-phase-3.1` branch was renamed into this on 2026-08-05 once it became clear the single-phase branch name didn't fit a persistent line). Regularly merges **from** `master` to absorb 1.4.x fixes — `master` never merges from `develop` until 2.0.0 is actually ready to ship.
 
-**Version number:** `develop` runs `2.0.0-dev` in the plugin header/constant/readme — never a bare `2.0.0` while in progress, and never `master`'s 1.4.x number (that was the actual confusion this decision resolves). The `-dev` suffix means this can never be mistaken for a real release and never requires a formal WP.org/GitHub prerelease publish just because development is ongoing. Bump to a real `2.0.0-alpha.1`-style tag once there's something demo-able beyond internal testing, and to a bare `2.0.0` only at actual ship time (end of Phase 3.3 per §9/§10 — no Elementor writes in that first release).
+**Version number:** `develop` ran `2.0.0-dev` in the plugin header/constant/readme while Classes was internal-testing-only — never a bare `2.0.0`, and never `master`'s 1.4.x number (that was the actual confusion this decision resolves). The `-dev` suffix meant this could never be mistaken for a real release and never required a formal WP.org/GitHub prerelease publish just because development was ongoing. Bumped to `2.0.0-beta.1` on 2026-08-12 once Classes was demo-able beyond internal testing (see the pre-beta pass logged in `docs/TECH-DEBT.md` §6) — GitHub beta testers work from this tag going forward, with further beta increments (`beta.2`, etc.) as needed. Bump to a bare `2.0.0` only at actual ship time (end of Phase 3.3 per §9/§10 — no Elementor writes in that first release).
 
 **Why this over a single branch or a single version line:** the alternative — doing everything on one branch/version — is exactly what produced the confusion this decision responds to: a bug fix either has to wait behind unfinished Classes work, or Classes work has to be rushed out alongside an unrelated hotfix. Two independent lines mean neither blocks the other.
