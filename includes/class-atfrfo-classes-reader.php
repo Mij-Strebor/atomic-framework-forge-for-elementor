@@ -525,13 +525,6 @@ class ATFRFO_Classes_Reader {
 	 * styled) is also left unresolved — the card falls back to showing the
 	 * raw ID plus a "not found" note rather than guessing.
 	 *
-	 * A 'dimensions'-type prop (padding, margin — see Dimensions_Prop_Type
-	 * in Elementor core) is a nested object of four independently-set
-	 * sides (block-start/inline-end/block-end/inline-start), each of which
-	 * can itself be a variable reference — Elementor's own style panel
-	 * shows exactly that (e.g. top/bottom literal, right/left different
-	 * variables). Resolve those nested refs too, not just top-level props.
-	 *
 	 * @param array $variants  A class's `variants` array.
 	 * @param array $var_index Output of get_variable_index().
 	 * @return array The same variants structure with `_resolved` added where possible.
@@ -542,17 +535,7 @@ class ATFRFO_Classes_Reader {
 				continue;
 			}
 			foreach ( $variant['props'] as &$prop ) {
-				if ( ! is_array( $prop ) || ! isset( $prop['$$type'] ) ) {
-					continue;
-				}
-				if ( 'dimensions' === $prop['$$type'] && isset( $prop['value'] ) && is_array( $prop['value'] ) ) {
-					foreach ( $prop['value'] as &$side ) {
-						$this->resolve_one_ref( $side, $var_index );
-					}
-					unset( $side );
-					continue;
-				}
-				$this->resolve_one_ref( $prop, $var_index );
+				$this->resolve_ref_recursive( $prop, $var_index );
 			}
 			unset( $prop );
 		}
@@ -562,22 +545,41 @@ class ATFRFO_Classes_Reader {
 	}
 
 	/**
-	 * Attach `_resolved` to a single prop (or dimensions side) if it's a
-	 * `global-*` variable reference found in $var_index. No-op for
-	 * anything else — shared by resolve_variable_refs()'s top-level and
-	 * per-side passes so both stay in sync.
+	 * Attach `_resolved` to a prop, or to any of its nested sub-fields, that
+	 * is a `global-*` variable reference found in $var_index.
+	 *
+	 * A handful of Elementor's style props are compound (Object_Prop_Type)
+	 * shapes rather than a single value — 'dimensions' (padding, margin: four
+	 * independently-set sides) and 'flex' (flex: grow/shrink/basis) are the
+	 * two currently in use — and Elementor's editor lets each sub-field bind
+	 * to a *different* variable independently. Rather than hardcoding which
+	 * $$type names are compound, this recurses one level into any prop whose
+	 * value is itself an array: a compound prop's sub-fields are each their
+	 * own {$$type, value} shape and get resolved the same way top-level props
+	 * do; a plain Size prop's {size, unit} value contains only scalars, so
+	 * the recursive call on 81 or 'px' is a harmless no-op (not an array,
+	 * fails the is_array() guard immediately). This way a future compound
+	 * prop type needs no change here to resolve correctly — only the
+	 * display-side label map (see _COMPOUND_PROP_FIELDS in
+	 * atfrfo-classes.js) needs a new entry to show it nicely.
 	 *
 	 * @param mixed $prop      Passed by reference; mutated in place.
 	 * @param array $var_index Output of get_variable_index().
 	 */
-	private function resolve_one_ref( &$prop, array $var_index ): void {
-		if ( ! is_array( $prop ) || ! isset( $prop['$$type'], $prop['value'] ) ) {
+	private function resolve_ref_recursive( &$prop, array $var_index ): void {
+		if ( ! is_array( $prop ) || ! isset( $prop['$$type'] ) ) {
 			return;
 		}
-		if ( 0 !== strpos( (string) $prop['$$type'], 'global-' ) ) {
-			return; // Literal value, not a variable reference.
+		if ( isset( $prop['value'] ) && is_array( $prop['value'] ) ) {
+			foreach ( $prop['value'] as &$field ) {
+				$this->resolve_ref_recursive( $field, $var_index );
+			}
+			unset( $field );
 		}
-		$ref_id = (string) $prop['value'];
+		if ( 0 !== strpos( (string) $prop['$$type'], 'global-' ) ) {
+			return; // Literal or compound value, not itself a variable reference.
+		}
+		$ref_id = (string) ( $prop['value'] ?? '' );
 		if ( isset( $var_index[ $ref_id ] ) ) {
 			$prop['_resolved'] = $var_index[ $ref_id ];
 		}

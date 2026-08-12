@@ -893,49 +893,71 @@
 			return html;
 		},
 
-		/** Logical side => the visual label Elementor's own editor shows (LTR). */
-		_DIMENSION_SIDE_LABELS: {
-			'block-start':  'Top',
-			'inline-end':   'Right',
-			'block-end':    'Bottom',
-			'inline-start': 'Left',
+		/**
+		 * Field label maps for Elementor's compound (Object_Prop_Type) style
+		 * props — a small, closed, shared-by-every-widget set defined once
+		 * in Elementor core (modules/atomic-widgets/prop-types/*.php), not
+		 * something that varies per element or needs re-discovering per
+		 * widget. Sourced directly from those classes' define_shape():
+		 * 'dimensions' (padding, margin) from Dimensions_Prop_Type, 'flex'
+		 * (flex) from Flex_Prop_Type. Add an entry here — field key => the
+		 * label Elementor's own style panel shows for it — the one time a
+		 * new compound prop type needs breaking down; PHP-side resolution
+		 * (resolve_ref_recursive() in class-atfrfo-classes-reader.php)
+		 * already handles any compound shape generically, no matching
+		 * change needed there.
+		 *
+		 * @type {Object<string, Object<string,string>>}
+		 */
+		_COMPOUND_PROP_FIELDS: {
+			dimensions: {
+				'block-start':  'Top',
+				'inline-end':   'Right',
+				'block-end':    'Bottom',
+				'inline-start': 'Left',
+			},
+			flex: {
+				'flexGrow':   'Grow',
+				'flexShrink': 'Shrink',
+				'flexBasis':  'Basis',
+			},
 		},
 
 		/**
 		 * Render one property as one or more key/value row pairs. Most props
-		 * are a single row. A 'dimensions'-type prop (padding, margin — see
-		 * Dimensions_Prop_Type in Elementor core) bundles four independently-
-		 * set sides in one prop, each of which can itself be a literal or a
-		 * different variable reference — exactly what Elementor's own style
-		 * panel shows as four separate Top/Right/Bottom/Left fields. Dumping
-		 * that nested object as a single JSON-ish value (the previous
-		 * behavior, via _formatPropValue's JSON.stringify fallback) is not
-		 * readable; breaking it into one row per side, using the same
-		 * variable/hardcoded rendering as any other prop, matches what's
-		 * actually seen when inspecting the element in Elementor.
+		 * are a single row. A compound prop (see _COMPOUND_PROP_FIELDS)
+		 * bundles several independently-set sub-fields in one prop, each of
+		 * which can itself be a literal or a different variable reference —
+		 * exactly what Elementor's own style panel shows as separate fields
+		 * (e.g. padding's Top/Right/Bottom/Left, flex's Grow/Shrink/Basis).
+		 * Dumping that nested object as a single JSON-ish value (the
+		 * previous behavior, via _formatPropValue's JSON.stringify
+		 * fallback) is not readable; breaking it into one row per field,
+		 * using the same variable/hardcoded rendering as any other prop,
+		 * matches what's actually seen when inspecting the element.
 		 *
 		 * @param {string} key
 		 * @param {*} prop
 		 * @returns {string}
 		 */
 		_renderPropRows: function (key, prop) {
-			var self = ATFRFO.Classes;
-			var isDimensions = !!(prop && typeof prop === 'object' && prop.$$type === 'dimensions'
-				&& prop.value && typeof prop.value === 'object');
+			var self   = ATFRFO.Classes;
+			var fields = (prop && typeof prop === 'object' && typeof prop.$$type === 'string')
+				? self._COMPOUND_PROP_FIELDS[prop.$$type]
+				: null;
 
-			if (!isDimensions) {
+			if (!fields || !prop.value || typeof prop.value !== 'object') {
 				return '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + '</span>'
 					+ self._renderPropValue(prop);
 			}
 
-			var sideOrder = ['block-start', 'inline-end', 'block-end', 'inline-start'];
+			var fieldKeys = Object.keys(fields);
 			var html = '';
-			for (var i = 0; i < sideOrder.length; i++) {
-				var side = sideOrder[i];
-				if (!(side in prop.value)) { continue; }
-				var sideLabel = self._DIMENSION_SIDE_LABELS[side] || side;
-				html += '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + ' — ' + sideLabel + '</span>'
-					+ self._renderPropValue(prop.value[side]);
+			for (var i = 0; i < fieldKeys.length; i++) {
+				var field = fieldKeys[i];
+				if (!(field in prop.value)) { continue; }
+				html += '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + ' — ' + ATFRFO.Utils.escHtml(fields[field]) + '</span>'
+					+ self._renderPropValue(prop.value[field]);
 			}
 			return html;
 		},
