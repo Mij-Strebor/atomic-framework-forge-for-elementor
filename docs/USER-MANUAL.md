@@ -1,5 +1,5 @@
 # ATFRFO User Manual
-## Atomic Framework Forge for Elementor — v1.4.0
+## Atomic Framework Forge for Elementor — v1.4.3 · Classes (beta) v2.0.0-beta.1
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
 > **[Quick Start Guide →](QUICK-START.md)**
@@ -29,9 +29,10 @@
 19. [Preferences](#19-preferences)
 20. [Functions — Diagnose & Clean Up](#20-functions--diagnose--clean-up)
 21. [Usage Badges](#21-usage-badges)
-22. [Keyboard and Accessibility](#22-keyboard-and-accessibility)
-23. [Troubleshooting](#23-troubleshooting)
-24. [Known Limitations](#24-known-limitations)
+22. [Working with Classes (Beta)](#22-working-with-classes-beta)
+23. [Keyboard and Accessibility](#23-keyboard-and-accessibility)
+24. [Troubleshooting](#24-troubleshooting)
+25. [Known Limitations](#25-known-limitations)
 
 ---
 
@@ -46,6 +47,8 @@
 >
 > **Write — Export to Elementor (V4 only):**
 > ATFRFO writes modified variable values directly to the `_elementor_global_variables` post meta on the kit post — the same store Elementor itself uses. As a secondary step, ATFRFO also attempts to regenerate the kit's CSS file so the change is visible immediately without a full page reload; a **browser refresh is required afterward** to see the updated values inside Elementor's own Variables Manager panel. Every write is user-triggered, gated behind an explicit safety confirmation, and preceded by a summary of exactly what will change.
+>
+> **Classes (beta, V4 only):** ATFRFO reads Global Classes directly from Elementor's own class repository — always current data, never a stale cache. Renaming or deleting a class **writes back to Elementor immediately** (each action confirms individually before it runs, rather than going through the Sync modal's safety gate the way Variables export does). ATFRFO never creates classes or edits their style property values — see [§22](#22-working-with-classes-beta).
 >
 > ### Use ATFRFO on staging or a local development environment. Always back up your project — and your Elementor kit — before writing to Elementor.
 
@@ -70,7 +73,7 @@ ATFRFO uses a three-panel layout that fills the WordPress admin content area.
 | Panel | Purpose |
 |-------|---------|
 | **Top bar** | Logo, project name input, and all action buttons |
-| **Left nav** | Tree navigation — Variables (Colors / Fonts / Numbers) · Classes · Components |
+| **Left nav** | Tree navigation — Variables (Colors / Fonts / Numbers) · Classes (beta) · Components (placeholder) |
 | **Center edit space** | Main working area — category blocks, variable rows, inline editing, and the Preferences view |
 
 There is no separate right-hand panel. All project management, sync, print, and import/export controls live in the top bar (directly or via the **More** dropdown), and every modal opens as an overlay above the workspace.
@@ -143,18 +146,21 @@ The Save icon pulses with a brief red glow approximately every 12 seconds when t
         • Font Size
         • Spacing
         • Uncategorized
-▶ Classes              ← placeholder, coming in ATFRFO v3
-▶ Components           ← placeholder, coming in ATFRFO v4
+▼ Classes (beta)
+    • Layout
+    • Typography
+    • Uncategorized
+▶ Components           ← placeholder, coming in a future phase
 ```
 
-Each section label shows a count of variables it contains. Category leaves show the count for that category.
+Each section label shows a count of variables (or classes) it contains. Category leaves show the count for that category.
 
 ### Behavior
 
-- Click **Variables**, **Colors**, **Fonts**, or **Numbers** to toggle expand/collapse.
+- Click **Variables**, **Colors**, **Fonts**, **Numbers**, or **Classes** to toggle expand/collapse.
 - Click any **category leaf** to load that category in the edit space. The selected item highlights in gold.
-- Click **Colors**, **Fonts**, or **Numbers** directly to load all categories for that set.
-- **Classes** and **Components** show only a "coming soon" placeholder message when expanded — no data can be entered yet.
+- Click **Colors**, **Fonts**, **Numbers**, or **Classes** directly to load all categories for that set.
+- **Components** shows only a "coming soon" placeholder message when expanded — no data can be entered yet. **Classes** is real, working data — see [§22](#22-working-with-classes-beta).
 - The **collapse button** (arrow icon at the top of the left panel) collapses the panel to a narrow icon bar.
 
 ---
@@ -800,7 +806,87 @@ Usage scanning reads up to 500 posts' Elementor data. On large sites, the count 
 
 ---
 
-## 22. Keyboard and Accessibility
+## 22. Working with Classes (Beta)
+
+> **Beta feature.** Classes management is newer than the rest of AFF and still being tested — use it on staging or local, same as any Elementor write operation. It is not yet merged into AFF's stable release line.
+
+A Global Class in Elementor V4 is a reusable, named set of style properties you can apply to any atomic widget — similar in spirit to a CSS class, managed inside Elementor's own editor. AFF gives you a bird's-eye view of every Global Class on the site: where each one is organized, what it actually contains, and where it's used.
+
+### What AFF does with Classes
+
+- **Reads and organizes** every Global Class from Elementor, lets you sort them into your own categories, and shows you what each one contains and where it's used.
+- **Renames and deletes** push real changes to Elementor itself — not an AFF-local edit that reverts on the next sync.
+- **Does not create** new classes, and **does not edit style property values** — both are decided out of scope, not "coming soon." Manage the actual style values in Elementor's own editor; AFF is for organizing, auditing, and cleaning up what's already there.
+
+### Syncing Classes
+
+There is no separate "Sync Classes" control. Classes sync automatically, every time, as part of a **V4 + Import** sync from the main **⟳ Sync** modal (see [§11](#11-the-sync-modal), [§12](#12-v4-import-fetch-from-elementor)) — whichever Import Mode you've chosen for Variables (Sync by name / Clear and replace) does not apply to Classes; Classes always sync non-destructively. There is no V3 equivalent — Global Classes are a V4/atomic-widget concept, so Classes never sync during a V3 operation.
+
+After sync, a result message reports how many classes were **added**, **updated**, and how many are now **AFF only** (see status below) — this replaces the per-class-set numbers shown for a Variables sync.
+
+### The Classes tree and category system
+
+Click **Classes** in the left navigation panel. Classes use the exact same category-block system as Colors/Fonts/Numbers (see [§7](#7-category-management)): collapsible category blocks, drag-reorder within and between categories, one level of sub-categories, and the same add/rename/duplicate/clear/delete actions. A locked **Uncategorized** category is guaranteed the same way it is for Variables. New projects get a starter set of category names (Layout, Typography, Buttons, Cards, Utility) rather than Variables' own defaults.
+
+### Class row anatomy
+
+| Column | Content |
+|--------|---------|
+| ⠿ | Drag handle — reorder within or between categories |
+| ● | Status dot — see **Status** below; Classes use a different vocabulary than Variables |
+| Name | The class's Elementor label; click to rename (pushes to Elementor — see below) |
+| Comment | Freeform note field, AFF-local only; click to add or edit |
+| Style categories | Which Elementor style-panel sections this class actually sets properties in (e.g. "Layout, Typography"), truncated with a tooltip showing the full list |
+| View Styles / No Styles | Opens the read-only [detail card](#the-class-detail-card) — disabled (greyed, non-interactive) when the class has no style properties set |
+| 🗑 | Delete from Elementor — appears on hover, see below |
+
+### Status
+
+Classes use their own status vocabulary — not the same meanings as Variables' status dots (§4):
+
+| Status | Meaning |
+|--------|---------|
+| **Synced** | Matches what was last read from Elementor |
+| **Modified** | Something about this class was changed in AFF since the last sync (in practice, this means the Comment field — AFF does not edit anything else about a class locally) |
+| **AFF only** | This class was tracked by AFF but is no longer present in Elementor — it was deleted in Elementor since the last sync. AFF does not delete its own record automatically; you decide whether to remove it here too. |
+| **Orphaned** | Reserved in the status legend; not currently produced by any AFF operation in this beta |
+
+### Rename a class
+
+Click the class **name** in the row. This is a **real rename pushed to Elementor** (`atfrfo_rename_class_in_elementor`), not a local-only edit — the class keeps its identity in Elementor and everywhere it's already applied, it just shows the new name. Because it's a live write, treat it the same as any other Elementor-modifying action: staging/local only.
+
+### Delete a class
+
+Hover a row and click **🗑**. This deletes the class **from Elementor itself**, not just from AFF's list. The confirmation dialog shows real, current usage data first (fetched fresh, not cached) so you know exactly what you're removing before you confirm. Deleting a class that's still applied to elements is allowed — Elementor automatically strips the class from every element that had it, the same way it would if you deleted the class from inside Elementor's own editor. This cannot be undone through AFF.
+
+### The class detail card
+
+Click **View Styles**, or the class name area, to open the read-only detail card.
+
+**Header info:** Name, Category, Status (with the status dot and label), and Last synced time (local `HH:MM:SS`).
+
+**Comment:** A 4-line wrapping box showing the saved comment, read-only in this view — edit it from the row itself.
+
+**Style Properties:** Broken down in two levels, matching what you'd see inspecting the same class in Elementor's own style panel:
+
+1. **By breakpoint/state** — headings read "Desktop Device," "Tablet Device," "Mobile Device" (plus a state suffix like "— hover" where applicable).
+2. **By style-panel section**, in Elementor's own order — Layout, Spacing, Size, Position, Typography, Background, Border, Effects. The section-to-property mapping is extracted directly from Elementor's own editor code, not guessed from CSS semantics.
+
+Within a section, each property shows as **name: value**. Two special cases:
+
+- **Variable-linked values** show only the variable's name (e.g. `sp-lg`), not the resolved value — hover the name for a tooltip with the current value. This is because the whole point of a variable reference is that the name *is* the value; showing both was redundant.
+- **Hardcoded (literal) values** are flagged with a visible "Hardcoded" badge — this doubles as a quick design-system audit: at a glance, you can spot properties that should probably be tokenized to a variable but aren't.
+- **Multi-field properties** — `padding`/`margin` (Top/Right/Bottom/Left), `flex` (Grow/Shrink/Basis), `border-width` (Top/Right/Bottom/Left), `border-radius` (Top Left/Top Right/Bottom Left/Bottom Right), and `gap` (Row/Column) — break into one row per field, each independently showing a variable name or a hardcoded value, exactly matching what Elementor's own panel shows as separate fields. `box-shadow`, `filter`/`backdrop-filter`, `transform`, and `transition` are not yet broken down this way and currently display as raw data.
+
+**Usage:** Real site-wide usage, sourced from Elementor's own usage-tracking module (the same data its own class manager computes — not a re-implementation). Shows the total element count and page count, then a breakdown per page: the page title, how many elements on that page use the class, and which kinds of elements (e.g. "flexbox: 3, heading: 6") — element type, not individual element names, since Elementor's own usage data doesn't expose more than that.
+
+### Unused classes
+
+Any class that exists in Elementor with **zero usage anywhere on the site** gets a small red/pink **Unused** badge next to its name in the category list — a quick way to spot classes that are safe to review for cleanup. The badge is informational only; AFF does not prevent editing or deleting an unused (or, for that matter, a heavily-used) class.
+
+---
+
+## 23. Keyboard and Accessibility
 
 | Key | Context | Action |
 |-----|---------|--------|
@@ -817,7 +903,7 @@ ATFRFO meets WCAG 2.1 AA contrast standards:
 
 ---
 
-## 23. Troubleshooting
+## 24. Troubleshooting
 
 **V4 Sync finds 0 variables**
 → Go to **Elementor → Site Settings → Save Changes** to regenerate the kit data, then sync again. If that fails, use the manual CSS path fallback in the error dialog.
@@ -843,8 +929,11 @@ ATFRFO meets WCAG 2.1 AA contrast standards:
 **Drag-and-drop is not working**
 → Grab the **⠿** drag handle specifically — not the name or value field.
 
-**Left panel shows Classes or Components but clicking does nothing**
-→ These are placeholders for future phases (ATFRFO v3 and v4 respectively).
+**Left panel shows Components but clicking does nothing**
+→ Components is a placeholder for a future, unscheduled phase. Classes, by contrast, is real working data — see [§22](#22-working-with-classes-beta).
+
+**Classes sync finds 0 classes**
+→ Confirm Global Classes is enabled in **Elementor → Settings → Features**, and that you ran a **V4 + Import** sync (Classes never syncs on a V3 operation — there's no V3 Classes concept).
 
 **Save icon stays red after saving**
 → Confirm the project has a name in the toolbar input. Saving requires a project name.
@@ -854,12 +943,14 @@ ATFRFO meets WCAG 2.1 AA contrast standards:
 
 ---
 
-## 24. Known Limitations
+## 25. Known Limitations
 
 | Area | Status |
 |------|--------|
-| Classes panel | Navigation shown; content not yet built (planned ATFRFO v3) |
-| Components panel | Navigation shown; content not yet built (planned ATFRFO v4) |
+| Classes — create new class from AFF | Decided out of scope, not planned |
+| Classes — edit style property values from AFF | Decided out of scope, not planned |
+| Classes — box-shadow / filter / backdrop-filter / transform / transition display | Detail card shows these as raw data rather than broken into fields, unlike padding/margin/flex/border-width/border-radius/gap |
+| Components panel | Navigation shown; content not yet built (unscheduled) |
 | V3 Export (write back to Elementor V3) | Not currently planned — contact developer if needed |
 | Change Variable Types (bulk format conversion) | Placeholder in the Functions menu; per-variable format change works today |
 | Fonts value preview | Value editing works; live "Aa" font render uses the browser's own font resolution, not a Google Fonts loader everywhere |

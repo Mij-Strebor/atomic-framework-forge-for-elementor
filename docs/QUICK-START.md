@@ -1,5 +1,5 @@
 # Atomic Framework Forge Quick Start Guide
-## Atomic Framework Forge for Elementor — v1.4.0
+## Atomic Framework Forge for Elementor — v1.4.3 · Classes (beta) v2.0.0-beta.1
 
 > This guide gets you from install to your first synced, organized, and saved variable project in about ten minutes.
 >
@@ -89,7 +89,7 @@ Click the **⟳ Sync** button. The Sync modal opens with two toggles:
 
 On a new project the data set is empty, so the **Import Mode** choice (Sync by name / Clear and replace) doesn't matter yet.
 
-Click **Synchronize**. AFF reads the active Elementor kit's variable, class, and components data and will load them as memebers of the Unclasified category under the appropriate Atomic framework.
+Click **Synchronize**. AFF reads the active Elementor kit's variable data and classifies each one into Colors, Fonts, or Numbers automatically, landing in **Uncategorized** until you sort it. If you're syncing V4, this same click also pulls in your **Global Classes** at the same time (see [Step 11](#step-11--sync-and-organize-classes-beta) below) — there's no separate Classes sync button.
 
 > **V3 → V4 migration:** Import your V3 System Colors and Custom Colors, then also import V4 and map the two sets to each other inside AFF. See the User Manual's [V3 → V4 Migration Workflow](USER-MANUAL.md#16-v3--v4-migration-workflow) for the full walkthrough.
 
@@ -206,6 +206,24 @@ When you are ready to push your edited values to Elementor V4:
 
 ---
 
+## Step 11 — Sync and Organize Classes (Beta)
+
+AFF also manages Elementor V4 **Global Classes** — the reusable class names you assign to atomic widgets in Elementor's editor. This is a newer, beta part of AFF; see the [User Manual's Classes section](USER-MANUAL.md#22-working-with-classes-beta) for the full reference.
+
+**Sync.** There's no separate "Sync Classes" button — click **⟳ Sync**, set the version toggle to **V4**, direction to **Import**, and click **Synchronize**. Your Global Classes come in alongside your Variables, automatically, every time.
+
+**Find them.** In the left panel, click **Classes**. Each class shows as a row: a status dot (Synced / Modified / AFF only / Orphaned — same idea as Variables' status colors, different vocabulary), the class name, an editable Comment, which Elementor style-panel sections it uses (Layout, Typography, etc.), and a **View Styles** button.
+
+**Organize.** Classes use the exact same category tools as Colors/Fonts/Numbers — drag to reorder or move between categories, add/rename/duplicate/clear/delete a category, add sub-categories. See [Step 7](#step-7--organize-into-categories) above; it all works the same way here.
+
+**Rename or delete a class.** Both are **real writes to Elementor**, not just an AFF-local edit — renaming updates the class in Elementor itself (so it won't revert on your next sync), and deleting removes it from Elementor and strips it from every element that had it applied. Deleting shows you real usage data first so you know what you're affecting.
+
+**See what a class actually does.** Click **View Styles** (or anywhere on a class row's name) to open its detail card: style properties broken down by breakpoint (Desktop/Tablet/Mobile Device) and by the same sections Elementor's own style panel uses, plus a **Usage** section showing exactly which pages and element types the class is applied to. A class with zero usage anywhere gets flagged with a small **Unused** badge in the row list — an easy way to spot classes safe to clean up.
+
+> **Not available yet, by design:** creating new classes from AFF, and editing a class's style property values from AFF. Both are decided out of scope, not "coming soon" — manage those in Elementor's own editor.
+
+---
+
 ## Where Everything Else Lives
 
 Preferences, the Functions menu, Print/PDF, and manual Export/Import are all tucked inside **⋯ More** in the top-right of the toolbar — not separate icons.
@@ -234,6 +252,9 @@ For the full list of Preferences settings, see the [User Manual](USER-MANUAL.md#
 **A "Merge Conflicts" dialog appears unexpectedly**
 → Normal behavior when a variable's value differs between AFF and Elementor. Pick a winner per row (or "Keep all AFF" / "Use all Elementor") and click **Apply & Continue**.
 
+**Classes sync finds 0 classes**
+→ Confirm Global Classes is enabled in **Elementor → Settings → Features**, and that the sync was **V4 + Import** — Classes never syncs during a V3 operation.
+
 **Panel looks unstyled or broken**
 → Hard refresh (`Ctrl+Shift+R`). If the issue persists, deactivate and reactivate the plugin.
 
@@ -246,6 +267,7 @@ For the full list of Preferences settings, see the [User Manual](USER-MANUAL.md#
 - Use **⋯ More → Functions → Diagnose & Clean Up** to catch duplicate variables or categories before they cause confusion
 - Try **▦ Manage Projects → Project Manager…** to create multiple projects (e.g., per client, per theme)
 - Explore the **›** expand panel on any color for tints, shades, and transparency families
+- Open a Class's **View Styles** card to check its Usage section — a quick way to find classes safe to clean up (look for the **Unused** badge)
 
 For everything else, see the **[User Manual →](USER-MANUAL.md)**
 
