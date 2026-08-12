@@ -4,7 +4,7 @@ Tags:              elementor, css variables, design system, developer tools, ato
 Requires at least: 5.8
 Tested up to:      7.0
 Requires PHP:      8.2
-Stable tag:        1.4.2
+Stable tag:        1.4.3
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,6 +73,10 @@ In your WordPress uploads directory under `/uploads/atfrfo/`.
 Elementor v4+ (atomic widget architecture) and Elementor Pro.
 
 == Changelog ==
+
+= 1.4.3 =
+* Fixed: WordPress.org review — icon SVG output now escaped via wp_kses() at the actual point of echo, not only upstream inside the icon-lookup helper (19 call sites).
+* Includes all 1.4.2 fixes: LOCK_EX file locking, ID-based Elementor commit matching, backup filename collision fix.
 
 = 1.4.2 =
 * Fixed: Project file writes now use LOCK_EX, preventing JSON corruption from concurrent writes (two tabs, an overlapping autosave) to the same project file.
@@ -195,6 +199,9 @@ Elementor v4+ (atomic widget architecture) and Elementor Pro.
 * Initial release — Variables (Colors, Fonts, Numbers), Sync, Organize, Save, Commit, Dark Mode.
 
 == Upgrade Notice ==
+
+= 1.4.3 =
+Resolves WordPress.org review feedback on output escaping; also includes the 1.4.2 corruption and commit-matching fixes. Recommended for all users.
 
 = 1.4.2 =
 Fixes a project-file corruption risk and a silent Elementor-reference bug on Variable rename + commit. Recommended for all users.

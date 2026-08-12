@@ -11,6 +11,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.3] — 2026-08-12
+
+### Fixed
+
+- **WordPress.org review: icon SVG output was escaped upstream, not at the point of echo.** `atfrfo_icon()`, the template helper backing 19 icon calls in `page-atfrfo-main.php`, returned a string that callers echoed directly. The returned SVG was already run through `wp_kses()` inside `ATFRFO_Admin::get_icon()`, but WordPress.org's review requires the escaping call to be the literal expression next to `echo` — not two calls upstream — so every site was flagged despite being genuinely safe. `atfrfo_icon()` now echoes `wp_kses(...)` directly (`void` return); the shared SVG allow-list was extracted to `ATFRFO_Admin::get_icon_allowed_tags()` so both call sites use one source of truth.
+
+### Changed
+
+- **Version** — Bumped to 1.4.3. Includes all 1.4.2 fixes (LOCK_EX file locking, ID-based Elementor commit matching, backup filename collision fix) — 1.4.2 was released on GitHub but never reached WordPress.org SVN; this release folds it in for the pending WP.org submission.
+
+---
+
 ## [1.4.2] — 2026-08-07
 
 ### Fixed
