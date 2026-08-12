@@ -1,6 +1,6 @@
 # ATFRFO Technical Debt Report
-# Atomic Framework Forge for Elementor — v1.4.1 (master) / 2.0.0-dev Classes (develop branch)
-# Reviewed: 2026-05-18 · Re-verified against current source: 2026-08-07 (post-fix pass)
+# Atomic Framework Forge for Elementor — v1.4.3 (master) / 2.0.0-beta Classes (develop branch)
+# Reviewed: 2026-05-18 · Re-verified against current source: 2026-08-12 (pre-beta pass)
 
 > **Scope:** All PHP and JS source files. CSS and SVG assets excluded.
 > Issues are graded **Critical / High / Medium / Low**. Critical = active bug or
@@ -75,30 +75,6 @@ A-05 correctly, not as a separate mechanical change.
 
 ## 3. Medium — Architecture
 
-### A-02 — `ATFRFO.state.globalConfig` is aliased to the same object as `config` — OPEN
-
-**File:** `admin/js/atfrfo-app.js` line ~1282
-
-```js
-ATFRFO.state.config = cfg;
-ATFRFO.state.globalConfig = cfg;  // same object reference
-```
-
-Both fields point to the same object until `_loadFile()` replaces
-`ATFRFO.state.config` with the file's config. If any code mutates
-`ATFRFO.state.config` before a file is loaded, those mutations also affect
-`globalConfig` — which is intended to be a stable baseline.
-
-**Fix:** Store `globalConfig` as a deep copy:
-```js
-ATFRFO.state.globalConfig = JSON.parse(JSON.stringify(cfg));
-```
-Document the pattern: `config` = mutable per-file config; `globalConfig` =
-immutable baseline from WordPress options, used to backfill missing category
-arrays when loading older project files.
-
----
-
 ### A-05 — `find_root_blocks()` regex fails on nested braces in `:root` blocks — OPEN
 
 **File:** `includes/class-atfrfo-css-parser.php`
@@ -130,26 +106,6 @@ normalization runs again (harmlessly but wastefully).
 **Fix:** Normalize server-side in `ATFRFO_Ajax_Handler::ajax_atfrfo_get_config()` so
 the client always receives the fully-structured format. Requires a design
 discussion first — not a quick fix.
-
----
-
-### A-08 — `created_at` never actually gets set on creation — OPEN
-
-**File:** `class-atfrfo-data-store.php` — `variable_defaults()`, `class_defaults()`, `set_timestamps()`
-
-`variable_defaults()` and `class_defaults()` both default `created_at` to an
-empty string `''`. `set_timestamps()` sets it with `$item['created_at'] ??
-$now` — but `??` only falls through on `null`/unset, not on an empty string.
-Since the default is already `''` (not null) by the time `set_timestamps()`
-runs, `created_at` stays `''` forever on every variable and class ever
-created — the field is effectively dead.
-
-**Fix:** Either default `created_at` to `null` in both `*_defaults()` methods
-(so `??` actually triggers), or check falsiness explicitly in
-`set_timestamps()`: `$item['created_at'] = $item['created_at'] ?: $now;`
-
-Trivial one-line fix but touches both Variables and Classes data — worth its
-own small commit rather than folding into unrelated work.
 
 ---
 
@@ -242,10 +198,31 @@ fixed 3 more instances beyond the one the doc originally listed — `atfrfo-colo
 concept), L-05 (added to `atfrfo-print.js`, `atfrfo-edit-space.js`), L-06 (all 4
 IndexedDB helper names renamed `_eff*` → `_aff*`).
 
-Remaining, in priority order:
+**Also fixed since, not previously logged here:** A-08 (`created_at` defaults
+to `null` in both `*_defaults()` methods), A-02 (`globalConfig` deep-cloned via
+`JSON.parse(JSON.stringify(cfg))` in `atfrfo-app.js`) — both confirmed fixed in
+current source during the 2026-08-12 pre-beta pass; this doc had not been
+updated to reflect it.
 
-1. **A-08** — One-line `created_at` fix — its own small commit
-2. **A-02** — Deep-clone `globalConfig`; document in PATTERNS.md
+**2026-08-12 Classes card pass (pre-beta):** icon SVG output escaped at point
+of echo (WordPress.org review fix, backported to master as well); Classes
+category-list comment column no longer a fixed 600px (was clipping the styles/
+delete buttons); unused-class badge added to the category list; class detail
+card usage section resolves raw Elementor element IDs to widget-type labels
+and aggregates per-page counts instead of listing every instance; class card
+title no longer forced through `.atfrfo-app h2`'s `text-transform: capitalize`;
+style properties broken down by Elementor's own panel section (Layout,
+Spacing, Size, Position, Typography, Background, Border, Effects) in that
+order, with breakpoint headings reading "Desktop/Tablet/Mobile Device";
+variable-referenced values show only the variable name (resolved value moved
+to a tooltip); compound props (`dimensions`, `flex`, `border-width`,
+`border-radius`, `gap`) broken into one row per field instead of a raw JSON
+dump, with variable resolution now recursing into those nested fields
+correctly. `box-shadow`, `filter`/`backdrop-filter`, `transform`, and
+`transition` remain JSON-dumped — list-of-function-call shapes, deliberately
+deferred pending a dedicated renderer, not missed.
+
+Remaining, both deliberately deferred pending a design discussion, not forgotten:
 
 **A-05 and DP-04 are the same underlying fix, deferred together (2026-08-07):**
 investigating A-05 for this pass found that DP-04's suggested remedy (switch
