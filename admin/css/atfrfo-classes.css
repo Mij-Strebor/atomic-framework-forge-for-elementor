@@ -247,7 +247,17 @@
 	color:         var(--atfrfo-clr-muted);
 	font-family:   monospace, monospace;
 	margin:        0 0 var(--sp-1);
+	padding-left:  4ch;
 	word-break:    break-word;
+}
+
+/* Class detail card title — copy the class label's own capitalization
+   verbatim. .atfrfo-app h2 applies text-transform: capitalize globally,
+   which alters user-facing class names (e.g. "card-title" rendering as
+   "Card-title"); scoped here rather than removed globally since every
+   other modal title is authored assuming that transform applies. */
+.atfrfo-class-card-modal .atfrfo-modal__title {
+	text-transform: none;
 }
 
 .atfrfo-class-card-label + .atfrfo-class-card-props {

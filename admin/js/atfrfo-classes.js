@@ -545,9 +545,10 @@
 			body += '</div>'; // .atfrfo-class-card
 
 			ATFRFO.Modal.open({
-				title:  ATFRFO.Utils.escHtml(cls.label || 'Class'),
-				body:   body,
-				footer: '<button class="atfrfo-btn" id="atfrfo-class-card-close">Close</button>',
+				title:     ATFRFO.Utils.escHtml(cls.label || 'Class'),
+				body:      body,
+				footer:    '<button class="atfrfo-btn" id="atfrfo-class-card-close">Close</button>',
+				className: 'atfrfo-class-card-modal',
 			});
 			setTimeout(function () {
 				var closeBtn = document.getElementById('atfrfo-class-card-close');
@@ -639,7 +640,7 @@
 					}
 					var parts = [];
 					for (var oi = 0; oi < order.length; oi++) {
-						parts.push(order[oi] + ' ' + counts[order[oi]]);
+						parts.push(order[oi] + ': ' + counts[order[oi]]);
 					}
 					html += '<div class="atfrfo-class-usage-elements">'
 						+ ATFRFO.Utils.escHtml(parts.join(', '))
