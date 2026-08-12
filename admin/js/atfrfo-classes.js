@@ -735,8 +735,120 @@
 		},
 
 		/**
+		 * Prop key => Elementor style-panel section label. Mirrors
+		 * PROP_CATEGORY_MAP in class-atfrfo-classes-reader.php exactly --
+		 * see that file's docblock for how these were sourced directly from
+		 * Elementor's compiled editor bundle, not guessed. Keep the two in
+		 * sync if Elementor's panel structure ever changes.
+		 *
+		 * @type {Object<string,string>}
+		 */
+		_PROP_CATEGORY_MAP: {
+			'background':          'Background',
+			'border-color':        'Border',
+			'border-style':        'Border',
+			'border-width':        'Border',
+			'border-radius':       'Border',
+			'backdrop-filter':     'Effects',
+			'box-shadow':          'Effects',
+			'filter':              'Effects',
+			'mix-blend-mode':      'Effects',
+			'opacity':             'Effects',
+			'transform':           'Effects',
+			'transition':          'Effects',
+			'align-content':       'Layout',
+			'align-items':         'Layout',
+			'align-self':          'Layout',
+			'display':             'Layout',
+			'flex':                'Layout',
+			'flex-direction':      'Layout',
+			'flex-wrap':           'Layout',
+			'flex-basis':          'Layout',
+			'flex-grow':           'Layout',
+			'flex-shrink':         'Layout',
+			'gap':                 'Layout',
+			'grid-auto-columns':   'Layout',
+			'grid-auto-flow':      'Layout',
+			'grid-auto-rows':      'Layout',
+			'justify-content':     'Layout',
+			'justify-items':       'Layout',
+			'order':               'Layout',
+			'position':            'Position',
+			'scroll-margin-top':   'Position',
+			'z-index':             'Position',
+			'inset-block-start':   'Position',
+			'inset-block-end':     'Position',
+			'inset-inline-start':  'Position',
+			'inset-inline-end':    'Position',
+			'aspect-ratio':        'Size',
+			'height':              'Size',
+			'max-height':          'Size',
+			'max-width':           'Size',
+			'min-height':          'Size',
+			'min-width':           'Size',
+			'object-fit':          'Size',
+			'object-position':     'Size',
+			'overflow':            'Size',
+			'width':               'Size',
+			'margin':              'Spacing',
+			'padding':             'Spacing',
+			'color':               'Typography',
+			'column-count':        'Typography',
+			'column-gap':          'Typography',
+			'direction':           'Typography',
+			'font-family':         'Typography',
+			'font-size':           'Typography',
+			'font-style':          'Typography',
+			'font-weight':         'Typography',
+			'letter-spacing':      'Typography',
+			'line-height':         'Typography',
+			'text-align':          'Typography',
+			'text-decoration':     'Typography',
+			'text-transform':      'Typography',
+			'word-spacing':        'Typography',
+		},
+
+		/** Section display order -- matches Elementor's own style-panel tab order. */
+		_CATEGORY_ORDER: ['Layout', 'Spacing', 'Size', 'Position', 'Typography', 'Background', 'Border', 'Effects'],
+
+		/**
+		 * Group a variant's props by Elementor style-panel section, in
+		 * Elementor's own section order. Prop keys not present in
+		 * _PROP_CATEGORY_MAP (should be rare -- see that map's own coverage
+		 * caveat) land in a trailing "Other" group rather than being
+		 * silently dropped.
+		 *
+		 * @param {Object} props
+		 * @returns {Array<{category:string, keys:string[]}>}
+		 */
+		_groupPropsByCategory: function (props) {
+			var self       = ATFRFO.Classes;
+			var byCategory = {};
+			var otherKeys  = [];
+			var keys       = Object.keys(props);
+
+			for (var i = 0; i < keys.length; i++) {
+				var key = keys[i];
+				var cat = self._PROP_CATEGORY_MAP[key];
+				if (!cat) { otherKeys.push(key); continue; }
+				if (!byCategory[cat]) { byCategory[cat] = []; }
+				byCategory[cat].push(key);
+			}
+
+			var result = [];
+			for (var oi = 0; oi < self._CATEGORY_ORDER.length; oi++) {
+				var cat2 = self._CATEGORY_ORDER[oi];
+				if (byCategory[cat2]) { result.push({ category: cat2, keys: byCategory[cat2] }); }
+			}
+			if (otherKeys.length > 0) { result.push({ category: 'Other', keys: otherKeys }); }
+			return result;
+		},
+
+		/**
 		 * Render one variant (a breakpoint/state combination and its props)
-		 * as a labeled group with a simple prop:value list.
+		 * as a labeled group, with props broken down by Elementor style-
+		 * panel section (see _groupPropsByCategory), same order as the
+		 * style panel itself shows when inspecting an element.
 		 *
 		 * @param {Object} variant {props, meta:{breakpoint,state}, custom_css}
 		 * @returns {string}
@@ -745,7 +857,7 @@
 			var meta       = (variant && variant.meta) || {};
 			var breakpoint = meta.breakpoint || 'desktop';
 			var state      = meta.state || null;
-			var groupLabel = breakpoint.charAt(0).toUpperCase() + breakpoint.slice(1)
+			var groupLabel = breakpoint.charAt(0).toUpperCase() + breakpoint.slice(1) + ' Device'
 				+ (state ? ' — ' + state : '');
 
 			var props = (variant && variant.props) || {};
@@ -757,13 +869,18 @@
 			if (propKeys.length === 0) {
 				html += '<p class="atfrfo-class-variant-empty">No properties.</p>';
 			} else {
-				html += '<div class="atfrfo-class-variant-props">';
-				for (var i = 0; i < propKeys.length; i++) {
-					var key = propKeys[i];
-					html += '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + '</span>'
-						+ ATFRFO.Classes._renderPropValue(props[key]);
+				var grouped = ATFRFO.Classes._groupPropsByCategory(props);
+				for (var gi = 0; gi < grouped.length; gi++) {
+					var group = grouped[gi];
+					html += '<p class="atfrfo-class-prop-category-label">' + ATFRFO.Utils.escHtml(group.category) + '</p>';
+					html += '<div class="atfrfo-class-variant-props">';
+					for (var pi = 0; pi < group.keys.length; pi++) {
+						var key = group.keys[pi];
+						html += '<span class="atfrfo-class-prop-key">' + ATFRFO.Utils.escHtml(key) + '</span>'
+							+ ATFRFO.Classes._renderPropValue(props[key]);
+					}
+					html += '</div>';
 				}
-				html += '</div>';
 			}
 
 			if (variant && variant.custom_css && variant.custom_css.raw) {

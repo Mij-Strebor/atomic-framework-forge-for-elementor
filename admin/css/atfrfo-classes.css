@@ -287,6 +287,20 @@
 	font-size:   var(--fs-sm, 0.875rem);
 }
 
+/* Style-panel section sub-heading (Layout, Typography, etc.) within a
+   breakpoint/state group -- see ATFRFO.Classes._groupPropsByCategory. */
+.atfrfo-class-prop-category-label {
+	margin:      var(--sp-2) 0 var(--sp-1);
+	padding-left: 4ch;
+	font-weight: 600;
+	font-size:   var(--fs-xs, 0.75rem);
+	color:       var(--atfrfo-clr-muted);
+}
+
+.atfrfo-class-prop-category-label:first-of-type {
+	margin-top: 0;
+}
+
 .atfrfo-class-variant-empty {
 	margin:    0;
 	font-size: var(--fs-xs, 0.75rem);
