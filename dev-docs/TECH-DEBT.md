@@ -72,10 +72,10 @@ execution time `ATFRFO.Utils` is already defined.
 (`atfrfo-preferences.css`) has override rules for 14/15/17/18 but none for 16,
 meaning 16px was always the true "no override" baseline; but PHP's
 `ATFRFO_Settings::$defaults['ui_font_size']` said `14`, and the test plan
-(`docs/UNIT-TESTS.md`) also documented `14` as expected. Confirmed with Jim
+(`dev-docs/UNIT-TESTS.md`) also documented `14` as expected. Confirmed with Jim
 which was actually intended: **16px is correct.** Changed
 `ATFRFO_Settings::$defaults['ui_font_size']` from `14` to `16`; updated
-`docs/UNIT-TESTS.md`'s expected-default row to match; cleaned up the now-stale
+`dev-docs/UNIT-TESTS.md`'s expected-default row to match; cleaned up the now-stale
 "why" comment at the JS call site (the JS sentinel itself was already correct
 and didn't need to change).
 

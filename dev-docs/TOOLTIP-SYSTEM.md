@@ -1,9 +1,8 @@
-# ATFRFO Spec — Tooltips
+# AFF — Tooltip System Reference
 
-**Version:** 1.0
-**Date:** 2026-03-14
 **Author:** Jim Roberts / Jim R Forge
-**Status:** Active
+**Status:** Active — verified accurate against current source, 2026-08-13
+**Originally:** `docs/specification/EFF-Spec-Tooltips.md` (v1.0, 2026-03-14)
 
 ---
 
