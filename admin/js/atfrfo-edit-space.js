@@ -610,7 +610,7 @@
 				+ '<section class="atfrfo-info-section">'
 				+ '<h2 class="atfrfo-info-section__title">Project Hub</h2>'
 				+ '<p>Visit <a href="https://jimrforge.com" target="_blank" rel="noopener noreferrer">jimrforge.com</a> for complete documentation and information on the whole Jim R Forge plugin family.</p>'
-				+ '<p>AFF-specific docs: <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/QUICK-START.md" target="_blank" rel="noopener noreferrer">Quick-Start Guide</a> &middot; <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/USER-MANUAL.md" target="_blank" rel="noopener noreferrer">User’s Manual</a></p>'
+				+ '<p>AFF-specific docs: <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/docs/quick-start.md" target="_blank" rel="noopener noreferrer">Quick-Start Guide</a> &middot; <a href="https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/blob/master/docs/user-manual.md" target="_blank" rel="noopener noreferrer">User’s Manual</a></p>'
 				+ '</section>'
 
 				// ── Support ───────────────────────────────────────────────────
