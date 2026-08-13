@@ -87,8 +87,13 @@ atomic-framework-forge-for-elementor/
 │   └── icons/                           # SVG icon set
 ├── data/
 │   └── atfrfo-defaults.json               # Default subgroup definitions
-└── docs/
-    └── ATFRFO-Framework-Forge-Spec.md      # Full spec document
+├── docs/                                   # Public docs -- GitHub Pages source (see 2026-08-13 reorg)
+│   ├── index.md, quick-start.md, user-manual.md
+│   └── assets/images/{shared,quick-start,user-manual}/
+└── dev-docs/                               # Internal only -- excluded from every package
+    ├── PATTERNS.md, TECH-DEBT.md, UNIT-TESTS.md, TOOLTIP-SYSTEM.md,
+    │   ELEMENTOR-GLOBAL-CLASSES-INTERNALS.md
+    └── archive/                            # Superseded planning docs, kept for history
 ```
 
 ---
