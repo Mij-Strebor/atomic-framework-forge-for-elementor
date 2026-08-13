@@ -17,8 +17,8 @@
 
 | | |
 |---|---|
-| **New to AFF?** | **[Quick Start Guide →](docs/QUICK-START.md)** — from zero to an organized project in about ten minutes |
-| **Looking up a feature?** | **[User Manual →](docs/USER-MANUAL.md)** — complete reference for every panel and workflow |
+| **New to AFF?** | **[Quick Start Guide →](docs/quick-start.md)** — from zero to an organized project in about ten minutes |
+| **Looking up a feature?** | **[User Manual →](docs/user-manual.md)** — complete reference for every panel and workflow |
 
 > Start with the Quick Start Guide — it covers installation through your first saved project and explains every part of the interface.
 
@@ -30,7 +30,7 @@ Atomic Framework Forge for Elementor (**AFF**) is a WordPress developer tool tha
 
 Instead of hunting through Elementor's generated CSS by hand, AFF reads your kit file, organizes your variables into labeled categories, and lets you manage them as a structured, multi-project workspace with full backup and version history.
 
-**Migrating from Elementor V3 to V4?** AFF handles the hardest part of the transition. Import all your V3 Global Colors into AFF with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](docs/USER-MANUAL.md#15-v3--v4-migration-workflow)
+**Migrating from Elementor V3 to V4?** AFF handles the hardest part of the transition. Import all your V3 Global Colors into AFF with one click — the four standard system colors (Primary, Secondary, Text, Accent) are automatically annotated with their usage roles. Then import your V4 variables alongside them, map each V3 color to its V4 equivalent, and track migration progress as you rebuild pages. [See the V3 → V4 Migration Workflow →](docs/user-manual.md#16-v3--v4-migration-workflow)
 
 ---
 
@@ -66,7 +66,7 @@ AFF manages Elementor V4 assets through four distinct, user-controlled data chan
 
 ## Status
 
-Version **2.0.0-beta.1**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional and stable on the 1.4.x line. Classes management is in beta on this branch — sync, categorize, rename, delete (both push real changes to Elementor, not just AFF-local), and a read-only style/usage detail card are all working. Creating new classes and editing style properties from AFF are explicitly out of scope, not planned — see `docs/AFF-VISION-AND-ROADMAP.md`. Components registry is unscheduled.
+Version **2.0.0-beta.1**. The complete Variables workflow (Colors, Fonts, Numbers — sync, edit, organize, commit back to Elementor) is fully functional and stable on the 1.4.x line. Classes management is in beta on this branch — sync, categorize, rename, delete (both push real changes to Elementor, not just AFF-local), and a read-only style/usage detail card are all working. Creating new classes and editing style properties from AFF are explicitly out of scope, not planned — see `dev-docs/AFF-VISION-AND-ROADMAP.md`. Components registry is unscheduled.
 
 Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor/issues
 
@@ -109,7 +109,7 @@ Report issues at https://github.com/Mij-Strebor/atomic-framework-forge-for-eleme
 
 ## Interface
 
-![AFF Numbers](docs/images/numbers.png)
+![AFF Numbers](docs/assets/images/shared/numbers.png)
 
 **Four panels:**
 - **Top bar** — Preferences, Manage Project, Functions, History, Search, Help
@@ -166,7 +166,7 @@ ln -s /path/to/eff /path/to/wp/wp-content/plugins/atomic-framework-forge-for-ele
 
 ## Quick Start
 
-> ### [Read the Quick Start Guide →](docs/QUICK-START.md)
+> ### [Read the Quick Start Guide →](docs/quick-start.md)
 >
 > The Quick Start walks through installation, syncing variables, organizing into categories, saving your project, and using the backup system. Takes about ten minutes.
 
@@ -272,7 +272,7 @@ atomic-framework-forge-for-elementor/
 | **1.4.1** | Critical fix: every AJAX endpoint was non-functional due to a method-naming mismatch from the 1.4.0 prefix rename. All endpoints restored. |
 | **1.4.2** | Project file writes use LOCK_EX (prevents JSON corruption from concurrent writes). Commit to Elementor matches Variables by stored Elementor ID first, not name alone (rename + recommit no longer orphans class/widget references). Backup filename collisions no longer need a blocking sleep() retry. |
 | **1.4.3** | WordPress.org review fix: icon SVG output escaped via wp_kses() at the point of echo, not only upstream (19 call sites). |
-| **2.0.0-beta.1** *(this release, in beta)* | Classes management — Elementor V4 Global Classes read, sync, categorize, rename/delete (pushed to Elementor), read-only style/usage detail card. See `docs/AFF-VISION-AND-ROADMAP.md` for phased plan. |
+| **2.0.0-beta.1** *(this release, in beta)* | Classes management — Elementor V4 Global Classes read, sync, categorize, rename/delete (pushed to Elementor), read-only style/usage detail card. See `dev-docs/AFF-VISION-AND-ROADMAP.md` for phased plan. |
 | **Future** | Standalone Windows / Mac desktop application. |
 
 ---

@@ -684,7 +684,7 @@ class ATFRFO_Ajax_Handler {
 	/**
 	 * Fetch Global Classes from Elementor and merge into the AFF store.
 	 *
-	 * See docs/TECH-DEBT.md A-09: ATFRFO_Classes_Reader::get_all() cannot
+	 * See dev-docs/TECH-DEBT.md A-09: ATFRFO_Classes_Reader::get_all() cannot
 	 * distinguish "Elementor genuinely has zero classes" from "the fetch
 	 * failed" using an empty list alone — that's what the 'source' check
 	 * below is for. Refusing to import on 'unavailable' is the fix; do not
@@ -1548,7 +1548,7 @@ class ATFRFO_Ajax_Handler {
 			// appeared" from a name-only point of view) — deleting-then-
 			// recreating a renamed variable would assign it a brand new ID,
 			// silently orphaning every class/widget property that referenced
-			// the old one. Fixed 2026-08-08 (see docs/AFF-VISION-AND-ROADMAP.md
+			// the old one. Fixed 2026-08-08 (see dev-docs/AFF-VISION-AND-ROADMAP.md
 			// §9 — found while investigating the same class of bug in Classes'
 			// own rename, which AFF's own class objects side-stepped by always
 			// storing elementor_id; variables never did until now).

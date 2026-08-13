@@ -11,7 +11,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Classes management (Elementor V4 Global Classes). Not yet released. Tracked separately
 from the `[Unreleased]` section below, which holds 1.4.x maintenance fixes that ship
-independently on `master` — see `docs/AFF-VISION-AND-ROADMAP.md` for the full plan and
+independently on `master` — see `dev-docs/AFF-VISION-AND-ROADMAP.md` for the full plan and
 current scope.
 
 ### Added
@@ -49,11 +49,11 @@ current scope.
 
 ### Out of scope (explicit, not deferred)
 
-Decided 2026-08-08, not just left undone: **creating** new classes from AFF, **editing style properties** from AFF (Phase 3.5 in earlier planning), and a custom usage scanner for Variables (Elementor has no native usage-tracking for variables, only for classes — confirmed by inspecting its source). None of these are planned for a future phase either; Classes management stops at sync, organize, rename, delete, and read-only detail/usage — see `docs/AFF-VISION-AND-ROADMAP.md`.
+Decided 2026-08-08, not just left undone: **creating** new classes from AFF, **editing style properties** from AFF (Phase 3.5 in earlier planning), and a custom usage scanner for Variables (Elementor has no native usage-tracking for variables, only for classes — confirmed by inspecting its source). None of these are planned for a future phase either; Classes management stops at sync, organize, rename, delete, and read-only detail/usage — see `dev-docs/AFF-VISION-AND-ROADMAP.md`.
 
 ### Version
 
-- Bumped to 2.0.0-beta.1 for beta testing, on this branch only; `master` remains on the 1.4.x line. See the branching note in `docs/AFF-VISION-AND-ROADMAP.md`.
+- Bumped to 2.0.0-beta.1 for beta testing, on this branch only; `master` remains on the 1.4.x line. See the branching note in `dev-docs/AFF-VISION-AND-ROADMAP.md`.
 
 ---
 

@@ -278,7 +278,7 @@
 		 * 'deleted' status to exclude — see atfrfo-classes.js status
 		 * vocabulary note) and Classes has no sub-category nesting to
 		 * account for. Locked categories (Uncategorized) always render last,
-		 * matching docs/AFF-VISION-AND-ROADMAP.md §5.1.
+		 * matching dev-docs/AFF-VISION-AND-ROADMAP.md §5.1.
 		 */
 		_populateClassesList: function () {
 			var list = document.getElementById('atfrfo-nav-classes-items');

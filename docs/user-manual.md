@@ -2,7 +2,7 @@
 ## Atomic Framework Forge for Elementor — v1.4.3 · Classes (beta) v2.0.0-beta.1
 
 > **Complete feature reference.** For a step-by-step first-run walkthrough, see the
-> **[Quick Start Guide →](QUICK-START.md)**
+> **[Quick Start Guide →](quick-start.md)**
 
 ---
 

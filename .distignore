@@ -8,6 +8,7 @@ QUICK-START.md
 RECOVERY-LOG.md
 USER-MANUAL.md
 docs/
+dev-docs/
 vendor/
 tests/
 composer.json

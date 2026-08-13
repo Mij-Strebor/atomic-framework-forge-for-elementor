@@ -3,7 +3,7 @@
 
 > This guide gets you from install to your first synced, organized, and saved variable project in about ten minutes.
 >
-> For a complete feature reference, see the **[User Manual →](USER-MANUAL.md)**
+> For a complete feature reference, see the **[User Manual →](user-manual.md)**
 
 ---
 
@@ -91,9 +91,9 @@ On a new project the data set is empty, so the **Import Mode** choice (Sync by n
 
 Click **Synchronize**. AFF reads the active Elementor kit's variable data and classifies each one into Colors, Fonts, or Numbers automatically, landing in **Uncategorized** until you sort it. If you're syncing V4, this same click also pulls in your **Global Classes** at the same time (see [Step 11](#step-11--sync-and-organize-classes-beta) below) — there's no separate Classes sync button.
 
-> **V3 → V4 migration:** Import your V3 System Colors and Custom Colors, then also import V4 and map the two sets to each other inside AFF. See the User Manual's [V3 → V4 Migration Workflow](USER-MANUAL.md#16-v3--v4-migration-workflow) for the full walkthrough.
+> **V3 → V4 migration:** Import your V3 System Colors and Custom Colors, then also import V4 and map the two sets to each other inside AFF. See the User Manual's [V3 → V4 Migration Workflow](user-manual.md#16-v3--v4-migration-workflow) for the full walkthrough.
 
-> **Conflicts:** If you re-sync a project that already has AFF edits, and a variable's value differs on both sides, a **Merge Conflicts** dialog opens so you can choose which value wins, row by row. See the [User Manual](USER-MANUAL.md#15-conflict-resolution--merge-dialog).
+> **Conflicts:** If you re-sync a project that already has AFF edits, and a variable's value differs on both sides, a **Merge Conflicts** dialog opens so you can choose which value wins, row by row. See the [User Manual](user-manual.md#15-conflict-resolution--merge-dialog).
 
 ---
 
@@ -208,7 +208,7 @@ When you are ready to push your edited values to Elementor V4:
 
 ## Step 11 — Sync and Organize Classes (Beta)
 
-AFF also manages Elementor V4 **Global Classes** — the reusable class names you assign to atomic widgets in Elementor's editor. This is a newer, beta part of AFF; see the [User Manual's Classes section](USER-MANUAL.md#22-working-with-classes-beta) for the full reference.
+AFF also manages Elementor V4 **Global Classes** — the reusable class names you assign to atomic widgets in Elementor's editor. This is a newer, beta part of AFF; see the [User Manual's Classes section](user-manual.md#22-working-with-classes-beta) for the full reference.
 
 **Sync.** There's no separate "Sync Classes" button — click **⟳ Sync**, set the version toggle to **V4**, direction to **Import**, and click **Synchronize**. Your Global Classes come in alongside your Variables, automatically, every time.
 
@@ -237,7 +237,7 @@ Preferences, the Functions menu, Print/PDF, and manual Export/Import are all tuc
 | **Export / Import** | Download or load a portable `.atfrfo.json` project file |
 | **Help** | Quick in-app reference |
 
-For the full list of Preferences settings, see the [User Manual](USER-MANUAL.md#19-preferences). Note that default category lists and default variable formats are configured in **▦ Manage Projects**, not in Preferences.
+For the full list of Preferences settings, see the [User Manual](user-manual.md#19-preferences). Note that default category lists and default variable formats are configured in **▦ Manage Projects**, not in Preferences.
 
 ---
 
@@ -269,7 +269,7 @@ For the full list of Preferences settings, see the [User Manual](USER-MANUAL.md#
 - Explore the **›** expand panel on any color for tints, shades, and transparency families
 - Open a Class's **View Styles** card to check its Usage section — a quick way to find classes safe to clean up (look for the **Unused** badge)
 
-For everything else, see the **[User Manual →](USER-MANUAL.md)**
+For everything else, see the **[User Manual →](user-manual.md)**
 
 ---
 

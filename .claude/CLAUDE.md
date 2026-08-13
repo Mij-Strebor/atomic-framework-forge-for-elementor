@@ -31,7 +31,7 @@ ATFRFO is a WordPress admin plugin that provides a management interface for **El
 2. **Classes** — Global Classes on atomic widgets: read, organize, rename, delete, usage lookup (fully implemented on `develop`)
 3. **Components** — User-assembled widget compositions (future, unscheduled)
 
-**Current: v1.4.3 released on `master`.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes management is at v2.0.0-beta.1 on `develop` — data layer, category-block UI, drag-and-drop, rename/delete write-back to Elementor, usage lookup, and print support are all working; not yet merged to `master`. See `docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
+**Current: v1.4.3 released on `master`.** Full Variables workflow (sync, organize, edit, backup, commit to Elementor) is complete and shipped. Classes management is at v2.0.0-beta.1 on `develop` — data layer, category-block UI, drag-and-drop, rename/delete write-back to Elementor, usage lookup, and print support are all working; not yet merged to `master`. See `dev-docs/AFF-VISION-AND-ROADMAP.md` for the full plan.
 
 ---
 
@@ -324,7 +324,7 @@ ATFRFO.state = {
 
 `ATFRFO_CSS_Parser::read_from_kit_meta()` reads Variables directly from post meta (primary path). CSS file parsing is the fallback.
 
-**Classes — the `_elementor_global_classes` meta key is a trap (C-08 incident, `docs/TECH-DEBT.md`):** it still exists and still returns data, but it's stale/legacy and does NOT reflect the real class list once Elementor 4.2.1+ moves classes to individual posts. A real site returned 10 items from the meta key when the true count was 54/73 via `Global_Classes_Repository`. `ATFRFO_Classes_Reader`'s primary path must always call `Global_Classes_Repository` directly (guarded with `class_exists()`, falling back to REST only if that class doesn't exist) — never resurrect a raw meta-key read as part of the trusted path, even as a fallback, because an empty result from it is indistinguishable from a genuinely-empty-and-correct one.
+**Classes — the `_elementor_global_classes` meta key is a trap (C-08 incident, `dev-docs/TECH-DEBT.md`):** it still exists and still returns data, but it's stale/legacy and does NOT reflect the real class list once Elementor 4.2.1+ moves classes to individual posts. A real site returned 10 items from the meta key when the true count was 54/73 via `Global_Classes_Repository`. `ATFRFO_Classes_Reader`'s primary path must always call `Global_Classes_Repository` directly (guarded with `class_exists()`, falling back to REST only if that class doesn't exist) — never resurrect a raw meta-key read as part of the trusted path, even as a fallback, because an empty result from it is indistinguishable from a genuinely-empty-and-correct one.
 
 ---
 
@@ -358,8 +358,8 @@ When bumping the version, update **all locations** in:
 - `readme.txt` (Stable tag, changelog, upgrade notice, beta heading)
 - `CHANGELOG.md` (new entry)
 - `README.md` (badge URLs + beta references + roadmap table)
-- `docs/QUICK-START.md` (header + zip filenames)
-- `docs/USER-MANUAL.md` (header)
+- `docs/quick-start.md` (header + zip filenames)
+- `docs/user-manual.md` (header)
 
 After all edits, search for the old version string — zero matches expected outside changelog/history sections.
 

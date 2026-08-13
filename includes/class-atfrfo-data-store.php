@@ -800,7 +800,7 @@ class ATFRFO_Data_Store {
 			}
 			$seen_elementor_ids[] = $elementor_id;
 
-			// The per-breakpoint/state style props (see docs/AFF-VISION-AND-ROADMAP.md
+			// The per-breakpoint/state style props (see dev-docs/AFF-VISION-AND-ROADMAP.md
 			// §3.1 "Variant structure") — stored for the read-only class detail card
 			// (Phase 3.4), always overwritten from Elementor's current data on sync
 			// since AFF does not (yet) edit properties locally.
@@ -1222,7 +1222,7 @@ class ATFRFO_Data_Store {
 			// Once set, commits match this exact Elementor entry by ID instead
 			// of by name, so renaming a variable and recommitting updates it in
 			// place instead of deleting the old name and creating a new ID under
-			// the new one — fixed 2026-08-08, see docs/AFF-VISION-AND-ROADMAP.md §9.
+			// the new one — fixed 2026-08-08, see dev-docs/AFF-VISION-AND-ROADMAP.md §9.
 			'elementor_id'        => '',
 		);
 	}
@@ -1233,7 +1233,7 @@ class ATFRFO_Data_Store {
 	 * `elementor_id` is internal-only, used for REST calls back to Elementor.
 	 * `label` is the single name field — both the literal CSS class name and
 	 * what's shown to the user as "Name." `notes` is displayed to the user as
-	 * "Comment," matching Variables' terminology. See docs/AFF-VISION-AND-ROADMAP.md §4.3.
+	 * "Comment," matching Variables' terminology. See dev-docs/AFF-VISION-AND-ROADMAP.md §4.3.
 	 *
 	 * @return array
 	 */

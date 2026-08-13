@@ -994,7 +994,7 @@
 		/**
 		 * Format one property's value for display. Handles the two shapes
 		 * seen in Elementor's $$type-tagged props (see
-		 * docs/AFF-VISION-AND-ROADMAP.md §3.1 "Variant structure"):
+		 * dev-docs/AFF-VISION-AND-ROADMAP.md §3.1 "Variant structure"):
 		 * {$$type:'size', value:{size,unit}} and {$$type:'color'|..., value:'...'}.
 		 * Falls back to JSON for anything unrecognized rather than hiding it.
 		 *
