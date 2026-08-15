@@ -8,21 +8,56 @@ Stable tag:        1.4.3
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Professional management interface for Elementor Version 4 (atomic widget architecture) assets — Variables, Classes, and Components.
+Take control of your Elementor design variables. Manage Colors, Fonts, and Numbers in a professional workspace built for Elementor V4.
 
 == Description ==
 
-Atomic Framework Forge for Elementor (**AFF**) is a WordPress plugin that provides a professional management interface for Elementor Version 4 (atomic widget architecture) assets.
+= Build and manage your Elementor design system =
 
-AFF allows developers to organize, edit, and persist the three core asset types introduced by Elementor v4:
+**Atomic Framework Forge for Elementor (AFF)** gives developers a dedicated workspace for organizing, editing, backing up, and synchronizing the CSS variables that power Elementor V4's atomic architecture.
 
-* **Variables** — CSS custom properties used by atomic widgets
-* **Classes** — Developer-defined class names applied to atomic widget controls *(in development)*
-* **Components** — User-assembled widgets built within Elementor v4 *(planned)*
+**Colors. Fonts. Numbers.** Manage your variables in one place instead of hunting through your Elementor configuration.
 
 **Requires Elementor and Elementor Pro.**
 
-= How AFF Interacts with Elementor =
+= The problem =
+
+As an Elementor site grows, its design variables can become difficult to see, organize, and maintain. Colors accumulate. Spacing values multiply. Typography settings spread across a project. Making a change can mean searching through an increasingly complex design system.
+
+Atomic Framework Forge gives developers a dedicated workspace for managing these variables as an organized system: find them, organize them, edit them, back them up, and synchronize them with Elementor — while keeping the developer in control of when changes are written back.
+
+= Three types of variables, one workspace =
+
+**Colors** — Build and maintain an organized color system.
+
+* HEX, RGB, HSL, and alpha editing with a visual color picker
+* Generate tints, shades, and transparency variants
+* Organize into categories and sub-categories
+* Add notes and classifications to variables
+
+**Fonts** — Keep font variables organized and accessible.
+
+* Manage Elementor font variables, organized by category and sub-category
+* Edit font-related CSS custom properties
+* Preview font values within the management interface
+
+**Numbers** — Manage the numeric foundation of your design system: spacing, sizing, gaps, radius, layout values, and other numeric CSS variables. Unit-aware editing for px, rem, em, %, vw, vh, ch, and CSS function values (e.g. `clamp()`) when needed.
+
+= Organize your design system =
+
+AFF is not limited to a flat list of variables. Create your own categories and one level of sub-categories to reflect the design system you actually use — for example, Colors organized into Brand / Neutral / Status / Surface, or Numbers into Spacing / Radius / Layout / Sizing. The categories are yours to define.
+
+= Work with Elementor — not around it =
+
+AFF reads Elementor's V4 variable data and brings it into a dedicated management environment: **fetch** the variables from your active Elementor kit, **organize and edit** them in AFF, **review** which variables are synced, modified, new, orphaned, or in conflict, then **commit** — explicitly, when you're ready — to write the changes back.
+
+= A deliberately controlled write process =
+
+AFF is designed around a read-first workflow. Reading Elementor data does not modify Elementor. Writing changes back is always a deliberate, user-triggered action — never automatic or in the background — preceded by a summary showing exactly what will change (modified, new, and deleted variables).
+
+**Recommended:** use AFF on a staging or local development site, and export a project backup before committing changes to Elementor.
+
+= How AFF interacts with Elementor =
 
 **Read:** AFF reads global variables directly from the active Elementor kit's _elementor_global_variables post meta -- the same authoritative data store Elementor itself uses. This happens only when you click "Fetch Elementor Data". It is purely read-only; nothing in Elementor is touched.
 
@@ -32,45 +67,111 @@ Every write is user-triggered (no background or automatic writes, ever), precede
 
 **Use on staging or a local development environment only.** A corrupted write could damage your Elementor kit's variable data. Always export a project backup before writing to Elementor.
 
-=== Key Features ===
+= Bringing an existing Elementor site into V4? =
 
-* **Full Elementor V4 Variable Management** — AFF reads, classifies, and lets you fully edit every CSS custom property exposed by Elementor V4's atomic widget architecture, organized into Colors, Fonts, and Numbers, with user-defined sub-classifications for each.
-* **Color Variables** — Visual Pickr color picker (HEX / RGB / HSL + alpha) with live palette refresh; generate up to 10 tints, 10 shades, and 9 transparency variants per color variable.
-* **Font Variables** — Organize and edit font-related CSS custom properties by classification.
-* **Number Variables** — Full control over spacing, sizing, and other numeric variables, with unit-aware editing (px, rem, em, %, vw, vh, ch, and function mode).
-* **Light / Dark Mode** — AFF's own interface supports both, as a per-user preference persisted to WordPress usermeta.
-* **V3 → V4 Color Migration** — Import all Elementor V3 Global Colors (system and custom) into AFF with a single click. The four Elementor system colors (Primary, Secondary, Text, Accent) are automatically annotated with their standard usage roles so you never lose track of what each color controls. Use AFF to map V3 colors to their V4 equivalents side-by-side as you rebuild pages.
-* **Sync from Elementor V4** — Reads the Elementor V4 kit CSS file and imports CSS variables automatically. Sync options dialog: "Sync by name" or "Clear and replace".
-* **Commit to Elementor V4** — Write modified variable values back to the active kit CSS. Commit summary shows modified / new / deleted counts before writing.
-* **Versioned backup system** — Every Save Project creates a timestamped snapshot; restore any backup from the two-level project/backup picker. Up to 50 backups per project (configurable).
-* **Multi-project support** — Multiple independent named projects per WordPress site.
-* **Export / Import** — Download the current project as a portable `.atfrfo.json` file; import on any WordPress site running AFF.
-* **Four-panel interface** — Top menu bar, collapsible left navigation tree, center edit space, right data management panel.
+AFF can import Elementor V3 Global Colors into your AFF project — both system and custom colors. The four standard Elementor system colors are identified with their familiar roles (Primary, Secondary, Text, Accent), so you never lose track of what each color controls. Bring those colors into your V4 variable-management workflow and map your existing color system as you rebuild your site.
 
-=== Architecture ===
+= Projects, backups, and portability =
+
+AFF supports multiple independent projects within a WordPress site. Each project can be:
+
+* **Saved** — create a persistent project containing your managed variables
+* **Backed up** — every save creates a timestamped backup snapshot; up to 50 backups per project (configurable)
+* **Restored** — return to a previous backup from the project/backup picker
+* **Exported** — downloaded as a portable `.atfrfo.json` file
+* **Imported** — brought into another WordPress site running AFF
+
+= Know what changed =
+
+AFF shows status throughout the variable views, so you have visibility into the state of your design system before committing anything:
+
+* **Synced** — the AFF value matches Elementor
+* **Modified** — the value has been changed in AFF
+* **New** — the variable exists in AFF but hasn't been committed to Elementor yet
+* **Orphaned** — AFF has a variable that no longer corresponds to current Elementor data
+* **Conflict** — AFF and Elementor contain differing information that needs your attention
+
+= A workspace built for developers =
+
+AFF uses a four-panel interface: a **top menu** for project, sync, print, and preferences; a **navigation panel** for moving through Colors, Fonts, Numbers, and their categories; the **edit space** for working directly with variables; and a **data management panel** for projects, backups, import/export, and Elementor sync. AFF's own interface supports light and dark mode, saved per WordPress user.
+
+= Print and PDF =
+
+AFF includes a print/PDF workflow for documenting selected portions of your variable system — useful for client documentation, design-system reviews, or keeping a human-readable record of your variables.
+
+= Designed for professional Elementor development =
+
+Atomic Framework Forge is built for WordPress developers, Elementor developers, freelancers, and agencies maintaining large Elementor sites or establishing reusable design systems. If you're building one page, Elementor may be all you need. If you're managing the system behind many pages, AFF gives you another level of control.
+
+= Where the framework is going =
+
+The current release focuses on **Variables**. Future development extends the framework toward Elementor V4's other atomic assets: **Variables → Classes → Components**. Classes and Components are not part of the current 1.4.3 feature set — the goal is an increasingly complete environment for managing the building blocks of an Elementor design system.
+
+= Architecture =
 
 AFF is built for future portability. The data layer contains no WordPress dependencies and is designed to be ported to a standalone Windows or Mac application in a future phase.
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/`
-2. Ensure **Elementor** and **Elementor Pro** are installed and active
-3. Activate the plugin through the 'Plugins' screen in WordPress
-4. Navigate to **AFF** in the WordPress admin sidebar
+1. Install and activate **Elementor** and **Elementor Pro**.
+2. Install and activate **Atomic Framework Forge for Elementor**.
+3. Open **AFF** from the WordPress administration menu.
+4. Create or select an AFF project.
+5. Fetch your Elementor data.
+6. Organize and manage your variables.
+7. Export a backup before committing significant changes to Elementor.
+
+**Recommended:** perform development and Elementor commits on a staging or local development environment.
 
 == Frequently Asked Questions ==
 
+= Does AFF require Elementor Pro? =
+
+Yes. Atomic Framework Forge requires both Elementor and Elementor Pro to be installed and active.
+
+= What version of Elementor is required? =
+
+AFF is designed for Elementor V4 and its atomic widget architecture. The 1.4.3 release was developed and validated against Elementor 4.1.3 and Elementor Pro 4.1.1.
+
+= Does AFF automatically change Elementor? =
+
+No. AFF reads Elementor data when you request it. Changes are written back to Elementor only when you explicitly initiate a commit and confirm the operation.
+
 = Does AFF modify my Elementor CSS files? =
 
-Not by default. AFF is read-first and non-destructive — it reads your Elementor kit CSS but never modifies it unless you explicitly click **↑ Variables** (Commit to Elementor) in the right panel. A summary dialog shows exactly what will be written before you confirm.
+Not by default. AFF is read-first and non-destructive — it reads your Elementor kit data but never modifies it unless you explicitly click **↑ Variables** (Commit to Elementor) in the right panel. A summary dialog shows exactly what will be written before you confirm. When you do commit, AFF updates Elementor's authoritative global-variable data and uses a secondary CSS update where appropriate so changes can appear immediately; Elementor remains responsible for its own normal cache clearing and CSS regeneration.
 
-= Where are .atfrfo.json files stored? =
+= Can I undo changes? =
 
-In your WordPress uploads directory under `/uploads/atfrfo/`.
+AFF maintains timestamped project backups, restorable from the project/backup management interface. You should also export a project backup before committing significant changes to Elementor.
 
-= What Elementor version is required? =
+= Can I move an AFF project to another site? =
 
-Elementor v4+ (atomic widget architecture) and Elementor Pro.
+Yes. AFF projects can be exported as `.atfrfo.json` files and imported into another WordPress site running AFF. Files are stored in your WordPress uploads directory under `/uploads/atfrfo/`.
+
+= Can I manage Elementor V3 Global Colors? =
+
+Yes. AFF includes a V3 → V4 color migration feature that imports Elementor V3 Global Colors, including system and custom colors.
+
+= Can I organize variables into groups? =
+
+Yes. AFF supports categories and one level of sub-categories.
+
+= Are Classes and Components available? =
+
+Not yet. Version 1.4.3 focuses on Variables. Classes are in beta on a separate development line and Components are planned for a future release.
+
+== Screenshots ==
+
+1. A professional workspace for managing Elementor V4 design variables — the full AFF interface: project navigation, variable categories, edit area, and data management panel.
+2. Build and organize a structured color system with visual editing and generated color variants — categories, sub-categories, swatches, and status information.
+3. Manage typography and numeric design variables alongside your color system — Fonts and Numbers, with unit-aware editing.
+4. See what has changed before committing variables back to Elementor — the synchronization interface and status legend (Synced, Modified, New, Orphaned, Conflict).
+5. AFF never silently writes changes to Elementor — review the proposed changes in the commit summary dialog and confirm the commit yourself.
+6. Bring Elementor V3 Global Colors into your V4 variable workflow — the V3 import and migration interface.
+7. Maintain multiple projects, restore previous snapshots, and move projects between sites — project and backup management.
+8. Export a portable AFF project and import it into another WordPress site.
+9. Create printable documentation from your variable system — the print selection interface and generated output.
 
 == Changelog ==
 
