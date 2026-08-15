@@ -2,6 +2,41 @@
 
 ---
 
+## 2026-08-14 — v1.4.3 First WordPress.org SVN Release
+
+**Commit:** a81d0aa
+**Git Tag:** v1.4.3
+**SVN Revision:** 3647890
+**Zip Backup:** 260814 aff-v1.4.3-wp-org-pushed.zip
+**Branch:** master
+
+**What Works:**
+- First-ever WordPress.org SVN push, following approval email received 2026-08-13.
+  Public listing live at https://wordpress.org/plugins/atomic-framework-forge-for-elementor/
+  (confirmed live, version 1.4.3 shown) within ~30 minutes of commit.
+- Approval covers the 1.4.3 zip resubmitted mid-review after the escaping-output fix
+  (see CHANGELOG.md [1.4.3]) — the same version already tagged/released on GitHub.
+- SVN working copy freshly checked out (none existed before — first approval means
+  first SVN access) to `E:\projects\release-wordpress\atomic-framework-forge-for-elementor-svn`.
+  trunk/ synced from git source (72 files, same exclusion list as the WP.org zip build),
+  tagged as `tags/1.4.3`, committed by Jim directly (SVN password never touched by Claude).
+
+**Known Issues:**
+- WP.org `assets/` (banner, icon, screenshots for the public listing page) is still empty —
+  public page is live but bare/cosmetically minimal. Planned as a follow-up, not a blocker.
+- Search-result and profile indexing can take up to 72 hours per WP.org's own approval email,
+  separate from the page itself (which was already live within ~30 min).
+
+**What Changed:**
+- `push-to-wordpress` skill's SVN workflow had never been run for AFF before — Step 1 assumed
+  an existing working copy and had no first-time-checkout path. Real gap, fixed in the skill
+  itself (see its own changelog) rather than worked around silently.
+
+**Failed Approaches:** none — first real run of this workflow went cleanly once the missing
+first-time-checkout step was identified and handled manually.
+
+---
+
 ## 2026-06-13 — v1.2.0 Release
 
 **Commit:** c6ae2bf
