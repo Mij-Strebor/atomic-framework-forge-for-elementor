@@ -1117,13 +1117,13 @@
             '<label class="atfrfo-sync-radio">' +
             '<input type="radio" name="atfrfo-sync-mode" value="clear" />' +
             "<span><strong>Clear and replace</strong>" +
-            '<span class="atfrfo-sync-hint">Remove all existing variables and import fresh from Elementor. Discards ATFRFO edits.</span></span>' +
+            '<span class="atfrfo-sync-hint">Remove all existing variables and import fresh from Elementor. Discards AFF edits.</span></span>' +
             "</label>" +
             "</div>";
         } else if (verV === "v3" && dirV === "export") {
           modeSection =
             '<div class="atfrfo-sync-section">' +
-            '<p class="atfrfo-sync-hint" style="margin:0">Export ATFRFO data to Elementor V3 is not yet available in this release.</p>' +
+            '<p class="atfrfo-sync-hint" style="margin:0">Export AFF data to Elementor V3 is not yet available in this release.</p>' +
             "</div>";
         }
 

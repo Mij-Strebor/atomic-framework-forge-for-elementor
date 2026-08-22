@@ -1741,7 +1741,7 @@
     _openHistory: function () {
       ATFRFO.Modal.open({
         title: "Change history",
-        body: "<p>Change history arrives in ATFRFO v5.</p>",
+        body: "<p>Change history is planned for a future release.</p>",
       });
     },
 

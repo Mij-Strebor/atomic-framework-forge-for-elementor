@@ -637,7 +637,9 @@ class ATFRFO_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// CLASSES CRUD (v1 placeholder — Classes support arrives in ATFRFO v3)
+	// CLASSES CRUD (this master-branch copy is a storage placeholder only —
+	// full Classes management is built and in beta on the `develop` branch,
+	// v2.0.0-beta.1, not yet merged here)
 	// -----------------------------------------------------------------------
 
 	/**
@@ -648,7 +650,7 @@ class ATFRFO_Data_Store {
 	}
 
 	// -----------------------------------------------------------------------
-	// COMPONENTS CRUD (v1 placeholder — Components support arrives in ATFRFO v4)
+	// COMPONENTS CRUD (storage placeholder only — unscheduled, no version target)
 	// -----------------------------------------------------------------------
 
 	/**

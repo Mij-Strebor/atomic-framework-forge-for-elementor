@@ -345,6 +345,16 @@
 	flex-shrink: 0;
 }
 
+/* Subcategory name list (next to count, top-level categories only) */
+.atfrfo-category-subcat-list {
+	font-size:    var(--fs-xs);
+	color:        var(--atfrfo-clr-muted);
+	white-space:  nowrap;
+	overflow:     hidden;
+	text-overflow: ellipsis;
+	min-width:    0;
+}
+
 /* 5-button action group (right side of top row) */
 .atfrfo-category-actions {
 	display:     flex;

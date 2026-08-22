@@ -8,7 +8,7 @@ Stable tag:        1.4.3
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Take control of your Elementor design variables. Manage Colors, Fonts, and Numbers in a professional workspace built for Elementor V4.
+Take control of your design variables in Elementor's new V4 Atomic framework. Manage Colors, Fonts, and Numbers in a professional workspace.
 
 == Description ==
 
@@ -22,7 +22,7 @@ Take control of your Elementor design variables. Manage Colors, Fonts, and Numbe
 
 = The problem =
 
-As an Elementor site grows, its design variables can become difficult to see, organize, and maintain. Colors accumulate. Spacing values multiply. Typography settings spread across a project. Making a change can mean searching through an increasingly complex design system.
+As a site built on Elementor's new V4 Atomic framework grows, its design variables can become difficult to see, organize, and maintain. Colors accumulate. Spacing values multiply. Typography settings spread across a project. Making a change can mean searching through an increasingly complex design system.
 
 Atomic Framework Forge gives developers a dedicated workspace for managing these variables as an organized system: find them, organize them, edit them, back them up, and synchronize them with Elementor — while keeping the developer in control of when changes are written back.
 
@@ -147,9 +147,9 @@ AFF maintains timestamped project backups, restorable from the project/backup ma
 
 = Can I move an AFF project to another site? =
 
-Yes. AFF projects can be exported as `.atfrfo.json` files and imported into another WordPress site running AFF. Files are stored in your WordPress uploads directory under `/uploads/atfrfo/`.
+Yes. Each AFF project is saved under its own folder in your WordPress uploads directory — for example, a project named `brand-colors` is stored at `/uploads/atfrfo/brand-colors/`, with timestamped save files such as `brand-colors_2026-08-16_09-15-00.atfrfo.json`. Export any saved snapshot and import it into another WordPress site running AFF to bring that project's variables along.
 
-= Can I manage Elementor V3 Global Colors? =
+= Can I import Elementor V3 Global Colors? =
 
 Yes. AFF includes a V3 → V4 color migration feature that imports Elementor V3 Global Colors, including system and custom colors.
 
@@ -163,15 +163,14 @@ Not yet. Version 1.4.3 focuses on Variables. Classes are in beta on a separate d
 
 == Screenshots ==
 
-1. A professional workspace for managing Elementor V4 design variables — the full AFF interface: project navigation, variable categories, edit area, and data management panel.
+1. A professional workspace for managing design variables in Elementor's new V4 Atomic framework — the full AFF interface: project navigation, variable categories, edit area, and data management panel.
 2. Build and organize a structured color system with visual editing and generated color variants — categories, sub-categories, swatches, and status information.
-3. Manage typography and numeric design variables alongside your color system — Fonts and Numbers, with unit-aware editing.
-4. See what has changed before committing variables back to Elementor — the synchronization interface and status legend (Synced, Modified, New, Orphaned, Conflict).
-5. AFF never silently writes changes to Elementor — review the proposed changes in the commit summary dialog and confirm the commit yourself.
-6. Bring Elementor V3 Global Colors into your V4 variable workflow — the V3 import and migration interface.
-7. Maintain multiple projects, restore previous snapshots, and move projects between sites — project and backup management.
-8. Export a portable AFF project and import it into another WordPress site.
-9. Create printable documentation from your variable system — the print selection interface and generated output.
+3. Manage font variables organized by category and sub-category, with live preview.
+4. Manage the numeric foundation of your design system — spacing, sizing, and layout values with unit-aware editing, including CSS function values like `clamp()`.
+5. Fetch variables from Elementor — including V3 Global Colors, for migrating an existing V3 site into V4 — and see exactly what's changed before committing anything back: Synced, Modified, New, Orphaned, and Conflict status at a glance.
+6. AFF never silently writes changes to Elementor — a safety check reviews your commit before it happens, including flagging any Elementor or Elementor Pro version change since your last sync.
+7. Manage multiple independent projects, track save history, and restore previous backups from the Project Manager.
+8. Generate print-ready documentation of your variable system, organized by type with values and swatches — ready to save as a PDF.
 
 == Changelog ==
 

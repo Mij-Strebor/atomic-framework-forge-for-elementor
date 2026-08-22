@@ -167,7 +167,7 @@
 				new:      'New \u2014 Variable not yet in the Elementor kit. Commit to add it.',
 				deleted:  'Deleted \u2014 Marked for deletion. Commit to remove from Elementor.',
 				conflict: 'Conflict \u2014 Value changed both here and in Elementor since last sync.',
-				orphaned: 'Orphaned \u2014 Exists in ATFRFO but not found in Elementor kit. Commit to add it.',
+				orphaned: 'Orphaned \u2014 Exists in AFF but not found in Elementor kit. Commit to add it.',
 			};
 			return map[status] || ('Status: ' + status);
 		},
@@ -1145,18 +1145,76 @@
 		},
 
 		/**
-		 * Initialize mouse-based drag-and-drop for category blocks.
-		 * Requires host module to implement _catViewSelector() and _onDropCat().
+		 * Return true if srcId's name would collide (case-insensitive) with an
+		 * existing subcategory of targetId, other than srcId itself.
+		 *
+		 * @param {string} srcId
+		 * @param {string} targetId
+		 * @param {Array}  allCats
+		 * @returns {boolean}
+		 */
+		_catNameCollides: function (srcId, targetId, allCats) {
+			var src = allCats.filter(function (c) { return c.id === srcId; })[0];
+			if (!src) { return false; }
+			var srcName  = (src.name || '').trim().toLowerCase();
+			var siblings = this._getSubCategoriesOf(targetId, allCats);
+			for (var i = 0; i < siblings.length; i++) {
+				if (siblings[i].id !== srcId
+					&& (siblings[i].name || '').trim().toLowerCase() === srcName) {
+					return true;
+				}
+			}
+			return false;
+		},
+
+		/**
+		 * Return true if the given category id is locked (e.g. "Uncategorized")
+		 * — locked categories may still be reordered among their siblings, but
+		 * must never be nested into another category, nor accept another
+		 * category being nested into them.
+		 *
+		 * @param {string} id
+		 * @param {Array}  allCats
+		 * @returns {boolean}
+		 */
+		_isLocked: function (id, allCats) {
+			var cat = allCats.filter(function (c) { return c.id === id; })[0];
+			return !!(cat && cat.locked);
+		},
+
+		/**
+		 * Initialize mouse-based drag-and-drop for category and subcategory
+		 * blocks — reorder, nest-into-subcategory, and promote-to-top-level.
+		 *
+		 * Requires host module to implement _catViewSelector(), _getCatsForSet(),
+		 * _getSubCategoriesOf(), _onDropCat() (reorder), _onNestCat() (demote a
+		 * category to a subcategory of the drop target), and _onPromoteCat()
+		 * (promote a subcategory to top-level).
+		 *
+		 * Drop zones use a target top-level category's FULL visual footprint
+		 * (header plus any expanded children) — top/bottom ~18% reorders the
+		 * category itself; the large middle nests the dragged item as its
+		 * subcategory, offered only when the dragged item has no subcategories
+		 * of its own (no depth-2 nesting) and no name collision would result.
+		 * Dragging a subcategory over a sibling reorders as before; over a
+		 * different top-level category's footprint, it offers to move there as
+		 * a new subcategory. Releasing over empty space while dragging a
+		 * subcategory promotes it to top-level.
 		 *
 		 * @param {HTMLElement} container
 		 */
 		_initCatDrag: function (container) {
 			var self = this;
-			var d = { active: false, catId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+			var HANDLE_SEL = '.atfrfo-cat-drag-handle, .atfrfo-subcat-drag-handle';
+			var d = {
+				active: false, catId: null, srcDepth: 0, srcParentId: null, srcHasChildren: false, allCats: [],
+				ghost: null, indicator: null, promoteBadge: null, blockedBadge: null, startY: 0, scrollTimer: null,
+				_dropTargetId: null, _dropZone: null, _overContainer: false,
+			};
 
 			container.addEventListener('mousedown', function (e) {
 				if (!container.querySelector(self._catViewSelector())) { return; }
-				var handle = e.target.closest('.atfrfo-cat-drag-handle');
+				var handle = e.target.closest(HANDLE_SEL);
 				if (!handle) { return; }
 				e.preventDefault();
 
@@ -1165,6 +1223,13 @@
 
 				d.catId = block.getAttribute('data-category-id');
 				if (!d.catId) { return; }
+
+				d.srcDepth = block.getAttribute('data-depth') ? parseInt(block.getAttribute('data-depth'), 10) : 0;
+				var srcParentBlock = d.srcDepth > 0 && block.parentElement
+					? block.parentElement.closest('.atfrfo-category-block') : null;
+				d.srcParentId = srcParentBlock ? srcParentBlock.getAttribute('data-category-id') : null;
+				d.allCats  = self._getCatsForSet();
+				d.srcHasChildren = self._getSubCategoriesOf(d.catId, d.allCats).length > 0;
 
 				d.active = true;
 				d.startY = e.clientY;
@@ -1181,15 +1246,38 @@
 
 				var indicator = document.createElement('div');
 				indicator.className = 'atfrfo-drop-indicator';
-				indicator.style.display = 'none';
 				indicator.style.pointerEvents = 'none';
 				var _appEl  = document.getElementById('atfrfo-app');
 				var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
 				if (!_accent) { _accent = '#f4c542'; }
-				indicator.style.background = 'linear-gradient(to right, transparent, '
-					+ _accent + ' 15%, ' + _accent + ' 85%, transparent)';
+				// Glowing pill: dark gold center, blurring outward through the
+				// theme accent to transparent at the ends — an ellipse gives the
+				// fade in both directions (length and thickness) in one gradient.
+				indicator.style.cssText = 'position:fixed;pointer-events:none;display:none;'
+					+ 'height:8px;border-radius:999px;filter:blur(1.5px);'
+					+ 'background:radial-gradient(ellipse at center, #8a6d1f 0%, ' + _accent + ' 45%, '
+					+ _accent + ' 65%, transparent 100%);';
 				document.body.appendChild(indicator);
 				d.indicator = indicator;
+
+				var promoteBadge = document.createElement('div');
+				promoteBadge.className = 'atfrfo-promote-badge';
+				promoteBadge.style.cssText = 'position:fixed;pointer-events:none;display:none;'
+					+ 'z-index:9999;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;'
+					+ 'background:' + _accent + ';color:#1a1a1a;white-space:nowrap;'
+					+ 'transform:translate(14px, -50%);';
+				promoteBadge.textContent = 'Release to make top-level category';
+				document.body.appendChild(promoteBadge);
+				d.promoteBadge = promoteBadge;
+
+				var blockedBadge = document.createElement('div');
+				blockedBadge.className = 'atfrfo-blocked-badge';
+				blockedBadge.style.cssText = 'position:fixed;pointer-events:none;display:none;'
+					+ 'z-index:9999;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;'
+					+ 'background:#7a2e26;color:#f5e2df;white-space:nowrap;'
+					+ 'transform:translate(14px, -50%);';
+				document.body.appendChild(blockedBadge);
+				d.blockedBadge = blockedBadge;
 
 				block.style.opacity = '0.3';
 			});
@@ -1199,24 +1287,216 @@
 				var dy = e.clientY - d.startY;
 				d.ghost.style.transform = 'translateY(' + dy + 'px)';
 
+				// Auto-scroll the edit-space panel when near its top/bottom edge —
+				// without this, a target category further up/down the list than
+				// what's currently visible can never be reached or hovered at all.
+				var _editSpace = document.getElementById('atfrfo-edit-space');
+				if (_editSpace) {
+					var _esRect = _editSpace.getBoundingClientRect();
+					var _sz     = 60;
+					if (e.clientY < _esRect.top + _sz) {
+						clearInterval(d.scrollTimer);
+						d.scrollTimer = setInterval(function () { _editSpace.scrollTop -= 8; }, 20);
+					} else if (e.clientY > _esRect.bottom - _sz) {
+						clearInterval(d.scrollTimer);
+						d.scrollTimer = setInterval(function () { _editSpace.scrollTop += 8; }, 20);
+					} else {
+						clearInterval(d.scrollTimer);
+						d.scrollTimer = null;
+					}
+				}
+
 				d.ghost.style.display = 'none';
 				var elBelow = document.elementFromPoint(e.clientX, e.clientY);
 				d.ghost.style.display = '';
 
-				var targetBlock = elBelow ? elBelow.closest('.atfrfo-category-block') : null;
-				if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
-					var tbRect = targetBlock.getBoundingClientRect();
-					var above  = e.clientY < tbRect.top + tbRect.height / 2;
+				// Geometric containment, not DOM ancestry — elementFromPoint can
+				// resolve to something outside the container's own DOM subtree
+				// even while the cursor is visually still inside the panel (e.g.
+				// blank space near an edge), so contains() is the wrong check.
+				var cRect = container.getBoundingClientRect();
+				d._overContainer = e.clientX >= cRect.left && e.clientX <= cRect.right
+					&& e.clientY >= cRect.top && e.clientY <= cRect.bottom;
+
+				var INDICATOR_GAP = 6; // px clearance so the bar never touches a category's edge
+
+				// Same glowing bar used for reorder, but positioned at the actual
+				// insertion point inside the target category — right after its
+				// last existing subcategory, or just below its header if it has
+				// none yet — instead of washing the whole block in a flat color.
+				var showNest = function (targetId, targetBlock) {
+					d._dropZone     = 'nest';
+					d._dropTargetId = targetId;
+					d.promoteBadge.style.display = 'none';
+					d.blockedBadge.style.display = 'none';
+					document.body.style.cursor = '';
+
+					var inner    = targetBlock.querySelector('.atfrfo-category-inner');
+					var children = inner ? inner.querySelectorAll(':scope > .atfrfo-category-block') : [];
+					var anchorRect;
+					if (children.length > 0) {
+						anchorRect = children[children.length - 1].getBoundingClientRect();
+					} else {
+						var header = targetBlock.querySelector('.atfrfo-category-header');
+						anchorRect = header ? header.getBoundingClientRect() : targetBlock.getBoundingClientRect();
+					}
+					var blockRect = targetBlock.getBoundingClientRect();
+
 					d.indicator.style.display = '';
-					d.indicator.style.left    = tbRect.left + 'px';
-					d.indicator.style.width   = tbRect.width + 'px';
-					d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
-					d.indicator.style.height  = '4px';
-					d._dropTargetId = targetBlock.getAttribute('data-category-id');
-					d._dropAbove    = above;
-				} else {
+					d.indicator.style.left    = blockRect.left + 'px';
+					d.indicator.style.width   = blockRect.width + 'px';
+					d.indicator.style.top     = (anchorRect.bottom + INDICATOR_GAP) + 'px';
+				};
+				var showReorder = function (targetId, rect, above) {
+					d._dropZone     = above ? 'above' : 'below';
+					d._dropTargetId = targetId;
+					d.promoteBadge.style.display = 'none';
+					d.blockedBadge.style.display = 'none';
+					document.body.style.cursor = '';
+					d.indicator.style.display = '';
+					d.indicator.style.left    = rect.left + 'px';
+					d.indicator.style.width   = rect.width + 'px';
+					d.indicator.style.top     = above
+						? (rect.top - INDICATOR_GAP - 8) + 'px'
+						: (rect.bottom + INDICATOR_GAP) + 'px';
+				};
+				var clearZones = function () {
 					d.indicator.style.display = 'none';
 					d._dropTargetId = null;
+					d._dropZone     = null;
+				};
+
+				// Shown when a nest WOULD be offered here except one of the block
+				// conditions (deep-nesting guard, name collision, locked category)
+				// refuses it — explains why, instead of leaving the user to guess
+				// or go expand the dragged category to find out for themselves.
+				var showBlocked = function (targetId, srcHasChildren, collides, lockBlocked) {
+					d._dropZone     = null;
+					d._dropTargetId = null;
+					d.indicator.style.display = 'none';
+					d.promoteBadge.style.display = 'none';
+
+					var srcCat    = d.allCats.filter(function (c) { return c.id === d.catId; })[0];
+					var targetCat = d.allCats.filter(function (c) { return c.id === targetId; })[0];
+					var srcName    = srcCat ? srcCat.name : 'This category';
+					var targetName = targetCat ? targetCat.name : 'this category';
+
+					var reason;
+					if (srcHasChildren) {
+						reason = 'Can’t nest — ' + srcName + ' has its own subcategories';
+					} else if (collides) {
+						reason = 'Can’t nest — ' + targetName + ' already has a subcategory named “' + srcName + '”';
+					} else if (lockBlocked) {
+						reason = 'Can’t nest — a protected category can’t be moved or nested into';
+					} else {
+						reason = 'Can’t nest here';
+					}
+
+					d.blockedBadge.textContent = reason;
+					d.blockedBadge.style.display = '';
+					d.blockedBadge.style.left = e.clientX + 'px';
+					d.blockedBadge.style.top  = e.clientY + 'px';
+					document.body.style.cursor = 'not-allowed';
+				};
+
+				var innerBlock = elBelow ? elBelow.closest('.atfrfo-category-block') : null;
+				if (innerBlock) {
+					var innerId    = innerBlock.getAttribute('data-category-id');
+					var innerDepth = innerBlock.getAttribute('data-depth') ? parseInt(innerBlock.getAttribute('data-depth'), 10) : 0;
+					// The top-level ancestor for this hover point, even when the
+					// cursor is over a rendered child (subcategory) block — a
+					// category's own bounding box includes everything nested
+					// inside it, so this is what "hovering over Branding" means
+					// regardless of whether a subcategory happens to be under
+					// the cursor at that pixel.
+					var topLevelBlock = innerDepth === 0 ? innerBlock
+						: (innerBlock.parentElement ? innerBlock.parentElement.closest('.atfrfo-category-block') : null);
+					var topLevelId = topLevelBlock ? topLevelBlock.getAttribute('data-category-id') : null;
+
+					if (window.ATFRFO_DEBUG_DRAG) {
+						console.log('[ATFRFO nest-debug] innerId=' + innerId + ' innerDepth=' + innerDepth
+							+ ' topLevelId=' + topLevelId + ' srcId=' + d.catId + ' srcDepth=' + d.srcDepth
+							+ ' srcHasChildren=' + d.srcHasChildren);
+					}
+
+					if (d.srcDepth === 0) {
+						// Dragging a top-level category: target is always the
+						// top-level ancestor under the cursor, using its FULL
+						// footprint (header + any expanded children) — thin edge
+						// bands reorder, the large middle nests.
+						if (topLevelId && topLevelId !== d.catId) {
+							var tbRect = topLevelBlock.getBoundingClientRect();
+							var relY   = e.clientY - tbRect.top;
+							var collides   = self._catNameCollides(d.catId, topLevelId, d.allCats);
+							var lockBlocked = self._isLocked(d.catId, d.allCats) || self._isLocked(topLevelId, d.allCats);
+							if (window.ATFRFO_DEBUG_DRAG) {
+								console.log('[ATFRFO nest-debug] relY=' + relY + ' blockHeight=' + tbRect.height
+									+ ' pctY=' + (relY / tbRect.height).toFixed(2) + ' collides=' + collides + ' lockBlocked=' + lockBlocked);
+							}
+							if (relY < tbRect.height * 0.18) {
+								if (window.ATFRFO_DEBUG_DRAG) { console.log('[ATFRFO nest-debug] -> REORDER above ' + topLevelId); }
+								showReorder(topLevelId, tbRect, true);
+								return;
+							}
+							if (relY > tbRect.height * 0.82) {
+								if (window.ATFRFO_DEBUG_DRAG) { console.log('[ATFRFO nest-debug] -> REORDER below ' + topLevelId); }
+								showReorder(topLevelId, tbRect, false);
+								return;
+							}
+							if (!d.srcHasChildren && !collides && !lockBlocked) {
+								if (window.ATFRFO_DEBUG_DRAG) { console.log('[ATFRFO nest-debug] -> NEST into ' + topLevelId); }
+								showNest(topLevelId, topLevelBlock);
+								return;
+							}
+							if (window.ATFRFO_DEBUG_DRAG) {
+								console.log('[ATFRFO nest-debug] -> BLOCKED (srcHasChildren=' + d.srcHasChildren + ' collides=' + collides + ' lockBlocked=' + lockBlocked + ')');
+							}
+							showBlocked(topLevelId, d.srcHasChildren, collides, lockBlocked);
+							return;
+						}
+						if (window.ATFRFO_DEBUG_DRAG && topLevelId === d.catId) {
+							console.log('[ATFRFO nest-debug] hovering own block, ignored');
+						}
+					} else {
+						// Dragging a subcategory: reorder against a direct sibling
+						// (same depth, same current parent) exactly as before;
+						// otherwise, hovering a different top-level category's full
+						// footprint offers to move it there as a new subcategory.
+						if (innerDepth === d.srcDepth && innerId !== d.catId) {
+							var innerParentBlock = innerBlock.parentElement ? innerBlock.parentElement.closest('.atfrfo-category-block') : null;
+							var innerParentId    = innerParentBlock ? innerParentBlock.getAttribute('data-category-id') : null;
+							if (innerParentId === d.srcParentId) {
+								var sibRect  = innerBlock.getBoundingClientRect();
+								var sibAbove = e.clientY < sibRect.top + sibRect.height / 2;
+								showReorder(innerId, sibRect, sibAbove);
+								return;
+							}
+						}
+						if (topLevelId && topLevelId !== d.srcParentId) {
+							var subCollides    = self._catNameCollides(d.catId, topLevelId, d.allCats);
+							var subLockBlocked = self._isLocked(d.catId, d.allCats) || self._isLocked(topLevelId, d.allCats);
+							if (!subCollides && !subLockBlocked) {
+								showNest(topLevelId, topLevelBlock);
+								return;
+							}
+							showBlocked(topLevelId, false, subCollides, subLockBlocked);
+							return;
+						}
+					}
+				}
+
+				d.blockedBadge.style.display = 'none';
+				document.body.style.cursor = '';
+				clearZones();
+
+				// No valid target: if dragging a subcategory over empty space
+				// within the panel, show the promote affordance.
+				if (d._overContainer && d.srcDepth > 0) {
+					d.promoteBadge.style.display = '';
+					d.promoteBadge.style.left = e.clientX + 'px';
+					d.promoteBadge.style.top  = e.clientY + 'px';
+				} else {
+					d.promoteBadge.style.display = 'none';
 				}
 			});
 
@@ -1224,20 +1504,57 @@
 				if (!d.active) { return; }
 				d.active = false;
 
-				if (d.ghost     && d.ghost.parentNode)     { d.ghost.parentNode.removeChild(d.ghost); }
-				if (d.indicator && d.indicator.parentNode) { d.indicator.parentNode.removeChild(d.indicator); }
-				d.ghost     = null;
-				d.indicator = null;
+				clearInterval(d.scrollTimer);
+				d.scrollTimer = null;
+				document.body.style.cursor = '';
+
+				if (d.ghost         && d.ghost.parentNode)         { d.ghost.parentNode.removeChild(d.ghost); }
+				if (d.indicator     && d.indicator.parentNode)     { d.indicator.parentNode.removeChild(d.indicator); }
+				if (d.promoteBadge  && d.promoteBadge.parentNode)  { d.promoteBadge.parentNode.removeChild(d.promoteBadge); }
+				if (d.blockedBadge  && d.blockedBadge.parentNode)  { d.blockedBadge.parentNode.removeChild(d.blockedBadge); }
+				d.ghost = null; d.indicator = null; d.promoteBadge = null; d.blockedBadge = null;
 
 				var draggingBlock = container.querySelector('.atfrfo-category-block[data-category-id="' + d.catId + '"]');
 				if (draggingBlock) { draggingBlock.style.opacity = ''; }
 
-				if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
-					self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
+				if (window.ATFRFO_DEBUG_DRAG) {
+					console.log('[ATFRFO nest-debug] MOUSEUP zone=' + d._dropZone + ' target=' + d._dropTargetId
+						+ ' overContainer=' + d._overContainer + ' srcDepth=' + d.srcDepth);
 				}
-				d._dropTargetId = null;
-				d._dropAbove    = null;
-				d.catId         = null;
+
+				if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
+					if (d._dropZone === 'nest') {
+						self._onNestCat(d.catId, d._dropTargetId);
+					} else {
+						// Plain reorder: move the actual dragged DOM node to its new
+						// position directly, rather than rebuilding the whole view —
+						// this is what keeps scroll position and every other
+						// category's collapsed/expanded state completely untouched.
+						var targetBlock = draggingBlock
+							? container.querySelector('.atfrfo-category-block[data-category-id="' + d._dropTargetId + '"]')
+							: null;
+						if (draggingBlock && targetBlock && targetBlock.parentNode) {
+							if (d._dropZone === 'above') {
+								targetBlock.parentNode.insertBefore(draggingBlock, targetBlock);
+							} else {
+								targetBlock.parentNode.insertBefore(draggingBlock, targetBlock.nextSibling);
+							}
+						}
+						self._onDropCat(d.catId, d._dropTargetId, d._dropZone === 'above');
+					}
+				} else if (d._overContainer && d.srcDepth > 0) {
+					// Released over empty space with no target block: promote a
+					// subcategory back to a top-level category.
+					self._onPromoteCat(d.catId);
+				}
+
+				d._dropTargetId   = null;
+				d._dropZone       = null;
+				d.catId           = null;
+				d.srcDepth        = 0;
+				d.srcParentId     = null;
+				d.srcHasChildren  = false;
+				d.allCats         = [];
 			});
 		},
 

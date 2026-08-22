@@ -521,6 +521,14 @@
         '<span class="atfrfo-category-count">' +
         subtreeCount +
         "</span>" +
+        // Subcategory names, for at-a-glance hierarchy without expanding.
+        (depth === 0 && self._getSubCategoriesOf(cat.id, allCats).length > 0
+          ? '<span class="atfrfo-category-subcat-list">' +
+            self._getSubCategoriesOf(cat.id, allCats)
+              .map(function (s) { return ATFRFO.Utils.escHtml(s.name); })
+              .join(", ") +
+            "</span>"
+          : "") +
         "</div>" + // .atfrfo-cat-header-left
         '<div class="atfrfo-category-actions" role="toolbar" aria-label="Category actions">' +
         (!cat.locked && depth === 0
@@ -1079,7 +1087,6 @@
       container._affEventsBound = true;
       var self = this;
       self._initCatDrag(container);
-      self._initSubcatDrag(container);
       self._initDrag(container);
       self._bindCategoryAndRowActions(container);
       self._bindInlineEditing(container);
@@ -1123,6 +1130,42 @@
         addCatBtn.addEventListener("click", function () {
           self._addCategory();
         });
+      }
+    },
+
+    /**
+     * Toggle a category/subcategory block's collapsed state. Shared by the
+     * collapse-chevron button and by clicking anywhere else in the header bar.
+     *
+     * @param {HTMLElement} block
+     * @param {HTMLElement} container
+     */
+    _toggleCategoryCollapse: function (block, container) {
+      var self = this;
+      var catId = block.getAttribute("data-category-id");
+      var isCollapsed = block.getAttribute("data-collapsed") === "true";
+      var newCollapsed = !isCollapsed;
+      block.setAttribute("data-collapsed", String(newCollapsed));
+      if (catId) {
+        self._collapsedIds[catId] = newCollapsed;
+      }
+      if (newCollapsed) {
+        // Cascade collapse to sub-categories.
+        var _subBlocks = block.querySelectorAll('.atfrfo-category-block[data-depth="1"]');
+        for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
+          var _sb = _subBlocks[_sbi];
+          var _sbId = _sb.getAttribute("data-category-id");
+          _sb.setAttribute("data-collapsed", "true");
+          if (_sbId) { self._collapsedIds[_sbId] = true; }
+        }
+        // Close any open expand panel when the user collapses a category.
+        self._closeExpandPanel(container, true);
+      } else {
+        // Scroll the newly expanded block into view.
+        var _expBlock = block;
+        setTimeout(function () {
+          _expBlock.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 50);
       }
     },
 
@@ -1197,6 +1240,16 @@
 
         var btn = e.target.closest("[data-action]");
         if (!btn) {
+          // Clicking anywhere else in a category/subcategory header bar (not
+          // the name, not a drag handle, not an action button) toggles
+          // collapse/expand — same as clicking the chevron button itself.
+          var headerHit = e.target.closest(".atfrfo-category-header");
+          if (headerHit
+            && !e.target.closest(".atfrfo-category-name-input")
+            && !e.target.closest(".atfrfo-cat-drag-handle, .atfrfo-subcat-drag-handle")) {
+            var hBlock = headerHit.closest(".atfrfo-category-block");
+            if (hBlock) { self._toggleCategoryCollapse(hBlock, container); }
+          }
           return;
         }
 
@@ -1241,30 +1294,7 @@
 
           case "collapse":
             if (block) {
-              var isCollapsed = block.getAttribute("data-collapsed") === "true";
-              var newCollapsed = !isCollapsed;
-              block.setAttribute("data-collapsed", String(newCollapsed));
-              if (catId) {
-                self._collapsedIds[catId] = newCollapsed;
-              }
-              if (newCollapsed) {
-                // Cascade collapse to sub-categories.
-                var _subBlocks = block.querySelectorAll('.atfrfo-category-block[data-depth="1"]');
-                for (var _sbi = 0; _sbi < _subBlocks.length; _sbi++) {
-                  var _sb = _subBlocks[_sbi];
-                  var _sbId = _sb.getAttribute("data-category-id");
-                  _sb.setAttribute("data-collapsed", "true");
-                  if (_sbId) { self._collapsedIds[_sbId] = true; }
-                }
-                // Close any open expand panel when the user collapses a category.
-                self._closeExpandPanel(container, true);
-              } else {
-                // Scroll the newly expanded block into view.
-                var _expBlock = block;
-                setTimeout(function () {
-                  _expBlock.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                }, 50);
-              }
+              self._toggleCategoryCollapse(block, container);
             }
             break;
 
@@ -3081,8 +3111,14 @@
         return c.id;
       });
       ATFRFO.state.config.categories = cats;
+      // The dragged category's actual DOM node has already been moved to its
+      // new position directly (see _initCatDrag mouseup) — no re-render here,
+      // so scroll position and every category's collapsed/expanded state stay
+      // exactly as they were. Only re-render if the save genuinely fails, to
+      // revert the visual move back to reality.
 
       ATFRFO.App.ajax("atfrfo_reorder_categories", {
+        filename: ATFRFO.state.currentFile,
         subgroup: "Colors",
         ordered_ids: JSON.stringify(ordered_ids),
       })
@@ -3096,10 +3132,6 @@
           if (ATFRFO.PanelLeft) {
             ATFRFO.PanelLeft.refresh();
           }
-          ATFRFO.Colors._renderAll(
-            ATFRFO.state.currentSelection,
-            document.getElementById("atfrfo-edit-content"),
-          );
         })
         .catch(function () {
           ATFRFO.Colors._renderAll(
@@ -3110,105 +3142,137 @@
     },
 
     /**
-     * Drag-and-drop reordering for subcategory blocks within their parent category.
-     * Keeps drops constrained to siblings (same parent_id); uses the same
-     * _onDropCat / atfrfo_reorder_categories path as top-level category drag.
+     * All Colors categories (top-level and subcategory), unsorted.
+     * Required by ATFRFO.CatMixin._initCatDrag.
      *
-     * @param {HTMLElement} container The #atfrfo-edit-content element.
+     * @returns {Array}
      */
-    _initSubcatDrag: function (container) {
+    _getCatsForSet: function () {
+      return (ATFRFO.state.config && ATFRFO.state.config.categories) || [];
+    },
+
+    /**
+     * Demote a top-level category into a subcategory of targetId, or move a
+     * subcategory to a different parent. Appends it after the target's
+     * existing children (or right after the target if it has none yet).
+     * Required by ATFRFO.CatMixin._initCatDrag.
+     *
+     * @param {string} srcId
+     * @param {string} targetId
+     */
+    _onNestCat: function (srcId, targetId) {
       var self = this;
-      var d = { active: false, catId: null, parentCatId: null, ghost: null, indicator: null, startY: 0, _dropTargetId: null, _dropAbove: null };
+      var cats = (ATFRFO.state.config.categories || []).slice();
 
-      container.addEventListener('mousedown', function (e) {
-        var handle = e.target.closest('.atfrfo-subcat-drag-handle');
-        if (!handle) { return; }
-        e.preventDefault();
+      var srcIdx = -1;
+      for (var i = 0; i < cats.length; i++) {
+        if (cats[i].id === srcId) { srcIdx = i; break; }
+      }
+      if (srcIdx === -1) { return; }
 
-        var block = handle.closest('.atfrfo-category-block[data-depth="1"]');
-        if (!block) { return; }
+      var srcCat = cats.splice(srcIdx, 1)[0];
+      var prevParentId = srcCat.parent_id || null;
+      srcCat.parent_id = targetId;
 
-        var parentBlock = block.parentElement ? block.parentElement.closest('.atfrfo-category-block') : null;
-        d.catId      = block.getAttribute('data-category-id');
-        d.parentCatId = parentBlock ? parentBlock.getAttribute('data-category-id') : null;
-        if (!d.catId) { return; }
-
-        d.active = true;
-        d.startY = e.clientY;
-
-        var blockRect = block.getBoundingClientRect();
-        var ghost = block.cloneNode(true);
-        ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;'
-          + 'width:' + block.offsetWidth + 'px;'
-          + 'top:' + blockRect.top + 'px;left:' + blockRect.left + 'px;'
-          + 'opacity:0.88;box-shadow:0 8px 24px rgba(0,0,0,0.28);border-radius:8px;';
-        ghost.className += ' atfrfo-drag-ghost';
-        document.body.appendChild(ghost);
-        d.ghost = ghost;
-
-        var indicator = document.createElement('div');
-        indicator.className = 'atfrfo-drop-indicator';
-        indicator.style.display = 'none';
-        indicator.style.pointerEvents = 'none';
-        var _appEl  = document.getElementById('atfrfo-app');
-        var _accent = _appEl ? getComputedStyle(_appEl).getPropertyValue('--atfrfo-clr-accent').trim() : '';
-        if (!_accent) { _accent = '#f4c542'; }
-        indicator.style.background = 'linear-gradient(to right, transparent, ' + _accent + ' 15%, ' + _accent + ' 85%, transparent)';
-        document.body.appendChild(indicator);
-        d.indicator = indicator;
-
-        block.style.opacity = '0.3';
-      });
-
-      document.addEventListener('mousemove', function (e) {
-        if (!d.active || !d.ghost) { return; }
-        d.ghost.style.transform = 'translateY(' + (e.clientY - d.startY) + 'px)';
-
-        d.ghost.style.display = 'none';
-        var elBelow = document.elementFromPoint(e.clientX, e.clientY);
-        d.ghost.style.display = '';
-
-        // Only allow drops onto sibling subcategory blocks (same parent).
-        var targetBlock = elBelow ? elBelow.closest('.atfrfo-category-block[data-depth="1"]') : null;
-        if (targetBlock && targetBlock.getAttribute('data-category-id') !== d.catId) {
-          var tParentBlock = targetBlock.parentElement ? targetBlock.parentElement.closest('.atfrfo-category-block') : null;
-          var tParentId    = tParentBlock ? tParentBlock.getAttribute('data-category-id') : null;
-          if (tParentId === d.parentCatId) {
-            var tbRect = targetBlock.getBoundingClientRect();
-            var above  = e.clientY < tbRect.top + tbRect.height / 2;
-            d.indicator.style.display = '';
-            d.indicator.style.left    = tbRect.left + 'px';
-            d.indicator.style.width   = tbRect.width + 'px';
-            d.indicator.style.top     = (above ? tbRect.top : tbRect.bottom) - 2 + 'px';
-            d.indicator.style.height  = '4px';
-            d._dropTargetId = targetBlock.getAttribute('data-category-id');
-            d._dropAbove    = above;
-            return;
-          }
+      var lastChildIdx = -1;
+      for (var j = 0; j < cats.length; j++) {
+        if (cats[j].parent_id === targetId) { lastChildIdx = j; }
+      }
+      if (lastChildIdx === -1) {
+        for (var k = 0; k < cats.length; k++) {
+          if (cats[k].id === targetId) { lastChildIdx = k; break; }
         }
-        d.indicator.style.display = 'none';
-        d._dropTargetId = null;
-      });
+      }
+      cats.splice(lastChildIdx + 1, 0, srcCat);
+      cats.forEach(function (c, idx) { c.order = idx; });
 
-      document.addEventListener('mouseup', function () {
-        if (!d.active) { return; }
-        d.active = false;
+      var ordered_ids = cats.map(function (c) { return c.id; });
+      ATFRFO.state.config.categories = cats;
+      // Render immediately — don't make the user wait on two sequential
+      // AJAX calls (save then reorder) to see the move take effect.
+      ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
 
-        if (d.ghost     && d.ghost.parentNode)     { d.ghost.parentNode.removeChild(d.ghost); }
-        if (d.indicator && d.indicator.parentNode) { d.indicator.parentNode.removeChild(d.indicator); }
-        d.ghost     = null;
-        d.indicator = null;
-
-        var draggingBlock = container.querySelector('.atfrfo-category-block[data-category-id="' + d.catId + '"]');
-        if (draggingBlock) { draggingBlock.style.opacity = ''; }
-
-        if (d._dropTargetId && d.catId && d._dropTargetId !== d.catId) {
-          self._onDropCat(d.catId, d._dropTargetId, d._dropAbove);
+      ATFRFO.App.ajax('atfrfo_save_category', {
+        filename: ATFRFO.state.currentFile,
+        subgroup: 'Colors',
+        category: JSON.stringify({ id: srcId, name: srcCat.name, parent_id: targetId }),
+      }).then(function (res) {
+        if (!res.success) {
+          var errMsg = (res.data && res.data.message) ? res.data.message : 'Could not move category.';
+          ATFRFO.Modal.open({ title: 'Move failed', body: '<p>' + ATFRFO.Utils.escHtml(errMsg) + '</p>' });
+          srcCat.parent_id = prevParentId;
+          ATFRFO.state.config.categories = self._getCatsForSet();
+          ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
+          return;
         }
-        d._dropTargetId = null;
-        d._dropAbove    = null;
-        d.catId         = null;
-        d.parentCatId   = null;
+        return ATFRFO.App.ajax('atfrfo_reorder_categories', { filename: ATFRFO.state.currentFile, subgroup: 'Colors', ordered_ids: JSON.stringify(ordered_ids) });
+      }).then(function (res) {
+        if (res && res.success && res.data && res.data.categories) {
+          ATFRFO.state.config.categories = res.data.categories;
+        }
+        if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
+        if (ATFRFO.PanelLeft) { ATFRFO.PanelLeft.refresh(); }
+        ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
+      }).catch(function () {
+        ATFRFO.Modal.open({ title: 'Connection error', body: '<p>Connection error while moving the category.</p>' });
+        ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
+      });
+    },
+
+    /**
+     * Promote a subcategory to a top-level category, appended at the end of
+     * the top-level list. Required by ATFRFO.CatMixin._initCatDrag.
+     *
+     * @param {string} srcId
+     */
+    _onPromoteCat: function (srcId) {
+      var self = this;
+      var cats = (ATFRFO.state.config.categories || []).slice();
+
+      var srcIdx = -1;
+      for (var i = 0; i < cats.length; i++) {
+        if (cats[i].id === srcId) { srcIdx = i; break; }
+      }
+      if (srcIdx === -1) { return; }
+
+      var srcCat = cats.splice(srcIdx, 1)[0];
+      var prevParentId = srcCat.parent_id || null;
+      if (!prevParentId) { return; } // already top-level
+
+      srcCat.parent_id = null;
+      cats.push(srcCat);
+      cats.forEach(function (c, idx) { c.order = idx; });
+
+      var ordered_ids = cats.map(function (c) { return c.id; });
+      ATFRFO.state.config.categories = cats;
+      // Render immediately — don't make the user wait on two sequential
+      // AJAX calls (save then reorder) to see the move take effect.
+      ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
+
+      ATFRFO.App.ajax('atfrfo_save_category', {
+        filename: ATFRFO.state.currentFile,
+        subgroup: 'Colors',
+        category: JSON.stringify({ id: srcId, name: srcCat.name, parent_id: '' }),
+      }).then(function (res) {
+        if (!res.success) {
+          var errMsg = (res.data && res.data.message) ? res.data.message : 'Could not promote category.';
+          ATFRFO.Modal.open({ title: 'Promote failed', body: '<p>' + ATFRFO.Utils.escHtml(errMsg) + '</p>' });
+          srcCat.parent_id = prevParentId;
+          ATFRFO.state.config.categories = self._getCatsForSet();
+          ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
+          return;
+        }
+        return ATFRFO.App.ajax('atfrfo_reorder_categories', { filename: ATFRFO.state.currentFile, subgroup: 'Colors', ordered_ids: JSON.stringify(ordered_ids) });
+      }).then(function (res) {
+        if (res && res.success && res.data && res.data.categories) {
+          ATFRFO.state.config.categories = res.data.categories;
+        }
+        if (ATFRFO.App) { ATFRFO.App.setDirty(true); }
+        if (ATFRFO.PanelLeft) { ATFRFO.PanelLeft.refresh(); }
+        ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
+      }).catch(function () {
+        ATFRFO.Modal.open({ title: 'Connection error', body: '<p>Connection error while promoting the category.</p>' });
+        ATFRFO.Colors._renderAll(ATFRFO.state.currentSelection, document.getElementById('atfrfo-edit-content'));
       });
     },
 

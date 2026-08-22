@@ -654,6 +654,10 @@ button.atfrfo-app .atfrfo-dropdown__item,
 	width: min(780px, 90vw);
 }
 
+.atfrfo-app .atfrfo-modal.atfrfo-modal--xwide {
+	width: min(1100px, 94vw);
+}
+
 .atfrfo-app .atfrfo-modal__header {
 	display:         flex;
 	align-items:     center;

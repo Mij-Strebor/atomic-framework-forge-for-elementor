@@ -528,6 +528,7 @@ Initial Alpha release.
 | **0.5.x-beta** | Super Categories — two-level category nesting within each variable set (Colors, Fonts, Numbers). Top-level category holds sub-categories only; sub-categories hold variables only. Flat Elementor commit unchanged. Motivated by large Number sets (382-variable website design systems). |
 | **1.0.0** | Classes management; Components registry |
 | **2.0.0** | Components registry; Elementor Kit Manager API write-back; Bulk variable rename |
+| **Future** | Presentation/Reference Mode — a read-only companion view of Variables and Classes, opened in its own browser tab (second-monitor friendly) with its own left-column navigation, reusing the app's category-block display styling but display-only, no editing controls. Lets a developer keep it open while working directly in Elementor's Atomic editor, to see variable and class names/values at a glance without switching tabs or digging through Elementor's own UI to find them. Idea logged 2026-08-19. |
 | **Future** | Standalone Windows / Mac desktop application |
 
 ---

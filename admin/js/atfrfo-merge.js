@@ -104,19 +104,19 @@
 				rowsHtml +=
 					'<tr data-var-name="' + ATFRFO.Utils.escHtml(c.name) + '"'
 					+ ' style="border-bottom:1px solid var(--atfrfo-clr-border)">'
-					+ '<td style="padding:6px 8px 6px 0;font-size:12px;color:var(--atfrfo-clr-primary)'
-					+   ';white-space:nowrap;min-width:160px">'
+					+ '<td style="padding:6px 8px;font-size:12px;color:var(--atfrfo-clr-primary)'
+					+   ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
 					+   '<code style="font-size:11px">' + ATFRFO.Utils.escHtml(c.name) + '</code>'
 					+ '</td>'
 					+ '<td style="padding:6px 8px;font-size:12px;color:var(--atfrfo-clr-secondary)'
-					+   ';white-space:nowrap">'
-					+   self._swatch(c.atfrfoValue) + ATFRFO.Utils.escHtml(c.atfrfoValue)
+					+   ';white-space:normal;word-break:break-word">'
+					+   self._swatch(c.affValue) + ATFRFO.Utils.escHtml(c.affValue)
 					+ '</td>'
 					+ '<td style="padding:6px 8px;font-size:12px;color:var(--atfrfo-clr-secondary)'
-					+   ';white-space:nowrap">'
+					+   ';white-space:normal;word-break:break-word">'
 					+   self._swatch(c.elValue) + ATFRFO.Utils.escHtml(c.elValue)
 					+ '</td>'
-					+ '<td style="padding:6px 0 6px 8px;white-space:nowrap">'
+					+ '<td style="padding:6px 8px;white-space:nowrap">'
 					+   '<label style="margin-right:10px;font-size:12px;cursor:pointer">'
 					+     '<input type="radio" name="' + radioName + '" value="aff"'
 					+     ' checked style="margin-right:3px;cursor:pointer">'
@@ -138,18 +138,29 @@
 				+ (plural ? 's have' : ' has')
 				+ ' different values in AFF and Elementor.'
 				+ ' Choose which to keep for each row.</p>'
-				+ '<div style="overflow-x:auto;margin-bottom:10px">'
-				+ '<table style="width:100%;border-collapse:collapse">'
+				+ '<div style="overflow:auto;max-height:min(50vh,420px);margin-bottom:10px'
+				+   ';border:1px solid var(--atfrfo-clr-border);border-radius:4px">'
+				+ '<table style="width:100%;min-width:640px;border-collapse:collapse;table-layout:fixed">'
+				+ '<colgroup>'
+				+   '<col style="width:14%">'
+				+   '<col style="width:30%">'
+				+   '<col style="width:30%">'
+				+   '<col style="width:26%">'
+				+ '</colgroup>'
 				+ '<thead>'
 				+ '<tr style="border-bottom:2px solid var(--atfrfo-clr-border)">'
-				+ '<th style="padding:4px 8px 4px 0;text-align:left;font-size:11px'
-				+   ';color:var(--atfrfo-clr-muted);font-weight:600">Variable</th>'
 				+ '<th style="padding:4px 8px;text-align:left;font-size:11px'
-				+   ';color:var(--atfrfo-clr-muted);font-weight:600">AFF value</th>'
+				+   ';color:var(--atfrfo-clr-muted);font-weight:600;position:sticky;top:0'
+				+   ';background:var(--atfrfo-bg-card)">Variable</th>'
 				+ '<th style="padding:4px 8px;text-align:left;font-size:11px'
-				+   ';color:var(--atfrfo-clr-muted);font-weight:600">' + colLabel + '</th>'
-				+ '<th style="padding:4px 0 4px 8px;text-align:left;font-size:11px'
-				+   ';color:var(--atfrfo-clr-muted);font-weight:600">Keep</th>'
+				+   ';color:var(--atfrfo-clr-muted);font-weight:600;position:sticky;top:0'
+				+   ';background:var(--atfrfo-bg-card)">AFF value</th>'
+				+ '<th style="padding:4px 8px;text-align:left;font-size:11px'
+				+   ';color:var(--atfrfo-clr-muted);font-weight:600;position:sticky;top:0'
+				+   ';background:var(--atfrfo-bg-card)">' + colLabel + '</th>'
+				+ '<th style="padding:4px 8px;text-align:left;font-size:11px'
+				+   ';color:var(--atfrfo-clr-muted);font-weight:600;position:sticky;top:0'
+				+   ';background:var(--atfrfo-bg-card)">Keep</th>'
 				+ '</tr>'
 				+ '</thead>'
 				+ '<tbody>' + rowsHtml + '</tbody>'
@@ -175,7 +186,7 @@
 
 			ATFRFO.Modal.open({
 				title:     'Merge Conflicts',
-				className: 'atfrfo-modal--wide',
+				className: 'atfrfo-modal--xwide',
 				body:      body,
 				footer:    footer,
 				onClose: function () {

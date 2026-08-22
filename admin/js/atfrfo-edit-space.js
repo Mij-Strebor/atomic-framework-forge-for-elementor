@@ -663,7 +663,7 @@
 			if (vars.length === 0) {
 				html += '<p class="atfrfo-empty-state">No variables in this category yet. '
 					+ 'Use <strong>Sync</strong> to import variables from Elementor, '
-					+ 'or add variables manually in ATFRFO v2.</p>';
+					+ 'or click <strong>&oplus;</strong> below to add one manually.</p>';
 			} else {
 				vars.forEach(function (v) {
 					var usageCount = ATFRFO.state.usageCounts[v.name];
