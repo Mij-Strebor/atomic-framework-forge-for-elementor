@@ -2,6 +2,45 @@
 
 ---
 
+## 2026-08-22 — v1.5.0 Category/Subcategory Drag-Drop Release
+
+**Commit:** 6f95fe4 (merged to master via fast-forward from `release/1.5.0`)
+**Git Tag:** v1.5.0 (GitHub Release published)
+**SVN Revision:** 3661148 (verified against server, not just local working copy)
+**Zip Backup:** SVN trunk pre-release backup at `E:\onedrive\projects-backup\260822-1459 aff-trunk-pre-1.5.0.zip`; full `E:\projects\` backup done separately by Jim same day (exact filename not tracked here)
+**Branch:** master (via `release/1.5.0`, deleted after merge)
+
+**What Works:**
+- Category/subcategory drag-drop reparenting: nest a category as a subcategory, promote a
+  subcategory to top-level, or move a subcategory to a different category. Unified into
+  shared `ATFRFO.CatMixin` — Colors, Fonts, and Numbers all get identical behavior; Fonts and
+  Numbers never had subcategory drag-reordering before this release.
+- Guards against 2-level nesting, name collisions, and moving locked categories (Uncategorized),
+  each with a blocked-nest badge explaining why instead of silently doing nothing.
+- Category headers list subcategory names inline; click anywhere in a header toggles
+  collapse/expand.
+- WordPress.org listing assets (banner, icon, 8 screenshots) added to SVN `assets/`, alongside
+  the readme.txt content rewrite already pushed for 1.4.3.
+
+**Known Issues:** none new. Next planned work is v1.6.0 (multi-select: Shift-range, Shift-drag,
+Ctrl-click on variable rows), starting in a few days — deliberately not bundled into 1.5.0.
+
+**What Changed (process, not code):** this release cycle surfaced a real process violation —
+an entire session of feature development happened directly on `master`'s checked-out working
+tree, uncommitted but still a violation of Gitflow discipline. Corrected by branching
+`release/1.5.0` off master to hold the work, and the root `CLAUDE.md` + git-discipline memory
+were both strengthened: master must never be checked out for editing, for any reason, not just
+never committed to — branch first, always, before the first edit. The actual release sequence
+(branch → develop → merge to master only at ship time → tag → SVN push) is now the documented,
+permanent model going forward.
+
+**Failed Approaches:** `robocopy` for the trunk sync failed repeatedly with "Invalid Parameter"
+errors caused by path-quoting mangling when invoked through the Bash tool (PowerShell tool was
+down all session) — worked around with a small Python script mirroring the same copy/exclude/
+purge semantics, since Python's path handling didn't hit the same quoting issue.
+
+---
+
 ## 2026-08-14 — v1.4.3 First WordPress.org SVN Release
 
 **Commit:** a81d0aa
