@@ -2,9 +2,9 @@
 Contributors:      mijstrebor
 Tags:              elementor, css variables, design system, developer tools, atomic widgets
 Requires at least: 5.8
-Tested up to:      7.0
+Tested up to:      7.1
 Requires PHP:      8.2
-Stable tag:        1.4.3
+Stable tag:        1.5.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -173,6 +173,12 @@ Not yet. Version 1.4.3 focuses on Variables. Classes are in beta on a separate d
 8. Generate print-ready documentation of your variable system, organized by type with values and swatches — ready to save as a PDF.
 
 == Changelog ==
+
+= 1.5.0 =
+* Added: Drag a category onto another to nest it as a subcategory; drag a subcategory out to promote it back to top-level, or onto a different category to move it there.
+* Added: Category headers list their subcategory names inline; click anywhere in a header to collapse/expand it.
+* Fixed: Several category reorder/move actions were missing a required parameter and could silently fail to save.
+* Fixed: Merge Conflicts dialog showed a blank "AFF value" column due to a property-name mismatch; dialog also widened and its scrollbar is no longer hidden below the visible area.
 
 = 1.4.3 =
 * Fixed: WordPress.org review — icon SVG output now escaped via wp_kses() at the actual point of echo, not only upstream inside the icon-lookup helper (19 call sites).

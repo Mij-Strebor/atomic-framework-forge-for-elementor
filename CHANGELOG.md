@@ -11,6 +11,29 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.5.0] — 2026-08-22
+
+### Added
+
+- **Category/subcategory drag-drop reparenting.** Drag a childless top-level category onto another to nest it as a subcategory; drag a subcategory out to empty space to promote it back to top-level; drag a subcategory onto a different top-level category to move it there. Unified into the shared `ATFRFO.CatMixin`, so Colors, Fonts, and Numbers all get identical behavior — Fonts and Numbers never had subcategory drag-reordering before this release.
+- **Blocked-nest feedback.** Hovering a category that can't accept a nest (it already has subcategories, a name collision, or it's a protected category like Uncategorized) now shows a badge explaining why, instead of silently doing nothing.
+- **Category headers list subcategory names inline** next to the count badge, for at-a-glance hierarchy without expanding. Clicking anywhere in a header (not the name, not the drag handle, not an action button) now toggles collapse/expand.
+- **Auto-scroll during category/subcategory drag**, matching the existing variable-row drag behavior — a target further up or down the list than what's currently visible can now actually be reached.
+
+### Changed
+
+- Reordering a category now moves its DOM node directly instead of triggering a full re-render, so scroll position and every other category's collapsed/expanded state stay untouched during a plain reorder.
+- Redesigned the drag drop-indicator: a glowing gradient bar with clearance from category edges, replacing the old flat-color full-block highlight for nest targets.
+- **Version** — Bumped to 1.5.0.
+
+### Fixed
+
+- Several category reorder/nest/promote AJAX calls (including a pre-existing bug in the original reorder path) were missing a required `filename` parameter and could silently fail to persist.
+- Merge Conflicts dialog: fixed a property-name mismatch that left the "AFF value" column blank; widened the modal, capped column widths, and made the table's own scrollbar always reachable instead of hidden below the visible viewport.
+- Removed several "ATFRFO" internal-name leaks into user-facing text (Sync dialog, Merge dialog, History placeholder).
+
+---
+
 ## [1.4.3] — 2026-08-12
 
 ### Fixed
@@ -526,6 +549,7 @@ Initial Alpha release.
 | **0.4.1-beta** | Placeholder sign background transparency fix. |
 | **0.4.2-beta** | Elementor post-meta commit; CSS var prefix fixes on commit/import/storage; category rename/add/count fixes; shared utilities refactor (Phase 1 & 2). |
 | **0.5.x-beta** | Super Categories — two-level category nesting within each variable set (Colors, Fonts, Numbers). Top-level category holds sub-categories only; sub-categories hold variables only. Flat Elementor commit unchanged. Motivated by large Number sets (382-variable website design systems). |
+| **1.5.0** | Category/subcategory drag-drop reparenting (nest, promote, move between categories); header hierarchy display; click-to-collapse |
 | **1.0.0** | Classes management; Components registry |
 | **2.0.0** | Components registry; Elementor Kit Manager API write-back; Bulk variable rename |
 | **Future** | Presentation/Reference Mode — a read-only companion view of Variables and Classes, opened in its own browser tab (second-monitor friendly) with its own left-column navigation, reusing the app's category-block display styling but display-only, no editing controls. Lets a developer keep it open while working directly in Elementor's Atomic editor, to see variable and class names/values at a glance without switching tabs or digging through Elementor's own UI to find them. Idea logged 2026-08-19. |

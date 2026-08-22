@@ -6,7 +6,7 @@ title: Atomic Framework Forge for Elementor — Documentation
 
 A professional management interface for Elementor Version 4 CSS assets — Variables, Classes, and (planned) Components.
 
-**Current release:** v1.4.3
+**Current release:** v1.5.0
 
 [Source code and downloads →](https://github.com/Mij-Strebor/atomic-framework-forge-for-elementor)
 
