@@ -20,8 +20,10 @@
   // Number-format → CSS unit map. Single source of truth for both the
   // conflict-check preview (_openCommitSummaryDialog) and the actual commit
   // payload (_executeCommit) — previously duplicated as _FMT and FORMAT_UNIT
-  // (tech debt DP-02, consolidated 2026-08-02).
-  var ATFRFO_FORMAT_UNITS = {
+  // (tech debt DP-02, consolidated 2026-08-02). Promoted onto the shared
+  // ATFRFO namespace 2026-09-01 so atfrfo-export-import.js's cross-platform
+  // export/import can reuse it too, rather than re-duplicating a third time.
+  var ATFRFO_FORMAT_UNITS = (ATFRFO.FORMAT_UNITS = {
     PX: "px",
     "%": "%",
     EM: "em",
@@ -29,7 +31,7 @@
     VW: "vw",
     VH: "vh",
     CH: "ch",
-  };
+  });
 
   ATFRFO.PanelRight = {
     /** @type {HTMLInputElement|null} */

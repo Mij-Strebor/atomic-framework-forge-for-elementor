@@ -102,20 +102,33 @@ function atfrfo_icon( string $name ): void {
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-sync"
 			        aria-label="<?php esc_attr_e( 'Sync with Elementor', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Sync', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Sync — import variables from Elementor or export ATFRFO data back to Elementor (V3 and V4)', 'atomic-framework-forge-for-elementor' ); ?>">
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Sync — import variables from Elementor or export ATFRFO data back to Elementor (V3 and V4). Reads and writes your live site.', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'sync' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
 
-			<!-- More — infrequent / backup-ish actions: Print, Export, Import -->
+			<!-- Export/Import — saves or loads a local FILE, does not touch the
+			     live Elementor site (see Sync above for that). Given its own
+			     top-bar button, matching Sync, now that it supports multiple
+			     file formats and isn't a single hidden action anymore. -->
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-export-import"
+			        aria-label="<?php esc_attr_e( 'Export or Import a project file', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Export / Import', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Export / Import — save or load a project file on your computer, in ATFRFO or Elementor v4 format. Does not touch your live site.', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'export' ); ?>
+			</button>
+
+			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
+
+			<!-- More — infrequent / backup-ish actions: Preferences, Functions, Print, Help -->
 			<div class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-more">
 				<button class="atfrfo-icon-btn" id="atfrfo-btn-more"
 				        aria-label="<?php esc_attr_e( 'More actions', 'atomic-framework-forge-for-elementor' ); ?>"
 				        aria-haspopup="true"
 				        aria-expanded="false"
 				        data-atfrfo-tooltip="<?php esc_attr_e( 'More', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'More — print, export, and import actions', 'atomic-framework-forge-for-elementor' ); ?>">
+				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'More — preferences, functions, print, and help', 'atomic-framework-forge-for-elementor' ); ?>">
 					<?php atfrfo_icon( 'more' ); ?>
 				</button>
 				<ul class="atfrfo-dropdown" id="atfrfo-dropdown-more" role="menu" aria-labelledby="atfrfo-btn-more">
@@ -150,20 +163,6 @@ function atfrfo_icon( string $name ): void {
 						        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'print' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?></span>
-						</button>
-					</li>
-					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-btn-export" role="menuitem"
-						        aria-label="<?php esc_attr_e( 'Export project as .atfrfo.json', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'export' ); ?></span>
-							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Export', 'atomic-framework-forge-for-elementor' ); ?></span>
-						</button>
-					</li>
-					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-btn-import" role="menuitem"
-						        aria-label="<?php esc_attr_e( 'Import project from .atfrfo.json', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'import' ); ?></span>
-							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Import', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 					<li role="none">

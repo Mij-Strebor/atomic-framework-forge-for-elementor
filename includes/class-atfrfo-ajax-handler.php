@@ -55,6 +55,15 @@ class ATFRFO_Ajax_Handler {
 			'atfrfo_commit_to_elementor',
 			// Elementor V3 Import
 			'atfrfo_sync_v3_global_colors',
+			// Elementor V4 native file export/import (Import Kit-compatible)
+			'atfrfo_export_elementor_v4',
+			'atfrfo_import_elementor_v4',
+			// Bricks Builder native global-variables export/import
+			'atfrfo_export_bricks',
+			'atfrfo_import_bricks',
+			// Figma design-tokens (DTCG format) export/import
+			'atfrfo_export_figma',
+			'atfrfo_import_figma',
 			// Diagnostics & cleanup
 			'atfrfo_get_diagnostics',
 			'atfrfo_deduplicate',
@@ -506,7 +515,7 @@ class ATFRFO_Ajax_Handler {
 
 		// Remove project subdirectory if now empty.
 		$project_dir = dirname( $file );
-		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.atfrfo.json' ) ) ) {
+		if ( is_dir( $project_dir ) && empty( glob( $project_dir . '/*.json' ) ) ) {
 			$fs = $this->get_wp_filesystem();
 			if ( $fs ) {
 				$fs->rmdir( $project_dir );
@@ -544,7 +553,7 @@ class ATFRFO_Ajax_Handler {
 		}
 
 		// Update name in every backup file.
-		foreach ( glob( $old_dir . '*.atfrfo.json' ) ?: array() as $file ) {
+		foreach ( glob( $old_dir . '*.json' ) ?: array() as $file ) {
 			$raw = json_decode( file_get_contents( $file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			if ( is_array( $raw ) ) {
 				$raw['name'] = $new_name;
@@ -599,7 +608,7 @@ class ATFRFO_Ajax_Handler {
 		}
 
 		// Copy each backup file, updating the name fields and generating a new timestamped filename.
-		foreach ( glob( $src_dir . '*.atfrfo.json' ) ?: array() as $src_file ) {
+		foreach ( glob( $src_dir . '*.json' ) ?: array() as $src_file ) {
 			$raw = json_decode( file_get_contents( $src_file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			if ( ! is_array( $raw ) ) {
 				continue;
@@ -637,7 +646,7 @@ class ATFRFO_Ajax_Handler {
 			wp_send_json_error( array( 'message' => __( 'Project not found.', 'atomic-framework-forge-for-elementor' ) ) );
 		}
 
-		foreach ( glob( $dir . '*.atfrfo.json' ) ?: array() as $file ) {
+		foreach ( glob( $dir . '*.json' ) ?: array() as $file ) {
 			ATFRFO_Data_Store::delete_baseline( $slug . '/' . basename( $file ) );
 			wp_delete_file( $file );
 		}
@@ -1495,6 +1504,311 @@ class ATFRFO_Ajax_Handler {
 				'skipped'   => $css_skipped,
 				'id_map'    => $id_map,
 				'message'   => $msg,
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Elementor v4 native file export
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Export AFF variables as an Elementor-v4-native kit ZIP
+	 * (manifest.json + global-variables.json) — droppable directly into
+	 * Elementor's own Import Kit dialog, not just AFF-readable.
+	 *
+	 * Returns the zip as base64 in the JSON response rather than writing a
+	 * downloadable file to uploads/, so there is no temp file left behind
+	 * for the client to trigger a browser download from a Blob, matching
+	 * the existing client-side download pattern used for .atfrfo.json export.
+	 *
+	 * POST params:
+	 *   variables - JSON array of AFF variable records
+	 *   kit_title - Export/kit title used for manifest.json and the filename
+	 */
+	public function ajax_atfrfo_export_elementor_v4(): void {
+		$this->verify_request();
+
+		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
+		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
+
+		$kit_title = $this->post_param( 'kit_title', 'atfrfo-export' );
+
+		if ( ! class_exists( '\ZipArchive' ) ) {
+			wp_send_json_error( array( 'message' => __( 'PHP ZipArchive extension is not available on this server.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$collection = ATFRFO_Elementor_V4_Adapter::to_elementor( $variables );
+
+		$manifest = array(
+			'name'              => sanitize_title( $kit_title ),
+			'title'             => $kit_title,
+			'description'       => __( 'Exported from Atomic Framework Forge for Elementor.', 'atomic-framework-forge-for-elementor' ),
+			'author'            => wp_get_current_user()->display_name,
+			// manifest.json's own format version — Elementor's
+			// App\Modules\ImportExportCustomization\Module::FORMAT_VERSION,
+			// confirmed as the literal string '3.0' on the local install.
+			'version'           => '3.0',
+			'elementor_version' => defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '',
+			'created'           => current_time( 'Y-m-d H:i:s', true ),
+			'site'              => get_site_url(),
+		);
+
+		$fs = $this->get_wp_filesystem();
+		if ( ! $fs ) {
+			wp_send_json_error( array( 'message' => __( 'Could not access the filesystem to build the export.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$tmp_file = wp_tempnam( sanitize_file_name( $kit_title ) . '.zip' );
+		if ( ! $tmp_file ) {
+			wp_send_json_error( array( 'message' => __( 'Could not create a temporary file for export.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$zip = new \ZipArchive();
+		if ( true !== $zip->open( $tmp_file, \ZipArchive::OVERWRITE ) ) {
+			$fs->delete( $tmp_file );
+			wp_send_json_error( array( 'message' => __( 'Could not create the export zip archive.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+		$zip->addFromString( 'manifest.json', wp_json_encode( $manifest ) );
+		$zip->addFromString( 'global-variables.json', wp_json_encode( $collection ) );
+		$zip->close();
+
+		$zip_contents = $fs->get_contents( $tmp_file );
+		$fs->delete( $tmp_file );
+
+		if ( false === $zip_contents ) {
+			wp_send_json_error( array( 'message' => __( 'Could not read the generated export zip.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		wp_send_json_success(
+			array(
+				'filename'       => sanitize_file_name( $kit_title ) . '.zip',
+				'zip_base64'     => base64_encode( $zip_contents ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- transport encoding for a binary zip in a JSON response, not obfuscation.
+				'variable_count' => count( $collection['data'] ),
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Elementor v4 native file import
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Import Elementor v4 variables from an uploaded native kit ZIP
+	 * (manifest.json + global-variables.json) or a lone global-variables.json
+	 * file. Always captures each entry's Elementor id into `elementor_id` on
+	 * the returned AFF-shaped records — fixes the read-path gap in
+	 * ATFRFO_CSS_Parser::read_from_kit_meta(), which never returns the id.
+	 *
+	 * FILES param: import_file (.zip or .json)
+	 */
+	public function ajax_atfrfo_import_elementor_v4(): void {
+		$this->verify_request();
+
+		if ( empty( $_FILES['import_file'] ) || UPLOAD_ERR_OK !== $_FILES['import_file']['error'] ) {
+			wp_send_json_error( array( 'message' => __( 'No file was uploaded.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		// tmp_name is a PHP-internal path, not user input — sanitize_text_field()
+		// on a Windows path (backslashes, drive letter) can mangle it just
+		// enough that is_uploaded_file() below no longer matches it. The
+		// is_uploaded_file() check is itself the security validation here.
+		$tmp_path  = (string) $_FILES['import_file']['tmp_name'];
+		$orig_name = sanitize_file_name( wp_unslash( $_FILES['import_file']['name'] ) );
+		$ext       = strtolower( pathinfo( $orig_name, PATHINFO_EXTENSION ) );
+
+		if ( ! is_uploaded_file( $tmp_path ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid file upload.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$fs = $this->get_wp_filesystem();
+		if ( ! $fs ) {
+			wp_send_json_error( array( 'message' => __( 'Could not access the filesystem to read the uploaded file.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$collection_json = null;
+		$manifest        = null;
+
+		if ( 'json' === $ext ) {
+			$collection_json = $fs->get_contents( $tmp_path );
+		} elseif ( 'zip' === $ext ) {
+			if ( ! class_exists( '\ZipArchive' ) ) {
+				wp_send_json_error( array( 'message' => __( 'PHP ZipArchive extension is not available on this server.', 'atomic-framework-forge-for-elementor' ) ) );
+			}
+			$zip = new \ZipArchive();
+			if ( true !== $zip->open( $tmp_path ) ) {
+				wp_send_json_error( array( 'message' => __( 'Could not open the uploaded zip file.', 'atomic-framework-forge-for-elementor' ) ) );
+			}
+			$collection_json = $zip->getFromName( 'global-variables.json' );
+			$manifest_json   = $zip->getFromName( 'manifest.json' );
+			$zip->close();
+
+			if ( false === $collection_json ) {
+				wp_send_json_error( array( 'message' => __( 'This zip does not contain a global-variables.json file — it may not include Elementor variables.', 'atomic-framework-forge-for-elementor' ) ) );
+			}
+			if ( false !== $manifest_json ) {
+				$manifest = json_decode( $manifest_json, true );
+			}
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Unsupported file type — expected .zip or .json.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		if ( empty( $collection_json ) ) {
+			wp_send_json_error( array( 'message' => __( 'Could not read the uploaded file.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$collection = json_decode( $collection_json, true );
+		if ( ! is_array( $collection ) || empty( $collection['data'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'File does not look like a valid Elementor global-variables.json.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$aff_variables = ATFRFO_Elementor_V4_Adapter::from_elementor( $collection );
+
+		// Version-mismatch warning — non-blocking, per Roadmap idea #5's
+		// schema-fingerprint/drift-warning approach. Never silently proceed
+		// on a mismatch, but never hard-block on one either.
+		$warning = '';
+		if ( is_array( $manifest ) && ! empty( $manifest['elementor_version'] ) && defined( 'ELEMENTOR_VERSION' )
+			&& $manifest['elementor_version'] !== ELEMENTOR_VERSION ) {
+			$warning = sprintf(
+				/* translators: 1: Elementor version the file was exported from, 2: Elementor version currently installed */
+				__( 'This file was exported from Elementor %1$s; this site is running Elementor %2$s. Review the imported variables carefully.', 'atomic-framework-forge-for-elementor' ),
+				sanitize_text_field( $manifest['elementor_version'] ),
+				ELEMENTOR_VERSION
+			);
+		}
+		if ( isset( $collection['version'] ) && (int) $collection['version'] !== ATFRFO_Elementor_V4_Adapter::COLLECTION_FORMAT_VERSION ) {
+			$warning .= ( $warning ? ' ' : '' ) . __( 'The variables file format version differs from what this AFF version expects — some fields may not import correctly.', 'atomic-framework-forge-for-elementor' );
+		}
+
+		wp_send_json_success(
+			array(
+				'variables'      => $aff_variables,
+				'variable_count' => count( $aff_variables ),
+				'warning'        => $warning,
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Bricks Builder native export
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Export AFF variables as a Bricks Builder-native global variables JSON
+	 * array (see ATFRFO_Bricks_Adapter for the schema source).
+	 *
+	 * POST params:
+	 *   variables - JSON array of AFF variable records
+	 */
+	public function ajax_atfrfo_export_bricks(): void {
+		$this->verify_request();
+
+		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
+		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
+
+		$bricks_vars = ATFRFO_Bricks_Adapter::to_bricks( $variables );
+
+		wp_send_json_success(
+			array(
+				'json'           => wp_json_encode( $bricks_vars, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ),
+				'variable_count' => count( $bricks_vars ),
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Bricks Builder native import
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Import Bricks Builder global variables from an uploaded JSON file's
+	 * text content. Captures each entry's Bricks id into `bricks_id` on the
+	 * returned AFF-shaped records.
+	 *
+	 * POST params:
+	 *   json_text - Raw text content of the selected .json file
+	 */
+	public function ajax_atfrfo_import_bricks(): void {
+		$this->verify_request();
+
+		$raw = isset( $_POST['json_text'] ) ? wp_unslash( $_POST['json_text'] ) : '';
+		if ( '' === trim( $raw ) ) {
+			wp_send_json_error( array( 'message' => __( 'No file content received.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid JSON — could not parse file.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$aff_variables = ATFRFO_Bricks_Adapter::from_bricks( $this->sanitize_deep( $decoded ) );
+
+		wp_send_json_success(
+			array(
+				'variables'      => $aff_variables,
+				'variable_count' => count( $aff_variables ),
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Figma design-tokens (DTCG) export
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Export AFF variables as a W3C Design Tokens (DTCG) format JSON tree,
+	 * importable into Figma via the Tokens Studio plugin (see
+	 * ATFRFO_Figma_Adapter for the schema source and its verification caveats).
+	 *
+	 * POST params:
+	 *   variables - JSON array of AFF variable records
+	 */
+	public function ajax_atfrfo_export_figma(): void {
+		$this->verify_request();
+
+		$variables_raw = isset( $_POST['variables'] ) ? wp_unslash( $_POST['variables'] ) : '[]';
+		$variables     = $this->safe_json_decode( $variables_raw, __( 'Invalid variables format.', 'atomic-framework-forge-for-elementor' ) );
+
+		$tokens = ATFRFO_Figma_Adapter::to_tokens( $variables );
+
+		wp_send_json_success(
+			array(
+				'json'           => wp_json_encode( $tokens, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ),
+				'variable_count' => count( $variables ),
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// ENDPOINT: Figma design-tokens (DTCG) import
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Import a W3C Design Tokens (DTCG) format JSON file's text content.
+	 *
+	 * POST params:
+	 *   json_text - Raw text content of the selected .json file
+	 */
+	public function ajax_atfrfo_import_figma(): void {
+		$this->verify_request();
+
+		$raw = isset( $_POST['json_text'] ) ? wp_unslash( $_POST['json_text'] ) : '';
+		if ( '' === trim( $raw ) ) {
+			wp_send_json_error( array( 'message' => __( 'No file content received.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid JSON — could not parse file.', 'atomic-framework-forge-for-elementor' ) ) );
+		}
+
+		$aff_variables = ATFRFO_Figma_Adapter::from_tokens( $this->sanitize_deep( $decoded ) );
+
+		wp_send_json_success(
+			array(
+				'variables'      => $aff_variables,
+				'variable_count' => count( $aff_variables ),
 			)
 		);
 	}

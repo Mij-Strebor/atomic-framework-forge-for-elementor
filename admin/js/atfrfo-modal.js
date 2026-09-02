@@ -88,10 +88,16 @@
 
 			options = options || {};
 
-			// Apply optional extra CSS class (e.g. atfrfo-modal--wide); reset between calls.
+			// Apply optional extra CSS class(es) (e.g. atfrfo-modal--wide, or
+			// multiple space-separated classes); reset between calls.
+			// classList.add() throws on a string containing a space, so split
+			// first — a caller passing "atfrfo-modal--xwide atfrfo-modal--merge"
+			// needs both tokens applied, not a single invalid one.
 			this._modal.className = 'atfrfo-modal';
 			if (options.className) {
-				this._modal.classList.add(options.className);
+				options.className.split(/\s+/).filter(Boolean).forEach(function (cls) {
+					this.classList.add(cls);
+				}, this._modal);
 			}
 
 			// Inject content

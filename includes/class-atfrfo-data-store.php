@@ -12,8 +12,11 @@
  * Windows or Mac application in the future. The core logic must remain
  * portable; WordPress-specific code is isolated in adapter methods only.
  *
- * Storage format: .atfrfo.json files in the WordPress uploads/atfrfo/ directory
- * (or a user-specified path). The JSON format is platform-agnostic.
+ * Storage format: {slug}_{YYMMDD}_{HHMM}_{uniqid}.json files in the WordPress
+ * uploads/atfrfo/ directory (or a user-specified path) — see
+ * generate_backup_filename(). Older files use the legacy .atfrfo.json
+ * extension and full-precision timestamp; both are read transparently. The
+ * JSON format itself is platform-agnostic.
  *
  * @package AtomicFrameworkForge
  */
@@ -1151,17 +1154,53 @@ class ATFRFO_Data_Store {
 	/**
 	 * Generate a timestamped backup filename.
 	 *
-	 * A short uniqid suffix follows the seconds-resolution timestamp so that
-	 * copying several backups within the same second (see copy_project()) never
-	 * collides -- without it, callers had to sleep() and retry. The suffix
-	 * comes after the full timestamp, so filenames still sort correctly as
-	 * strings (timestamp resolves first, suffix only breaks ties).
+	 * Matches the naming style used by the Export/Import feature's file
+	 * downloads (slug_YYMMDD_HHMM.json) — see ATFRFO_Elementor_V4_Adapter's
+	 * sibling JS helper `_buildExportFilename()` in atfrfo-export-import.js.
+	 * The one deliberate difference: this internal generator KEEPS the short
+	 * uniqid suffix that the export feature does not need. It is load-bearing
+	 * here, not decorative — copy_project() calls this in a tight loop to
+	 * mint one filename per backup being copied, and minute-resolution
+	 * timestamps make same-minute collisions routine in that loop; without
+	 * the suffix, callers had to sleep() and retry. A human-triggered export
+	 * is a single one-off action with no such loop, so it doesn't need it.
+	 * The suffix comes after the timestamp, so filenames still sort
+	 * correctly as strings (timestamp resolves first, suffix only breaks ties).
 	 *
 	 * @param string $project_slug Slug.
-	 * @return string e.g. "my-demo_2026-03-18_14-30-00_a1b2.atfrfo.json"
+	 * @return string e.g. "my-demo_260318_1430_a1b2.json"
 	 */
 	public static function generate_backup_filename( string $project_slug ): string {
-		return $project_slug . '_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . substr( uniqid(), -4 ) . '.atfrfo.json';
+		return $project_slug . '_' . gmdate( 'ymd_Hi' ) . '_' . substr( uniqid(), -4 ) . '.json';
+	}
+
+	/**
+	 * Extract a sortable Unix timestamp from a backup filename's embedded
+	 * creation date/time, regardless of which naming generation produced it.
+	 *
+	 * Raw filename string comparison (the previous approach) breaks across
+	 * the 2026-08-31 format change: the legacy generator produced
+	 * "slug_YYYY-MM-DD_HH-II-SS_uniqid.atfrfo.json" (hyphenated, 4-digit
+	 * year); the current one produces "slug_YYMMDD_HHMM_uniqid.json" (plain
+	 * digits, 2-digit year). Both shapes will exist side by side in real
+	 * project folders going forward, and their hyphen/digit bytes don't
+	 * sort against each other in chronological order. Every caller that
+	 * needs newest-first order must sort by this, not the filename itself.
+	 *
+	 * @param string $filename Basename only (e.g. "slug_260901_1435_a1b2.json").
+	 * @return int Unix timestamp, or 0 if the filename matches neither pattern
+	 *             (sorts last).
+	 */
+	private static function extract_backup_timestamp( string $filename ): int {
+		if ( preg_match( '/_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})_/', $filename, $m ) ) {
+			// Legacy: slug_YYYY-MM-DD_HH-II-SS_uniqid.atfrfo.json
+			return (int) gmmktime( (int) $m[4], (int) $m[5], (int) $m[6], (int) $m[2], (int) $m[3], (int) $m[1] );
+		}
+		if ( preg_match( '/_(\d{2})(\d{2})(\d{2})_(\d{2})(\d{2})_/', $filename, $m ) ) {
+			// Current: slug_YYMMDD_HHMM_uniqid.json
+			return (int) gmmktime( (int) $m[4], (int) $m[5], 0, (int) $m[2], (int) $m[3], 2000 + (int) $m[1] );
+		}
+		return 0;
 	}
 
 	/**
@@ -1181,25 +1220,28 @@ class ATFRFO_Data_Store {
 				continue;
 			}
 			$latest = $backups[0];
-			// Embed the latest backup's filename for stable sort (see usort below).
+			// Embed the latest backup's extracted timestamp for stable sort
+			// (see usort below) — see extract_backup_timestamp() docblock for
+			// why this must not be a raw filename string comparison.
 			$list[] = array(
 				'slug'               => $slug,
 				'name'               => $latest['name'] ?: $slug,
 				'backup_count'       => count( $backups ),
 				'latest_modified'    => $latest['modified'],
 				'latest_modified_ts' => $latest['modified_ts'],
-				'_sort_key'          => basename( $latest['filename'] ?? '' ),
+				'_sort_key'          => self::extract_backup_timestamp( basename( $latest['filename'] ?? '' ) ),
 			);
 		}
 
-		// Sort newest-first by the backup filename, which encodes the original
-		// creation timestamp (slug_YYYY-MM-DD_HH-II-SS.atfrfo.json). This is stable —
-		// CRUD saves overwrite the file but never rename it, so the sort order
-		// does not change when a user edits categories or variables.
+		// Sort newest-first by each project's latest backup's embedded
+		// creation timestamp. This is stable — CRUD saves overwrite the file
+		// but never rename it, so the sort order does not change when a user
+		// edits categories or variables (unlike sorting by raw filemtime,
+		// which an in-place edit would bump).
 		usort(
 			$list,
 			static function ( array $a, array $b ): int {
-				return strcmp( $b['_sort_key'], $a['_sort_key'] );
+				return $b['_sort_key'] <=> $a['_sort_key'];
 			}
 		);
 
@@ -1221,14 +1263,16 @@ class ATFRFO_Data_Store {
 	 */
 	public static function list_project_backups( string $base_dir, string $project_slug ): array {
 		$dir   = $base_dir . $project_slug . '/';
-		$files = glob( $dir . '*.atfrfo.json' ) ?: array();
-		// Sort by filename descending — filenames encode the original creation
-		// timestamp (slug_YYYY-MM-DD_HH-II-SS.atfrfo.json), so this order is stable
-		// and is not affected by CRUD saves that update filemtime.
+		// *.json (not *.atfrfo.json) so both the legacy extension and the
+		// current bare .json extension are found in the same listing.
+		$files = glob( $dir . '*.json' ) ?: array();
+		// Sort by each file's embedded creation timestamp, descending — see
+		// extract_backup_timestamp() docblock for why this can't be a raw
+		// filename string comparison now that two naming generations coexist.
 		usort(
 			$files,
 			static function ( string $a, string $b ): int {
-				return strcmp( basename( $b ), basename( $a ) );
+				return self::extract_backup_timestamp( basename( $b ) ) <=> self::extract_backup_timestamp( basename( $a ) );
 			}
 		);
 
@@ -1266,7 +1310,7 @@ class ATFRFO_Data_Store {
 		if ( $max < 1 ) {
 			return;
 		}
-		$files = glob( $project_dir . '*.atfrfo.json' ) ?: array();
+		$files = glob( $project_dir . '*.json' ) ?: array();
 		if ( count( $files ) <= $max ) {
 			return;
 		}

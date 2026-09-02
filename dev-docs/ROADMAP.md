@@ -54,6 +54,41 @@ Captured here so they aren't lost — these are candidates to evaluate, not comm
    backup format at some point, AFF's importer may need to handle more than one historical
    shape and re-emit in the current one.
 
+   **Status (2026-08-31): all three shipped.** Variables only, all reachable through one
+   format-selector Export/Import modal (`admin/js/atfrfo-export-import.js`), each with a
+   dedicated portable adapter class (no WordPress dependency in the translation logic itself):
+   - **Elementor v4** — `ATFRFO_Elementor_V4_Adapter` /
+     `atfrfo_export_elementor_v4` / `atfrfo_import_elementor_v4`. Truly Import-Kit-compatible
+     (manifest.json + global-variables.json zip) — schema cross-checked directly against
+     Elementor's own plugin source on the local dev install.
+   - **Bricks Builder** — `ATFRFO_Bricks_Adapter` / `atfrfo_export_bricks` /
+     `atfrfo_import_bricks`. **Import corrected 2026-09-01** against a real file Jim exported
+     from **Core Framework** (a third-party Bricks child-theme/framework — confirmed with Jim,
+     not vanilla Bricks itself): the docs-derived bare-array assumption was wrong. Real files
+     wrap the list — `{ "variables": [...], "categories": [...], "styleManager": {} }` — and
+     carry a second, duplicate, always-empty-value entry per color under a `"palette:..."` id
+     (Bricks' separate Color Palette feature). `from_bricks()` now unwraps `.variables`, resolves
+     `category` ids to names, and skips the empty-value palette duplicates. Verified via the real
+     live AJAX endpoint against Jim's actual file: 154/154 variables imported correctly. Import
+     mode (Merge vs. Clear and replace, mirroring the Sync modal's own V4 import toggle) added
+     to all three merge-capable formats the same day, per Jim's request. **Still open:** the
+     export direction (AFF → Bricks-shaped file) hasn't been tried against Core Framework or
+     vanilla Bricks yet, and vanilla Bricks' own Global Variables Manager export may not match
+     this wrapped Core Framework shape at all — confirm both before calling this solid.
+   - **Figma** — `ATFRFO_Figma_Adapter` / `atfrfo_export_figma` / `atfrfo_import_figma`. A
+     static W3C Design Tokens (DTCG) format JSON file — importable via the Tokens Studio for
+     Figma plugin — not a live Figma REST API connection, per the original scoping decision
+     (no API token, no new external network dependency). **Least-verified of the three**: no
+     Figma/Tokens Studio install exists to test against at all, and the DTCG spec itself is
+     still a draft, not a finished W3C Recommendation. Confirm with a real Tokens Studio import
+     before relying on it.
+
+   Round-trip tested against a real 151-variable production project (colors, numbers/dimensions
+   including `clamp()` expressions, fonts) for all three — exact match, 0 conflicts, after
+   fixing two bugs the Figma round-trip test surfaced: 8-digit alpha-channel hex colors
+   (`#0000FF1A`) were losing their alpha on reconstruction, and multi-word font names were
+   incorrectly getting quotes added that AFF's own stored values never had.
+
 **Where existing specs live:** `dev-docs/archive/specification/` has specs for Colors, Fonts,
 Numbers, Variables, and Data Management, all written before/during the v1.4.0 Variables
 implementation. There is no existing spec for Classes (v2.0) yet — idea #2 above should

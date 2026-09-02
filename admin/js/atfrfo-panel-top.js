@@ -15,59 +15,9 @@
 
   window.ATFRFO = window.ATFRFO || {};
 
-  // ------------------------------------------------------------------
-  // FILE PICKER DIRECTORY MEMORY
-  // Stores the last FileSystemFileHandle from Export / Import in
-  // IndexedDB so the next call opens in the same directory.
-  // Falls back to the Desktop on first use.
-  // ------------------------------------------------------------------
-
-  var _effPickerDB = null;
-
-  function _effPickerDbOpen(cb) {
-    if (_effPickerDB) {
-      cb(_effPickerDB);
-      return;
-    }
-    var req = indexedDB.open("atfrfo-picker", 1);
-    req.onupgradeneeded = function (e) {
-      e.target.result.createObjectStore("handles");
-    };
-    req.onsuccess = function (e) {
-      _effPickerDB = e.target.result;
-      cb(_effPickerDB);
-    };
-    req.onerror = function () {
-      cb(null);
-    };
-  }
-
-  function _effPickerGet(key, cb) {
-    _effPickerDbOpen(function (db) {
-      if (!db) {
-        cb(null);
-        return;
-      }
-      var req = db.transaction("handles").objectStore("handles").get(key);
-      req.onsuccess = function () {
-        cb(req.result || null);
-      };
-      req.onerror = function () {
-        cb(null);
-      };
-    });
-  }
-
-  function _effPickerSave(key, handle) {
-    _effPickerDbOpen(function (db) {
-      if (!db) {
-        return;
-      }
-      db.transaction("handles", "readwrite")
-        .objectStore("handles")
-        .put(handle, key);
-    });
-  }
+  // Export/Import moved to its own module — see admin/js/atfrfo-export-import.js
+  // (ATFRFO.ExportImport), including the file-picker directory memory that
+  // used to live here.
 
   ATFRFO.PanelTop = {
     _showTooltips: true, // false → all tooltips suppressed
@@ -279,9 +229,11 @@
         "atfrfo-btn-preferences": self._openPreferences.bind(self),
         "atfrfo-btn-manage-project": self._openManageProject.bind(self),
         "atfrfo-btn-history": self._openHistory.bind(self),
-        "atfrfo-btn-export": self._openExport.bind(self),
-        "atfrfo-btn-import": self._openImport.bind(self),
-        "atfrfo-btn-history": self._openHistory.bind(self),
+        "atfrfo-btn-export-import": function () {
+          if (ATFRFO.ExportImport && ATFRFO.ExportImport.open) {
+            ATFRFO.ExportImport.open();
+          }
+        },
         "atfrfo-btn-help": self._openHelp.bind(self),
       };
 
@@ -1496,247 +1448,10 @@
         });
     },
 
-    // ------------------------------------------------------------------
-    // PLACEHOLDER MODALS (v5 features)
-    // ------------------------------------------------------------------
-
-    _openExport: function () {
-      if (!ATFRFO.state.currentFile && ATFRFO.state.variables.length === 0) {
-        ATFRFO.Modal.open({
-          title: "Nothing to export",
-          body: "<p>Load or create a project first.</p>",
-        });
-        return;
-      }
-
-      var exportName = (ATFRFO.state.projectName || "atfrfo-project")
-        .trim()
-        .replace(/(?:\.eff)+(?:\.json)?$/i, "");
-      var suggestedName =
-        exportName
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "") + ".atfrfo.json";
-
-      var payload = {
-        version: "1.0",
-        name: exportName || "",
-        config: ATFRFO.state.config || {},
-        variables: ATFRFO.state.variables || [],
-        classes: ATFRFO.state.classes || [],
-        components: ATFRFO.state.components || [],
-        metadata: { exported_at: new Date().toISOString() },
-      };
-      var json = JSON.stringify(payload, null, 2);
-
-      if (typeof window.showSaveFilePicker === "function") {
-        _effPickerGet("export", function (remembered) {
-          window
-            .showSaveFilePicker({
-              suggestedName: suggestedName,
-              startIn: remembered || "desktop",
-              types: [
-                {
-                  description: "ATFRFO Project File",
-                  accept: { "application/json": [".json"] },
-                },
-              ],
-            })
-            .then(function (fileHandle) {
-              _effPickerSave("export", fileHandle);
-              return fileHandle.createWritable().then(function (writable) {
-                return writable.write(json).then(function () {
-                  return writable.close();
-                });
-              });
-            })
-            .catch(function (err) {
-              if (err && err.name !== "AbortError") {
-                console.warn("ATFRFO export error:", err);
-              }
-            });
-        });
-      } else {
-        // Fallback for browsers without File System Access API.
-        var blob = new Blob([json], { type: "application/json" });
-        var url = URL.createObjectURL(blob);
-        var link = document.createElement("a");
-        link.href = url;
-        link.download = suggestedName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(function () {
-          URL.revokeObjectURL(url);
-        }, 10000);
-      }
-    },
-
-    _openImport: function () {
-      var self = this;
-
-      if (typeof window.showOpenFilePicker === "function") {
-        _effPickerGet("import", function (remembered) {
-          window
-            .showOpenFilePicker({
-              startIn: remembered || "desktop",
-              multiple: false,
-              types: [
-                {
-                  description: "ATFRFO Project File",
-                  accept: { "application/json": [".json"] },
-                },
-              ],
-            })
-            .then(function (fileHandles) {
-              var fileHandle = fileHandles[0];
-              _effPickerSave("import", fileHandle);
-              return fileHandle
-                .getFile()
-                .then(function (file) {
-                  return file.text();
-                })
-                .then(function (text) {
-                  self._applyImport(text, null);
-                });
-            })
-            .catch(function (err) {
-              if (err && err.name !== "AbortError") {
-                console.warn("ATFRFO import error:", err);
-              }
-            });
-        });
-      } else {
-        // Fallback for browsers without File System Access API.
-        var body =
-          '<p style="margin-bottom:12px;color:var(--atfrfo-clr-secondary);line-height:1.6">' +
-          "Select a <code>.atfrfo.json</code> file exported from ATFRFO.</p>" +
-          '<input type="file" id="atfrfo-import-file" accept=".json" ' +
-          'style="display:block;width:100%;padding:8px 0;cursor:pointer">' +
-          '<div id="atfrfo-import-status" style="font-size:12px;color:var(--atfrfo-clr-muted);margin-top:8px;min-height:18px"></div>';
-        var footer =
-          '<button class="atfrfo-btn" id="atfrfo-import-cancel" style="margin-right:8px">Cancel</button>' +
-          '<button class="atfrfo-btn" id="atfrfo-import-go">Import</button>';
-
-        ATFRFO.Modal.open({ title: "Import project", body: body, footer: footer });
-
-        requestAnimationFrame(function () {
-          var fileInput = document.getElementById("atfrfo-import-file");
-          var statusEl = document.getElementById("atfrfo-import-status");
-          var cancelBtn = document.getElementById("atfrfo-import-cancel");
-          var importBtn = document.getElementById("atfrfo-import-go");
-
-          if (cancelBtn) {
-            cancelBtn.addEventListener("click", function () {
-              ATFRFO.Modal.close();
-            });
-          }
-          if (fileInput) {
-            fileInput.addEventListener("change", function () {
-              if (statusEl) {
-                statusEl.textContent = fileInput.files[0]
-                  ? fileInput.files[0].name
-                  : "";
-              }
-            });
-          }
-          if (importBtn) {
-            importBtn.addEventListener("click", function () {
-              if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-                if (statusEl) {
-                  statusEl.textContent = "Please choose a file first.";
-                }
-                return;
-              }
-              var reader = new FileReader();
-              reader.onload = function (e) {
-                self._applyImport(e.target.result, statusEl);
-              };
-              reader.readAsText(fileInput.files[0]);
-            });
-          }
-        });
-      }
-    },
-
-    /**
-     * Parse and load an imported .atfrfo.json text string into app state.
-     *
-     * @param {string}          text      Raw JSON string.
-     * @param {HTMLElement|null} statusEl  Element to write error messages into (fallback modal only).
-     */
-    _applyImport: function (text, statusEl) {
-      var parsed;
-      try {
-        parsed = JSON.parse(text);
-      } catch (err) {
-        if (statusEl) {
-          statusEl.textContent = "Invalid JSON \u2014 could not parse file.";
-        } else {
-          ATFRFO.Modal.open({
-            title: "Import error",
-            body: "<p>Invalid JSON \u2014 could not parse file.</p>",
-          });
-        }
-        return;
-      }
-      if (!parsed || typeof parsed !== "object") {
-        if (statusEl) {
-          statusEl.textContent = "File does not look like an ATFRFO project.";
-        } else {
-          ATFRFO.Modal.open({
-            title: "Import error",
-            body: "<p>File does not look like an ATFRFO project.</p>",
-          });
-        }
-        return;
-      }
-
-      ATFRFO.state.variables = Array.isArray(parsed.variables)
-        ? parsed.variables
-        : [];
-      ATFRFO.state.classes = Array.isArray(parsed.classes) ? parsed.classes : [];
-      ATFRFO.state.components = Array.isArray(parsed.components)
-        ? parsed.components
-        : [];
-      ATFRFO.state.config =
-        parsed.config && typeof parsed.config === "object" ? parsed.config : {};
-
-      // Normalize variables that lack type/subgroup (e.g. exported before these
-      // fields were added, or imported from an external source).
-      ATFRFO.state.variables.forEach(function (v) {
-        if (!v || typeof v !== "object" || v.type) {
-          return;
-        }
-        var cls = ATFRFO.Utils.classifyVar(v.value, "");
-        v.type     = cls.type;
-        v.subgroup = v.subgroup || cls.subgroup;
-        if (!v.format) {
-          v.format = cls.format;
-        }
-      });
-
-      var importedName = (parsed.name || "").replace(
-        /(?:\.eff)+(?:\.json)?$/i,
-        "",
-      );
-      ATFRFO.state.projectName = importedName;
-
-      if (ATFRFO.PanelRight && ATFRFO.PanelRight._filenameInput) {
-        ATFRFO.PanelRight._filenameInput.value = importedName;
-      }
-
-      ATFRFO.App.refreshCounts();
-      if (ATFRFO.PanelLeft) {
-        ATFRFO.PanelLeft.refresh();
-      }
-      if (ATFRFO.state.currentSelection && ATFRFO.EditSpace) {
-        ATFRFO.EditSpace.loadCategory(ATFRFO.state.currentSelection);
-      }
-      ATFRFO.App.setDirty(true);
-      ATFRFO.App.fetchUsageCounts();
-      ATFRFO.Modal.close();
-    },
+    // Export/Import modal moved to admin/js/atfrfo-export-import.js
+    // (ATFRFO.ExportImport) \u2014 now a format-selector modal covering both the
+    // ATFRFO Project (.atfrfo.json) format previously built here and the new
+    // Elementor v4 native format.
 
     _openHistory: function () {
       ATFRFO.Modal.open({

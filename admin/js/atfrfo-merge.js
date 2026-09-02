@@ -91,12 +91,16 @@
 		 * @param {string}   direction     'fetch' | 'write'
 		 * @param {Function} onApply       called with [{name, winner:'atfrfo'|'el'}, ...]
 		 * @param {Function} onCancel      called with no arguments
+		 * @param {string}   [sourceLabel] Real source-platform name shown in the column header
+		 *   and "Use all …" button — defaults to 'Elementor' (this dialog's original and, until
+		 *   the Export/Import feature added Bricks/Figma, only caller was Elementor-only).
 		 */
-		openMergeDialog: function (conflictVars, direction, onApply, onCancel) {
+		openMergeDialog: function (conflictVars, direction, onApply, onCancel, sourceLabel) {
 			var self     = this;
 			var isFetch  = (direction === 'fetch');
-			var elLabel  = isFetch ? 'Use Elementor' : 'Keep Elementor';
-			var colLabel = isFetch ? 'Elementor value' : 'Elementor (current)';
+			var srcName  = sourceLabel || 'Elementor';
+			var elLabel  = isFetch ? ('Use ' + srcName) : ('Keep ' + srcName);
+			var colLabel = isFetch ? (srcName + ' value') : (srcName + ' (current)');
 
 			var rowsHtml = '';
 			conflictVars.forEach(function (c) {
@@ -132,13 +136,20 @@
 			});
 
 			var plural = conflictVars.length !== 1;
-			var body   =
-				'<p style="margin-bottom:12px">'
+			// display:flex column fills the modal's own fixed max-height (see
+			// .atfrfo-modal--merge .atfrfo-modal__body in atfrfo-theme.css) so
+			// only the table scrolls — the intro line stays put above it and
+			// the bulk-action buttons moved into the footer below (previously
+			// both this message and the table could scroll as one block,
+			// while a second, separate scrollbar also ran on the table
+			// itself; fixed 2026-09-02 per Jim's report of double scrollbars).
+			var body =
+				'<p style="margin-bottom:12px;flex-shrink:0">'
 				+ '<strong>' + conflictVars.length + '</strong> variable'
 				+ (plural ? 's have' : ' has')
-				+ ' different values in AFF and Elementor.'
+				+ ' different values in AFF and ' + srcName + '.'
 				+ ' Choose which to keep for each row.</p>'
-				+ '<div style="overflow:auto;max-height:min(50vh,420px);margin-bottom:10px'
+				+ '<div style="overflow:auto;flex:1;min-height:0'
 				+   ';border:1px solid var(--atfrfo-clr-border);border-radius:4px">'
 				+ '<table style="width:100%;min-width:640px;border-collapse:collapse;table-layout:fixed">'
 				+ '<colgroup>'
@@ -165,28 +176,33 @@
 				+ '</thead>'
 				+ '<tbody>' + rowsHtml + '</tbody>'
 				+ '</table>'
-				+ '</div>'
+				+ '</div>';
+
+			// Bulk-action buttons live on the same row as Cancel/Apply now
+			// (left-aligned, opposite the right-aligned pair) instead of
+			// above the table, per Jim's request 2026-09-02.
+			var footer =
+				'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%">'
 				+ '<div style="display:flex;gap:8px">'
 				+ '<button class="atfrfo-btn atfrfo-btn--xs atfrfo-btn--secondary"'
 				+   ' id="atfrfo-merge-keep-all-aff">Keep all AFF</button>'
 				+ '<button class="atfrfo-btn atfrfo-btn--xs atfrfo-btn--secondary"'
 				+   ' id="atfrfo-merge-use-all-el">'
-				+   (isFetch ? 'Use all Elementor' : 'Keep all Elementor')
+				+   (isFetch ? ('Use all ' + srcName) : ('Keep all ' + srcName))
 				+ '</button>'
-				+ '</div>';
-
-			var footer =
-				'<div style="display:flex;justify-content:flex-end;gap:8px">'
+				+ '</div>'
+				+ '<div style="display:flex;gap:8px">'
 				+ '<button class="atfrfo-btn atfrfo-btn--secondary"'
 				+   ' id="atfrfo-merge-cancel">Cancel</button>'
 				+ '<button class="atfrfo-btn" id="atfrfo-merge-apply">Apply &amp; Continue</button>'
+				+ '</div>'
 				+ '</div>';
 
 			var mergeHandler;
 
 			ATFRFO.Modal.open({
 				title:     'Merge Conflicts',
-				className: 'atfrfo-modal--xwide',
+				className: 'atfrfo-modal--xwide atfrfo-modal--merge',
 				body:      body,
 				footer:    footer,
 				onClose: function () {

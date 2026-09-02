@@ -355,7 +355,7 @@
 	white-space:   nowrap;
 }
 
-.atfrfo-app .atfrfo-btn:hover {
+.atfrfo-app .atfrfo-btn:hover:not(:disabled) {
 	background:  var(--atfrfo-clr-accent-hov);
 	transform:   translate(-2px, -2px);
 	box-shadow:  var(--atfrfo-shadow-md);
@@ -363,6 +363,17 @@
 
 .atfrfo-app .atfrfo-btn:active {
 	transform: translate(0, 0);
+}
+
+/* Primary (gold) button had no disabled state at all before the Export/Import
+   modal's Import button needed one — .atfrfo-btn--secondary/--danger already
+   had their own :disabled rules (opacity 0.5 + not-allowed cursor); this
+   applies the same convention to the bare .atfrfo-btn. */
+.atfrfo-app .atfrfo-btn:disabled {
+	opacity: 0.5;
+	cursor:  not-allowed;
+	transform: none;
+	box-shadow: var(--atfrfo-shadow-sm);
 }
 
 .atfrfo-app .atfrfo-btn svg {
@@ -586,6 +597,21 @@ button.atfrfo-app .atfrfo-dropdown__item,
 	opacity: 0.7;
 }
 
+/* A <select> using this class needs its own dropdown chevron — the
+   plain border/padding above gives it no visible affordance that it's a
+   combo box, not a text field. Matches the existing chevron pattern used
+   by .atfrfo-color-format-sel (atfrfo-colors.css). */
+.atfrfo-app select.atfrfo-field-input {
+	appearance:          none;
+	-webkit-appearance:  none;
+	cursor:              pointer;
+	padding-right:       28px;
+	background-image:    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+	background-repeat:   no-repeat;
+	background-position: right 10px center;
+	background-size:     10px 6px;
+}
+
 /* ==========================================================================
    10. TOOLTIP
    ========================================================================== */
@@ -677,6 +703,20 @@ button.atfrfo-app .atfrfo-dropdown__item,
 	padding:    var(--sp-5);
 	overflow-y: auto;
 	flex:       1;
+}
+
+/* Merge Conflicts dialog (ATFRFO.Merge.openMergeDialog) — its own body
+   content already manages internal scrolling on just the variable table
+   (min-height:0 lets a flex child shrink below its content size, which is
+   what actually allows the table's own overflow:auto to take effect instead
+   of the table forcing this whole column taller). Without this override the
+   generic .atfrfo-modal__body scroll above ran a second, redundant
+   scrollbar around the intro text + table + button row together. */
+.atfrfo-app .atfrfo-modal--merge .atfrfo-modal__body {
+	display:        flex;
+	flex-direction: column;
+	overflow-y:     hidden;
+	min-height:     0;
 }
 
 .atfrfo-app .atfrfo-modal__footer {

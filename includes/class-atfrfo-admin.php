@@ -155,6 +155,7 @@ class ATFRFO_Admin {
 			'atfrfo-panel-left'  => 'admin/js/atfrfo-panel-left.js',
 			'atfrfo-panel-right' => 'admin/js/atfrfo-panel-right.js',
 			'atfrfo-panel-top'   => 'admin/js/atfrfo-panel-top.js',
+			'atfrfo-export-import' => 'admin/js/atfrfo-export-import.js', // Format-selector Export/Import modal — depends on atfrfo-modal, atfrfo-merge, atfrfo-panel-right (ATFRFO.FORMAT_UNITS).
 			'atfrfo-edit-space'  => 'admin/js/atfrfo-edit-space.js',
 			'atfrfo-colors'      => 'admin/js/atfrfo-colors.js',     // Phase 2 — must load before atfrfo-app.
 			'atfrfo-variables'   => 'admin/js/atfrfo-variables.js',  // Phase 3 — must load before atfrfo-app.
