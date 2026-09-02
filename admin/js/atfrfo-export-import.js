@@ -181,7 +181,8 @@
     atfrfo: {
       label: "AFF Project (.json)",
       description:
-        "AFF's own full-fidelity format — variables, classes, components, and settings. Importing replaces the current project.",
+        "AFF's own full-fidelity format — variables, classes, components, and settings. Importing replaces the current project. " +
+        "Unlike Save Changes (which stores on this server), this saves a portable copy to your own computer.",
     },
     "elementor-v4": {
       label: "Elementor v4 Kit (.zip)",
