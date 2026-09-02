@@ -392,18 +392,23 @@
 	background:      transparent;
 	border:          none;
 	color:           var(--atfrfo-clr-secondary);
-	padding:         var(--sp-2);
+	padding:         var(--sp-1);
 	border-radius:   var(--atfrfo-border-radius-md);
 	cursor:          pointer;
 	transition:      background var(--atfrfo-transition), color var(--atfrfo-transition);
-	width:           36px;
-	height:          36px;
+	width:           32px;
+	height:          32px;
 	flex-shrink:     0;
 }
 
+/* Sized down from 36px/20px icons (2026-09-02) to fit every function as its
+   own top-bar button without overflowing — see the comment on
+   .atfrfo-top-bar__actions in atfrfo-layout.css for the measured overflow
+   this fixes. data-atfrfo-btn-size="large" (Preferences) still restores the
+   original 36px/20px via atfrfo-preferences.css, unaffected by this. */
 .atfrfo-app .atfrfo-icon-btn svg {
-	width:  20px;
-	height: 20px;
+	width:  18px;
+	height: 18px;
 	display: block;
 }
 
@@ -542,6 +547,15 @@ button.atfrfo-app .atfrfo-dropdown__item,
 
 .atfrfo-app .atfrfo-dropdown__label {
 	flex: 1;
+}
+
+/* Divider between functional groups inside a dropdown — mirrors the
+   vertical .atfrfo-toolbar-sep already used between the same groups on the
+   top bar itself, so the "More" list's grouping visibly matches. */
+.atfrfo-app .atfrfo-dropdown__divider {
+	height:  1px;
+	margin:  var(--sp-1) var(--sp-2);
+	background: var(--atfrfo-clr-border);
 }
 
 /* "Soon" badge on dropdown items */

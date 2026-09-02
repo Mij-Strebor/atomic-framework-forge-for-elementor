@@ -73,82 +73,173 @@ function atfrfo_icon( string $name ): void {
 			       spellcheck="false" />
 		</div>
 
-		<!-- Project-scoped actions -->
+		<!-- Project-scoped actions — every function gets its own icon now
+		     (2026-09-02, per Jim's request); the "More" dropdown to the right
+		     is no longer where less-common items hide, it's a full icon+label
+		     mirror of everything here (same groups, same order) for anyone who
+		     wants text instead of an icon to hover-guess. Four functional
+		     groups, separated by the existing vertical-line separators:
+		     Project (this project's identity/container), Data (moving the
+		     current dataset somewhere), Tools (operating on the data), and
+		     App (global, not project-specific). -->
 		<div class="atfrfo-top-bar__actions">
 
-			<button class="atfrfo-icon-btn" id="atfrfo-btn-manage-project"
-			        aria-label="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip="<?php esc_attr_e( 'Manage Projects', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Manage Projects — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
+			<!-- GROUP: Project -->
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-project-settings"
+			        aria-label="<?php esc_attr_e( 'Project Settings', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Project Settings', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Project Settings — this project\'s name and its Colors / Fonts / Numbers category lists', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'grid' ); ?>
 			</button>
-
-			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
-
-			<button class="atfrfo-icon-btn atfrfo-icon-btn--save-slot" id="atfrfo-btn-save-changes"
-			        aria-label="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Save Changes — updates the current project file in place', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php atfrfo_icon( 'save' ); ?>
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-project-manager"
+			        aria-label="<?php esc_attr_e( 'Project Manager', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Project Manager', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Project Manager — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'folder-open' ); ?>
 			</button>
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-history"
 			        aria-label="<?php esc_attr_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip="<?php esc_attr_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?>">
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Change History — past saved states of this project', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'history' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
 
+			<!-- GROUP: Data -->
+			<button class="atfrfo-icon-btn atfrfo-icon-btn--save-slot" id="atfrfo-btn-save-changes"
+			        aria-label="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Save Changes — updates the current project file in place, on this server', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'save' ); ?>
+			</button>
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-sync"
 			        aria-label="<?php esc_attr_e( 'Sync with Elementor', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Sync', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Sync — import variables from Elementor or export ATFRFO data back to Elementor (V3 and V4). Reads and writes your live site.', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'sync' ); ?>
 			</button>
-
-			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
-
-			<!-- Export/Import — saves or loads a local FILE, does not touch the
-			     live Elementor site (see Sync above for that). Given its own
-			     top-bar button, matching Sync, now that it supports multiple
-			     file formats and isn't a single hidden action anymore. -->
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-export-import"
 			        aria-label="<?php esc_attr_e( 'Export or Import a project file', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Export / Import', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Export / Import — save or load a project file on your computer, in ATFRFO or Elementor v4 format. Does not touch your live site.', 'atomic-framework-forge-for-elementor' ); ?>">
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Export / Import — save or load a project file on your computer, in AFF, Elementor v4, Bricks, or Figma format. Does not touch your live site.', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'export' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
 
-			<!-- More — infrequent / backup-ish actions: Preferences, Functions, Print, Help -->
-			<div class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-more">
-				<button class="atfrfo-icon-btn" id="atfrfo-btn-more"
-				        aria-label="<?php esc_attr_e( 'More actions', 'atomic-framework-forge-for-elementor' ); ?>"
+			<!-- GROUP: Tools -->
+			<div class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-functions-top">
+				<button class="atfrfo-icon-btn" id="atfrfo-btn-functions"
 				        aria-haspopup="true"
 				        aria-expanded="false"
-				        data-atfrfo-tooltip="<?php esc_attr_e( 'More', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'More — preferences, functions, print, and help', 'atomic-framework-forge-for-elementor' ); ?>">
+				        aria-label="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>"
+				        data-atfrfo-tooltip="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>"
+				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Functions — change variable types, diagnose and clean up', 'atomic-framework-forge-for-elementor' ); ?>">
+					<?php atfrfo_icon( 'function' ); ?>
+				</button>
+				<ul class="atfrfo-dropdown" id="atfrfo-dropdown-functions-top" role="menu" aria-labelledby="atfrfo-btn-functions">
+					<li class="atfrfo-dropdown__item" data-action="change-types" role="menuitem">
+						<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
+						<span class="atfrfo-badge atfrfo-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
+					</li>
+					<li class="atfrfo-dropdown__item" data-action="diagnose" role="menuitem">
+						<?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>
+					</li>
+				</ul>
+			</div>
+
+			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
+
+			<!-- GROUP: App -->
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-preferences"
+			        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Preferences — app-wide display and behavior settings', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'gear' ); ?>
+			</button>
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-print"
+			        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Print / PDF — generate a printable summary of this project', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'print' ); ?>
+			</button>
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-help"
+			        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Help — quick-start guide and reference', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'help' ); ?>
+			</button>
+
+			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
+
+			<!-- "More" — full icon+label mirror of every button above, same
+			     four groups in the same order, for anyone who wants a labeled
+			     list instead of hover-guessing icons. Each item triggers the
+			     exact same action as its top-bar counterpart (see
+			     atfrfo-panel-top.js _bindButtons — both ids are bound to the
+			     same handler function, not two separate implementations). -->
+			<div class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-more">
+				<button class="atfrfo-icon-btn" id="atfrfo-btn-more"
+				        aria-label="<?php esc_attr_e( 'All actions (with labels)', 'atomic-framework-forge-for-elementor' ); ?>"
+				        aria-haspopup="true"
+				        aria-expanded="false"
+				        data-atfrfo-tooltip="<?php esc_attr_e( 'All Actions', 'atomic-framework-forge-for-elementor' ); ?>"
+				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'All Actions — the same buttons as the toolbar, with labels', 'atomic-framework-forge-for-elementor' ); ?>">
 					<?php atfrfo_icon( 'more' ); ?>
 				</button>
 				<ul class="atfrfo-dropdown" id="atfrfo-dropdown-more" role="menu" aria-labelledby="atfrfo-btn-more">
 					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-btn-preferences" role="menuitem"
-						        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'gear' ); ?></span>
-							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?></span>
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-project-settings" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'grid' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Project Settings', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-project-manager" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'folder-open' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Project Manager', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-history" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'history' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+
+					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
+
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-save-changes" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'save' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-sync" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'sync' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Sync', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-export-import" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'export' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Export / Import', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+
+					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
+
 					<li class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-functions" role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-btn-functions" role="menuitem"
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-functions" role="menuitem"
 						        aria-haspopup="true"
-						        aria-expanded="false"
-						        aria-label="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>">
+						        aria-expanded="false">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'function' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?></span>
 							<span class="atfrfo-dropdown__icon atfrfo-dropdown__submenu-arrow" aria-hidden="true"><?php atfrfo_icon( 'chevron-right' ); ?></span>
 						</button>
-						<ul class="atfrfo-dropdown atfrfo-dropdown--nested" id="atfrfo-dropdown-functions" role="menu" aria-labelledby="atfrfo-btn-functions">
+						<ul class="atfrfo-dropdown atfrfo-dropdown--nested" id="atfrfo-dropdown-functions" role="menu" aria-labelledby="atfrfo-menu-functions">
 							<li class="atfrfo-dropdown__item" data-action="change-types" role="menuitem">
 								<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
 								<span class="atfrfo-badge atfrfo-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
@@ -158,16 +249,23 @@ function atfrfo_icon( string $name ): void {
 							</li>
 						</ul>
 					</li>
+
+					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
+
 					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-btn-print" role="menuitem"
-						        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-preferences" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'gear' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-print" role="menuitem">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'print' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-btn-help" role="menuitem"
-						        aria-label="<?php esc_attr_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?>">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-help" role="menuitem">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'help' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Help', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>

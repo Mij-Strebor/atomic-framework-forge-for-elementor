@@ -175,11 +175,24 @@
 	border-color: var(--atfrfo-clr-accent);
 }
 
-/* Actions — all toolbar buttons, right-anchored */
+/* Actions — all toolbar buttons, right-anchored. Every function got its
+   own always-visible icon 2026-09-02 (previously several lived only inside
+   the "More" dropdown), which measurably overflowed the available width at
+   real browser sizes (confirmed: 1335px of content in a 1263px client area
+   at a 1518px-wide window with the standard WP admin sidebar) before the
+   icon-size and gap reduction below. NOTE: overflow-x:auto was tried here
+   as a safety net and reverted — the More/Functions dropdown panels are
+   position:absolute children of a position:relative wrapper INSIDE this
+   container, so an overflow:auto ancestor clips them along with anything
+   else that would render past the row's edge, which is worse than the
+   overflow it "solves". If the sizing below ever isn't enough again, fix it
+   by shrinking something (icon size, gaps, brand/project width), not by
+   scoping overflow-x here.
+*/
 .atfrfo-top-bar__actions {
 	display:     flex;
 	align-items: center;
-	gap:         2px;
+	gap:         1px;
 	flex-shrink: 0;
 	padding-right: var(--sp-2);
 }
