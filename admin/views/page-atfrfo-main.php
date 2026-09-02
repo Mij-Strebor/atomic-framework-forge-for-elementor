@@ -114,17 +114,17 @@ function atfrfo_icon( string $name ): void {
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
 
 			<!-- GROUP: Data -->
-			<button class="atfrfo-icon-btn atfrfo-icon-btn--save-slot" id="atfrfo-btn-save-changes"
-			        aria-label="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Save Changes — updates the current project file in place, on this server', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php atfrfo_icon( 'save' ); ?>
-			</button>
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-sync"
 			        aria-label="<?php esc_attr_e( 'Sync with Elementor', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Sync', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Sync — import variables from Elementor or export ATFRFO data back to Elementor (V3 and V4). Reads and writes your live site.', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'sync' ); ?>
+			</button>
+			<button class="atfrfo-icon-btn atfrfo-icon-btn--save-slot" id="atfrfo-btn-save-changes"
+			        aria-label="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Save Changes — updates the current project file in place, on this server', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'save' ); ?>
 			</button>
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-export-import"
 			        aria-label="<?php esc_attr_e( 'Export or Import a project file', 'atomic-framework-forge-for-elementor' ); ?>"
@@ -156,9 +156,7 @@ function atfrfo_icon( string $name ): void {
 				</ul>
 			</div>
 
-			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
-
-			<!-- GROUP: App -->
+			<!-- GROUP: App (no separator before this — merged with Tools per Jim's request) -->
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-print"
 			        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
@@ -218,15 +216,15 @@ function atfrfo_icon( string $name ): void {
 					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
 
 					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-menu-save-changes" role="menuitem">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'save' ); ?></span>
-							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?></span>
-						</button>
-					</li>
-					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-menu-sync" role="menuitem">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'sync' ); ?></span>
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Sync', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-save-changes" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'save' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Save Changes', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
 					<li role="none">
@@ -256,8 +254,6 @@ function atfrfo_icon( string $name ): void {
 							</li>
 						</ul>
 					</li>
-
-					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
 
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-menu-print" role="menuitem">
