@@ -79,9 +79,10 @@ function atfrfo_icon( string $name ): void {
 		     mirror of everything here (same groups, same order) for anyone who
 		     wants text instead of an icon to hover-guess. Four functional
 		     groups, separated by the existing vertical-line separators:
-		     Project (this project's identity/container), Data (moving the
-		     current dataset somewhere), Tools (operating on the data), and
-		     App (global, not project-specific). -->
+		     Project (this project's identity/container — name/config,
+		     switching projects, history, and app preferences), Data
+		     (moving the current dataset somewhere), Tools (operating on
+		     the data), and App (Print/Help — not project-specific). -->
 		<div class="atfrfo-top-bar__actions">
 
 			<!-- GROUP: Project -->
@@ -102,6 +103,12 @@ function atfrfo_icon( string $name ): void {
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Change History — past saved states of this project', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'history' ); ?>
+			</button>
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-preferences"
+			        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Preferences — app-wide display and behavior settings', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'gear' ); ?>
 			</button>
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
@@ -152,12 +159,6 @@ function atfrfo_icon( string $name ): void {
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
 
 			<!-- GROUP: App -->
-			<button class="atfrfo-icon-btn" id="atfrfo-btn-preferences"
-			        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
-			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Preferences — app-wide display and behavior settings', 'atomic-framework-forge-for-elementor' ); ?>">
-				<?php atfrfo_icon( 'gear' ); ?>
-			</button>
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-print"
 			        aria-label="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Print / PDF', 'atomic-framework-forge-for-elementor' ); ?>"
@@ -207,6 +208,12 @@ function atfrfo_icon( string $name ): void {
 							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Change History', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
 					</li>
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-preferences" role="menuitem">
+							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'gear' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?></span>
+						</button>
+					</li>
 
 					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
 
@@ -252,12 +259,6 @@ function atfrfo_icon( string $name ): void {
 
 					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
 
-					<li role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-menu-preferences" role="menuitem">
-							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'gear' ); ?></span>
-							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?></span>
-						</button>
-					</li>
 					<li role="none">
 						<button class="atfrfo-dropdown__item" id="atfrfo-menu-print" role="menuitem">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'print' ); ?></span>

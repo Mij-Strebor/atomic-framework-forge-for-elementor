@@ -449,13 +449,15 @@
 	display:  inline-flex;
 }
 
-/* Dropdown panel */
+/* Dropdown panel — 240px min-width (widened from 200px 2026-09-02) so every
+   label in the "More" mirror list ("Project Manager", "Export / Import",
+   "Change History", etc.) fits on one line instead of wrapping. */
 .atfrfo-app .atfrfo-dropdown {
 	display:          none;
 	position:         absolute;
 	top:              calc(100% + 4px);
 	left:             0;
-	min-width:        200px;
+	min-width:        240px;
 	background:       var(--atfrfo-bg-panel);
 	border:           1px solid var(--atfrfo-clr-border);
 	border-radius:    var(--atfrfo-border-radius-md);
@@ -464,6 +466,14 @@
 	margin:           0;
 	padding:          var(--sp-1) 0;
 	z-index:          200;
+}
+
+/* Functions' own items (icon-less, plus a "Soon" badge on one row) need
+   more room than the base 240px to stay one-line — applies to both the
+   standalone top-bar instance and the one nested inside "More". */
+.atfrfo-app #atfrfo-dropdown-functions-top,
+.atfrfo-app .atfrfo-dropdown--nested {
+	min-width: 280px;
 }
 
 .atfrfo-app .atfrfo-dropdown.is-open {
@@ -498,13 +508,15 @@
 	height: 14px;
 }
 
-/* Dropdown item */
+/* Dropdown item — vertical padding tightened from var(--sp-2) (8px) to 5px
+   2026-09-02 so consecutive one-line items sit close together instead of
+   reading as if there's a blank line between each. */
 .atfrfo-app .atfrfo-dropdown__item {
 	display:         flex;
 	align-items:     center;
 	justify-content: space-between;
 	gap:             var(--sp-3);
-	padding:         var(--sp-2) var(--sp-4);
+	padding:         5px var(--sp-4);
 	font-size:       var(--fs-sm);
 	color:           var(--atfrfo-clr-primary);
 	cursor:          pointer;
