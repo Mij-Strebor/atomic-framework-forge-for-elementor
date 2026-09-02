@@ -135,26 +135,17 @@ function atfrfo_icon( string $name ): void {
 
 			<span class="atfrfo-toolbar-sep" aria-hidden="true"></span>
 
-			<!-- GROUP: Tools -->
-			<div class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-functions-top">
-				<button class="atfrfo-icon-btn" id="atfrfo-btn-functions"
-				        aria-haspopup="true"
-				        aria-expanded="false"
-				        aria-label="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-atfrfo-tooltip="<?php esc_attr_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?>"
-				        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Functions — change variable types, diagnose and clean up', 'atomic-framework-forge-for-elementor' ); ?>">
-					<?php atfrfo_icon( 'function' ); ?>
-				</button>
-				<ul class="atfrfo-dropdown" id="atfrfo-dropdown-functions-top" role="menu" aria-labelledby="atfrfo-btn-functions">
-					<li class="atfrfo-dropdown__item" data-action="change-types" role="menuitem">
-						<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
-						<span class="atfrfo-badge atfrfo-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
-					</li>
-					<li class="atfrfo-dropdown__item" data-action="diagnose" role="menuitem">
-						<?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>
-					</li>
-				</ul>
-			</div>
+			<!-- GROUP: Tools — was a dropdown (Change Variable Types + Diagnose
+			     & Clean Up); Change Variable Types removed 2026-09-02 (it was
+			     a "Coming in a future release" stub, not a real feature — see
+			     Jim's request), which left only one real item, so this is now
+			     a direct button instead of a one-item dropdown. -->
+			<button class="atfrfo-icon-btn" id="atfrfo-btn-functions"
+			        aria-label="<?php esc_attr_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip="<?php esc_attr_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>"
+			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Diagnose &amp; Clean Up — find and remove duplicate variables or categories', 'atomic-framework-forge-for-elementor' ); ?>">
+				<?php atfrfo_icon( 'function' ); ?>
+			</button>
 
 			<!-- GROUP: App (no separator before this — merged with Tools per Jim's request) -->
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-print"
@@ -236,23 +227,11 @@ function atfrfo_icon( string $name ): void {
 
 					<li class="atfrfo-dropdown__divider" role="separator" aria-hidden="true"></li>
 
-					<li class="atfrfo-dropdown-wrap" id="atfrfo-dropdown-wrap-functions" role="none">
-						<button class="atfrfo-dropdown__item" id="atfrfo-menu-functions" role="menuitem"
-						        aria-haspopup="true"
-						        aria-expanded="false">
+					<li role="none">
+						<button class="atfrfo-dropdown__item" id="atfrfo-menu-functions" role="menuitem">
 							<span class="atfrfo-dropdown__icon" aria-hidden="true"><?php atfrfo_icon( 'function' ); ?></span>
-							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Functions', 'atomic-framework-forge-for-elementor' ); ?></span>
-							<span class="atfrfo-dropdown__icon atfrfo-dropdown__submenu-arrow" aria-hidden="true"><?php atfrfo_icon( 'chevron-right' ); ?></span>
+							<span class="atfrfo-dropdown__label"><?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?></span>
 						</button>
-						<ul class="atfrfo-dropdown atfrfo-dropdown--nested" id="atfrfo-dropdown-functions" role="menu" aria-labelledby="atfrfo-menu-functions">
-							<li class="atfrfo-dropdown__item" data-action="change-types" role="menuitem">
-								<?php esc_html_e( 'Change Variable Types', 'atomic-framework-forge-for-elementor' ); ?>
-								<span class="atfrfo-badge atfrfo-badge--soon"><?php esc_html_e( 'Soon', 'atomic-framework-forge-for-elementor' ); ?></span>
-							</li>
-							<li class="atfrfo-dropdown__item" data-action="diagnose" role="menuitem">
-								<?php esc_html_e( 'Diagnose &amp; Clean Up', 'atomic-framework-forge-for-elementor' ); ?>
-							</li>
-						</ul>
 					</li>
 
 					<li role="none">

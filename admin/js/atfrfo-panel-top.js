@@ -240,6 +240,12 @@
           }
         },
         "atfrfo-btn-help": self._openHelp.bind(self),
+        // Was a "Functions" dropdown (Change Variable Types + Diagnose &
+        // Clean Up); Change Variable Types removed 2026-09-02 (a "Coming in
+        // a future release" stub, not a real feature), leaving only one
+        // real item — no reason for a one-item dropdown, so this is now a
+        // direct action like every other single-purpose button.
+        "atfrfo-btn-functions": self._openDiagnostics.bind(self),
       };
 
       Object.keys(bindings).forEach(function (id) {
@@ -255,8 +261,6 @@
       // guaranteeing identical behavior (including disabled/dirty-state
       // gating owned elsewhere, e.g. Save Changes in atfrfo-panel-right.js,
       // Print in atfrfo-print.js) without duplicating each handler here.
-      // Functions is excluded — it's a submenu toggle, not a single action,
-      // handled separately below.
       var mirrorMap = {
         "atfrfo-menu-project-settings": "atfrfo-btn-project-settings",
         "atfrfo-menu-project-manager": "atfrfo-btn-project-manager",
@@ -265,6 +269,7 @@
         "atfrfo-menu-sync": "atfrfo-btn-sync",
         "atfrfo-menu-export-import": "atfrfo-btn-export-import",
         "atfrfo-menu-preferences": "atfrfo-btn-preferences",
+        "atfrfo-menu-functions": "atfrfo-btn-functions",
         "atfrfo-menu-print": "atfrfo-btn-print",
         "atfrfo-menu-help": "atfrfo-btn-help",
       };
@@ -278,97 +283,7 @@
         }
       });
 
-      // Functions exists twice — standalone in the top bar, and mirrored
-      // inside "More" — each its own trigger + dropdown pair.
-      this._bindFunctionsDropdown("atfrfo-btn-functions", "atfrfo-dropdown-functions-top");
-      this._bindFunctionsDropdown("atfrfo-menu-functions", "atfrfo-dropdown-functions");
       this._bindMoreBtn();
-    },
-
-    // ------------------------------------------------------------------
-    // FUNCTIONS DROPDOWN — bound twice (see _bindButtons): once for the
-    // standalone top-bar button, once for the copy nested inside "More".
-    // ------------------------------------------------------------------
-
-    /**
-     * Bind one Functions dropdown instance's toggle and item clicks.
-     *
-     * @param {string} btnId      Trigger button id.
-     * @param {string} dropdownId Its dropdown panel id.
-     * @private
-     */
-    _bindFunctionsDropdown: function (btnId, dropdownId) {
-      var self = this;
-      var btn = document.getElementById(btnId);
-      var dropdown = document.getElementById(dropdownId);
-
-      if (!btn || !dropdown) {
-        return;
-      }
-
-      // Toggle dropdown on button click. The nested-in-More instance must
-      // NOT close its parent "More" panel here (stopPropagation handles
-      // that — see the comment on #atfrfo-dropdown-more's own item-click
-      // listener in _bindMoreBtn), or opening this submenu would instantly
-      // hide the panel it lives in.
-      btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        var isOpen = dropdown.classList.contains("is-open");
-        dropdown.classList.remove("is-open");
-        btn.setAttribute("aria-expanded", "false");
-        if (!isOpen) {
-          dropdown.classList.add("is-open");
-          btn.setAttribute("aria-expanded", "true");
-        }
-      });
-
-      // Close on click outside.
-      document.addEventListener("click", function () {
-        dropdown.classList.remove("is-open");
-        btn.setAttribute("aria-expanded", "false");
-      });
-
-      // Item clicks. stopPropagation() here means these clicks never reach
-      // #atfrfo-dropdown-more's own item-click listener, so the parent
-      // "More" panel (when this is the nested instance) is closed
-      // explicitly too — completing a nested action should collapse the
-      // whole thing, not just the submenu. Harmless no-op for the
-      // standalone top-bar instance, which has no "More" parent.
-      dropdown.addEventListener("click", function (e) {
-        var item = e.target.closest(".atfrfo-dropdown__item");
-        if (!item) {
-          return;
-        }
-        e.stopPropagation();
-        dropdown.classList.remove("is-open");
-        btn.setAttribute("aria-expanded", "false");
-        self._closeMoreDropdown();
-        var action = item.getAttribute("data-action");
-        if (action === "change-types") {
-          self._openChangeTypes();
-        } else if (action === "diagnose") {
-          self._openDiagnostics();
-        }
-      });
-    },
-
-    /**
-     * Close both Functions dropdown instances (standalone + nested-in-More).
-     * @private
-     */
-    _closeFunctionsDropdown: function () {
-      ["atfrfo-btn-functions", "atfrfo-menu-functions"].forEach(function (btnId) {
-        var btn = document.getElementById(btnId);
-        if (btn) {
-          btn.setAttribute("aria-expanded", "false");
-        }
-      });
-      ["atfrfo-dropdown-functions-top", "atfrfo-dropdown-functions"].forEach(function (id) {
-        var dropdown = document.getElementById(id);
-        if (dropdown) {
-          dropdown.classList.remove("is-open");
-        }
-      });
     },
 
     // ------------------------------------------------------------------
@@ -377,9 +292,8 @@
 
     /**
      * Bind the "More" dropdown toggle. Every mirrored item's own click
-     * handling is bound in _bindButtons (mirrorMap) and _bindFunctionsDropdown
-     * — this only opens/closes the panel itself, and resets the nested
-     * Functions instance so it never starts pre-expanded.
+     * handling is bound in _bindButtons (mirrorMap) — this only opens/closes
+     * the panel itself.
      * @private
      */
     _bindMoreBtn: function () {
@@ -395,7 +309,6 @@
         e.stopPropagation();
         var isOpen = dropdown.classList.contains("is-open");
         self._closeMoreDropdown();
-        self._closeFunctionsDropdown();
         if (!isOpen) {
           dropdown.classList.add("is-open");
           btn.setAttribute("aria-expanded", "true");
@@ -425,30 +338,6 @@
       }
       if (btn) {
         btn.setAttribute("aria-expanded", "false");
-      }
-    },
-
-    /**
-     * Placeholder modal — Change Variable Types.
-     * @private
-     */
-    _openChangeTypes: function () {
-      ATFRFO.Modal.open(
-        "Change Variable Types",
-        '<p style="color:var(--atfrfo-clr-secondary);line-height:1.6">' +
-          "This tool will let you bulk-change the type (format) of selected variables — " +
-          "for example, converting a group of HEX colors to RGBA." +
-          "</p>" +
-          '<p style="margin-top:12px;color:var(--atfrfo-clr-muted);font-size:var(--fs-sm)">' +
-          "Coming in a future release." +
-          "</p>",
-        '<button class="atfrfo-btn" id="atfrfo-modal-close-btn">Close</button>',
-      );
-      var closeBtn = document.getElementById("atfrfo-modal-close-btn");
-      if (closeBtn) {
-        closeBtn.addEventListener("click", function () {
-          ATFRFO.Modal.close();
-        });
       }
     },
 
