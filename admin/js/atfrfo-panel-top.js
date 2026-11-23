@@ -233,7 +233,6 @@
             ATFRFO.PanelRight._openProjectPicker();
           }
         },
-        "atfrfo-btn-history": self._openHistory.bind(self),
         "atfrfo-btn-export-import": function () {
           if (ATFRFO.ExportImport && ATFRFO.ExportImport.open) {
             ATFRFO.ExportImport.open();
@@ -264,7 +263,6 @@
       var mirrorMap = {
         "atfrfo-menu-project-settings": "atfrfo-btn-project-settings",
         "atfrfo-menu-project-manager": "atfrfo-btn-project-manager",
-        "atfrfo-menu-history": "atfrfo-btn-history",
         "atfrfo-menu-save-changes": "atfrfo-btn-save-changes",
         "atfrfo-menu-sync": "atfrfo-btn-sync",
         "atfrfo-menu-export-import": "atfrfo-btn-export-import",
@@ -1391,13 +1389,6 @@
     // (ATFRFO.ExportImport) \u2014 now a format-selector modal covering both the
     // ATFRFO Project (.atfrfo.json) format previously built here and the new
     // Elementor v4 native format.
-
-    _openHistory: function () {
-      ATFRFO.Modal.open({
-        title: "Change history",
-        body: "<p>Change history is planned for a future release.</p>",
-      });
-    },
 
     _openHelp: function () {
       if (ATFRFO.EditSpace && ATFRFO.EditSpace.showInfoPanel) {

@@ -98,11 +98,6 @@ function atfrfo_icon( string $name ): void {
 			        data-atfrfo-tooltip-long="<?php esc_attr_e( 'Project Manager — open, create, rename, copy, or delete projects and restore from backups', 'atomic-framework-forge-for-elementor' ); ?>">
 				<?php atfrfo_icon( 'folder-open' ); ?>
 			</button>
-			<!-- Change History button (#atfrfo-btn-history) hidden until the
-			     feature exists — it only opened a "planned for a future
-			     release" notice. Handler _openHistory() is kept in
-			     atfrfo-panel-top.js; restore this button and its More-menu
-			     mirror together when the feature ships. -->
 			<button class="atfrfo-icon-btn" id="atfrfo-btn-preferences"
 			        aria-label="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
 			        data-atfrfo-tooltip="<?php esc_attr_e( 'Preferences', 'atomic-framework-forge-for-elementor' ); ?>"
