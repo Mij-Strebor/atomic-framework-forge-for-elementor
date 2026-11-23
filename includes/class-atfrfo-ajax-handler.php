@@ -1208,6 +1208,20 @@ class ATFRFO_Ajax_Handler {
 
 			if ( is_string( $raw ) && '' !== $raw ) {
 				$meta = json_decode( $raw, true );
+				// Unreadable meta must abort, never fall through to the empty
+				// default below — writing that back would erase every Elementor
+				// variable AFF doesn't manage (P-AFF-001).
+				if ( ! is_array( $meta ) ) {
+					wp_send_json_error(
+						array(
+							'message' => sprintf(
+								/* translators: %s: JSON error message */
+								__( 'Commit cancelled: Elementor\'s saved variables could not be read (%s). Nothing was written.', 'atomic-framework-forge-for-elementor' ),
+								json_last_error_msg()
+							),
+						)
+					);
+				}
 			} else {
 				$meta = is_array( $raw ) ? $raw : array();
 			}
@@ -1356,7 +1370,10 @@ class ATFRFO_Ajax_Handler {
 
 			$encoded = wp_json_encode( $meta );
 			if ( false !== $encoded ) {
-				update_post_meta( $kit_id, '_elementor_global_variables', $encoded );
+				// update_post_meta() unslashes its value; without wp_slash() the
+				// backslashes escaping quotes inside the JSON are stripped and the
+				// meta becomes unparsable. Matches Elementor's own update_json_meta().
+				update_post_meta( $kit_id, '_elementor_global_variables', wp_slash( $encoded ) );
 				$meta_ok = true;
 				// Clear Elementor's CSS cache so it regenerates from the updated meta.
 				$this->clear_elementor_css_cache();
