@@ -113,6 +113,9 @@ atomic-framework-forge-for-elementor/
 
 ## Critical Rules — Read These First
 
+### 0. Ask before writing any code file (Jim, 2026-11-22)
+Reading anything in AFF is free. Writing in `.claude\` and documentation is free. Every write to a code file (PHP, JS, CSS, views, data) needs Jim's explicit approval of that specific change first. A question or discussion reply is not approval.
+
 ### 1. ATFRFO_CSS_Parser is read-only — write-back lives only in the AJAX handler
 `class-atfrfo-css-parser.php` only reads `post-{id}.css`. It **never writes to, modifies, or regenerates** Elementor's stylesheets.
 
