@@ -37,21 +37,18 @@ ATFRFO is a WordPress admin plugin that provides a management interface for **El
 
 ## Test Environment
 
-**Corrected 2026-08-03** — this section previously named a different, stale
-Local site (`site`); confirmed via direct WP-CLI use that ATFRFO actually runs
-on `claude-wordpress-integration-novamira`, the same Local install used for
-JimRForge website/NovaMira work. Both purposes share this one site.
+**Replaced 2026-11-23.** The old site `claude-wordpress-integration-novamira`
+(localhost:10011, Elementor 4.2.4) is retired for AFF testing. AFF has its own
+dedicated, up-to-date Local site (WP 7.1.5, Elementor + Pro 4.4.1 at creation).
 
-- **WP site:** `claude-wordpress-integration-novamira` (Local by Flywheel)
-- **WP root:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public`
-- **Plugins dir:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/plugins`
-- **Uploads/ATFRFO data:** `C:/Users/Owner/Local Sites/claude-wordpress-integration-novamira/app/public/wp-content/uploads/atfrfo/`
-- **Symlink target:** `E:/projects/plugins/aff`
-- **Symlink creation** requires Administrator CMD:
-  ```cmd
-  mklink /D "C:\Users\Owner\Local Sites\claude-wordpress-integration-novamira\app\public\wp-content\plugins\atomic-framework-forge-for-elementor" "E:\projects\plugins\aff"
-  ```
-- **WP Admin:** `http://localhost:10011/wp-admin/`
+- **WP site:** `atomic-framework-forge` (Local), title "Atomic Framework Forge"
+- **WP Admin:** `http://localhost:10089/wp-admin/` (login `jim`)
+- **WP root:** `C:/Users/Owner/Local Sites/atomic-framework-forge/app/public`
+- **Plugins dir:** `C:/Users/Owner/Local Sites/atomic-framework-forge/app/public/wp-content/plugins`
+- **Uploads/ATFRFO data:** `C:/Users/Owner/Local Sites/atomic-framework-forge/app/public/wp-content/uploads/atfrfo/`
+- **Symlink:** `plugins\atomic-framework-forge-for-elementor` → `E:\projects\plugins\aff` (verified SymbolicLink 2026-11-23). Whatever branch is checked out is what this site runs.
+- **MCP:** `novamira-local-aff` (NovaMira 1.12.16 + Pro 1.8.0), defined in `C:\Users\Owner\.claude.json` under both `projects` → `"E:/projects/plugins/aff"` (AFF sessions; resumed sessions reopen in their original folder) and `"C:/Users/Owner"`.
+- **Debug log:** `C:/Users/Owner/Local Sites/atomic-framework-forge/app/public/wp-content/debug.log`
 
 ---
 
